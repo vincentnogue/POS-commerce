@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply font-sans antialiased bg-ink-50 text-ink-900;
+  }
+  * {
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-action-500 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition-all hover:bg-action-600 hover:shadow-float active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink-200 bg-white px-5 py-2.5 text-sm font-semibold text-ink-800 transition-all hover:border-brand-300 hover:bg-brand-50 active:scale-[0.98];
+  }
+  .btn-flow {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-flow-500 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition-all hover:bg-flow-600 hover:shadow-float active:scale-[0.98];
+  }
+  .card {
+    @apply rounded-2xl2 border border-ink-200 bg-white;
+  }
+  .input {
+    @apply w-full rounded-xl border border-ink-200 bg-white px-3.5 py-2.5 text-sm text-ink-900 placeholder:text-ink-400 transition-colors focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100;
+  }
+  .label {
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-600;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold;
+  }
+}
+
+/* Thin scrollbar for sidebar */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #C2CCC4 transparent;
+}
+.scroll-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: #C2CCC4; border-radius: 999px; }
+.scroll-thin::-webkit-scrollbar-track { background: transparent; }
+
+/* Grid background pattern */
+.bg-grid {
+  background-image: linear-gradient(rgba(46, 140, 102, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(46, 140, 102, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Gradient text */
+.text-gradient-flow {
+  background: linear-gradient(120deg, #2E8C66 0%, #14B594 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Dark mode tweaks */
+.dark body { @apply bg-ink-900 text-ink-100; }
+.dark .card { @apply border-ink-700 bg-ink-800; }
+.dark .input { @apply border-ink-700 bg-ink-800 text-ink-100 placeholder:text-ink-500; }
+.dark .btn-ghost { @apply border-ink-700 bg-ink-800 text-ink-100 hover:border-brand-400 hover:bg-ink-700; }

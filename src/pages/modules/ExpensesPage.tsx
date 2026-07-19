@@ -1,0 +1,154 @@
+import { useEffect, useState, useMemo } from 'react';
+import { Plus, Wallet, Download, Trash2, Pencil } from 'lucide-react';
+import { useAuth } from '../../lib/auth';
+import { supabase } from '../../lib/supabase';
+import { formatMoney } from '../../lib/localization';
+import { PageHeader, Modal, EmptyState, StatCard } from '../../components/ui';
+import { DataTable, SearchInput, Select, Field, exportCSV } from '../../components/DataTable';
+import type { Expense, Store, Supplier } from '../../lib/types';
+
+const CATEGORIES = ['Loyer', 'Salaires', 'Électricité', 'Eau', 'Transport', 'Marketing', 'Fournitures', 'Maintenance', 'Impôts', 'Autre'];
+const EMPTY = { description: '', amount: 0, category: CATEGORIES[0], payment_method: 'cash', store_id: '', supplier_id: '', expense_date: new Date().toISOString().slice(0, 10), notes: '' };
+
+export function ExpensesPage() {
+  const { tenant } = useAuth();
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [search, setSearch] = useState('');
+  const [catFilter, setCatFilter] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<Expense | null>(null);
+  const [form, setForm] = useState<any>(EMPTY);
+
+  const currency = tenant?.currency ?? 'XOF';
+
+  useEffect(() => { (async () => {
+    if (!tenant) return;
+    const [e, s, sup] = await Promise.all([
+      supabase.from('expenses').select('*').eq('tenant_id', tenant.id).order('expense_date', { ascending: false }),
+      supabase.from('stores').select('*').eq('tenant_id', tenant.id),
+      supabase.from('suppliers').select('*').eq('tenant_id', tenant.id),
+    ]);
+    setExpenses((e.data as Expense[]) ?? []);
+    setStores((s.data as Store[]) ?? []);
+    setSuppliers((sup.data as Supplier[]) ?? []);
+    setLoading(false);
+  })(); }, [tenant]);
+
+  const filtered = useMemo(() => expenses.filter((x) => {
+    const q = search.toLowerCase().trim();
+    return (!q || x.description.toLowerCase().includes(q) || x.category?.toLowerCase().includes(q)) && (!catFilter || x.category === catFilter);
+  }), [expenses, search, catFilter]);
+
+  const totalMonth = expenses.filter((e) => new Date(e.expense_date) >= new Date(new Date().getFullYear(), new Date().getMonth(), 1)).reduce((s, e) => s + Number(e.amount), 0);
+  const totalAll = expenses.reduce((s, e) => s + Number(e.amount), 0);
+
+  const openNew = () => { setEditing(null); setForm({ ...EMPTY, store_id: stores[0]?.id ?? '' }); setModalOpen(true); };
+  const openEdit = (e: Expense) => { setEditing(e); setForm({ description: e.description, amount: Number(e.amount), category: e.category ?? CATEGORIES[0], payment_method: e.payment_method ?? 'cash', store_id: e.store_id ?? '', supplier_id: e.supplier_id ?? '', expense_date: e.expense_date, notes: e.notes ?? '' }); setModalOpen(true); };
+
+  const save = async () => {
+    if (!tenant || !form.description.trim()) return;
+    const payload = { tenant_id: tenant.id, description: form.description.trim(), amount: Number(form.amount), category: form.category, payment_method: form.payment_method, store_id: form.store_id || null, supplier_id: form.supplier_id || null, expense_date: form.expense_date, notes: form.notes || null };
+    if (editing) await supabase.from('expenses').update(payload).eq('id', editing.id);
+    else await supabase.from('expenses').insert(payload);
+    setModalOpen(false);
+    const { data } = await supabase.from('expenses').select('*').eq('tenant_id', tenant.id).order('expense_date', { ascending: false });
+    setExpenses((data as Expense[]) ?? []);
+  };
+
+  const remove = async (e: Expense) => {
+    if (!confirm('Supprimer cette dépense ?')) return;
+    await supabase.from('expenses').delete().eq('id', e.id);
+    setExpenses((list) => list.filter((x) => x.id !== e.id));
+  };
+
+  return (
+    <div>
+      <PageHeader
+        title="Dépenses"
+        subtitle="Suivez vos dépenses opérationnelles."
+        action={
+          <div className="flex gap-2">
+            <button onClick={() => exportCSV('depenses.csv', filtered.map((e) => ({ date: e.expense_date, description: e.description, categorie: e.category, montant: e.amount, paiement: e.payment_method })))} className="btn-ghost"><Download size={16} /> Export</button>
+            <button onClick={openNew} className="btn-primary"><Plus size={16} /> Nouvelle dépense</button>
+          </div>
+        }
+      />
+      <div className="mb-6 grid gap-4 sm:grid-cols-2">
+        <StatCard label="Dépenses du mois" value={formatMoney(totalMonth, currency)} icon={Wallet} tone="action" />
+        <StatCard label="Total cumulé" value={formatMoney(totalAll, currency)} icon={Wallet} tone="brand" />
+      </div>
+      <div className="card p-5">
+        <div className="mb-4 flex flex-wrap gap-3">
+          <SearchInput value={search} onChange={setSearch} />
+          <Select value={catFilter} onChange={setCatFilter} placeholder="Toutes catégories" options={CATEGORIES.map((c) => ({ value: c, label: c }))} />
+        </div>
+        {filtered.length === 0 && !loading ? (
+          <EmptyState icon={Wallet} title="Aucune dépense" description="Enregistrez vos dépenses pour suivre votre rentabilité." action={<button onClick={openNew} className="btn-primary"><Plus size={15} /> Ajouter</button>} />
+        ) : (
+          <DataTable
+            loading={loading}
+            columns={[
+              { key: 'date', label: 'Date', render: (e) => <span className="text-ink-500">{new Date(e.expense_date).toLocaleDateString('fr-FR')}</span> },
+              { key: 'description', label: 'Description', render: (e) => <span className="font-medium text-ink-900">{e.description}</span> },
+              { key: 'category', label: 'Catégorie', render: (e) => <span className="rounded-md bg-ink-100 px-2 py-0.5 text-xs text-ink-700">{e.category ?? '—'}</span> },
+              { key: 'method', label: 'Paiement', render: (e) => <span className="text-ink-500">{e.payment_method ?? '—'}</span> },
+              { key: 'amount', label: 'Montant', className: 'text-right', render: (e) => <span className="font-semibold text-ink-900">{formatMoney(e.amount, currency)}</span> },
+              { key: 'actions', label: '', className: 'text-right', render: (e) => (
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => openEdit(e)} className="rounded-lg p-1.5 text-ink-500 hover:bg-brand-50 hover:text-brand-600"><Pencil size={15} /></button>
+                  <button onClick={() => remove(e)} className="rounded-lg p-1.5 text-ink-500 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>
+                </div>
+              )},
+            ]}
+            rows={filtered}
+          />
+        )}
+      </div>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Modifier la dépense' : 'Nouvelle dépense'}>
+        <div className="space-y-4">
+          <Field label="Description"><input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input" /></Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Montant"><input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="input" /></Field>
+            <Field label="Date"><input type="date" value={form.expense_date} onChange={(e) => setForm({ ...form, expense_date: e.target.value })} className="input" /></Field>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Catégorie">
+              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="input">
+                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </Field>
+            <Field label="Paiement">
+              <select value={form.payment_method} onChange={(e) => setForm({ ...form, payment_method: e.target.value })} className="input">
+                <option value="cash">Espèces</option>
+                <option value="card">Carte</option>
+                <option value="mobile_money">Mobile Money</option>
+                <option value="transfer">Virement</option>
+              </select>
+            </Field>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Magasin">
+              <select value={form.store_id} onChange={(e) => setForm({ ...form, store_id: e.target.value })} className="input">
+                <option value="">—</option>
+                {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </Field>
+            <Field label="Fournisseur">
+              <select value={form.supplier_id} onChange={(e) => setForm({ ...form, supplier_id: e.target.value })} className="input">
+                <option value="">—</option>
+                {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </Field>
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end gap-2">
+          <button onClick={() => setModalOpen(false)} className="btn-ghost">Annuler</button>
+          <button onClick={save} className="btn-primary">{editing ? 'Enregistrer' : 'Créer'}</button>
+        </div>
+      </Modal>
+    </div>
+  );
+}
