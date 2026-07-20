@@ -15,7 +15,7 @@ export function PrivacyPage() {
         <p>Nous collectons les données suivantes dans le cadre de la fourniture du service :</p>
         <ul className="list-disc pl-6 space-y-1">
           <li>Identité de l'entreprise (nom, pays, ville, devise) et informations de facturation.</li>
-          <li>Données d'authentification (email, mot de passe chiffré) via Supabase Auth.</li>
+          <li>Données d'authentification (email, mot de passe chiffré de manière sécurisée).</li>
           <li>Données opérationnelles saisies par l'utilisateur (produits, clients, ventes, factures, stock).</li>
           <li>Données de navigation (cookies analytiques, sous réserve de votre consentement).</li>
         </ul>
@@ -38,7 +38,7 @@ export function PrivacyPage() {
 
       <section>
         <h2 className="text-xl font-bold text-ink-900">6. Hébergement et sécurité</h2>
-        <p>Les données sont hébergées sur les infrastructures de Supabase (PostgreSQL) et de fournisseurs cloud respectant les standards de sécurité. Toutes les communications sont chiffrées en TLS. L'accès aux données est strictement limité par des politiques RLS (Row Level Security) au niveau base de données.</p>
+        <p>Les données sont hébergées sur des infrastructures cloud sécurisées respectant les standards internationaux. Toutes les communications sont chiffrées en TLS. L'accès aux données est strictement isolé entre les entreprises clientes par des mécanismes de sécurité au niveau base de données.</p>
       </section>
 
       <section>

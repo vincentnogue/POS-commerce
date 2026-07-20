@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Clock, Check, AlertCircle, CreditCard, Sparkles } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { useAuth } from '../lib/auth';
+import { supabase } from '../lib/supabase';
 import { PLANS, annualPrice } from '../lib/plans';
 
 export function SubscribePage() {
@@ -10,12 +11,40 @@ export function SubscribePage() {
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
 
-  const startCheckout = async (_planCode: string) => {
+  const startCheckout = async (planCode: string) => {
+    if (!tenant) return;
     setLoading(true);
     setError(null);
-    setError('Le paiement Stripe sera disponible ici. Votre essai continue en attendant.');
-    setLoading(false);
+    setCheckoutPlan(planCode);
+    try {
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-checkout`;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionData.session?.access_token ?? ''}`,
+          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          plan_code: planCode,
+          billing,
+          tenant_id: tenant.id,
+          success_url: `${window.location.origin}/dashboard?upgraded=1`,
+          cancel_url: `${window.location.origin}/subscribe?canceled=1`,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) { setError(json.error ?? "Erreur lors de l'initialisation du paiement."); return; }
+      if (json.url) window.location.href = json.url;
+    } catch (e: any) {
+      setError(e.message ?? 'Erreur de connexion au système de paiement.');
+    } finally {
+      setLoading(false);
+      setCheckoutPlan(null);
+    }
   };
 
   return (
@@ -102,7 +131,7 @@ export function SubscribePage() {
                   disabled={loading}
                   className={`mt-6 w-full justify-center py-3 ${plan.highlight ? 'btn-primary' : 'btn-ghost border-brand-200 text-brand-700'}`}
                 >
-                  <CreditCard size={15} /> Choisir {plan.name}
+                  {loading && checkoutPlan === plan.code ? 'Redirection…' : <><CreditCard size={15} /> Choisir {plan.name}</>}
                 </button>
               </motion.div>
             );

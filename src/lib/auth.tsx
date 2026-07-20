@@ -11,6 +11,12 @@ type AuthUser = {
   email: string;
 };
 
+const PLATFORM_ADMIN_EMAILS = [
+  'vincentnogue2@gmail.com',
+  'vincentnogue@yahoo.com',
+  'webdxb1@gmail.com',
+];
+
 type AuthContextValue = {
   user: AuthUser | null;
   member: Member | null;
@@ -22,6 +28,7 @@ type AuthContextValue = {
   loading: boolean;
   subscription: Subscription | null;
   access: ReturnType<typeof computeAccess>;
+  isPlatformAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string) => Promise<{ error: string | null; data: any }>;
   signOut: () => Promise<void>;
@@ -166,6 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const role: Role = (member?.role ?? 'staff') as Role;
   const builtInPerms = DEFAULT_PERMISSIONS[role] ?? DEFAULT_PERMISSIONS.staff;
   const isSuperAdmin = role === 'super_admin';
+  const isPlatformAdmin = isSuperAdmin && !!user?.email && PLATFORM_ADMIN_EMAILS.includes(user.email.toLowerCase());
   // Custom role permissions override built-in defaults for non-admin roles
   const permissions: Permissions = (role === 'admin' || role === 'super_admin')
     ? builtInPerms
@@ -185,7 +193,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        user, member, tenant, tenants, permissions, customRole, can, loading, subscription, access,
+        user, member, tenant, tenants, permissions, customRole, can, loading, subscription, access, isPlatformAdmin,
         signIn, signUp, signOut, refreshProfile, switchTenant, activeTenantId,
       }}
     >

@@ -36,6 +36,7 @@ import { AccountingPage } from './pages/modules/AccountingPage';
 import { UsersPage } from './pages/modules/UsersPage';
 import { AdministrationPage } from './pages/modules/AdministrationPage';
 import { SettingsPage } from './pages/modules/SettingsPage';
+import { SuperAdminPage } from './pages/modules/SuperAdminPage';
 
 export default function App() {
   return (
@@ -77,6 +78,7 @@ export default function App() {
                 <Route path="/users" element={<UsersPage />} />
                 <Route path="/administration" element={<AdministrationPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/superadmin" element={<SuperAdminPage />} />
               </Route>
 
               <Route path="*" element={<Navigate to="/" replace />} />

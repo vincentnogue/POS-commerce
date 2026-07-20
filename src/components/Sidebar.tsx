@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, ShoppingCart, Package, Boxes, Store,
   FileText, Truck, Users, Building2, Receipt, Wallet, ClipboardList,
-  FileBarChart, Calculator, UserCog, Settings, Shield,
+  FileBarChart, Calculator, UserCog, Settings, Shield, Crown,
   ChevronDown, LogOut, X, Globe,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
@@ -37,6 +37,7 @@ const NAV: NavItem[] = [
   { to: '/users', label: 'Utilisateurs', icon: UserCog, module: 'users' },
   { to: '/administration', label: 'Administration', icon: Shield, module: 'administration' },
   { to: '/settings', label: 'Paramètres', icon: Settings, module: 'settings' },
+  { to: '/superadmin', label: 'Super Admin', icon: Crown, module: 'administration', superAdminOnly: true },
 ];
 
 const ROLE_LABELS: Record<Role, string> = {
@@ -68,9 +69,10 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
   const navigate = useNavigate();
 
   const isSuperAdmin = member?.role === 'super_admin';
+  const { isPlatformAdmin } = useAuth();
 
   const filteredNav = NAV.filter((item) => {
-    if (item.superAdminOnly && !isSuperAdmin) return false;
+    if (item.superAdminOnly && !(isSuperAdmin || isPlatformAdmin)) return false;
     return true;
   });
 

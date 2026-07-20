@@ -19,11 +19,7 @@ export function LegalPage() {
 
       <section>
         <h2 className="text-xl font-bold text-ink-900">Hébergement</h2>
-        <p>La plateforme est hébergée sur les infrastructures de :</p>
-        <ul className="list-disc pl-6 space-y-1">
-          <li><strong>Supabase</strong> (base de données PostgreSQL, authentification, edge functions) — opérateur cloud global.</li>
-          <li><strong>Vercel / Netlify</strong> (front-end et CDN) — déploiement et distribution statique.</li>
-        </ul>
+        <p>La plateforme est hébergée sur des infrastructures cloud sécurisées opérées par des fournisseurs respectant les standards internationaux en matière de protection des données. Toutes les communications sont chiffrées. Les données sont stockées dans des centres de données certifiés.</p>
       </section>
 
       <section>
