@@ -342,29 +342,71 @@ function SuperAudit() {
   );
 }
 
-function TeamRoles(_props: { tenantId: string }) {
+function TeamRoles({ tenantId }: { tenantId: string }) {
+  const [members, setMembers] = useState<any[]>([]);
+  const [salesByUser, setSalesByUser] = useState<Record<string, number>>({});
+  const [roleLabels, setRoleLabels] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    (async () => {
+      if (!tenantId) return;
+      const [m, s, r] = await Promise.all([
+        supabase.from('tenant_members').select('*').eq('tenant_id', tenantId),
+        supabase.from('sales').select('user_id, total, sale_date').eq('tenant_id', tenantId),
+        supabase.from('custom_roles').select('id, name').eq('tenant_id', tenantId),
+      ]);
+      const salesMap: Record<string, number> = {};
+      (s.data ?? []).forEach((sale: any) => {
+        if (sale.user_id) {
+          salesMap[sale.user_id] = (salesMap[sale.user_id] ?? 0) + 1;
+        }
+      });
+      setSalesByUser(salesMap);
+      const rl: Record<string, string> = {};
+      (r.data ?? []).forEach((role: any) => { rl[role.id] = role.name; });
+      setRoleLabels(rl);
+      setMembers(m.data ?? []);
+    })();
+  }, [tenantId]);
+
+  const lastSale = (userId: string) => {
+    const sales = (salesByUser[userId] ?? 0);
+    return sales > 0 ? `${sales} vente(s)` : 'Aucune vente';
+  };
+
   return (
     <div className="card p-6">
       <div className="mb-4">
-        <h3 className="text-base font-semibold text-ink-900">Rôles & permissions</h3>
-        <p className="text-sm text-ink-500">Gérez les rôles personnalisés de votre équipe. La matrice de permissions par module est configurable.</p>
+        <h3 className="text-base font-semibold text-ink-900">Activité de l'équipe</h3>
+        <p className="text-sm text-ink-500">Rôles, permissions et activité par membre du staff.</p>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {[
-          { role: 'admin', label: 'Propriétaire', desc: 'Accès complet à tous les modules', tone: 'brand' },
-          { role: 'manager', label: 'Manager', desc: 'Gestion opérationnelle, pas de facturation', tone: 'flow' },
-          { role: 'staff', label: 'Vendeur', desc: 'POS et consultation, pas de rapports', tone: 'neutral' },
-        ].map((r) => (
-          <div key={r.role} className="rounded-xl border border-ink-200 p-4">
-            <div className="flex items-center justify-between">
-              <p className="font-semibold text-ink-900">{r.label}</p>
-              <Badge tone={r.tone as any}>Rôle</Badge>
+      {members.length === 0 ? (
+        <p className="py-6 text-center text-sm text-ink-400">Aucun membre.</p>
+      ) : (
+        <div className="space-y-2">
+          {members.map((m) => (
+            <div key={m.id} className="flex flex-col gap-2 rounded-xl border border-ink-100 p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-action-500 text-xs font-bold text-white">
+                  {(m.display_name ?? '?').slice(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-ink-900">{m.display_name ?? 'Invité'}</p>
+                  <p className="text-xs text-ink-500">
+                    {m.role === 'super_admin' ? 'Super Admin' : m.role === 'admin' ? 'Propriétaire' : m.role === 'manager' ? 'Manager' : 'Vendeur'}
+                    {m.custom_role_id && roleLabels[m.custom_role_id] ? ` · ${roleLabels[m.custom_role_id]}` : ''}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-ink-500">
+                <span className="rounded-md bg-ink-100 px-2 py-1">{lastSale(m.user_id)}</span>
+                <span className="text-ink-400">Membre depuis {new Date(m.accepted_at ?? m.created_at).toLocaleDateString('fr-FR')}</span>
+              </div>
             </div>
-            <p className="mt-1 text-xs text-ink-500">{r.desc}</p>
-          </div>
-        ))}
-      </div>
-      <p className="mt-4 text-xs text-ink-500">La création de rôles personnalisés avec matrice de permissions fine par module est disponible dans Paramètres → Équipe → Rôles.</p>
+          ))}
+        </div>
+      )}
+      <p className="mt-4 text-xs text-ink-500">La création de rôles personnalisés avec matrice de permissions fine par module est disponible dans Utilisateurs & Rôles.</p>
     </div>
   );
 }

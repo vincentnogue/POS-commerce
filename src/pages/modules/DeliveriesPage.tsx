@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, Download, Truck } from 'lucide-react';
+import { Plus, Download, Truck, Eye, Package } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { PageHeader, Modal, EmptyState, Badge } from '../../components/ui';
@@ -9,6 +9,7 @@ import type { Delivery } from '../../lib/types';
 
 const STATUS_LABELS: Record<string, { label: string; tone: any }> = {
   pending: { label: 'En attente', tone: 'warning' },
+  partially_delivered: { label: 'Partielle', tone: 'brand' },
   shipped: { label: 'Expédiée', tone: 'brand' },
   delivered: { label: 'Livrée', tone: 'success' },
   cancelled: { label: 'Annulée', tone: 'error' },
@@ -17,19 +18,23 @@ const STATUS_LABELS: Record<string, { label: string; tone: any }> = {
 export function DeliveriesPage() {
   const { tenant } = useAuth();
   const [params] = useSearchParams();
-  const [deliveries, setDeliveries] = useState<Delivery[]>([]);
+  const [deliveries, setDeliveries] = useState<(Delivery & { sale_items?: any[] })[]>([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState(params.get('today') === '1' ? 'pending' : '');
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState<Delivery | null>(null);
+  const [detailItems, setDetailItems] = useState<any[]>([]);
   const [form, setForm] = useState<any>({ customer_name: '', address: '', city: '', phone: '', carrier: '', scheduled_date: new Date().toISOString().slice(0, 10) });
 
-  useEffect(() => { (async () => {
+  useEffect(() => { reload(); }, [tenant]);
+
+  const reload = async () => {
     if (!tenant) return;
     const { data } = await supabase.from('deliveries').select('*').eq('tenant_id', tenant.id).order('created_at', { ascending: false });
-    setDeliveries((data as Delivery[]) ?? []);
+    setDeliveries((data as any[]) ?? []);
     setLoading(false);
-  })(); }, [tenant]);
+  };
 
   const filtered = useMemo(() => deliveries.filter((d) => {
     const q = search.toLowerCase().trim();
@@ -53,15 +58,49 @@ export function DeliveriesPage() {
     });
     setModalOpen(false);
     setForm({ customer_name: '', address: '', city: '', phone: '', carrier: '', scheduled_date: new Date().toISOString().slice(0, 10) });
-    const { data } = await supabase.from('deliveries').select('*').eq('tenant_id', tenant.id).order('created_at', { ascending: false });
-    setDeliveries((data as Delivery[]) ?? []);
+    await reload();
   };
 
   const updateStatus = async (d: Delivery, status: string) => {
     const patch: any = { status };
     if (status === 'delivered') patch.delivered_at = new Date().toISOString();
     await supabase.from('deliveries').update(patch).eq('id', d.id);
-    setDeliveries((list) => list.map((x) => x.id === d.id ? { ...x, ...patch } : x));
+    await reload();
+  };
+
+  const openDetail = async (d: Delivery) => {
+    setDetailOpen(d);
+    const { data } = await supabase.from('delivery_items').select('*').eq('delivery_id', d.id);
+    setDetailItems(data ?? []);
+  };
+
+  const updateItemDelivered = async (itemId: string, qty: number) => {
+    await supabase.from('delivery_items').update({ quantity_delivered: qty }).eq('id', itemId);
+    // Recompute delivery status
+    if (detailOpen) {
+      const updated = detailItems.map((it) => it.id === itemId ? { ...it, quantity_delivered: qty } : it);
+      setDetailItems(updated);
+      const allDelivered = updated.every((it) => Number(it.quantity_delivered) >= Number(it.quantity_ordered));
+      const noneDelivered = updated.every((it) => Number(it.quantity_delivered) === 0);
+      const newStatus = allDelivered ? 'delivered' : noneDelivered ? 'pending' : 'partially_delivered';
+      if (newStatus !== detailOpen.status) {
+        await updateStatus(detailOpen, newStatus);
+        setDetailOpen({ ...detailOpen, status: newStatus });
+      }
+    }
+  };
+
+  const completeDelivery = async () => {
+    if (!detailOpen) return;
+    // Mark all remaining items as delivered
+    for (const it of detailItems) {
+      if (Number(it.quantity_delivered) < Number(it.quantity_ordered)) {
+        await supabase.from('delivery_items').update({ quantity_delivered: it.quantity_ordered }).eq('id', it.id);
+      }
+    }
+    await updateStatus(detailOpen, 'delivered');
+    setDetailOpen(null);
+    await reload();
   };
 
   return (
@@ -94,9 +133,12 @@ export function DeliveriesPage() {
               { key: 'carrier', label: 'Transporteur', render: (d) => <span className="text-ink-600">{d.carrier ?? '—'}</span> },
               { key: 'status', label: 'Statut', render: (d) => <Badge tone={STATUS_LABELS[d.status]?.tone}>{STATUS_LABELS[d.status]?.label ?? d.status}</Badge> },
               { key: 'actions', label: '', className: 'text-right', render: (d) => (
-                <select value={d.status} onChange={(e) => updateStatus(d, e.target.value)} className="input max-w-[140px]">
-                  {Object.entries(STATUS_LABELS).map(([v, s]) => <option key={v} value={v}>{s.label}</option>)}
-                </select>
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => openDetail(d)} className="rounded-lg p-1.5 text-ink-500 hover:bg-brand-50 hover:text-brand-600"><Eye size={15} /></button>
+                  <select value={d.status} onChange={(e) => updateStatus(d, e.target.value)} className="input max-w-[140px]">
+                    {Object.entries(STATUS_LABELS).map(([v, s]) => <option key={v} value={v}>{s.label}</option>)}
+                  </select>
+                </div>
               )},
             ]}
             rows={filtered}
@@ -121,6 +163,57 @@ export function DeliveriesPage() {
           <button onClick={() => setModalOpen(false)} className="btn-ghost">Annuler</button>
           <button onClick={save} className="btn-primary">Créer</button>
         </div>
+      </Modal>
+
+      {/* Detail modal — partial delivery tracking */}
+      <Modal open={!!detailOpen} onClose={() => setDetailOpen(null)} title={`Livraison — ${detailOpen?.customer_name ?? ''}`} maxWidth="max-w-2xl">
+        {detailOpen && (
+          <div>
+            {detailItems.length === 0 ? (
+              <div className="py-6 text-center">
+                <Package className="mx-auto mb-2 text-ink-300" size={32} />
+                <p className="text-sm text-ink-500">Livraison sans détails produit (saisie manuelle).</p>
+                <p className="mt-1 text-xs text-ink-400">Statut actuel : <Badge tone={STATUS_LABELS[detailOpen.status]?.tone}>{STATUS_LABELS[detailOpen.status]?.label}</Badge></p>
+              </div>
+            ) : (
+              <>
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b border-ink-100 text-left text-xs uppercase text-ink-500">
+                    <th className="pb-2">Produit</th><th className="pb-2 text-right">Commandé</th><th className="pb-2 text-right">Livré</th><th className="pb-2 text-right">Reste</th>
+                  </tr></thead>
+                  <tbody>
+                    {detailItems.map((it) => {
+                      const reste = Number(it.quantity_ordered) - Number(it.quantity_delivered);
+                      return (
+                        <tr key={it.id} className="border-b border-ink-50">
+                          <td className="py-2 font-medium text-ink-900">{it.product_name}</td>
+                          <td className="py-2 text-right text-ink-600">{it.quantity_ordered}</td>
+                          <td className="py-2 text-right">
+                            <input
+                              type="number"
+                              min={0}
+                              max={Number(it.quantity_ordered)}
+                              value={it.quantity_delivered}
+                              onChange={(e) => updateItemDelivered(it.id, Number(e.target.value))}
+                              className="input w-20 py-1 text-right"
+                            />
+                          </td>
+                          <td className={`py-2 text-right font-semibold ${reste > 0 ? 'text-warning-600' : 'text-success-600'}`}>{reste}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                <div className="mt-4 flex items-center justify-between">
+                  <Badge tone={STATUS_LABELS[detailOpen.status]?.tone}>{STATUS_LABELS[detailOpen.status]?.label ?? detailOpen.status}</Badge>
+                  {detailOpen.status !== 'delivered' && detailOpen.status !== 'cancelled' && (
+                    <button onClick={completeDelivery} className="btn-primary text-sm"><Package size={15} /> Tout livrer</button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </Modal>
     </div>
   );

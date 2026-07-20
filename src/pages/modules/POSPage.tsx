@@ -123,9 +123,9 @@ export function POSPage() {
       }))
     );
 
-    // If "Non livré", create a pending delivery linked to this sale
+    // If "Non livré", create a pending delivery with per-product line items
     if (deliveryChoice === 'pending') {
-      await supabase.from('deliveries').insert({
+      const { data: delivery } = await supabase.from('deliveries').insert({
         tenant_id: tenant.id,
         sale_id: sale.id,
         customer_name: customer?.name ?? 'Client comptant',
@@ -134,7 +134,19 @@ export function POSPage() {
         phone: customer?.phone ?? null,
         status: 'pending',
         scheduled_date: new Date().toISOString().slice(0, 10),
-      });
+      }).select().single();
+
+      if (delivery) {
+        await supabase.from('delivery_items').insert(
+          cart.map((i) => ({
+            delivery_id: delivery.id,
+            product_id: i.product.id,
+            product_name: i.product.name,
+            quantity_ordered: i.quantity,
+            quantity_delivered: 0,
+          }))
+        );
+      }
     }
 
     setSuccess(ref);
