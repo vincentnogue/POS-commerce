@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Shield, Crown, Building2, Users, DollarSign, Globe, TrendingUp,
-  Pencil, Trash2, Ban, Check, Plus,
+  Pencil, Trash2, Ban, Check, Plus, Activity,
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
@@ -11,12 +11,20 @@ import { PageHeader, Modal, Badge, StatCard, EmptyState } from '../../components
 import { Field } from '../../components/DataTable';
 import type { Tenant, Plan, CommercialCode, AuditLog } from '../../lib/types';
 
-type Tab = 'overview' | 'tenants' | 'plans' | 'codes' | 'audit' | 'admins';
+type Tab = 'overview' | 'tenants' | 'employees' | 'admins' | 'plans' | 'codes' | 'audit';
+
+const ROLE_LABELS: Record<string, string> = {
+  super_admin: 'Super Admin',
+  admin: 'Propriétaire',
+  manager: 'Manager',
+  staff: 'Vendeur',
+};
 
 export function SuperAdminPage() {
   const { member, isPlatformAdmin } = useAuth();
   const navigate = useNavigate();
   const isSuperAdmin = member?.role === 'super_admin';
+  const [tab, setTab] = useState<Tab>('overview');
 
   if (!isSuperAdmin || !isPlatformAdmin) {
     return (
@@ -33,13 +41,13 @@ export function SuperAdminPage() {
     );
   }
 
-  const [tab, setTab] = useState<Tab>('overview');
   const tabs: { id: Tab; label: string; icon: typeof Shield }[] = [
     { id: 'overview', label: 'Vue plateforme', icon: TrendingUp },
     { id: 'tenants', label: 'Entreprises', icon: Building2 },
+    { id: 'employees', label: 'Employés', icon: Users },
     { id: 'admins', label: 'Super Admins', icon: Crown },
     { id: 'plans', label: 'Forfaits', icon: DollarSign },
-    { id: 'codes', label: 'Codes commerciaux', icon: Users },
+    { id: 'codes', label: 'Codes commerciaux', icon: Activity },
     { id: 'audit', label: "Journal d'audit", icon: Shield },
   ];
 
@@ -65,6 +73,7 @@ export function SuperAdminPage() {
       </div>
       {tab === 'overview' && <SuperOverview />}
       {tab === 'tenants' && <SuperTenants />}
+      {tab === 'employees' && <SuperEmployees />}
       {tab === 'admins' && <SuperAdmins />}
       {tab === 'plans' && <SuperPlans />}
       {tab === 'codes' && <SuperCodes />}
@@ -76,14 +85,17 @@ export function SuperAdminPage() {
 function SuperOverview() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [employees, setEmployees] = useState(0);
 
   useEffect(() => { (async () => {
-    const [t, p] = await Promise.all([
+    const [t, p, m] = await Promise.all([
       supabase.from('tenants').select('*'),
       supabase.from('plans').select('*'),
+      supabase.from('tenant_members').select('id', { count: 'exact', head: true }),
     ]);
     setTenants((t.data as Tenant[]) ?? []);
     setPlans((p.data as Plan[]) ?? []);
+    setEmployees(m.count ?? 0);
   })(); }, []);
 
   const mrrUSD = tenants.reduce((s, t) => {
@@ -102,8 +114,9 @@ function SuperOverview() {
 
   return (
     <div>
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard label="Entreprises" value={tenants.length} icon={Building2} tone="brand" />
+        <StatCard label="Employés" value={employees} icon={Users} tone="action" />
         <StatCard label="MRR (USD)" value={`$${mrrUSD.toFixed(0)}`} icon={DollarSign} tone="success" />
         <StatCard label="Plans actifs" value={plans.length} icon={Shield} tone="flow" />
         <StatCard label="Pays couverts" value={Object.keys(byCountry).length} icon={Globe} tone="action" />
@@ -183,6 +196,99 @@ function SuperTenants() {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function SuperEmployees() {
+  const [members, setMembers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+
+  useEffect(() => { (async () => {
+    const { data, error } = await supabase
+      .from('tenant_members')
+      .select('id, user_id, role, custom_role_id, display_name, avatar_color, created_at, accepted_at, tenants!inner(name, country_name, city)')
+      .order('created_at', { ascending: false });
+    if (!error) setMembers(data ?? []);
+    setLoading(false);
+  })(); }, []);
+
+  const filtered = members.filter((m) => {
+    const matchesSearch = !search ||
+      (m.display_name ?? '').toLowerCase().includes(search.toLowerCase()) ||
+      (m.tenants?.name ?? '').toLowerCase().includes(search.toLowerCase());
+    const matchesRole = roleFilter === 'all' || m.role === roleFilter;
+    return matchesSearch && matchesRole;
+  });
+
+  const roleCounts: Record<string, number> = {};
+  members.forEach((m) => { roleCounts[m.role] = (roleCounts[m.role] ?? 0) + 1; });
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Total employés" value={members.length} icon={Users} tone="brand" />
+        <StatCard label="Propriétaires" value={roleCounts['admin'] ?? 0} icon={Crown} tone="flow" />
+        <StatCard label="Managers" value={roleCounts['manager'] ?? 0} icon={Shield} tone="action" />
+        <StatCard label="Vendeurs" value={roleCounts['staff'] ?? 0} icon={Activity} tone="success" />
+      </div>
+
+      <div className="card p-5">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h3 className="text-base font-semibold text-ink-900">Tous les employés de la plateforme</h3>
+          <div className="flex gap-2">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher…"
+              className="input max-w-[200px]"
+            />
+            <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className="input max-w-[140px]">
+              <option value="all">Tous les rôles</option>
+              <option value="super_admin">Super Admin</option>
+              <option value="admin">Propriétaire</option>
+              <option value="manager">Manager</option>
+              <option value="staff">Vendeur</option>
+            </select>
+          </div>
+        </div>
+
+        {loading ? (
+          <p className="py-6 text-center text-sm text-ink-400">Chargement…</p>
+        ) : filtered.length === 0 ? (
+          <EmptyState icon={Users} title="Aucun employé" description="Aucun membre ne correspond à votre recherche." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead><tr className="border-b border-ink-100 text-left text-xs uppercase text-ink-500">
+                <th className="pb-2 font-semibold">Employé</th><th className="pb-2 font-semibold">Entreprise</th><th className="pb-2 font-semibold">Rôle</th><th className="pb-2 font-semibold">Membre depuis</th>
+              </tr></thead>
+              <tbody>
+                {filtered.map((m) => (
+                  <tr key={m.id} className="border-b border-ink-50">
+                    <td className="py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">
+                          {(m.display_name ?? '?').slice(0, 2).toUpperCase()}
+                        </div>
+                        <p className="font-semibold text-ink-900">{m.display_name ?? 'Invité'}</p>
+                      </div>
+                    </td>
+                    <td className="py-3">
+                      <p className="text-ink-700">{m.tenants?.name ?? '—'}</p>
+                      <p className="text-xs text-ink-500">{m.tenants?.city}, {m.tenants?.country_name}</p>
+                    </td>
+                    <td className="py-3"><Badge tone={m.role === 'super_admin' ? 'error' : m.role === 'admin' ? 'brand' : m.role === 'manager' ? 'flow' : 'neutral'}>{ROLE_LABELS[m.role] ?? m.role}</Badge></td>
+                    <td className="py-3 text-ink-500 text-xs">{new Date(m.accepted_at ?? m.created_at).toLocaleDateString('fr-FR')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -356,7 +462,7 @@ function SuperCodes() {
     <div className="card p-5">
       <div className="mb-4 flex justify-end"><button onClick={() => setModalOpen(true)} className="btn-primary"><Plus size={16} /> Nouveau code</button></div>
       {codes.length === 0 ? (
-        <EmptyState icon={Users} title="Aucun code commercial" description="Créez des codes pour tracer vos commerciaux." />
+        <EmptyState icon={Activity} title="Aucun code commercial" description="Créez des codes pour tracer vos commerciaux." />
       ) : (
         <table className="w-full text-sm">
           <thead><tr className="border-b border-ink-100 text-left text-xs uppercase text-ink-500">
