@@ -1,3 +1,8 @@
 name = "liafrik-flow"
 compatibility_date = "2025-01-01"
 pages_build_output_dir = "dist"
+pages_build_output_dir = "dist"
+
+[vars]
+VITE_SUPABASE_URL = "https://cpamtmeawpdnxguzlrea.supabase.co"
+VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwYW10bWVhd3BkbnhndXpscmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2NDI3NTMsImV4cCI6MjEwMDIxODc1M30.DeEQKaxJpGbIC-K1IfesCKeOgxuvlV8IAaRz6GIMkh0"
