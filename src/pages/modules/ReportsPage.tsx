@@ -71,11 +71,30 @@ export function ReportsPage() {
     return { date: d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }), revenu: dayRev, depenses: dayExp };
   });
 
-  // Top products by sale items — approximate using sale totals (since we don't join items here)
-  const topProducts = products.slice(0, 6).map((p) => ({
-    name: p.name,
-    revenue: Number(p.sale_price) * 10, // placeholder metric
-  })).sort((a, b) => b.revenue - a.revenue);
+  const [topProducts, setTopProducts] = useState<{ name: string; revenue: number }[]>([]);
+
+  useEffect(() => {
+    if (!tenant || filteredSales.length === 0) { setTopProducts([]); return; }
+    (async () => {
+      const saleIds = filteredSales.map((s) => s.id);
+      const { data: items } = await supabase
+        .from('sale_items')
+        .select('product_id, quantity, unit_price, product:products(name)')
+        .in('sale_id', saleIds);
+      if (!items) { setTopProducts([]); return; }
+      const byProduct: Record<string, number> = {};
+      (items as any[]).forEach((item) => {
+        const name = item.product?.name ?? 'Inconnu';
+        byProduct[name] = (byProduct[name] ?? 0) + Number(item.quantity) * Number(item.unit_price);
+      });
+      setTopProducts(
+        Object.entries(byProduct)
+          .map(([name, revenue]) => ({ name, revenue }))
+          .sort((a, b) => b.revenue - a.revenue)
+          .slice(0, 6),
+      );
+    })();
+  }, [tenant, filteredSales]);
 
   // Category distribution
   const catData = categories.map((c) => ({

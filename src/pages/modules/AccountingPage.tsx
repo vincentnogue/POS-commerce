@@ -114,7 +114,7 @@ export function AccountingPage() {
               const blob = new Blob([content], { type: 'text/plain' });
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a'); a.href = url; a.download = `comptabilite-${label.replace(/\s/g, '-')}.txt`; a.click(); URL.revokeObjectURL(url);
-            }} className="btn-ghost"><FileDown size={16} /> Export PDF</button>
+            }} className="btn-ghost"><FileDown size={16} /> Export TXT</button>
           </div>
         }
       />

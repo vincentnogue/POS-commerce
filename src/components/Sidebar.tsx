@@ -68,13 +68,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
   const [tenantMenuOpen, setTenantMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  const isSuperAdmin = member?.role === 'super_admin';
-  const { isPlatformAdmin } = useAuth();
-
-  const filteredNav = NAV.filter((item) => {
-    if (item.superAdminOnly && !(isSuperAdmin || isPlatformAdmin)) return false;
-    return true;
-  });
+  const filteredNav = NAV;
 
   const initials = member?.display_name
     ? getInitials(member.display_name)

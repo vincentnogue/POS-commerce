@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react';
-import { motion } from 'framer-motion';
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
+import { CheckCircle, AlertCircle, Info, X } from 'lucide-react';
 
 export function StatCard({
   label, value, icon: Icon, tone = 'brand',
@@ -125,4 +126,60 @@ export function Spinner() {
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-200 border-t-brand-500" />
     </div>
   );
+}
+
+type ToastTone = 'success' | 'error' | 'info';
+type ToastItem = { id: number; tone: ToastTone; message: string };
+
+const ToastContext = createContext<{ toast: (tone: ToastTone, message: string) => void } | undefined>(undefined);
+
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+
+  const toast = useCallback((tone: ToastTone, message: string) => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, tone, message }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000);
+  }, []);
+
+  const icons: Record<ToastTone, typeof CheckCircle> = { success: CheckCircle, error: AlertCircle, info: Info };
+  const tones: Record<ToastTone, string> = {
+    success: 'border-success-200 bg-success-50 text-success-800',
+    error: 'border-error-200 bg-error-50 text-error-800',
+    info: 'border-brand-200 bg-brand-50 text-brand-800',
+  };
+
+  return (
+    <ToastContext.Provider value={{ toast }}>
+      {children}
+      <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2">
+        <AnimatePresence>
+          {toasts.map((t) => {
+            const Icon = icons[t.tone];
+            return (
+              <motion.div
+                key={t.id}
+                initial={{ opacity: 0, x: 40 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 40 }}
+                className={`flex items-center gap-3 rounded-xl border px-4 py-3 shadow-float ${tones[t.tone]}`}
+              >
+                <Icon size={18} className="shrink-0" />
+                <span className="text-sm font-semibold">{t.message}</span>
+                <button onClick={() => setToasts((prev) => prev.filter((x) => x.id !== t.id))} className="ml-2 opacity-60 hover:opacity-100">
+                  <X size={14} />
+                </button>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </div>
+    </ToastContext.Provider>
+  );
+}
+
+export function useToast() {
+  const ctx = useContext(ToastContext);
+  if (!ctx) throw new Error('useToast must be used within ToastProvider');
+  return ctx.toast;
 }

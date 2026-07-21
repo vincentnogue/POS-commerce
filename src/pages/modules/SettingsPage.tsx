@@ -1,20 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Settings as SettingsIcon, Building2, Globe, Shield, CreditCard, Bell, Palette, Upload, Image as ImageIcon } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { CURRENCIES, getCountry } from '../../lib/localization';
-import { PageHeader, Badge } from '../../components/ui';
+import { PageHeader, Badge, Modal } from '../../components/ui';
 import { Field } from '../../components/DataTable';
+import type { Plan } from '../../lib/types';
 
 type Tab = 'company' | 'localization' | 'security' | 'billing' | 'notifications' | 'appearance';
 
+const NOTIF_KEYS = ['sales', 'low_stock', 'unpaid_invoices', 'deliveries', 'weekly_summary'] as const;
+const NOTIF_LABELS: Record<string, string> = {
+  sales: 'Ventes enregistrées',
+  low_stock: 'Stock bas',
+  unpaid_invoices: 'Factures impayées',
+  deliveries: 'Livraisons planifiées',
+  weekly_summary: 'Résumé hebdomadaire',
+};
+
+type NotifPrefs = Record<string, boolean>;
+
 export function SettingsPage() {
-  const { tenant, member, refreshProfile } = useAuth();
+  const { tenant, member, refreshProfile, subscription } = useAuth();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('company');
   const [saved, setSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [stampUrl, setStampUrl] = useState<string | null>(null);
+  const [planInfo, setPlanInfo] = useState<Plan | null>(null);
+  const [notifPrefs, setNotifPrefs] = useState<NotifPrefs>(Object.fromEntries(NOTIF_KEYS.map((k) => [k, true])));
+  const [showPwdModal, setShowPwdModal] = useState(false);
+  const [pwdForm, setPwdForm] = useState({ next: '' });
+  const [pwdError, setPwdError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: tenant?.name ?? '',
     business_type: tenant?.business_type ?? '',
@@ -99,6 +118,38 @@ export function SettingsPage() {
     }
     if (type === 'logo') setLogoUrl(url); else setStampUrl(url);
     setUploading(false);
+  };
+
+  useEffect(() => {
+    if (!tenant?.plan_id) return;
+    supabase.from('plans').select('*').eq('id', tenant.plan_id).maybeSingle().then(({ data }) => setPlanInfo(data as Plan | null));
+  }, [tenant?.plan_id]);
+
+  useEffect(() => {
+    if (!tenant) return;
+    supabase.from('notification_prefs').select('*').eq('tenant_id', tenant.id).maybeSingle().then(({ data }) => {
+      if (data) setNotifPrefs({ ...Object.fromEntries(NOTIF_KEYS.map((k) => [k, true])), ...data.prefs });
+    });
+  }, [tenant]);
+
+  const saveNotifs = async () => {
+    if (!tenant) return;
+    const { data: existing } = await supabase.from('notification_prefs').select('id').eq('tenant_id', tenant.id).maybeSingle();
+    if (existing) {
+      await supabase.from('notification_prefs').update({ prefs: notifPrefs }).eq('tenant_id', tenant.id);
+    } else {
+      await supabase.from('notification_prefs').insert({ tenant_id: tenant.id, prefs: notifPrefs });
+    }
+    setSaved(true); setTimeout(() => setSaved(false), 2000);
+  };
+
+  const changePassword = async () => {
+    setPwdError(null);
+    if (pwdForm.next.length < 6) { setPwdError('Le mot de passe doit contenir au moins 6 caractères.'); return; }
+    const { error } = await supabase.auth.updateUser({ password: pwdForm.next });
+    if (error) { setPwdError(error.message); return; }
+    setShowPwdModal(false); setPwdForm({ next: '' });
+    setSaved(true); setTimeout(() => setSaved(false), 2000);
   };
 
   const country = tenant ? getCountry(tenant.country_code) : undefined;
@@ -221,13 +272,14 @@ export function SettingsPage() {
               <h3 className="text-base font-semibold text-ink-900">Sécurité</h3>
               <div className="mt-4 space-y-4">
                 <div className="rounded-xl border border-ink-200 p-4">
-                  <p className="font-semibold text-ink-900">Authentification à deux facteurs (2FA)</p>
-                  <p className="mt-1 text-sm text-ink-500">Renforcez la sécurité de votre compte avec un second facteur.</p>
-                  <button className="btn-ghost mt-3">Activer le 2FA</button>
+                  <p className="font-semibold text-ink-900">Mot de passe</p>
+                  <p className="mt-1 text-sm text-ink-500">Modifiez votre mot de passe pour sécuriser votre compte.</p>
+                  <button onClick={() => setShowPwdModal(true)} className="btn-ghost mt-3">Changer le mot de passe</button>
                 </div>
                 <div className="rounded-xl border border-ink-200 p-4">
                   <p className="font-semibold text-ink-900">Sessions actives</p>
-                  <p className="mt-1 text-sm text-ink-500">Gérez les appareils connectés à votre compte.</p>
+                  <p className="mt-1 text-sm text-ink-500">Pour des raisons de sécurité, vous pouvez vous déconnecter des autres appareils.</p>
+                  <button onClick={async () => { await supabase.auth.signOut({ scope: 'others' }); setSaved(true); setTimeout(() => setSaved(false), 2000); }} className="btn-ghost mt-3">Déconnecter les autres sessions</button>
                 </div>
               </div>
             </div>
@@ -238,23 +290,40 @@ export function SettingsPage() {
               <h3 className="text-base font-semibold text-ink-900">Facturation & abonnement</h3>
               <div className="mt-4 rounded-xl border border-brand-200 bg-brand-50/40 p-4">
                 <p className="text-xs uppercase text-ink-500">Forfait actuel</p>
-                <p className="mt-1 text-lg font-bold text-ink-900">{tenant?.plan_id ? 'Plan en cours' : 'Aucun forfait'}</p>
-                <p className="text-sm text-ink-500">Géré par le Super Admin. Pour changer de forfait, contactez LIYHA GROUP.</p>
+                <p className="mt-1 text-lg font-bold text-ink-900">{planInfo?.name ?? 'Aucun forfait'}</p>
+                <div className="mt-2 flex flex-wrap gap-3 text-sm text-ink-600">
+                  {planInfo && <span>Prix: <strong>${planInfo.price_usd}/mois</strong></span>}
+                  {planInfo && <span>Utilisateurs: <strong>{planInfo.max_users}</strong></span>}
+                  {planInfo && <span>Magasins: <strong>{planInfo.max_stores}</strong></span>}
+                </div>
+                <button onClick={() => navigate('/subscribe')} className="btn-primary mt-4">Changer de forfait</button>
               </div>
+              {subscription && (
+                <div className="mt-3 rounded-xl border border-ink-200 p-4">
+                  <p className="text-xs uppercase text-ink-500">Statut abonnement</p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <Badge tone={subscription.status === 'active' ? 'success' : subscription.status === 'trialing' ? 'warning' : 'error'}>{subscription.status}</Badge>
+                    {subscription.current_period_end && <span className="text-sm text-ink-500">jusqu'au {new Date(subscription.current_period_end).toLocaleDateString('fr-FR')}</span>}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           {tab === 'notifications' && (
             <div>
               <h3 className="text-base font-semibold text-ink-900">Notifications</h3>
+              <p className="mt-1 text-sm text-ink-500">Choisissez les alertes que vous souhaitez recevoir.</p>
               <div className="mt-4 space-y-3">
-                {['Ventes enregistrées', 'Stock bas', 'Factures impayées', 'Livraisons planifiées', 'Résumé hebdomadaire'].map((n) => (
-                  <label key={n} className="flex items-center justify-between rounded-xl border border-ink-200 p-3">
-                    <span className="text-sm text-ink-700">{n}</span>
-                    <input type="checkbox" defaultChecked className="h-4 w-4 accent-brand-500" />
+                {NOTIF_KEYS.map((key) => (
+                  <label key={key} className="flex items-center justify-between rounded-xl border border-ink-200 p-3">
+                    <span className="text-sm text-ink-700">{NOTIF_LABELS[key]}</span>
+                    <input type="checkbox" checked={notifPrefs[key]} onChange={(e) => setNotifPrefs({ ...notifPrefs, [key]: e.target.checked })} className="h-4 w-4 accent-brand-500" />
                   </label>
                 ))}
               </div>
+              <button onClick={saveNotifs} className="btn-primary mt-4">Enregistrer les préférences</button>
+              {saved && <span className="ml-3 text-sm font-semibold text-success-700">✓ Enregistré</span>}
             </div>
           )}
 
@@ -270,6 +339,17 @@ export function SettingsPage() {
           )}
         </div>
       </div>
+
+      <Modal open={showPwdModal} onClose={() => setShowPwdModal(false)} title="Changer le mot de passe">
+        <div className="space-y-4">
+          <Field label="Nouveau mot de passe"><input type="password" value={pwdForm.next} onChange={(e) => setPwdForm({ ...pwdForm, next: e.target.value })} className="input" placeholder="Minimum 6 caractères" /></Field>
+          {pwdError && <p className="text-sm text-error-600">{pwdError}</p>}
+        </div>
+        <div className="mt-6 flex justify-end gap-2">
+          <button onClick={() => setShowPwdModal(false)} className="btn-ghost">Annuler</button>
+          <button onClick={changePassword} className="btn-primary">Enregistrer</button>
+        </div>
+      </Modal>
     </div>
   );
 }

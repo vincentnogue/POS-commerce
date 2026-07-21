@@ -4,6 +4,7 @@ import { I18nProvider } from './lib/i18n';
 import { ThemeProvider } from './lib/theme';
 import { CookieProvider } from './lib/cookies';
 import { CookieBanner } from './components/CookieBanner';
+import { ToastProvider } from './components/ui';
 import { AppLayout } from './components/AppLayout';
 import { RequireAuth, RequireActiveSubscription } from './components/RouteGuards';
 import { LandingPage } from './pages/LandingPage';
@@ -44,7 +45,8 @@ export default function App() {
       <I18nProvider>
         <CookieProvider>
           <AuthProvider>
-          <BrowserRouter>
+            <ToastProvider>
+              <BrowserRouter>
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/pricing" element={<PricingPage />} />
@@ -85,6 +87,7 @@ export default function App() {
             </Routes>
           </BrowserRouter>
           <CookieBanner />
+            </ToastProvider>
           </AuthProvider>
         </CookieProvider>
       </I18nProvider>
