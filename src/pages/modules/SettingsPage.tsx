@@ -250,7 +250,7 @@ export function SettingsPage() {
                     </div>
                     <Badge tone="warning">Verrouillée</Badge>
                   </div>
-                  <div className="mt-3 rounded-lg bg-brand-50 p-3 text-xs text-ink-600 dark:text-ink-300">
+                  <div className="mt-3 rounded-lg bg-brand-50 dark:bg-brand-900/25 p-3 text-xs text-ink-600 dark:text-ink-300">
                     <p className="font-semibold text-ink-700 dark:text-ink-200">Pourquoi la devise est-elle verrouillée ?</p>
                     <p className="mt-1">La devise est fixée à l'onboarding pour garantir la cohérence de tous vos rapports, factures et écritures comptables. La changer invalidated les montants historiques. Pour un changement exceptionnel (ex: migration EUR → XOF), contactez le support LIYHA GROUP qui pourra procéder via une opération supervisée.</p>
                   </div>
@@ -259,7 +259,7 @@ export function SettingsPage() {
                   <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-4">
                     <p className="text-xs uppercase text-ink-500 dark:text-ink-400">Mobile Money disponible</p>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {country.mobileMoney.map((m) => <span key={m} className="rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">{m}</span>)}
+                      {country.mobileMoney.map((m) => <span key={m} className="rounded-full bg-brand-50 dark:bg-brand-900/25 px-3 py-1 text-xs font-semibold text-brand-700">{m}</span>)}
                     </div>
                   </div>
                 )}
@@ -288,7 +288,7 @@ export function SettingsPage() {
           {tab === 'billing' && (
             <div>
               <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Facturation & abonnement</h3>
-              <div className="mt-4 rounded-xl border border-brand-200 bg-brand-50/40 p-4">
+              <div className="mt-4 rounded-xl border border-brand-200 bg-brand-50 dark:bg-brand-900/25/40 p-4">
                 <p className="text-xs uppercase text-ink-500 dark:text-ink-400">Forfait actuel</p>
                 <p className="mt-1 text-lg font-bold text-ink-900 dark:text-ink-50">{planInfo?.name ?? 'Aucun forfait'}</p>
                 <div className="mt-2 flex flex-wrap gap-3 text-sm text-ink-600 dark:text-ink-300">

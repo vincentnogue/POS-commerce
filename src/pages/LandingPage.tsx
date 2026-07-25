@@ -144,7 +144,7 @@ export function LandingPage() {
               initial="hidden"
               animate="show"
               transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700"
+              className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 dark:bg-brand-900/25 px-3 py-1.5 text-xs font-semibold text-brand-700"
             >
               <Sparkles size={14} /> Conçu en Afrique, pour l'Afrique, prêt pour le monde
             </motion.div>
@@ -208,10 +208,10 @@ export function LandingPage() {
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
-                  { label: 'CA DU MOIS', value: '4,2M FCFA', tone: 'bg-brand-100 text-brand-700', icon: TrendingUp },
-                  { label: 'VENTES', value: '128', tone: 'bg-action-100 text-action-600', icon: ShoppingCart },
-                  { label: 'IMPAYÉS', value: '3', tone: 'bg-success-100 text-success-700', icon: FileText },
-                  { label: 'LIVRAISONS', value: '7', tone: 'bg-warning-100 text-warning-600', icon: Store },
+                  { label: 'CA DU MOIS', value: '4,2M FCFA', tone: 'bg-brand-100 dark:bg-brand-900/35 text-brand-700', icon: TrendingUp },
+                  { label: 'VENTES', value: '128', tone: 'bg-action-100 dark:bg-action-900/35 text-action-600', icon: ShoppingCart },
+                  { label: 'IMPAYÉS', value: '3', tone: 'bg-success-100 dark:bg-success-900/35 text-success-700', icon: FileText },
+                  { label: 'LIVRAISONS', value: '7', tone: 'bg-warning-100 dark:bg-warning-900/35 text-warning-600', icon: Store },
                 ].map((s) => (
                   <div key={s.label} className="rounded-2xl border border-ink-200 dark:border-ink-700 p-3">
                     <div className={`mb-2 inline-flex h-8 w-8 items-center justify-center rounded-full ${s.tone}`}>
@@ -247,7 +247,7 @@ export function LandingPage() {
       </section>
 
       {/* Stats band */}
-      <section className="border-y border-ink-100 dark:border-ink-800 bg-brand-50/40">
+      <section className="border-y border-ink-100 dark:border-ink-800 bg-brand-50 dark:bg-brand-900/25/40">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 py-10 lg:grid-cols-4 lg:px-8">
           {[
             { label: 'Pays africains couverts', value: 54, suffix: '' },
@@ -276,7 +276,7 @@ export function LandingPage() {
           {FEATURES.map((f, i) => (
             <Section key={f.title} delay={(i % 4) * 0.08}>
               <div className="group h-full rounded-2xl2 border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-6 transition-all hover:-translate-y-1 hover:border-brand-200 hover:shadow-float">
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 transition group-hover:bg-brand-100">
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 dark:bg-brand-900/25 text-brand-600 transition group-hover:bg-brand-100 dark:group-hover:bg-brand-900/35">
                   <f.icon size={22} />
                 </div>
                 <h3 className="text-lg font-semibold text-ink-900 dark:text-ink-50">{f.title}</h3>
@@ -392,7 +392,7 @@ export function LandingPage() {
                   <span className="text-4xl font-extrabold text-ink-900 dark:text-ink-50">${p.priceMonthly}</span>
                   <span className="mb-1 text-sm text-ink-500 dark:text-ink-400">{t('pricing.perMonth')}</span>
                 </div>
-                <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-brand-50 px-2.5 py-1.5 text-xs font-semibold text-brand-700">
+                <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-brand-50 dark:bg-brand-900/25 px-2.5 py-1.5 text-xs font-semibold text-brand-700">
                   <Sparkles size={12} /> {TRIAL_DAYS}j {t('pricing.trial')}
                 </div>
                 <ul className="mt-5 space-y-2.5">
@@ -417,7 +417,7 @@ export function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section className="bg-brand-50/50 py-20">
+      <section className="bg-brand-50 dark:bg-brand-900/25/50 py-20">
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <Section className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">Témoignages</p>

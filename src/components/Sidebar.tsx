@@ -86,14 +86,14 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
         <div className="fixed inset-0 z-30 bg-ink-900/40 backdrop-blur-sm lg:hidden" onClick={onClose} />
       )}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col bg-brand-50 transition-transform lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col bg-brand-50 dark:bg-brand-900/25 dark:bg-ink-900 dark:border-r dark:border-ink-800 transition-transform lg:static lg:translate-x-0 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Logo */}
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
           <Logo clickable />
-          <button onClick={onClose} className="rounded-full p-1 text-ink-500 dark:text-ink-400 hover:bg-brand-100 lg:hidden">
+          <button onClick={onClose} className="rounded-full p-1 text-ink-500 dark:text-ink-400 hover:bg-brand-100 dark:hover:bg-brand-900/35 lg:hidden">
             <X size={20} />
           </button>
         </div>
@@ -125,8 +125,8 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
                     <button
                       key={t.id}
                       onClick={() => { switchTenant(t.id); setTenantMenuOpen(false); }}
-                      className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-brand-50 ${
-                        t.id === tenant?.id ? 'bg-brand-50 font-semibold' : ''
+                      className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-brand-50 dark:hover:bg-brand-900/25 ${
+                        t.id === tenant?.id ? 'bg-brand-50 dark:bg-brand-900/25 font-semibold' : ''
                       }`}
                     >
                       <div className="min-w-0">
@@ -181,7 +181,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
           </div>
           <button
             onClick={handleSignOut}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold text-ink-700 dark:text-ink-200 transition hover:border-error-200 hover:bg-error-50 hover:text-error-600"
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold text-ink-700 dark:text-ink-200 transition hover:border-error-200 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"
           >
             <LogOut size={15} /> Se déconnecter
           </button>

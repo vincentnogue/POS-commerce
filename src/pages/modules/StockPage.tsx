@@ -242,7 +242,7 @@ export function StockPage() {
       {tab === 'inventory' && (
         <>
           {lowStockCount > 0 && (
-            <div className="mb-4 flex items-center gap-2 rounded-xl bg-warning-50 p-3 text-sm text-warning-700">
+            <div className="mb-4 flex items-center gap-2 rounded-xl bg-warning-50 dark:bg-warning-900/25 p-3 text-sm text-warning-700">
               <AlertTriangle size={16} /> {lowStockCount} produit(s) sous le seuil de stock bas.
             </div>
           )}
@@ -292,10 +292,10 @@ export function StockPage() {
                 { key: 'actions', label: '', className: 'text-right', render: (t) => (
                   <div className="flex justify-end gap-2">
                     {t.status === 'pending' && (isAdmin || assignments.has(t.dest_store_id)) && (
-                      <button onClick={() => receiveTransfer(t)} className="rounded-lg p-1.5 text-success-600 hover:bg-success-50" title="Marquer reçu"><Check size={15} /></button>
+                      <button onClick={() => receiveTransfer(t)} className="rounded-lg p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25" title="Marquer reçu"><Check size={15} /></button>
                     )}
                     {t.status === 'pending' && (isAdmin || assignments.has(t.source_store_id)) && (
-                      <button onClick={() => cancelTransfer(t)} className="rounded-lg p-1.5 text-error-600 hover:bg-error-50" title="Annuler"><X size={15} /></button>
+                      <button onClick={() => cancelTransfer(t)} className="rounded-lg p-1.5 text-error-600 hover:bg-error-50 dark:hover:bg-error-900/25" title="Annuler"><X size={15} /></button>
                     )}
                   </div>
                 )},
@@ -360,7 +360,7 @@ export function StockPage() {
           </Field>
           <Field label="Quantité"><input type="number" value={transferForm.quantity} onChange={(e) => setTransferForm({ ...transferForm, quantity: Number(e.target.value) })} className="input" /></Field>
           <Field label="Notes"><input value={transferForm.notes} onChange={(e) => setTransferForm({ ...transferForm, notes: e.target.value })} className="input" placeholder="Optionnel" /></Field>
-          {transferErr && <div className="rounded-xl bg-error-50 p-3 text-sm text-error-600">{transferErr}</div>}
+          {transferErr && <div className="rounded-xl bg-error-50 dark:bg-error-900/25 p-3 text-sm text-error-600">{transferErr}</div>}
         </div>
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={() => { setTransferOpen(false); setTransferErr(null); }} className="btn-ghost">Annuler</button>

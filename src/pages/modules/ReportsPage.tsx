@@ -167,7 +167,7 @@ export function ReportsPage() {
             <div className="space-y-3">
               {topProducts.map((p, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-700">{i + 1}</span>
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-50 dark:bg-brand-900/25 text-xs font-bold text-brand-700">{i + 1}</span>
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{p.name}</p>
                     <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-ink-100 dark:bg-ink-800">

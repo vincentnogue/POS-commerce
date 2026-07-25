@@ -24,7 +24,7 @@ export function AdministrationPage() {
   if (!isAdmin) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-error-50 text-error-600">
+        <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-error-50 dark:bg-error-900/25 text-error-600">
           <AlertTriangle size={26} />
         </div>
         <h2 className="text-lg font-semibold text-ink-900 dark:text-ink-50">Accès refusé</h2>
@@ -224,8 +224,8 @@ function SuperPlans() {
               <td className="py-3 text-ink-600 dark:text-ink-300">{p.max_stores}</td>
               <td className="py-3 text-ink-600 dark:text-ink-300">{p.max_products}</td>
               <td className="py-3 text-right">
-                <button onClick={() => { setEditing(p); setForm({ name: p.name, code: p.code, price_usd: p.price_usd, max_users: p.max_users, max_stores: p.max_stores, max_products: p.max_products }); setModalOpen(true); }} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 hover:text-brand-600"><Pencil size={15} /></button>
-                <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>
+                <button onClick={() => { setEditing(p); setForm({ name: p.name, code: p.code, price_usd: p.price_usd, max_users: p.max_users, max_stores: p.max_stores, max_products: p.max_products }); setModalOpen(true); }} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>
+                <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
               </td>
             </tr>
           ))}

@@ -134,7 +134,7 @@ export function DeliveriesPage() {
               { key: 'status', label: 'Statut', render: (d) => <Badge tone={STATUS_LABELS[d.status]?.tone}>{STATUS_LABELS[d.status]?.label ?? d.status}</Badge> },
               { key: 'actions', label: '', className: 'text-right', render: (d) => (
                 <div className="flex justify-end gap-2">
-                  <button onClick={() => openDetail(d)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 hover:text-brand-600"><Eye size={15} /></button>
+                  <button onClick={() => openDetail(d)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Eye size={15} /></button>
                   <select value={d.status} onChange={(e) => updateStatus(d, e.target.value)} className="input max-w-[140px]">
                     {Object.entries(STATUS_LABELS).map(([v, s]) => <option key={v} value={v}>{s.label}</option>)}
                   </select>

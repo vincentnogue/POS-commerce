@@ -173,9 +173,9 @@ export function PurchasesPage() {
             { key: 'total', label: 'Total', className: 'text-right', render: (p) => <span className="font-semibold text-ink-900 dark:text-ink-50">{canSeeCost ? formatMoney(p.total, currency) : '—'}</span> },
             { key: 'actions', label: '', className: 'text-right', render: (p) => (
               <div className="flex justify-end gap-2">
-                <button onClick={() => view(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 hover:text-brand-600"><Eye size={15} /></button>
-                {(p.status === 'ordered' || p.status === 'partially_received') && <button onClick={() => openReceive(p)} className="rounded-lg p-1.5 text-success-600 hover:bg-success-50" title="Réceptionner"><Package size={15} /></button>}
-                <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>
+                <button onClick={() => view(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Eye size={15} /></button>
+                {(p.status === 'ordered' || p.status === 'partially_received') && <button onClick={() => openReceive(p)} className="rounded-lg p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25" title="Réceptionner"><Package size={15} /></button>}
+                <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
               </div>
             )},
           ]} rows={filtered} />
@@ -222,7 +222,7 @@ export function PurchasesPage() {
               {form.items.length === 0 && <p className="py-4 text-center text-xs text-ink-400 dark:text-ink-500">Ajoutez au moins une ligne.</p>}
             </div>
           </div>
-          {canSeeCost && <div className="rounded-xl bg-brand-50 p-3 text-right text-base font-bold text-ink-900 dark:text-ink-50">Total : {formatMoney(total, currency)}</div>}
+          {canSeeCost && <div className="rounded-xl bg-brand-50 dark:bg-brand-900/25 p-3 text-right text-base font-bold text-ink-900 dark:text-ink-50">Total : {formatMoney(total, currency)}</div>}
         </div>
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={() => setModalOpen(false)} className="btn-ghost">Annuler</button>

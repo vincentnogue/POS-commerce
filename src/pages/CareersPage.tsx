@@ -44,7 +44,7 @@ export function CareersPage() {
                   <div className="mt-1 flex flex-wrap gap-3 text-xs text-ink-500 dark:text-ink-400">
                     {j.department && <span className="inline-flex items-center gap-1"><Briefcase size={12} /> {j.department}</span>}
                     {j.location && <span className="inline-flex items-center gap-1"><MapPin size={12} /> {j.location}</span>}
-                    <span className="rounded-full bg-brand-50 px-2 py-0.5 font-semibold text-brand-700">{j.type}</span>
+                    <span className="rounded-full bg-brand-50 dark:bg-brand-900/25 px-2 py-0.5 font-semibold text-brand-700">{j.type}</span>
                   </div>
                   <p className="mt-2 text-sm text-ink-600 dark:text-ink-300">{j.description.slice(0, 180)}{j.description.length > 180 ? '...' : ''}</p>
                 </div>

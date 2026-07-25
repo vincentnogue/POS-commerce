@@ -124,7 +124,7 @@ export function StoresPage() {
             return (
               <div key={s.id} className="card p-5">
                 <div className="flex items-start justify-between">
-                  <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+                  <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 dark:bg-brand-900/25 text-brand-600">
                     <StoreIcon size={20} />
                   </div>
                   <Badge tone={s.is_active ? 'success' : 'neutral'}>{s.is_active ? 'Actif' : 'Inactif'}</Badge>
@@ -150,7 +150,7 @@ export function StoresPage() {
                     <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-ink-600 dark:text-ink-300"><Users size={12} /> Assignés ({storeAssigns.length})</p>
                     <div className="flex flex-wrap gap-1">
                       {storeAssigns.map((a) => (
-                        <span key={a.id} className={`rounded-md px-2 py-0.5 text-[10px] ${a.can_transfer ? 'bg-brand-50 text-brand-700' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`} title={a.can_transfer ? 'Peut transférer' : 'Lecture seule'}>
+                        <span key={a.id} className={`rounded-md px-2 py-0.5 text-[10px] ${a.can_transfer ? 'bg-brand-50 dark:bg-brand-900/25 text-brand-700' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`} title={a.can_transfer ? 'Peut transférer' : 'Lecture seule'}>
                           {memberName(a.member_id)}{a.can_transfer ? ' ⌀' : ''}
                         </span>
                       ))}

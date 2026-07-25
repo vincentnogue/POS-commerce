@@ -14,7 +14,7 @@ export function TrialBanner() {
 
   if (isExpired) {
     return (
-      <div className="sticky top-16 z-10 flex items-center justify-between gap-3 border-b border-error-200 bg-error-50 px-4 py-2.5 text-sm lg:px-8">
+      <div className="sticky top-16 z-10 flex items-center justify-between gap-3 border-b border-error-200 bg-error-50 dark:bg-error-900/25 px-4 py-2.5 text-sm lg:px-8">
         <div className="flex items-center gap-2 text-error-700">
           <AlertCircle size={16} className="shrink-0" />
           <span className="font-semibold">Votre essai gratuit est terminé.</span>
@@ -27,7 +27,7 @@ export function TrialBanner() {
     );
   }
 
-  const tone = daysLeft <= 2 ? 'bg-error-50 border-error-200 text-error-700' : daysLeft <= 5 ? 'bg-warning-50 border-warning-200 text-warning-700' : 'bg-brand-50 border-brand-200 text-brand-700';
+  const tone = daysLeft <= 2 ? 'bg-error-50 dark:bg-error-900/25 border-error-200 text-error-700' : daysLeft <= 5 ? 'bg-warning-50 dark:bg-warning-900/25 border-warning-200 text-warning-700' : 'bg-brand-50 dark:bg-brand-900/25 border-brand-200 text-brand-700';
 
   return (
     <div className={`sticky top-16 z-10 flex items-center justify-between gap-3 border-b px-4 py-2.5 text-sm lg:px-8 ${tone}`}>
