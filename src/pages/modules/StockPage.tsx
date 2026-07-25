@@ -234,9 +234,9 @@ export function StockPage() {
         }
       />
 
-      <div className="mb-4 inline-flex rounded-xl border border-ink-200 bg-white p-1">
-        <button onClick={() => setTab('inventory')} className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${tab === 'inventory' ? 'bg-brand-500 text-white' : 'text-ink-600'}`}>Inventaire</button>
-        <button onClick={() => setTab('transfers')} className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${tab === 'transfers' ? 'bg-brand-500 text-white' : 'text-ink-600'}`}>Transferts {transfers.filter((t) => t.status === 'pending').length > 0 && <span className="ml-1 rounded-full bg-warning-500 px-1.5 text-[10px] text-white">{transfers.filter((t) => t.status === 'pending').length}</span>}</button>
+      <div className="mb-4 inline-flex rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
+        <button onClick={() => setTab('inventory')} className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${tab === 'inventory' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>Inventaire</button>
+        <button onClick={() => setTab('transfers')} className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${tab === 'transfers' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>Transferts {transfers.filter((t) => t.status === 'pending').length > 0 && <span className="ml-1 rounded-full bg-warning-500 px-1.5 text-[10px] text-white">{transfers.filter((t) => t.status === 'pending').length}</span>}</button>
       </div>
 
       {tab === 'inventory' && (
@@ -257,16 +257,16 @@ export function StockPage() {
               <DataTable
                 loading={loading}
                 columns={[
-                  { key: 'name', label: 'Produit', render: (r) => <p className="font-semibold text-ink-900">{r.product.name}</p> },
-                  { key: 'sku', label: 'SKU', render: (r) => <span className="text-ink-500">{r.product.sku ?? '—'}</span> },
+                  { key: 'name', label: 'Produit', render: (r) => <p className="font-semibold text-ink-900 dark:text-ink-50">{r.product.name}</p> },
+                  { key: 'sku', label: 'SKU', render: (r) => <span className="text-ink-500 dark:text-ink-400">{r.product.sku ?? '—'}</span> },
                   { key: 'stores', label: 'Répartition', render: (r) => (
                     <div className="flex flex-wrap gap-1">
-                      {r.stores.length === 0 ? <span className="text-ink-400">—</span> : r.stores.map((s: any) => (
-                        <span key={s.id} className="rounded-md bg-ink-100 px-2 py-0.5 text-xs text-ink-700">{s.store?.name ?? 'Principal'}: {s.quantity}</span>
+                      {r.stores.length === 0 ? <span className="text-ink-400 dark:text-ink-500">—</span> : r.stores.map((s: any) => (
+                        <span key={s.id} className="rounded-md bg-ink-100 dark:bg-ink-800 px-2 py-0.5 text-xs text-ink-700 dark:text-ink-200">{s.store?.name ?? 'Principal'}: {s.quantity}</span>
                       ))}
                     </div>
                   )},
-                  { key: 'total', label: 'Total', className: 'text-right', render: (r) => <span className="font-bold text-ink-900">{r.total}</span> },
+                  { key: 'total', label: 'Total', className: 'text-right', render: (r) => <span className="font-bold text-ink-900 dark:text-ink-50">{r.total}</span> },
                   { key: 'status', label: 'Statut', className: 'text-right', render: (r) => r.low ? <Badge tone="warning">Stock bas</Badge> : <Badge tone="success">OK</Badge> },
                 ]}
                 rows={stockByProduct}
@@ -284,10 +284,10 @@ export function StockPage() {
             <DataTable
               loading={loading}
               columns={[
-                { key: 'date', label: 'Date', render: (t) => <span className="text-ink-500">{new Date(t.created_at).toLocaleDateString('fr-FR')}</span> },
-                { key: 'product', label: 'Produit', render: (t) => <span className="font-semibold text-ink-900">{t.product?.name ?? '—'}</span> },
-                { key: 'route', label: 'Itinéraire', render: (t) => <span className="text-ink-600">{t.source?.name} → {t.dest?.name}</span> },
-                { key: 'qty', label: 'Qté', className: 'text-right', render: (t) => <span className="font-bold text-ink-900">{t.quantity}</span> },
+                { key: 'date', label: 'Date', render: (t) => <span className="text-ink-500 dark:text-ink-400">{new Date(t.created_at).toLocaleDateString('fr-FR')}</span> },
+                { key: 'product', label: 'Produit', render: (t) => <span className="font-semibold text-ink-900 dark:text-ink-50">{t.product?.name ?? '—'}</span> },
+                { key: 'route', label: 'Itinéraire', render: (t) => <span className="text-ink-600 dark:text-ink-300">{t.source?.name} → {t.dest?.name}</span> },
+                { key: 'qty', label: 'Qté', className: 'text-right', render: (t) => <span className="font-bold text-ink-900 dark:text-ink-50">{t.quantity}</span> },
                 { key: 'status', label: 'Statut', render: (t) => <Badge tone={t.status === 'received' ? 'success' : t.status === 'cancelled' ? 'error' : 'warning'}>{t.status === 'received' ? 'Reçu' : t.status === 'cancelled' ? 'Annulé' : 'En cours'}</Badge> },
                 { key: 'actions', label: '', className: 'text-right', render: (t) => (
                   <div className="flex justify-end gap-2">

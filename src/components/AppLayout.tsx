@@ -7,7 +7,7 @@ import { TrialBanner } from './TrialBanner';
 export function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   return (
-    <div className="flex min-h-screen bg-ink-50">
+    <div className="flex min-h-screen bg-ink-50 dark:bg-ink-900">
       <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header onOpenSidebar={() => setMobileOpen(true)} />

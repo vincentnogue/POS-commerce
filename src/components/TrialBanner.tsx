@@ -36,7 +36,7 @@ export function TrialBanner() {
         <span className="font-semibold">Il vous reste {daysLeft} jour{daysLeft > 1 ? 's' : ''} d'essai gratuit.</span>
         <span className="hidden sm:inline">Choisissez un forfait pour éviter toute interruption.</span>
       </div>
-      <Link to="/subscribe" className="shrink-0 rounded-lg bg-white/80 px-4 py-1.5 text-xs font-bold text-ink-800 transition hover:bg-white">
+      <Link to="/subscribe" className="shrink-0 rounded-lg bg-white/80 dark:bg-ink-800/80 px-4 py-1.5 text-xs font-bold text-ink-800 dark:text-ink-100 transition hover:bg-white dark:bg-ink-800">
         Choisir un forfait
       </Link>
     </div>

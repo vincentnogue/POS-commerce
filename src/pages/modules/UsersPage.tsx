@@ -204,15 +204,15 @@ export function UsersPage() {
 
       {info && <div className="mb-4 rounded-xl bg-brand-50 p-3 text-sm text-brand-700">{info}</div>}
 
-      <div className="mb-4 inline-flex rounded-xl border border-ink-200 bg-white p-1">
+      <div className="mb-4 inline-flex rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
         <button
           onClick={() => setTab('members')}
-          className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${tab === 'members' ? 'bg-brand-500 text-white' : 'text-ink-600'}`}
+          className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${tab === 'members' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
         >Équipe</button>
         {canManageRoles && (
           <button
             onClick={() => setTab('roles')}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${tab === 'roles' ? 'bg-brand-500 text-white' : 'text-ink-600'}`}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${tab === 'roles' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
           >Rôles & Permissions</button>
         )}
       </div>
@@ -226,14 +226,14 @@ export function UsersPage() {
               {members.map((m) => {
                 const customRole = roles.find((r) => r.id === m.custom_role_id);
                 return (
-                  <div key={m.id} className="flex flex-col gap-3 rounded-xl border border-ink-100 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div key={m.id} className="flex flex-col gap-3 rounded-xl border border-ink-100 dark:border-ink-800 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-action-500 text-sm font-bold text-white">
                         {(m.display_name ?? '?').slice(0, 2).toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-ink-900">{m.display_name ?? 'Invité'}</p>
-                        {m.user_id === member?.user_id && <p className="text-xs text-ink-500">Vous</p>}
+                        <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{m.display_name ?? 'Invité'}</p>
+                        {m.user_id === member?.user_id && <p className="text-xs text-ink-500 dark:text-ink-400">Vous</p>}
                         {customRole && <p className="text-xs text-brand-600">{customRole.name}</p>}
                       </div>
                     </div>
@@ -271,7 +271,7 @@ export function UsersPage() {
                         {customRole?.name ?? ROLE_LABELS[m.role]}
                       </Badge>
                       {canManageRoles && m.role !== 'super_admin' && (
-                        <button onClick={() => remove(m)} className="rounded-lg p-1.5 text-ink-500 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>
+                        <button onClick={() => remove(m)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>
                       )}
                     </div>
                   </div>
@@ -287,30 +287,30 @@ export function UsersPage() {
           ) : (
             <>
               <div className="card p-4">
-                <p className="mb-3 text-sm text-ink-600">
+                <p className="mb-3 text-sm text-ink-600 dark:text-ink-300">
                   Créez des rôles personnalisés pour contrôler précisément ce que chaque membre peut faire, module par module.
                   Exemple : un rôle « Caissier » peut voir les produits et encaisser des ventes, mais ne voit pas les prix d'achat ni ne peut modifier le stock.
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {roles.map((r) => (
-                    <div key={r.id} className="rounded-xl border border-ink-100 p-4">
+                    <div key={r.id} className="rounded-xl border border-ink-100 dark:border-ink-800 p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
                           <Shield size={16} className="text-brand-600" />
-                          <h4 className="font-semibold text-ink-900">{r.name}</h4>
+                          <h4 className="font-semibold text-ink-900 dark:text-ink-50">{r.name}</h4>
                         </div>
                         <div className="flex gap-1">
-                          <button onClick={() => openEditRole(r)} className="rounded-md p-1 text-ink-500 hover:bg-brand-50 hover:text-brand-600"><Pencil size={13} /></button>
-                          <button onClick={() => deleteRole(r)} className="rounded-md p-1 text-ink-500 hover:bg-error-50 hover:text-error-600"><Trash2 size={13} /></button>
+                          <button onClick={() => openEditRole(r)} className="rounded-md p-1 text-ink-500 dark:text-ink-400 hover:bg-brand-50 hover:text-brand-600"><Pencil size={13} /></button>
+                          <button onClick={() => deleteRole(r)} className="rounded-md p-1 text-ink-500 dark:text-ink-400 hover:bg-error-50 hover:text-error-600"><Trash2 size={13} /></button>
                         </div>
                       </div>
-                      {r.description && <p className="mt-1 text-xs text-ink-500">{r.description}</p>}
+                      {r.description && <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">{r.description}</p>}
                       <div className="mt-2 flex flex-wrap gap-1">
                         {MODULES.filter((m) => r.permissions[m]?.view).slice(0, 6).map((m) => (
-                          <span key={m} className="rounded-md bg-ink-100 px-2 py-0.5 text-[10px] text-ink-600">{MODULE_LABELS[m]}</span>
+                          <span key={m} className="rounded-md bg-ink-100 dark:bg-ink-800 px-2 py-0.5 text-[10px] text-ink-600 dark:text-ink-300">{MODULE_LABELS[m]}</span>
                         ))}
                         {MODULES.filter((m) => r.permissions[m]?.view).length > 6 && (
-                          <span className="rounded-md bg-ink-100 px-2 py-0.5 text-[10px] text-ink-600">+{MODULES.filter((m) => r.permissions[m]?.view).length - 6}</span>
+                          <span className="rounded-md bg-ink-100 dark:bg-ink-800 px-2 py-0.5 text-[10px] text-ink-600 dark:text-ink-300">+{MODULES.filter((m) => r.permissions[m]?.view).length - 6}</span>
                         )}
                       </div>
                     </div>
@@ -354,18 +354,18 @@ export function UsersPage() {
             <Field label="Nom du rôle"><input value={roleForm.name} onChange={(e) => setRoleForm({ ...roleForm, name: e.target.value })} className="input" placeholder="Ex: Caissier, Responsable stock…" /></Field>
             <Field label="Description"><input value={roleForm.description} onChange={(e) => setRoleForm({ ...roleForm, description: e.target.value })} className="input" placeholder="Optionnel" /></Field>
           </div>
-          <div className="rounded-xl border border-ink-100">
-            <div className="flex items-center justify-between border-b border-ink-100 px-4 py-2.5">
-              <p className="text-sm font-semibold text-ink-900">Matrice de permissions</p>
+          <div className="rounded-xl border border-ink-100 dark:border-ink-800">
+            <div className="flex items-center justify-between border-b border-ink-100 dark:border-ink-800 px-4 py-2.5">
+              <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">Matrice de permissions</p>
               <div className="flex gap-2 text-[10px]">
-                <span className="font-medium text-ink-400">Module</span>
-                <span className="flex-1 text-center font-medium text-ink-400">Droits (Voir / Créer / Modifier / Supprimer)</span>
+                <span className="font-medium text-ink-400 dark:text-ink-500">Module</span>
+                <span className="flex-1 text-center font-medium text-ink-400 dark:text-ink-500">Droits (Voir / Créer / Modifier / Supprimer)</span>
               </div>
             </div>
             <div className="max-h-[40vh] overflow-y-auto scroll-thin">
               {MODULES.map((m) => (
-                <div key={m} className="flex items-center justify-between border-b border-ink-50 px-4 py-2.5 last:border-0">
-                  <span className="text-sm text-ink-700">{MODULE_LABELS[m]}</span>
+                <div key={m} className="flex items-center justify-between border-b border-ink-50 dark:border-ink-800 px-4 py-2.5 last:border-0">
+                  <span className="text-sm text-ink-700 dark:text-ink-200">{MODULE_LABELS[m]}</span>
                   <div className="flex gap-1.5">
                     {PERMISSION_ACTIONS.map((a) => {
                       const active = roleForm.permissions[m]?.[a] === true;
@@ -374,7 +374,7 @@ export function UsersPage() {
                           key={a}
                           onClick={() => togglePerm(m, a)}
                           className={`rounded-md px-2.5 py-1 text-[11px] font-semibold transition ${
-                            active ? 'bg-brand-500 text-white' : 'bg-ink-100 text-ink-500 hover:bg-ink-200'
+                            active ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-500 dark:text-ink-400 hover:bg-ink-200 dark:bg-ink-700'
                           }`}
                           title={`${ACTION_LABELS[a]} — ${MODULE_LABELS[m]}`}
                         >

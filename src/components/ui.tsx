@@ -29,8 +29,8 @@ export function StatCard({
       <div className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full ${tones[tone]}`}>
         <Icon size={18} strokeWidth={2} />
       </div>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-ink-900">{value}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-500 dark:text-ink-400">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-ink-900 dark:text-ink-50">{value}</p>
     </motion.div>
   );
 }
@@ -45,8 +45,8 @@ export function PageHeader({
   return (
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-ink-500">{subtitle}</p>}
+        <h1 className="text-2xl font-bold tracking-tight text-ink-900 dark:text-ink-50 sm:text-3xl">{title}</h1>
+        {subtitle && <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{subtitle}</p>}
       </div>
       {action && <div className="flex items-center gap-2">{action}</div>}
     </div>
@@ -62,12 +62,12 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl2 border border-dashed border-ink-200 bg-white px-6 py-16 text-center">
+    <div className="flex flex-col items-center justify-center rounded-2xl2 border border-dashed border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-6 py-16 text-center">
       <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 text-brand-500">
         <Icon size={26} />
       </div>
-      <h3 className="text-lg font-semibold text-ink-900">{title}</h3>
-      {description && <p className="mt-1 max-w-sm text-sm text-ink-500">{description}</p>}
+      <h3 className="text-lg font-semibold text-ink-900 dark:text-ink-50">{title}</h3>
+      {description && <p className="mt-1 max-w-sm text-sm text-ink-500 dark:text-ink-400">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   );
@@ -80,7 +80,7 @@ export function Badge({
   tone?: 'neutral' | 'brand' | 'action' | 'success' | 'warning' | 'error' | 'flow';
 }) {
   const tones: Record<string, string> = {
-    neutral: 'bg-ink-100 text-ink-700',
+    neutral: 'bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-200',
     brand: 'bg-brand-100 text-brand-700',
     action: 'bg-action-100 text-action-600',
     success: 'bg-success-100 text-success-700',
@@ -108,11 +108,11 @@ export function Modal({
         initial={{ opacity: 0, scale: 0.96, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.2 }}
-        className={`relative w-full ${maxWidth} rounded-2xl2 bg-white p-6 shadow-float`}
+        className={`relative w-full ${maxWidth} rounded-2xl2 bg-white dark:bg-ink-800 p-6 shadow-float`}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-ink-900">{title}</h2>
-          <button onClick={onClose} className="rounded-full p-1 text-ink-400 hover:bg-ink-100 hover:text-ink-700">✕</button>
+          <h2 className="text-lg font-semibold text-ink-900 dark:text-ink-50">{title}</h2>
+          <button onClick={onClose} className="rounded-full p-1 text-ink-400 dark:text-ink-500 hover:bg-ink-100 dark:bg-ink-800 hover:text-ink-700 dark:text-ink-200">✕</button>
         </div>
         {children}
       </motion.div>
