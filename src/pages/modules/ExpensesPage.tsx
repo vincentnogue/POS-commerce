@@ -91,15 +91,15 @@ export function ExpensesPage() {
           <DataTable
             loading={loading}
             columns={[
-              { key: 'date', label: 'Date', render: (e) => <span className="text-ink-500 dark:text-ink-400">{new Date(e.expense_date).toLocaleDateString('fr-FR')}</span> },
-              { key: 'description', label: 'Description', render: (e) => <span className="font-medium text-ink-900 dark:text-ink-50">{e.description}</span> },
-              { key: 'category', label: 'Catégorie', render: (e) => <span className="rounded-md bg-ink-100 dark:bg-ink-800 px-2 py-0.5 text-xs text-ink-700 dark:text-ink-200">{e.category ?? '—'}</span> },
-              { key: 'method', label: 'Paiement', render: (e) => <span className="text-ink-500 dark:text-ink-400">{e.payment_method ?? '—'}</span> },
-              { key: 'amount', label: 'Montant', className: 'text-right', render: (e) => <span className="font-semibold text-ink-900 dark:text-ink-50">{formatMoney(e.amount, currency)}</span> },
+              { key: 'date', label: 'Date', render: (e) => <span className="text-ink-500">{new Date(e.expense_date).toLocaleDateString('fr-FR')}</span> },
+              { key: 'description', label: 'Description', render: (e) => <span className="font-medium text-ink-900">{e.description}</span> },
+              { key: 'category', label: 'Catégorie', render: (e) => <span className="rounded-md bg-ink-100 px-2 py-0.5 text-xs text-ink-700">{e.category ?? '—'}</span> },
+              { key: 'method', label: 'Paiement', render: (e) => <span className="text-ink-500">{e.payment_method ?? '—'}</span> },
+              { key: 'amount', label: 'Montant', className: 'text-right', render: (e) => <span className="font-semibold text-ink-900">{formatMoney(e.amount, currency)}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (e) => (
                 <div className="flex justify-end gap-2">
-                  <button onClick={() => openEdit(e)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>
-                  <button onClick={() => remove(e)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
+                  <button onClick={() => openEdit(e)} className="rounded-lg p-1.5 text-ink-500 hover:bg-brand-50 hover:text-brand-600"><Pencil size={15} /></button>
+                  <button onClick={() => remove(e)} className="rounded-lg p-1.5 text-ink-500 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>
                 </div>
               )},
             ]}

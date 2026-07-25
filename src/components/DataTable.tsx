@@ -10,16 +10,16 @@ export function DataTable<T>({
   loading?: boolean;
 }) {
   if (loading) {
-    return <div className="py-10 text-center text-sm text-ink-400 dark:text-ink-500">Chargement…</div>;
+    return <div className="py-10 text-center text-sm text-ink-400">Chargement…</div>;
   }
   if (rows.length === 0) {
-    return <div className="py-10 text-center text-sm text-ink-400 dark:text-ink-500">{empty ?? 'Aucune donnée'}</div>;
+    return <div className="py-10 text-center text-sm text-ink-400">{empty ?? 'Aucune donnée'}</div>;
   }
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">
+          <tr className="border-b border-ink-100 text-left text-xs uppercase tracking-wide text-ink-500">
             {columns.map((c) => (
               <th key={c.key} className={`pb-2.5 font-semibold ${c.className ?? ''}`}>{c.label}</th>
             ))}
@@ -27,7 +27,7 @@ export function DataTable<T>({
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} className="border-b border-ink-50 dark:border-ink-800 last:border-0 hover:bg-brand-50 dark:hover:bg-brand-900/25/30">
+            <tr key={i} className="border-b border-ink-50 last:border-0 hover:bg-brand-50/30">
               {columns.map((c) => (
                 <td key={c.key} className={`py-3 ${c.className ?? ''}`}>
                   {c.render ? c.render(row) : (row as any)[c.key]}
@@ -68,7 +68,7 @@ export function Select({ value, onChange, options, placeholder }: {
         {placeholder && <option value="">{placeholder}</option>}
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
-      <ChevronDown size={15} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 dark:text-ink-500" />
+      <ChevronDown size={15} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-400" />
     </div>
   );
 }
@@ -78,7 +78,7 @@ export function Field({ label, children, hint }: { label: string; children: Reac
     <div>
       <label className="label">{label}</label>
       {children}
-      {hint && <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">{hint}</p>}
+      {hint && <p className="mt-1 text-xs text-ink-500">{hint}</p>}
     </div>
   );
 }

@@ -48,11 +48,11 @@ export function SubscribePage() {
   };
 
   return (
-    <div className="min-h-screen bg-ink-50 dark:bg-ink-900">
-      <header className="border-b border-ink-100 dark:border-ink-800 bg-white dark:bg-ink-800">
+    <div className="min-h-screen bg-ink-50">
+      <header className="border-b border-ink-100 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3.5">
           <Logo clickable />
-          <span className="text-sm text-ink-500 dark:text-ink-400">{tenant?.name}</span>
+          <span className="text-sm text-ink-500">{tenant?.name}</span>
         </div>
       </header>
 
@@ -65,38 +65,38 @@ export function SubscribePage() {
         >
           {!access.hasActiveSubscription && access.trialDaysLeft > 0 ? (
             <>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-warning-50 dark:bg-warning-900/25 px-4 py-1.5 text-sm font-semibold text-warning-700">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-warning-50 px-4 py-1.5 text-sm font-semibold text-warning-700">
                 <Clock size={15} /> Il vous reste {access.trialDaysLeft} jour{access.trialDaysLeft > 1 ? 's' : ''} d'essai
               </div>
-              <h1 className="text-3xl font-extrabold text-ink-900 dark:text-ink-50">Choisissez votre forfait</h1>
-              <p className="mt-2 text-sm text-ink-500 dark:text-ink-400">Continuez à utiliser LiAfrik Flow sans interruption après votre essai.</p>
+              <h1 className="text-3xl font-extrabold text-ink-900">Choisissez votre forfait</h1>
+              <p className="mt-2 text-sm text-ink-500">Continuez à utiliser LiAfrik Flow sans interruption après votre essai.</p>
             </>
           ) : (
             <>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-error-50 dark:bg-error-900/25 px-4 py-1.5 text-sm font-semibold text-error-700">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-error-50 px-4 py-1.5 text-sm font-semibold text-error-700">
                 <AlertCircle size={15} /> Votre essai est terminé
               </div>
-              <h1 className="text-3xl font-extrabold text-ink-900 dark:text-ink-50">Activez votre abonnement</h1>
-              <p className="mt-2 text-sm text-ink-500 dark:text-ink-400">Choisissez un forfait pour retrouver l'accès à vos modules.</p>
+              <h1 className="text-3xl font-extrabold text-ink-900">Activez votre abonnement</h1>
+              <p className="mt-2 text-sm text-ink-500">Choisissez un forfait pour retrouver l'accès à vos modules.</p>
             </>
           )}
         </motion.div>
 
         {error && (
-          <div className="mx-auto mb-6 flex max-w-md items-start gap-2 rounded-xl bg-brand-50 dark:bg-brand-900/25 p-3 text-sm text-brand-700">
+          <div className="mx-auto mb-6 flex max-w-md items-start gap-2 rounded-xl bg-brand-50 p-3 text-sm text-brand-700">
             <Sparkles size={16} className="mt-0.5 shrink-0" /> {error}
           </div>
         )}
 
         <div className="mb-6 flex justify-center">
-          <div className="inline-flex rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
+          <div className="inline-flex rounded-full border border-ink-200 bg-white p-1">
             <button
               onClick={() => setBilling('monthly')}
-              className={`rounded-full px-5 py-2 text-sm font-semibold transition ${billing === 'monthly' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
+              className={`rounded-full px-5 py-2 text-sm font-semibold transition ${billing === 'monthly' ? 'bg-brand-500 text-white' : 'text-ink-600'}`}
             >Mensuel</button>
             <button
               onClick={() => setBilling('annual')}
-              className={`rounded-full px-5 py-2 text-sm font-semibold transition ${billing === 'annual' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
+              className={`rounded-full px-5 py-2 text-sm font-semibold transition ${billing === 'annual' ? 'bg-brand-500 text-white' : 'text-ink-600'}`}
             >Annuel <span className="text-xs opacity-80">2 mois offerts</span></button>
           </div>
         </div>
@@ -115,11 +115,11 @@ export function SubscribePage() {
                 {plan.popular && (
                   <span className="mb-3 inline-block rounded-full bg-brand-500 px-3 py-0.5 text-[10px] font-bold uppercase text-white">Populaire</span>
                 )}
-                <h3 className="text-lg font-bold text-ink-900 dark:text-ink-50">{plan.name}</h3>
-                <p className="mt-2 text-3xl font-extrabold text-ink-900 dark:text-ink-50">
-                  ${price}<span className="text-sm font-normal text-ink-500 dark:text-ink-400">/{billing === 'annual' ? 'an' : 'mois'}</span>
+                <h3 className="text-lg font-bold text-ink-900">{plan.name}</h3>
+                <p className="mt-2 text-3xl font-extrabold text-ink-900">
+                  ${price}<span className="text-sm font-normal text-ink-500">/{billing === 'annual' ? 'an' : 'mois'}</span>
                 </p>
-                <ul className="mt-4 space-y-2 text-sm text-ink-600 dark:text-ink-300">
+                <ul className="mt-4 space-y-2 text-sm text-ink-600">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-2">
                       <Check size={15} className="mt-0.5 shrink-0 text-success-500" /> {f}
@@ -138,7 +138,7 @@ export function SubscribePage() {
           })}
         </div>
 
-        <p className="mt-8 text-center text-xs text-ink-400 dark:text-ink-500">
+        <p className="mt-8 text-center text-xs text-ink-400">
           Paiement sécurisé par Stripe. Annulation à tout moment. TVA non incluse.
         </p>
       </div>

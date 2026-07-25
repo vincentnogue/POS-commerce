@@ -124,13 +124,13 @@ export function StoresPage() {
             return (
               <div key={s.id} className="card p-5">
                 <div className="flex items-start justify-between">
-                  <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 dark:bg-brand-900/25 text-brand-600">
+                  <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
                     <StoreIcon size={20} />
                   </div>
                   <Badge tone={s.is_active ? 'success' : 'neutral'}>{s.is_active ? 'Actif' : 'Inactif'}</Badge>
                 </div>
-                <h3 className="mt-3 text-lg font-semibold text-ink-900 dark:text-ink-50">{s.name}</h3>
-                <div className="mt-2 space-y-1 text-sm text-ink-500 dark:text-ink-400">
+                <h3 className="mt-3 text-lg font-semibold text-ink-900">{s.name}</h3>
+                <div className="mt-2 space-y-1 text-sm text-ink-500">
                   {s.address && <p className="flex items-start gap-1.5"><MapPin size={14} className="mt-0.5 shrink-0" /> {s.address}</p>}
                   {s.city && <p className="pl-5">{s.city}</p>}
                   {s.phone && <p className="flex items-center gap-1.5"><Phone size={14} /> {s.phone}</p>}
@@ -146,11 +146,11 @@ export function StoresPage() {
                   )}
                 </div>
                 {storeAssigns.length > 0 && (
-                  <div className="mt-3 border-t border-ink-100 dark:border-ink-800 pt-3">
-                    <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-ink-600 dark:text-ink-300"><Users size={12} /> Assignés ({storeAssigns.length})</p>
+                  <div className="mt-3 border-t border-ink-100 pt-3">
+                    <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-ink-600"><Users size={12} /> Assignés ({storeAssigns.length})</p>
                     <div className="flex flex-wrap gap-1">
                       {storeAssigns.map((a) => (
-                        <span key={a.id} className={`rounded-md px-2 py-0.5 text-[10px] ${a.can_transfer ? 'bg-brand-50 dark:bg-brand-900/25 text-brand-700' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`} title={a.can_transfer ? 'Peut transférer' : 'Lecture seule'}>
+                        <span key={a.id} className={`rounded-md px-2 py-0.5 text-[10px] ${a.can_transfer ? 'bg-brand-50 text-brand-700' : 'bg-ink-100 text-ink-600'}`} title={a.can_transfer ? 'Peut transférer' : 'Lecture seule'}>
                           {memberName(a.member_id)}{a.can_transfer ? ' ⌀' : ''}
                         </span>
                       ))}
@@ -160,7 +160,7 @@ export function StoresPage() {
                 <div className="mt-4 flex gap-2">
                   {canUpdate && <button onClick={() => openEdit(s)} className="btn-ghost flex-1 justify-center text-xs"><Pencil size={13} /> Modifier</button>}
                   {canUpdate && <button onClick={() => openAssignments(s)} className="btn-ghost flex-1 justify-center text-xs border-brand-200 text-brand-700"><Users size={13} /> Assigner</button>}
-                  {canDelete && <button onClick={() => remove(s)} className="rounded-full border border-ink-200 dark:border-ink-700 p-2 text-ink-500 dark:text-ink-400 hover:border-error-200 hover:text-error-600"><Trash2 size={14} /></button>}
+                  {canDelete && <button onClick={() => remove(s)} className="rounded-full border border-ink-200 p-2 text-ink-500 hover:border-error-200 hover:text-error-600"><Trash2 size={14} /></button>}
                 </div>
               </div>
             );
@@ -180,7 +180,7 @@ export function StoresPage() {
             <Field label="Latitude (GPS)"><input type="number" step="any" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} className="input" placeholder="Ex: 3.8677" /></Field>
             <Field label="Longitude (GPS)"><input type="number" step="any" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} className="input" placeholder="Ex: 11.5184" /></Field>
           </div>
-          <p className="text-xs text-ink-400 dark:text-ink-500">Astuce : récupérez les coordonnées depuis Google Maps (clic droit) ou OpenStreetMap.</p>
+          <p className="text-xs text-ink-400">Astuce : récupérez les coordonnées depuis Google Maps (clic droit) ou OpenStreetMap.</p>
         </div>
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={() => setModalOpen(false)} className="btn-ghost">Annuler</button>
@@ -191,25 +191,25 @@ export function StoresPage() {
       {/* Assignment modal */}
       <Modal open={!!assignModalStore} onClose={() => setAssignModalStore(null)} title={`Assigner — ${assignModalStore?.name ?? ''}`} maxWidth="max-w-lg">
         <div className="space-y-2">
-          <p className="mb-2 text-sm text-ink-600 dark:text-ink-300">Assignez des membres à ce magasin. Seuls les membres assignés avec « Transfert » peuvent initier ou recevoir des transferts de stock pour ce magasin.</p>
+          <p className="mb-2 text-sm text-ink-600">Assignez des membres à ce magasin. Seuls les membres assignés avec « Transfert » peuvent initier ou recevoir des transferts de stock pour ce magasin.</p>
           {members.filter((m) => m.role !== 'super_admin' && m.role !== 'admin').length === 0 ? (
-            <p className="py-4 text-center text-sm text-ink-400 dark:text-ink-500">Aucun membre staff à assigner. Invitez d'abord des vendeurs.</p>
+            <p className="py-4 text-center text-sm text-ink-400">Aucun membre staff à assigner. Invitez d'abord des vendeurs.</p>
           ) : (
             members.filter((m) => m.role !== 'super_admin' && m.role !== 'admin').map((m) => {
               const sel = assignSelections[m.id] ?? { assigned: false, canTransfer: false };
               return (
-                <div key={m.id} className="flex items-center justify-between rounded-xl border border-ink-100 dark:border-ink-800 p-3">
+                <div key={m.id} className="flex items-center justify-between rounded-xl border border-ink-100 p-3">
                   <div className="flex items-center gap-2">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-action-500 text-xs font-bold text-white">{(m.display_name ?? '?').slice(0, 2).toUpperCase()}</div>
-                    <span className="text-sm font-medium text-ink-900 dark:text-ink-50">{m.display_name ?? 'Membre'}</span>
+                    <span className="text-sm font-medium text-ink-900">{m.display_name ?? 'Membre'}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <label className="flex items-center gap-1.5 text-xs text-ink-600 dark:text-ink-300">
-                      <input type="checkbox" checked={sel.assigned} onChange={(e) => setAssignSelections({ ...assignSelections, [m.id]: { ...sel, assigned: e.target.checked }})} className="rounded border-ink-300 dark:border-ink-600" /> Assigné
+                    <label className="flex items-center gap-1.5 text-xs text-ink-600">
+                      <input type="checkbox" checked={sel.assigned} onChange={(e) => setAssignSelections({ ...assignSelections, [m.id]: { ...sel, assigned: e.target.checked }})} className="rounded border-ink-300" /> Assigné
                     </label>
                     {sel.assigned && (
                       <label className="flex items-center gap-1.5 text-xs text-brand-700">
-                        <input type="checkbox" checked={sel.canTransfer} onChange={(e) => setAssignSelections({ ...assignSelections, [m.id]: { ...sel, canTransfer: e.target.checked }})} className="rounded border-ink-300 dark:border-ink-600" /> Transfert
+                        <input type="checkbox" checked={sel.canTransfer} onChange={(e) => setAssignSelections({ ...assignSelections, [m.id]: { ...sel, canTransfer: e.target.checked }})} className="rounded border-ink-300" /> Transfert
                       </label>
                     )}
                   </div>

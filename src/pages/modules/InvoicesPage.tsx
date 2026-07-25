@@ -148,16 +148,16 @@ export function InvoicesPage() {
           <DataTable
             loading={loading}
             columns={[
-              { key: 'number', label: 'Numéro', render: (i) => <span className="font-semibold text-ink-900 dark:text-ink-50">{i.number}</span> },
-              { key: 'customer', label: 'Client', render: (i) => <span className="text-ink-600 dark:text-ink-300">{(i as any).customer?.name ?? '—'}</span> },
-              { key: 'date', label: 'Date', render: (i) => <span className="text-ink-500 dark:text-ink-400">{new Date(i.issue_date).toLocaleDateString('fr-FR')}</span> },
+              { key: 'number', label: 'Numéro', render: (i) => <span className="font-semibold text-ink-900">{i.number}</span> },
+              { key: 'customer', label: 'Client', render: (i) => <span className="text-ink-600">{(i as any).customer?.name ?? '—'}</span> },
+              { key: 'date', label: 'Date', render: (i) => <span className="text-ink-500">{new Date(i.issue_date).toLocaleDateString('fr-FR')}</span> },
               { key: 'status', label: 'Statut', render: (i) => { const sd = getStatusDisplay(i); return <Badge tone={sd.tone}>{sd.label}</Badge>; } },
-              { key: 'total', label: 'Total', className: 'text-right', render: (i) => <span className="font-semibold text-ink-900 dark:text-ink-50">{formatMoney(i.total, currency)}</span> },
+              { key: 'total', label: 'Total', className: 'text-right', render: (i) => <span className="font-semibold text-ink-900">{formatMoney(i.total, currency)}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (i) => (
                 <div className="flex justify-end gap-1.5">
-                  <button onClick={() => view(i)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Eye size={15} /></button>
-                  {i.status !== 'paid' && <button onClick={() => markPaid(i)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-success-50 dark:hover:bg-success-900/25 hover:text-success-600"><Plus size={15} /></button>}
-                  <button onClick={() => remove(i)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
+                  <button onClick={() => view(i)} className="rounded-lg p-1.5 text-ink-500 hover:bg-brand-50 hover:text-brand-600"><Eye size={15} /></button>
+                  {i.status !== 'paid' && <button onClick={() => markPaid(i)} className="rounded-lg p-1.5 text-ink-500 hover:bg-success-50 hover:text-success-600"><Plus size={15} /></button>}
+                  <button onClick={() => remove(i)} className="rounded-lg p-1.5 text-ink-500 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>
                 </div>
               )},
             ]}
@@ -184,7 +184,7 @@ export function InvoicesPage() {
             </div>
             <div className="space-y-2">
               {form.items.map((it: any, i: number) => (
-                <div key={i} className="grid grid-cols-12 gap-2 rounded-xl border border-ink-200 dark:border-ink-700 p-2">
+                <div key={i} className="grid grid-cols-12 gap-2 rounded-xl border border-ink-200 p-2">
                   <select value={it.product_id} onChange={(e) => updateItem(i, 'product_id', e.target.value)} className="input col-span-5">
                     <option value="">Produit libre</option>
                     {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -192,16 +192,16 @@ export function InvoicesPage() {
                   <input value={it.name} onChange={(e) => updateItem(i, 'name', e.target.value)} placeholder="Désignation" className="input col-span-3" />
                   <input type="number" value={it.quantity} onChange={(e) => updateItem(i, 'quantity', Number(e.target.value))} className="input col-span-1" />
                   <input type="number" value={it.unit_price} onChange={(e) => updateItem(i, 'unit_price', Number(e.target.value))} className="input col-span-2" />
-                  <button onClick={() => removeItem(i)} className="col-span-1 rounded-lg text-ink-400 dark:text-ink-500 hover:text-error-500"><Trash2 size={14} /></button>
+                  <button onClick={() => removeItem(i)} className="col-span-1 rounded-lg text-ink-400 hover:text-error-500"><Trash2 size={14} /></button>
                 </div>
               ))}
-              {form.items.length === 0 && <p className="py-4 text-center text-xs text-ink-400 dark:text-ink-500">Ajoutez au moins une ligne.</p>}
+              {form.items.length === 0 && <p className="py-4 text-center text-xs text-ink-400">Ajoutez au moins une ligne.</p>}
             </div>
           </div>
-          <div className="rounded-xl bg-brand-50 dark:bg-brand-900/25 p-4 text-sm">
-            <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>Sous-total</span><span>{formatMoney(subtotal, currency)}</span></div>
-            <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>Taxes</span><span>{formatMoney(taxTotal, currency)}</span></div>
-            <div className="mt-1 flex justify-between font-bold text-ink-900 dark:text-ink-50"><span>Total</span><span>{formatMoney(total, currency)}</span></div>
+          <div className="rounded-xl bg-brand-50 p-4 text-sm">
+            <div className="flex justify-between text-ink-600"><span>Sous-total</span><span>{formatMoney(subtotal, currency)}</span></div>
+            <div className="flex justify-between text-ink-600"><span>Taxes</span><span>{formatMoney(taxTotal, currency)}</span></div>
+            <div className="mt-1 flex justify-between font-bold text-ink-900"><span>Total</span><span>{formatMoney(total, currency)}</span></div>
           </div>
         </div>
         <div className="mt-6 flex justify-end gap-2">
@@ -215,23 +215,23 @@ export function InvoicesPage() {
           <div>
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <p className="text-sm text-ink-500 dark:text-ink-400">Client</p>
-                <p className="font-semibold text-ink-900 dark:text-ink-50">{(viewOpen as any).customer?.name ?? '—'}</p>
+                <p className="text-sm text-ink-500">Client</p>
+                <p className="font-semibold text-ink-900">{(viewOpen as any).customer?.name ?? '—'}</p>
               </div>
               {(() => { const sd = getStatusDisplay(viewOpen); return <Badge tone={sd.tone}>{sd.label}</Badge>; })()}
             </div>
             <table className="w-full text-sm">
-              <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400"><th className="pb-2">Désignation</th><th className="pb-2 text-right">Qté</th><th className="pb-2 text-right">Prix</th><th className="pb-2 text-right">Total</th></tr></thead>
+              <thead><tr className="border-b border-ink-100 text-left text-xs uppercase text-ink-500"><th className="pb-2">Désignation</th><th className="pb-2 text-right">Qté</th><th className="pb-2 text-right">Prix</th><th className="pb-2 text-right">Total</th></tr></thead>
               <tbody>
                 {viewItems.map((it) => (
-                  <tr key={it.id} className="border-b border-ink-50 dark:border-ink-800"><td className="py-2">{it.name}</td><td className="py-2 text-right">{it.quantity}</td><td className="py-2 text-right">{formatMoney(it.unit_price, currency)}</td><td className="py-2 text-right font-semibold">{formatMoney(it.total, currency)}</td></tr>
+                  <tr key={it.id} className="border-b border-ink-50"><td className="py-2">{it.name}</td><td className="py-2 text-right">{it.quantity}</td><td className="py-2 text-right">{formatMoney(it.unit_price, currency)}</td><td className="py-2 text-right font-semibold">{formatMoney(it.total, currency)}</td></tr>
                 ))}
               </tbody>
             </table>
-            <div className="mt-4 flex justify-between border-t border-ink-100 dark:border-ink-800 pt-3 text-base font-bold"><span>Total</span><span>{formatMoney(viewOpen.total, currency)}</span></div>
+            <div className="mt-4 flex justify-between border-t border-ink-100 pt-3 text-base font-bold"><span>Total</span><span>{formatMoney(viewOpen.total, currency)}</span></div>
 
             {/* Action buttons */}
-            <div className="mt-5 flex flex-wrap gap-2 border-t border-ink-100 dark:border-ink-800 pt-4">
+            <div className="mt-5 flex flex-wrap gap-2 border-t border-ink-100 pt-4">
               <button onClick={() => printInvoice(viewOpen, viewItems)} className="btn-ghost text-sm"><Printer size={15} /> {t('invoices.print')}</button>
               <button onClick={() => downloadInvoicePDF(viewOpen, viewItems)} className="btn-ghost text-sm"><FileDown size={15} /> {t('invoices.downloadPdf')}</button>
               <button

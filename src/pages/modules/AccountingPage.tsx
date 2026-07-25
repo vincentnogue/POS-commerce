@@ -127,25 +127,25 @@ export function AccountingPage() {
       </div>
 
       <div className="card mb-6 p-6">
-        <h3 className="mb-2 text-base font-semibold text-ink-900 dark:text-ink-50">Compte de résultat simplifié</h3>
+        <h3 className="mb-2 text-base font-semibold text-ink-900">Compte de résultat simplifié</h3>
         <div className="space-y-2 text-sm">
-          <div className="flex justify-between border-b border-ink-100 dark:border-ink-800 pb-2"><span className="text-ink-600 dark:text-ink-300">Chiffre d'affaires</span><span className="font-semibold text-ink-900 dark:text-ink-50">{formatMoney(revenue, currency)}</span></div>
-          <div className="flex justify-between border-b border-ink-100 dark:border-ink-800 pb-2"><span className="text-ink-600 dark:text-ink-300">- Coût des marchandises (achats)</span><span className="text-ink-900 dark:text-ink-50">{formatMoney(cogs, currency)}</span></div>
-          <div className="flex justify-between border-b border-ink-100 dark:border-ink-800 pb-2"><span className="font-semibold text-ink-700 dark:text-ink-200">Marge brute</span><span className="font-semibold text-ink-900 dark:text-ink-50">{formatMoney(grossProfit, currency)}</span></div>
-          <div className="flex justify-between border-b border-ink-100 dark:border-ink-800 pb-2"><span className="text-ink-600 dark:text-ink-300">- Dépenses opérationnelles</span><span className="text-ink-900 dark:text-ink-50">{formatMoney(expensesTotal, currency)}</span></div>
-          <div className="flex justify-between pt-1"><span className="font-bold text-ink-900 dark:text-ink-50">Résultat net</span><span className={`font-bold ${netProfit >= 0 ? 'text-success-700' : 'text-error-600'}`}>{formatMoney(netProfit, currency)}</span></div>
+          <div className="flex justify-between border-b border-ink-100 pb-2"><span className="text-ink-600">Chiffre d'affaires</span><span className="font-semibold text-ink-900">{formatMoney(revenue, currency)}</span></div>
+          <div className="flex justify-between border-b border-ink-100 pb-2"><span className="text-ink-600">- Coût des marchandises (achats)</span><span className="text-ink-900">{formatMoney(cogs, currency)}</span></div>
+          <div className="flex justify-between border-b border-ink-100 pb-2"><span className="font-semibold text-ink-700">Marge brute</span><span className="font-semibold text-ink-900">{formatMoney(grossProfit, currency)}</span></div>
+          <div className="flex justify-between border-b border-ink-100 pb-2"><span className="text-ink-600">- Dépenses opérationnelles</span><span className="text-ink-900">{formatMoney(expensesTotal, currency)}</span></div>
+          <div className="flex justify-between pt-1"><span className="font-bold text-ink-900">Résultat net</span><span className={`font-bold ${netProfit >= 0 ? 'text-success-700' : 'text-error-600'}`}>{formatMoney(netProfit, currency)}</span></div>
         </div>
       </div>
 
       <div className="card p-5">
-        <h3 className="mb-4 text-base font-semibold text-ink-900 dark:text-ink-50">Détail mensuel</h3>
+        <h3 className="mb-4 text-base font-semibold text-ink-900">Détail mensuel</h3>
         <DataTable
           loading={loading}
           columns={[
-            { key: 'month', label: 'Mois', render: (m) => <span className="font-medium text-ink-900 dark:text-ink-50">{m.month}</span> },
-            { key: 'revenu', label: 'Revenu', className: 'text-right', render: (m) => <span className="text-ink-900 dark:text-ink-50">{formatMoney(m.revenu, currency)}</span> },
-            { key: 'depenses', label: 'Dépenses', className: 'text-right', render: (m) => <span className="text-ink-900 dark:text-ink-50">{formatMoney(m.depenses, currency)}</span> },
-            { key: 'achats', label: 'Achats', className: 'text-right', render: (m) => <span className="text-ink-900 dark:text-ink-50">{formatMoney(m.achats, currency)}</span> },
+            { key: 'month', label: 'Mois', render: (m) => <span className="font-medium text-ink-900">{m.month}</span> },
+            { key: 'revenu', label: 'Revenu', className: 'text-right', render: (m) => <span className="text-ink-900">{formatMoney(m.revenu, currency)}</span> },
+            { key: 'depenses', label: 'Dépenses', className: 'text-right', render: (m) => <span className="text-ink-900">{formatMoney(m.depenses, currency)}</span> },
+            { key: 'achats', label: 'Achats', className: 'text-right', render: (m) => <span className="text-ink-900">{formatMoney(m.achats, currency)}</span> },
             { key: 'resultat', label: 'Résultat', className: 'text-right', render: (m) => <span className={m.resultat >= 0 ? 'font-semibold text-success-700' : 'font-semibold text-error-600'}>{formatMoney(m.resultat, currency)}</span> },
           ]}
           rows={monthly}

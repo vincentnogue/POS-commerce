@@ -51,21 +51,21 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-ink-100 dark:border-ink-800 bg-white/80 dark:bg-ink-800/80 px-4 backdrop-blur lg:px-6">
-      <button onClick={onOpenSidebar} className="rounded-full p-2 text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:bg-ink-800 lg:hidden">
+    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-ink-100 bg-white/80 px-4 backdrop-blur lg:px-6">
+      <button onClick={onOpenSidebar} className="rounded-full p-2 text-ink-600 hover:bg-ink-100 lg:hidden">
         <Menu size={20} />
       </button>
 
       <div className="relative flex-1 max-w-xl">
-        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 dark:text-ink-500" />
+        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && query.trim()) navigate(`/products?q=${encodeURIComponent(query)}`); }}
           placeholder={t('header.search')}
-          className="hidden w-full rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 py-2 pl-10 pr-4 text-sm placeholder:text-ink-400 dark:text-ink-500 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-50 sm:block"
+          className="hidden w-full rounded-full border border-ink-200 bg-white py-2 pl-10 pr-4 text-sm placeholder:text-ink-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-50 sm:block"
         />
-        <button className="rounded-full border border-ink-200 dark:border-ink-700 p-2 text-ink-600 dark:text-ink-300 sm:hidden">
+        <button className="rounded-full border border-ink-200 p-2 text-ink-600 sm:hidden">
           <Search size={18} />
         </button>
       </div>
@@ -73,7 +73,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
       <div className="ml-auto flex items-center gap-2">
         <button
           onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
-          className="inline-flex h-9 items-center gap-1 rounded-full border border-ink-200 dark:border-ink-700 px-3 text-xs font-bold text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
+          className="inline-flex h-9 items-center gap-1 rounded-full border border-ink-200 px-3 text-xs font-bold text-ink-600 transition hover:border-brand-200 hover:text-brand-600"
           aria-label="Switch language"
         >
           {LANG_LABELS[lang]}
@@ -82,7 +82,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
         </button>
         <button
           onClick={toggle}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 text-ink-600 transition hover:border-brand-200 hover:text-brand-600"
           aria-label="Mode sombre/clair"
         >
           {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
@@ -90,7 +90,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
         <div className="relative" ref={ref}>
           <button
             onClick={() => setNotifOpen((v) => !v)}
-            className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
+            className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 text-ink-600 transition hover:border-brand-200 hover:text-brand-600"
           >
             <Bell size={17} />
             {unread > 0 && (
@@ -100,9 +100,9 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
             )}
           </button>
           {notifOpen && (
-            <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl2 border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 py-2 shadow-float">
+            <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl2 border border-ink-200 bg-white py-2 shadow-float">
               <div className="flex items-center justify-between px-4 py-2">
-                <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">Notifications</p>
+                <p className="text-sm font-semibold text-ink-900">Notifications</p>
                 {unread > 0 && (
                   <button onClick={markAllRead} className="text-xs font-semibold text-brand-600 hover:underline">
                     Tout marquer lu
@@ -111,14 +111,14 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
               </div>
               <div className="max-h-80 overflow-y-auto scroll-thin">
                 {loadingNotifs ? (
-                  <p className="px-4 py-6 text-center text-sm text-ink-400 dark:text-ink-500">Chargement…</p>
+                  <p className="px-4 py-6 text-center text-sm text-ink-400">Chargement…</p>
                 ) : notifs.length === 0 ? (
-                  <p className="px-4 py-6 text-center text-sm text-ink-400 dark:text-ink-500">Aucune notification</p>
+                  <p className="px-4 py-6 text-center text-sm text-ink-400">Aucune notification</p>
                 ) : (
                   notifs.map((n) => (
-                    <div key={n.id} className={`border-t border-ink-100 dark:border-ink-800 px-4 py-3 ${n.read ? '' : 'bg-brand-50 dark:bg-brand-900/25/50'}`}>
-                      <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{n.title}</p>
-                      {n.body && <p className="mt-0.5 text-xs text-ink-500 dark:text-ink-400">{n.body}</p>}
+                    <div key={n.id} className={`border-t border-ink-100 px-4 py-3 ${n.read ? '' : 'bg-brand-50/50'}`}>
+                      <p className="text-sm font-semibold text-ink-900">{n.title}</p>
+                      {n.body && <p className="mt-0.5 text-xs text-ink-500">{n.body}</p>}
                     </div>
                   ))
                 )}

@@ -179,11 +179,11 @@ export function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-ink-50 dark:bg-ink-900">
-      <header className="border-b border-ink-100 dark:border-ink-800 bg-white dark:bg-ink-800">
+    <div className="min-h-screen bg-ink-50">
+      <header className="border-b border-ink-100 bg-white">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3.5">
           <Logo clickable />
-          <p className="text-sm text-ink-500 dark:text-ink-400">Étape {step + 1} / {STEPS.length}</p>
+          <p className="text-sm text-ink-500">Étape {step + 1} / {STEPS.length}</p>
         </div>
       </header>
 
@@ -191,7 +191,7 @@ export function OnboardingPage() {
         {/* Progress */}
         <div className="mb-8 flex items-center gap-2">
           {STEPS.map((_, i) => (
-            <div key={i} className={`h-1.5 flex-1 rounded-full ${i <= step ? 'bg-brand-500' : 'bg-ink-200 dark:bg-ink-700'}`} />
+            <div key={i} className={`h-1.5 flex-1 rounded-full ${i <= step ? 'bg-brand-500' : 'bg-ink-200'}`} />
           ))}
         </div>
 
@@ -240,7 +240,7 @@ export function OnboardingPage() {
                     </optgroup>
                   </select>
                   {country && (
-                    <div className="mt-3 rounded-xl bg-brand-50 dark:bg-brand-900/25 p-3 text-sm text-brand-700">
+                    <div className="mt-3 rounded-xl bg-brand-50 p-3 text-sm text-brand-700">
                       <p>Indicatif : {country.dialCode} · Langues : {country.languages.join(', ')}</p>
                     </div>
                   )}
@@ -294,7 +294,7 @@ export function OnboardingPage() {
                       <option key={code} value={code}>{code} — {info.label} ({info.symbol})</option>
                     ))}
                   </select>
-                  <div className="mt-3 flex items-start gap-2 rounded-xl bg-warning-50 dark:bg-warning-900/25 p-3 text-xs text-warning-600">
+                  <div className="mt-3 flex items-start gap-2 rounded-xl bg-warning-50 p-3 text-xs text-warning-600">
                     <AlertCircle size={14} className="mt-0.5 shrink-0" />
                     La devise est <strong>verrouillée définitivement</strong> après cette étape. Elle restera cohérente dans tout le compte (POS, factures, rapports, exports).
                   </div>
@@ -316,16 +316,16 @@ export function OnboardingPage() {
                       key={p.code}
                       onClick={() => setPlanCode(p.code)}
                       className={`flex w-full items-center justify-between rounded-xl border p-4 text-left transition ${
-                        planCode === p.code ? 'border-brand-400 bg-brand-50 dark:bg-brand-900/25 ring-1 ring-brand-200' : 'border-ink-200 dark:border-ink-700 hover:border-brand-200'
+                        planCode === p.code ? 'border-brand-400 bg-brand-50 ring-1 ring-brand-200' : 'border-ink-200 hover:border-brand-200'
                       }`}
                     >
                       <div>
-                        <p className="text-sm font-bold text-ink-900 dark:text-ink-50">{p.name}</p>
-                        <p className="text-xs text-ink-500 dark:text-ink-400">{p.desc}</p>
+                        <p className="text-sm font-bold text-ink-900">{p.name}</p>
+                        <p className="text-xs text-ink-500">{p.desc}</p>
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-semibold text-brand-700">{p.price}</span>
-                        <div className={`flex h-5 w-5 items-center justify-center rounded-full border ${planCode === p.code ? 'border-brand-500 bg-brand-500' : 'border-ink-300 dark:border-ink-600'}`}>
+                        <div className={`flex h-5 w-5 items-center justify-center rounded-full border ${planCode === p.code ? 'border-brand-500 bg-brand-500' : 'border-ink-300'}`}>
                           {planCode === p.code && <Check size={12} className="text-white" />}
                         </div>
                       </div>
@@ -341,13 +341,13 @@ export function OnboardingPage() {
                 <div className="mt-6 space-y-5">
                   <div>
                     <label className="label">Logo de l'entreprise</label>
-                    <p className="mb-2 text-xs text-ink-500 dark:text-ink-400">Apparaîtra sur vos factures, devis et reçus</p>
+                    <p className="mb-2 text-xs text-ink-500">Apparaîtra sur vos factures, devis et reçus</p>
                     <div className="flex items-center gap-4">
                       {logoPreview ? (
-                        <img src={logoPreview} alt="Logo preview" className="h-16 w-16 rounded-xl border border-ink-200 dark:border-ink-700 object-contain bg-white dark:bg-ink-800 p-1" />
+                        <img src={logoPreview} alt="Logo preview" className="h-16 w-16 rounded-xl border border-ink-200 object-contain bg-white p-1" />
                       ) : (
-                        <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-dashed border-ink-300 dark:border-ink-600 bg-ink-50 dark:bg-ink-900">
-                          <ImageIcon size={20} className="text-ink-400 dark:text-ink-500" />
+                        <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-dashed border-ink-300 bg-ink-50">
+                          <ImageIcon size={20} className="text-ink-400" />
                         </div>
                       )}
                       <label className="btn-ghost cursor-pointer text-sm">
@@ -361,13 +361,13 @@ export function OnboardingPage() {
                   </div>
                   <div>
                     <label className="label">Cachet / tampon officiel</label>
-                    <p className="mb-2 text-xs text-ink-500 dark:text-ink-400">Laissez vide si vous n'en avez pas</p>
+                    <p className="mb-2 text-xs text-ink-500">Laissez vide si vous n'en avez pas</p>
                     <div className="flex items-center gap-4">
                       {stampPreview ? (
-                        <img src={stampPreview} alt="Stamp preview" className="h-16 w-16 rounded-xl border border-ink-200 dark:border-ink-700 object-contain bg-white dark:bg-ink-800 p-1" />
+                        <img src={stampPreview} alt="Stamp preview" className="h-16 w-16 rounded-xl border border-ink-200 object-contain bg-white p-1" />
                       ) : (
-                        <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-dashed border-ink-300 dark:border-ink-600 bg-ink-50 dark:bg-ink-900">
-                          <Stamp size={20} className="text-ink-400 dark:text-ink-500" />
+                        <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-dashed border-ink-300 bg-ink-50">
+                          <Stamp size={20} className="text-ink-400" />
                         </div>
                       )}
                       <label className="btn-ghost cursor-pointer text-sm">
@@ -408,7 +408,7 @@ export function OnboardingPage() {
                       <AlertCircle size={14} /> Code invalide ou inactif
                     </p>
                   )}
-                  <p className="mt-3 text-xs text-ink-500 dark:text-ink-400">
+                  <p className="mt-3 text-xs text-ink-500">
                     Le code commercial est 100% optionnel. S'il est vide, votre compte est créé normalement.
                   </p>
                 </div>
@@ -417,7 +417,7 @@ export function OnboardingPage() {
           </AnimatePresence>
 
           {error && (
-            <div className="mt-4 flex items-start gap-2 rounded-xl bg-error-50 dark:bg-error-900/25 p-3 text-sm text-error-600">
+            <div className="mt-4 flex items-start gap-2 rounded-xl bg-error-50 p-3 text-sm text-error-600">
               <AlertCircle size={16} className="mt-0.5 shrink-0" /> {error}
             </div>
           )}
@@ -443,12 +443,12 @@ export function OnboardingPage() {
 function StepHeader({ icon: Icon, title, subtitle }: { icon: typeof Building2; title: string; subtitle: string }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 dark:bg-brand-900/25 text-brand-600">
+      <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
         <Icon size={20} />
       </div>
       <div>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{title}</h2>
-        <p className="text-sm text-ink-500 dark:text-ink-400">{subtitle}</p>
+        <h2 className="text-xl font-bold text-ink-900">{title}</h2>
+        <p className="text-sm text-ink-500">{subtitle}</p>
       </div>
     </div>
   );
