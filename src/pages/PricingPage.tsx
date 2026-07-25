@@ -46,7 +46,7 @@ export function PricingPage() {
               className={`flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition ${annual ? 'bg-white dark:bg-ink-800 text-ink-900 dark:text-ink-50 shadow-soft' : 'text-ink-500 dark:text-ink-400'}`}
             >
               {t('pricing.annual')}
-              <span className="rounded-full bg-success-100 px-2 py-0.5 text-[10px] font-bold text-success-700">{t('pricing.annualSave')}</span>
+              <span className="rounded-full bg-success-100 dark:bg-success-900/35 px-2 py-0.5 text-[10px] font-bold text-success-700">{t('pricing.annualSave')}</span>
             </button>
           </div>
         </motion.div>
@@ -79,7 +79,7 @@ export function PricingPage() {
                 )}
                 <p className="mt-2 text-xs text-ink-500 dark:text-ink-400">{p.maxUsers} utilisateurs · {p.maxStores} magasin{p.maxStores > 1 ? 's' : ''}</p>
 
-                <div className="mt-3 flex items-center gap-1.5 rounded-lg bg-brand-50 px-2.5 py-1.5 text-xs font-semibold text-brand-700">
+                <div className="mt-3 flex items-center gap-1.5 rounded-lg bg-brand-50 dark:bg-brand-900/25 px-2.5 py-1.5 text-xs font-semibold text-brand-700">
                   <Sparkles size={12} /> {TRIAL_DAYS}{lang === 'fr' ? 'j' : 'd'} {lang === 'fr' ? 'essai gratuit' : 'free trial'}
                 </div>
 
@@ -104,7 +104,7 @@ export function PricingPage() {
             { title: 'Sans engagement', desc: 'Annulez à tout moment, vos données restent exportables.' },
             { title: 'Support inclus', desc: 'Tous les plans incluent un support. Entreprise dispose du 24/7.' },
           ].map((f) => (
-            <div key={f.title} className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 p-5">
+            <div key={f.title} className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50 dark:bg-brand-900/25/30 p-5">
               <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{f.title}</p>
               <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">{f.desc}</p>
             </div>

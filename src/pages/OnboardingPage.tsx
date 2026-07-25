@@ -240,7 +240,7 @@ export function OnboardingPage() {
                     </optgroup>
                   </select>
                   {country && (
-                    <div className="mt-3 rounded-xl bg-brand-50 p-3 text-sm text-brand-700">
+                    <div className="mt-3 rounded-xl bg-brand-50 dark:bg-brand-900/25 p-3 text-sm text-brand-700">
                       <p>Indicatif : {country.dialCode} · Langues : {country.languages.join(', ')}</p>
                     </div>
                   )}
@@ -294,7 +294,7 @@ export function OnboardingPage() {
                       <option key={code} value={code}>{code} — {info.label} ({info.symbol})</option>
                     ))}
                   </select>
-                  <div className="mt-3 flex items-start gap-2 rounded-xl bg-warning-50 p-3 text-xs text-warning-600">
+                  <div className="mt-3 flex items-start gap-2 rounded-xl bg-warning-50 dark:bg-warning-900/25 p-3 text-xs text-warning-600">
                     <AlertCircle size={14} className="mt-0.5 shrink-0" />
                     La devise est <strong>verrouillée définitivement</strong> après cette étape. Elle restera cohérente dans tout le compte (POS, factures, rapports, exports).
                   </div>
@@ -316,7 +316,7 @@ export function OnboardingPage() {
                       key={p.code}
                       onClick={() => setPlanCode(p.code)}
                       className={`flex w-full items-center justify-between rounded-xl border p-4 text-left transition ${
-                        planCode === p.code ? 'border-brand-400 bg-brand-50 ring-1 ring-brand-200' : 'border-ink-200 dark:border-ink-700 hover:border-brand-200'
+                        planCode === p.code ? 'border-brand-400 bg-brand-50 dark:bg-brand-900/25 ring-1 ring-brand-200' : 'border-ink-200 dark:border-ink-700 hover:border-brand-200'
                       }`}
                     >
                       <div>
@@ -417,7 +417,7 @@ export function OnboardingPage() {
           </AnimatePresence>
 
           {error && (
-            <div className="mt-4 flex items-start gap-2 rounded-xl bg-error-50 p-3 text-sm text-error-600">
+            <div className="mt-4 flex items-start gap-2 rounded-xl bg-error-50 dark:bg-error-900/25 p-3 text-sm text-error-600">
               <AlertCircle size={16} className="mt-0.5 shrink-0" /> {error}
             </div>
           )}
@@ -443,7 +443,7 @@ export function OnboardingPage() {
 function StepHeader({ icon: Icon, title, subtitle }: { icon: typeof Building2; title: string; subtitle: string }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+      <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 dark:bg-brand-900/25 text-brand-600">
         <Icon size={20} />
       </div>
       <div>

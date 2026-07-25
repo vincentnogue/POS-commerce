@@ -87,7 +87,7 @@ export function SignupPage() {
               </div>
             </div>
             {error && (
-              <div className="flex items-start gap-2 rounded-xl bg-error-50 p-3 text-sm text-error-600">
+              <div className="flex items-start gap-2 rounded-xl bg-error-50 dark:bg-error-900/25 p-3 text-sm text-error-600">
                 <AlertCircle size={16} className="mt-0.5 shrink-0" /> {error}
               </div>
             )}

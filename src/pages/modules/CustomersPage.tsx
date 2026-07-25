@@ -82,8 +82,8 @@ export function CustomersPage() {
               { key: 'balance', label: 'Solde', className: 'text-right', render: (c) => <span className={Number(c.balance) < 0 ? 'font-semibold text-error-600' : 'text-ink-900 dark:text-ink-50'}>{formatMoney(c.balance, currency)}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (c) => (
                 <div className="flex justify-end gap-2">
-                  <button onClick={() => openEdit(c)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 hover:text-brand-600"><Pencil size={15} /></button>
-                  <button onClick={() => remove(c)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>
+                  <button onClick={() => openEdit(c)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>
+                  <button onClick={() => remove(c)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
                 </div>
               )},
             ]}

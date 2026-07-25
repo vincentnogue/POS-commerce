@@ -128,7 +128,7 @@ export function DashboardPage() {
               <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Ventes des 7 derniers jours</h3>
               <p className="text-xs text-ink-500 dark:text-ink-400">{formatMoney(chartData.reduce((s, d) => s + d.value, 0), currency)} au total</p>
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 dark:bg-brand-900/25 px-2.5 py-1 text-xs font-semibold text-brand-700">
               <TrendingUp size={12} /> Hebdo
             </span>
           </div>
@@ -168,9 +168,9 @@ export function DashboardPage() {
               <Link
                 key={s.label}
                 to={s.to}
-                className="group flex w-full items-center gap-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-3 transition hover:border-action-200 hover:bg-action-50/40"
+                className="group flex w-full items-center gap-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-3 transition hover:border-action-200 hover:bg-action-50 dark:hover:bg-action-900/25/40"
               >
-                <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-action-100 text-action-600 transition group-hover:bg-action-500 group-hover:text-white">
+                <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-action-100 dark:bg-action-900/35 text-action-600 transition group-hover:bg-action-500 group-hover:text-white">
                   <s.icon size={16} />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -199,7 +199,7 @@ export function DashboardPage() {
           <p className="py-8 text-center text-sm text-ink-400 dark:text-ink-500">Chargement…</p>
         ) : sales.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-center">
-            <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-brand-500">
+            <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 dark:bg-brand-900/25 text-brand-500">
               <Sparkles size={22} />
             </div>
             <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">Aucune vente pour le moment</p>
@@ -223,7 +223,7 @@ export function DashboardPage() {
                     <td className="py-3 font-medium text-ink-900 dark:text-ink-50">{s.reference}</td>
                     <td className="py-3 text-ink-600 dark:text-ink-300">{new Date(s.sale_date).toLocaleDateString('fr-FR')}</td>
                     <td className="py-3">
-                      <span className={`badge ${s.payment_status === 'paid' ? 'bg-success-100 text-success-700' : 'bg-warning-100 text-warning-600'}`}>
+                      <span className={`badge ${s.payment_status === 'paid' ? 'bg-success-100 dark:bg-success-900/35 text-success-700' : 'bg-warning-100 dark:bg-warning-900/35 text-warning-600'}`}>
                         {s.payment_status === 'paid' ? 'Payé' : 'Impayé'}
                       </span>
                     </td>

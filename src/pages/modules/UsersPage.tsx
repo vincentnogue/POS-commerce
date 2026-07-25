@@ -202,7 +202,7 @@ export function UsersPage() {
         ) : undefined}
       />
 
-      {info && <div className="mb-4 rounded-xl bg-brand-50 p-3 text-sm text-brand-700">{info}</div>}
+      {info && <div className="mb-4 rounded-xl bg-brand-50 dark:bg-brand-900/25 p-3 text-sm text-brand-700">{info}</div>}
 
       <div className="mb-4 inline-flex rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
         <button
@@ -271,7 +271,7 @@ export function UsersPage() {
                         {customRole?.name ?? ROLE_LABELS[m.role]}
                       </Badge>
                       {canManageRoles && m.role !== 'super_admin' && (
-                        <button onClick={() => remove(m)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>
+                        <button onClick={() => remove(m)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
                       )}
                     </div>
                   </div>
@@ -300,8 +300,8 @@ export function UsersPage() {
                           <h4 className="font-semibold text-ink-900 dark:text-ink-50">{r.name}</h4>
                         </div>
                         <div className="flex gap-1">
-                          <button onClick={() => openEditRole(r)} className="rounded-md p-1 text-ink-500 dark:text-ink-400 hover:bg-brand-50 hover:text-brand-600"><Pencil size={13} /></button>
-                          <button onClick={() => deleteRole(r)} className="rounded-md p-1 text-ink-500 dark:text-ink-400 hover:bg-error-50 hover:text-error-600"><Trash2 size={13} /></button>
+                          <button onClick={() => openEditRole(r)} className="rounded-md p-1 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={13} /></button>
+                          <button onClick={() => deleteRole(r)} className="rounded-md p-1 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={13} /></button>
                         </div>
                       </div>
                       {r.description && <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">{r.description}</p>}

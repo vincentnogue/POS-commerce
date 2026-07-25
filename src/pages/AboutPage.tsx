@@ -20,7 +20,7 @@ export function AboutPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: i * 0.1 }}
-            className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 p-6"
+            className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50 dark:bg-brand-900/25/30 p-6"
           >
             <v.icon className="mb-3 text-brand-600" size={24} />
             <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">{v.title}</h3>

@@ -65,7 +65,7 @@ export function SubscribePage() {
         >
           {!access.hasActiveSubscription && access.trialDaysLeft > 0 ? (
             <>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-warning-50 px-4 py-1.5 text-sm font-semibold text-warning-700">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-warning-50 dark:bg-warning-900/25 px-4 py-1.5 text-sm font-semibold text-warning-700">
                 <Clock size={15} /> Il vous reste {access.trialDaysLeft} jour{access.trialDaysLeft > 1 ? 's' : ''} d'essai
               </div>
               <h1 className="text-3xl font-extrabold text-ink-900 dark:text-ink-50">Choisissez votre forfait</h1>
@@ -73,7 +73,7 @@ export function SubscribePage() {
             </>
           ) : (
             <>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-error-50 px-4 py-1.5 text-sm font-semibold text-error-700">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-error-50 dark:bg-error-900/25 px-4 py-1.5 text-sm font-semibold text-error-700">
                 <AlertCircle size={15} /> Votre essai est terminé
               </div>
               <h1 className="text-3xl font-extrabold text-ink-900 dark:text-ink-50">Activez votre abonnement</h1>
@@ -83,7 +83,7 @@ export function SubscribePage() {
         </motion.div>
 
         {error && (
-          <div className="mx-auto mb-6 flex max-w-md items-start gap-2 rounded-xl bg-brand-50 p-3 text-sm text-brand-700">
+          <div className="mx-auto mb-6 flex max-w-md items-start gap-2 rounded-xl bg-brand-50 dark:bg-brand-900/25 p-3 text-sm text-brand-700">
             <Sparkles size={16} className="mt-0.5 shrink-0" /> {error}
           </div>
         )}

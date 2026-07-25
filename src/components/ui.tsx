@@ -12,12 +12,12 @@ export function StatCard({
   tone?: 'brand' | 'flow' | 'action' | 'warning' | 'error' | 'success';
 }) {
   const tones: Record<string, string> = {
-    brand: 'bg-brand-100 text-brand-700',
-    flow: 'bg-flow-100 text-flow-700',
-    action: 'bg-action-100 text-action-600',
-    warning: 'bg-warning-100 text-warning-600',
-    error: 'bg-error-100 text-error-600',
-    success: 'bg-success-100 text-success-700',
+    brand: 'bg-brand-100 dark:bg-brand-900/35 text-brand-700',
+    flow: 'bg-flow-100 dark:bg-flow-900/35 text-flow-700',
+    action: 'bg-action-100 dark:bg-action-900/35 text-action-600',
+    warning: 'bg-warning-100 dark:bg-warning-900/35 text-warning-600',
+    error: 'bg-error-100 dark:bg-error-900/35 text-error-600',
+    success: 'bg-success-100 dark:bg-success-900/35 text-success-700',
   };
   return (
     <motion.div
@@ -63,7 +63,7 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl2 border border-dashed border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-6 py-16 text-center">
-      <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 text-brand-500">
+      <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 dark:bg-brand-900/25 text-brand-500">
         <Icon size={26} />
       </div>
       <h3 className="text-lg font-semibold text-ink-900 dark:text-ink-50">{title}</h3>
@@ -81,12 +81,12 @@ export function Badge({
 }) {
   const tones: Record<string, string> = {
     neutral: 'bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-200',
-    brand: 'bg-brand-100 text-brand-700',
-    action: 'bg-action-100 text-action-600',
-    success: 'bg-success-100 text-success-700',
-    warning: 'bg-warning-100 text-warning-600',
-    error: 'bg-error-100 text-error-600',
-    flow: 'bg-flow-100 text-flow-700',
+    brand: 'bg-brand-100 dark:bg-brand-900/35 text-brand-700',
+    action: 'bg-action-100 dark:bg-action-900/35 text-action-600',
+    success: 'bg-success-100 dark:bg-success-900/35 text-success-700',
+    warning: 'bg-warning-100 dark:bg-warning-900/35 text-warning-600',
+    error: 'bg-error-100 dark:bg-error-900/35 text-error-600',
+    flow: 'bg-flow-100 dark:bg-flow-900/35 text-flow-700',
   };
   return <span className={`badge ${tones[tone]}`}>{children}</span>;
 }
@@ -144,9 +144,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const icons: Record<ToastTone, typeof CheckCircle> = { success: CheckCircle, error: AlertCircle, info: Info };
   const tones: Record<ToastTone, string> = {
-    success: 'border-success-200 bg-success-50 text-success-800',
-    error: 'border-error-200 bg-error-50 text-error-800',
-    info: 'border-brand-200 bg-brand-50 text-brand-800',
+    success: 'border-success-200 bg-success-50 dark:bg-success-900/25 text-success-800',
+    error: 'border-error-200 bg-error-50 dark:bg-error-900/25 text-error-800',
+    info: 'border-brand-200 bg-brand-50 dark:bg-brand-900/25 text-brand-800',
   };
 
   return (

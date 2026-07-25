@@ -155,9 +155,9 @@ export function InvoicesPage() {
               { key: 'total', label: 'Total', className: 'text-right', render: (i) => <span className="font-semibold text-ink-900 dark:text-ink-50">{formatMoney(i.total, currency)}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (i) => (
                 <div className="flex justify-end gap-1.5">
-                  <button onClick={() => view(i)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 hover:text-brand-600"><Eye size={15} /></button>
-                  {i.status !== 'paid' && <button onClick={() => markPaid(i)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-success-50 hover:text-success-600"><Plus size={15} /></button>}
-                  <button onClick={() => remove(i)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>
+                  <button onClick={() => view(i)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Eye size={15} /></button>
+                  {i.status !== 'paid' && <button onClick={() => markPaid(i)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-success-50 dark:hover:bg-success-900/25 hover:text-success-600"><Plus size={15} /></button>}
+                  <button onClick={() => remove(i)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
                 </div>
               )},
             ]}
@@ -198,7 +198,7 @@ export function InvoicesPage() {
               {form.items.length === 0 && <p className="py-4 text-center text-xs text-ink-400 dark:text-ink-500">Ajoutez au moins une ligne.</p>}
             </div>
           </div>
-          <div className="rounded-xl bg-brand-50 p-4 text-sm">
+          <div className="rounded-xl bg-brand-50 dark:bg-brand-900/25 p-4 text-sm">
             <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>Sous-total</span><span>{formatMoney(subtotal, currency)}</span></div>
             <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>Taxes</span><span>{formatMoney(taxTotal, currency)}</span></div>
             <div className="mt-1 flex justify-between font-bold text-ink-900 dark:text-ink-50"><span>Total</span><span>{formatMoney(total, currency)}</span></div>

@@ -27,7 +27,7 @@ export function DataTable<T>({
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} className="border-b border-ink-50 dark:border-ink-800 last:border-0 hover:bg-brand-50/30">
+            <tr key={i} className="border-b border-ink-50 dark:border-ink-800 last:border-0 hover:bg-brand-50 dark:hover:bg-brand-900/25/30">
               {columns.map((c) => (
                 <td key={c.key} className={`py-3 ${c.className ?? ''}`}>
                   {c.render ? c.render(row) : (row as any)[c.key]}

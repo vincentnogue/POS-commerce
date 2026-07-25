@@ -63,7 +63,7 @@ export function SuperAdminPage() {
   if (!backendVerified || !isSuperAdmin || !isPlatformAdmin) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-error-50 text-error-600">
+        <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-error-50 dark:bg-error-900/25 text-error-600">
           <Shield size={26} />
         </div>
         <h2 className="text-lg font-semibold text-ink-900 dark:text-ink-50">Accès réservé</h2>
@@ -275,11 +275,11 @@ function SuperTenants() {
                   <td className="py-3 text-ink-500 dark:text-ink-400 text-xs">{new Date(t.created_at).toLocaleDateString('fr-FR')}</td>
                   <td className="py-3">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => impersonate(t)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-flow-50 hover:text-flow-600" title="Se connecter en tant que"><Eye size={15} /></button>
-                      <button onClick={() => toggleStatus(t)} className={`rounded-lg p-1.5 ${t.status === 'active' ? 'text-error-600 hover:bg-error-50' : 'text-success-600 hover:bg-success-50'}`} title={t.status === 'active' ? 'Suspendre' : 'Activer'}>
+                      <button onClick={() => impersonate(t)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-flow-50 dark:hover:bg-flow-900/25 hover:text-flow-600" title="Se connecter en tant que"><Eye size={15} /></button>
+                      <button onClick={() => toggleStatus(t)} className={`rounded-lg p-1.5 ${t.status === 'active' ? 'text-error-600 hover:bg-error-50 dark:hover:bg-error-900/25' : 'text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25'}`} title={t.status === 'active' ? 'Suspendre' : 'Activer'}>
                         {t.status === 'active' ? <Ban size={15} /> : <Check size={15} />}
                       </button>
-                      <button onClick={() => deleteTenant(t)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 hover:text-error-600" title="Supprimer"><Trash2 size={15} /></button>
+                      <button onClick={() => deleteTenant(t)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600" title="Supprimer"><Trash2 size={15} /></button>
                     </div>
                   </td>
                 </tr>
@@ -555,8 +555,8 @@ function SuperPlans() {
               <td className="py-3 text-ink-600 dark:text-ink-300">{p.max_stores}</td>
               <td className="py-3 text-ink-600 dark:text-ink-300">{p.max_products}</td>
               <td className="py-3 text-right">
-                <button onClick={() => { setEditing(p); setForm({ name: p.name, code: p.code, price_usd: p.price_usd, max_users: p.max_users, max_stores: p.max_stores, max_products: p.max_products }); setModalOpen(true); }} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 hover:text-brand-600"><Pencil size={15} /></button>
-                <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>
+                <button onClick={() => { setEditing(p); setForm({ name: p.name, code: p.code, price_usd: p.price_usd, max_users: p.max_users, max_stores: p.max_stores, max_products: p.max_products }); setModalOpen(true); }} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>
+                <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
               </td>
             </tr>
           ))}
@@ -729,7 +729,7 @@ function SuperAudit() {
           accessLogs.length === 0 ? <EmptyState icon={Shield} title="Aucune tentative" description="Les tentatives d'accès au Super Admin apparaîtront ici." /> : (
             <div className="space-y-2">
               {accessLogs.map((al) => (
-                <div key={al.id} className={`rounded-xl border p-3 text-sm ${al.authorized ? 'border-success-100 bg-success-50/30' : 'border-error-100 bg-error-50/30'}`}>
+                <div key={al.id} className={`rounded-xl border p-3 text-sm ${al.authorized ? 'border-success-100 bg-success-50 dark:bg-success-900/25/30' : 'border-error-100 bg-error-50 dark:bg-error-900/25/30'}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Badge tone={al.authorized ? 'success' : 'error'}>{al.authorized ? 'Autorisé' : 'Refusé'}</Badge>

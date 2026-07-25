@@ -207,7 +207,7 @@ export function POSPage() {
                     onClick={() => addToCart(p)}
                     className="group flex flex-col rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-3 text-left transition hover:border-brand-300 hover:shadow-soft"
                   >
-                    <div className="mb-2 flex h-16 items-center justify-center rounded-lg bg-brand-50 text-brand-500">
+                    <div className="mb-2 flex h-16 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/25 text-brand-500">
                       {p.image_url ? <img src={p.image_url} alt={p.name} className="h-full w-full rounded-lg object-cover" /> : <ShoppingCart size={22} />}
                     </div>
                     <p className="line-clamp-2 text-sm font-semibold text-ink-900 dark:text-ink-50">{p.name}</p>
@@ -310,7 +310,7 @@ export function POSPage() {
                   key={m.id}
                   onClick={() => setPaymentMethod(m.id)}
                   className={`flex flex-col items-center gap-1 rounded-xl border p-3 text-xs font-semibold transition ${
-                    paymentMethod === m.id ? 'border-brand-400 bg-brand-50 text-brand-700' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-200'
+                    paymentMethod === m.id ? 'border-brand-400 bg-brand-50 dark:bg-brand-900/25 text-brand-700' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-200'
                   }`}
                 >
                   <m.icon size={18} /> {m.label}
@@ -324,7 +324,7 @@ export function POSPage() {
               <button
                 onClick={() => setDeliveryChoice('delivered')}
                 className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-semibold transition ${
-                  deliveryChoice === 'delivered' ? 'border-success-400 bg-success-50 text-success-700' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-success-200'
+                  deliveryChoice === 'delivered' ? 'border-success-400 bg-success-50 dark:bg-success-900/25 text-success-700' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-success-200'
                 }`}
               >
                 <Package size={16} /> Livré
@@ -332,7 +332,7 @@ export function POSPage() {
               <button
                 onClick={() => setDeliveryChoice('pending')}
                 className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-semibold transition ${
-                    deliveryChoice === 'pending' ? 'border-warning-400 bg-warning-50 text-warning-700' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-warning-200'
+                    deliveryChoice === 'pending' ? 'border-warning-400 bg-warning-50 dark:bg-warning-900/25 text-warning-700' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-warning-200'
                 }`}
               >
                 <Truck size={16} /> Non livré
@@ -340,7 +340,7 @@ export function POSPage() {
             </div>
             {deliveryChoice === 'pending' && <p className="mt-1 text-xs text-warning-700">Une livraison "en attente" sera créée automatiquement dans le module Livraisons.</p>}
           </div>
-          <div className="rounded-xl bg-brand-50 p-4 text-center">
+          <div className="rounded-xl bg-brand-50 dark:bg-brand-900/25 p-4 text-center">
             <p className="text-xs uppercase text-ink-500 dark:text-ink-400">Total à payer</p>
             <p className="text-2xl font-bold text-brand-700">{formatMoney(total, currency)}</p>
           </div>
@@ -368,7 +368,7 @@ export function POSPage() {
       {/* Success modal */}
       <Modal open={!!success} onClose={() => setSuccess(null)} title="Vente enregistrée" maxWidth="max-w-sm">
         <div className="flex flex-col items-center text-center">
-          <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-success-100 text-success-700">
+          <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-success-100 dark:bg-success-900/35 text-success-700">
             <Check size={28} />
           </div>
           <p className="text-sm text-ink-600 dark:text-ink-300">Vente <strong>{success}</strong> enregistrée avec succès.</p>

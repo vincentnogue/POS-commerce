@@ -137,8 +137,8 @@ export function SuppliersPage() {
               { key: 'balance', label: 'Solde', className: 'text-right', render: (s) => <span className={Number(s.balance) > 0 ? 'font-semibold text-warning-600' : 'text-ink-900 dark:text-ink-50'}>{formatMoney(s.balance, currency)}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (s) => (
                 <div className="flex justify-end gap-2">
-                  {canUpdate && <button onClick={() => openEdit(s)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 hover:text-brand-600"><Pencil size={15} /></button>}
-                  {canDelete && <button onClick={() => remove(s)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>}
+                  {canUpdate && <button onClick={() => openEdit(s)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>}
+                  {canDelete && <button onClick={() => remove(s)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>}
                 </div>
               )},
             ]}
@@ -171,7 +171,7 @@ export function SuppliersPage() {
                 <button
                   key={p.id}
                   onClick={() => toggleProduct(p.id)}
-                  className={`flex w-full items-center justify-between px-3 py-2 text-sm transition ${selected ? 'bg-brand-50 text-brand-700' : 'text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:bg-ink-900'}`}
+                  className={`flex w-full items-center justify-between px-3 py-2 text-sm transition ${selected ? 'bg-brand-50 dark:bg-brand-900/25 text-brand-700' : 'text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:bg-ink-900'}`}
                 >
                   <span>{p.name}</span>
                   {selected && <X size={14} className="text-brand-400" />}
