@@ -126,19 +126,19 @@ export function SuppliersPage() {
             columns={[
               { key: 'name', label: 'Nom', render: (s) => (
                 <div>
-                  <p className="font-semibold text-ink-900">{s.name}</p>
-                  {s.contact_name && <p className="text-xs text-ink-500">Contact: {s.contact_name}</p>}
+                  <p className="font-semibold text-ink-900 dark:text-ink-50">{s.name}</p>
+                  {s.contact_name && <p className="text-xs text-ink-500 dark:text-ink-400">Contact: {s.contact_name}</p>}
                   {(supplierProducts[s.id] ?? []).length > 0 && <p className="text-[10px] text-brand-600">{(supplierProducts[s.id] ?? []).length} produit(s) associé(s)</p>}
                 </div>
               )},
-              { key: 'email', label: 'Email', render: (s) => s.email ? <span className="flex items-center gap-1 text-ink-600"><Mail size={12} /> {s.email}</span> : <span className="text-ink-400">—</span> },
-              { key: 'phone', label: 'Téléphone', render: (s) => s.phone ? <span className="flex items-center gap-1 text-ink-600"><Phone size={12} /> {s.phone}</span> : <span className="text-ink-400">—</span> },
-              { key: 'city', label: 'Ville', render: (s) => <span className="text-ink-600">{s.city ?? '—'}</span> },
-              { key: 'balance', label: 'Solde', className: 'text-right', render: (s) => <span className={Number(s.balance) > 0 ? 'font-semibold text-warning-600' : 'text-ink-900'}>{formatMoney(s.balance, currency)}</span> },
+              { key: 'email', label: 'Email', render: (s) => s.email ? <span className="flex items-center gap-1 text-ink-600 dark:text-ink-300"><Mail size={12} /> {s.email}</span> : <span className="text-ink-400 dark:text-ink-500">—</span> },
+              { key: 'phone', label: 'Téléphone', render: (s) => s.phone ? <span className="flex items-center gap-1 text-ink-600 dark:text-ink-300"><Phone size={12} /> {s.phone}</span> : <span className="text-ink-400 dark:text-ink-500">—</span> },
+              { key: 'city', label: 'Ville', render: (s) => <span className="text-ink-600 dark:text-ink-300">{s.city ?? '—'}</span> },
+              { key: 'balance', label: 'Solde', className: 'text-right', render: (s) => <span className={Number(s.balance) > 0 ? 'font-semibold text-warning-600' : 'text-ink-900 dark:text-ink-50'}>{formatMoney(s.balance, currency)}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (s) => (
                 <div className="flex justify-end gap-2">
-                  {canUpdate && <button onClick={() => openEdit(s)} className="rounded-lg p-1.5 text-ink-500 hover:bg-brand-50 hover:text-brand-600"><Pencil size={15} /></button>}
-                  {canDelete && <button onClick={() => remove(s)} className="rounded-lg p-1.5 text-ink-500 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>}
+                  {canUpdate && <button onClick={() => openEdit(s)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>}
+                  {canDelete && <button onClick={() => remove(s)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>}
                 </div>
               )},
             ]}
@@ -156,22 +156,22 @@ export function SuppliersPage() {
           <div className="sm:col-span-2"><Field label="Adresse"><input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="input" /></Field></div>
         </div>
         {/* Product association */}
-        <div className="mt-5 border-t border-ink-100 pt-4">
+        <div className="mt-5 border-t border-ink-100 dark:border-ink-800 pt-4">
           <div className="mb-2 flex items-center gap-2">
             <Package size={15} className="text-brand-600" />
-            <p className="text-sm font-semibold text-ink-900">Produits livrés habituellement</p>
+            <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">Produits livrés habituellement</p>
           </div>
           <input value={productSearch} onChange={(e) => setProductSearch(e.target.value)} className="input mb-2" placeholder="Rechercher un produit…" />
-          <div className="max-h-40 overflow-y-auto scroll-thin rounded-xl border border-ink-100">
+          <div className="max-h-40 overflow-y-auto scroll-thin rounded-xl border border-ink-100 dark:border-ink-800">
             {filteredProducts.length === 0 ? (
-              <p className="py-3 text-center text-xs text-ink-400">Aucun produit.</p>
+              <p className="py-3 text-center text-xs text-ink-400 dark:text-ink-500">Aucun produit.</p>
             ) : filteredProducts.map((p) => {
               const selected = linkedProductIds.includes(p.id);
               return (
                 <button
                   key={p.id}
                   onClick={() => toggleProduct(p.id)}
-                  className={`flex w-full items-center justify-between px-3 py-2 text-sm transition ${selected ? 'bg-brand-50 text-brand-700' : 'text-ink-700 hover:bg-ink-50'}`}
+                  className={`flex w-full items-center justify-between px-3 py-2 text-sm transition ${selected ? 'bg-brand-50 dark:bg-brand-900/25 text-brand-700' : 'text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:bg-ink-900'}`}
                 >
                   <span>{p.name}</span>
                   {selected && <X size={14} className="text-brand-400" />}
@@ -179,7 +179,7 @@ export function SuppliersPage() {
               );
             })}
           </div>
-          {linkedProductIds.length > 0 && <p className="mt-1 text-xs text-ink-500">{linkedProductIds.length} produit(s) sélectionné(s)</p>}
+          {linkedProductIds.length > 0 && <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">{linkedProductIds.length} produit(s) sélectionné(s)</p>}
         </div>
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={() => setModalOpen(false)} className="btn-ghost">Annuler</button>

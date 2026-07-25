@@ -127,14 +127,14 @@ export function DeliveriesPage() {
           <DataTable
             loading={loading}
             columns={[
-              { key: 'customer', label: 'Client', render: (d) => <div><span className="font-semibold text-ink-900">{d.customer_name}</span>{d.sale_id && <p className="text-[10px] text-brand-600">Vente liée</p>}</div> },
-              { key: 'city', label: 'Ville', render: (d) => <span className="text-ink-600">{d.city ?? '—'}</span> },
-              { key: 'date', label: 'Date prévue', render: (d) => <span className="text-ink-500">{d.scheduled_date ? new Date(d.scheduled_date).toLocaleDateString('fr-FR') : '—'}</span> },
-              { key: 'carrier', label: 'Transporteur', render: (d) => <span className="text-ink-600">{d.carrier ?? '—'}</span> },
+              { key: 'customer', label: 'Client', render: (d) => <div><span className="font-semibold text-ink-900 dark:text-ink-50">{d.customer_name}</span>{d.sale_id && <p className="text-[10px] text-brand-600">Vente liée</p>}</div> },
+              { key: 'city', label: 'Ville', render: (d) => <span className="text-ink-600 dark:text-ink-300">{d.city ?? '—'}</span> },
+              { key: 'date', label: 'Date prévue', render: (d) => <span className="text-ink-500 dark:text-ink-400">{d.scheduled_date ? new Date(d.scheduled_date).toLocaleDateString('fr-FR') : '—'}</span> },
+              { key: 'carrier', label: 'Transporteur', render: (d) => <span className="text-ink-600 dark:text-ink-300">{d.carrier ?? '—'}</span> },
               { key: 'status', label: 'Statut', render: (d) => <Badge tone={STATUS_LABELS[d.status]?.tone}>{STATUS_LABELS[d.status]?.label ?? d.status}</Badge> },
               { key: 'actions', label: '', className: 'text-right', render: (d) => (
                 <div className="flex justify-end gap-2">
-                  <button onClick={() => openDetail(d)} className="rounded-lg p-1.5 text-ink-500 hover:bg-brand-50 hover:text-brand-600"><Eye size={15} /></button>
+                  <button onClick={() => openDetail(d)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Eye size={15} /></button>
                   <select value={d.status} onChange={(e) => updateStatus(d, e.target.value)} className="input max-w-[140px]">
                     {Object.entries(STATUS_LABELS).map(([v, s]) => <option key={v} value={v}>{s.label}</option>)}
                   </select>
@@ -172,22 +172,22 @@ export function DeliveriesPage() {
             {detailItems.length === 0 ? (
               <div className="py-6 text-center">
                 <Package className="mx-auto mb-2 text-ink-300" size={32} />
-                <p className="text-sm text-ink-500">Livraison sans détails produit (saisie manuelle).</p>
-                <p className="mt-1 text-xs text-ink-400">Statut actuel : <Badge tone={STATUS_LABELS[detailOpen.status]?.tone}>{STATUS_LABELS[detailOpen.status]?.label}</Badge></p>
+                <p className="text-sm text-ink-500 dark:text-ink-400">Livraison sans détails produit (saisie manuelle).</p>
+                <p className="mt-1 text-xs text-ink-400 dark:text-ink-500">Statut actuel : <Badge tone={STATUS_LABELS[detailOpen.status]?.tone}>{STATUS_LABELS[detailOpen.status]?.label}</Badge></p>
               </div>
             ) : (
               <>
                 <table className="w-full text-sm">
-                  <thead><tr className="border-b border-ink-100 text-left text-xs uppercase text-ink-500">
+                  <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
                     <th className="pb-2">Produit</th><th className="pb-2 text-right">Commandé</th><th className="pb-2 text-right">Livré</th><th className="pb-2 text-right">Reste</th>
                   </tr></thead>
                   <tbody>
                     {detailItems.map((it) => {
                       const reste = Number(it.quantity_ordered) - Number(it.quantity_delivered);
                       return (
-                        <tr key={it.id} className="border-b border-ink-50">
-                          <td className="py-2 font-medium text-ink-900">{it.product_name}</td>
-                          <td className="py-2 text-right text-ink-600">{it.quantity_ordered}</td>
+                        <tr key={it.id} className="border-b border-ink-50 dark:border-ink-800">
+                          <td className="py-2 font-medium text-ink-900 dark:text-ink-50">{it.product_name}</td>
+                          <td className="py-2 text-right text-ink-600 dark:text-ink-300">{it.quantity_ordered}</td>
                           <td className="py-2 text-right">
                             <input
                               type="number"

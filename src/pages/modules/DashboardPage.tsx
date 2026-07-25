@@ -125,10 +125,10 @@ export function DashboardPage() {
         >
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <h3 className="text-base font-semibold text-ink-900">Ventes des 7 derniers jours</h3>
-              <p className="text-xs text-ink-500">{formatMoney(chartData.reduce((s, d) => s + d.value, 0), currency)} au total</p>
+              <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Ventes des 7 derniers jours</h3>
+              <p className="text-xs text-ink-500 dark:text-ink-400">{formatMoney(chartData.reduce((s, d) => s + d.value, 0), currency)} au total</p>
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 dark:bg-brand-900/25 px-2.5 py-1 text-xs font-semibold text-brand-700">
               <TrendingUp size={12} /> Hebdo
             </span>
           </div>
@@ -160,7 +160,7 @@ export function DashboardPage() {
           transition={{ duration: 0.4, delay: 0.2 }}
           className="card p-6"
         >
-          <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-ink-900">
+          <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-ink-900 dark:text-ink-50">
             <Zap size={16} className="text-action-500" /> Raccourcis
           </h3>
           <div className="space-y-2.5">
@@ -168,16 +168,16 @@ export function DashboardPage() {
               <Link
                 key={s.label}
                 to={s.to}
-                className="group flex w-full items-center gap-3 rounded-xl border border-ink-200 bg-white p-3 transition hover:border-action-200 hover:bg-action-50/40"
+                className="group flex w-full items-center gap-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-3 transition hover:border-action-200 hover:bg-action-50 dark:hover:bg-action-900/25/40"
               >
-                <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-action-100 text-action-600 transition group-hover:bg-action-500 group-hover:text-white">
+                <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-action-100 dark:bg-action-900/35 text-action-600 transition group-hover:bg-action-500 group-hover:text-white">
                   <s.icon size={16} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-900">{s.label}</p>
-                  <p className="text-xs text-ink-500">{s.desc}</p>
+                  <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{s.label}</p>
+                  <p className="text-xs text-ink-500 dark:text-ink-400">{s.desc}</p>
                 </div>
-                <ArrowRight size={15} className="text-ink-400 transition group-hover:text-action-500" />
+                <ArrowRight size={15} className="text-ink-400 dark:text-ink-500 transition group-hover:text-action-500" />
               </Link>
             ))}
           </div>
@@ -192,25 +192,25 @@ export function DashboardPage() {
         className="card mt-6 p-6"
       >
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-semibold text-ink-900">Ventes récentes</h3>
+          <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Ventes récentes</h3>
           <Link to="/invoices" className="text-xs font-semibold text-brand-600 hover:underline">Voir tout</Link>
         </div>
         {loading ? (
-          <p className="py-8 text-center text-sm text-ink-400">Chargement…</p>
+          <p className="py-8 text-center text-sm text-ink-400 dark:text-ink-500">Chargement…</p>
         ) : sales.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-center">
-            <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-brand-500">
+            <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 dark:bg-brand-900/25 text-brand-500">
               <Sparkles size={22} />
             </div>
-            <p className="text-sm font-semibold text-ink-900">Aucune vente pour le moment</p>
-            <p className="mt-1 text-xs text-ink-500">Lancez votre première vente depuis le POS.</p>
+            <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">Aucune vente pour le moment</p>
+            <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">Lancez votre première vente depuis le POS.</p>
             <Link to="/pos" className="btn-primary mt-4"><Plus size={15} /> Encaisser</Link>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-ink-100 text-left text-xs uppercase text-ink-500">
+                <tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
                   <th className="pb-2 font-semibold">Référence</th>
                   <th className="pb-2 font-semibold">Date</th>
                   <th className="pb-2 font-semibold">Paiement</th>
@@ -219,15 +219,15 @@ export function DashboardPage() {
               </thead>
               <tbody>
                 {sales.slice(0, 6).map((s) => (
-                  <tr key={s.id} className="border-b border-ink-50 last:border-0">
-                    <td className="py-3 font-medium text-ink-900">{s.reference}</td>
-                    <td className="py-3 text-ink-600">{new Date(s.sale_date).toLocaleDateString('fr-FR')}</td>
+                  <tr key={s.id} className="border-b border-ink-50 dark:border-ink-800 last:border-0">
+                    <td className="py-3 font-medium text-ink-900 dark:text-ink-50">{s.reference}</td>
+                    <td className="py-3 text-ink-600 dark:text-ink-300">{new Date(s.sale_date).toLocaleDateString('fr-FR')}</td>
                     <td className="py-3">
-                      <span className={`badge ${s.payment_status === 'paid' ? 'bg-success-100 text-success-700' : 'bg-warning-100 text-warning-600'}`}>
+                      <span className={`badge ${s.payment_status === 'paid' ? 'bg-success-100 dark:bg-success-900/35 text-success-700' : 'bg-warning-100 dark:bg-warning-900/35 text-warning-600'}`}>
                         {s.payment_status === 'paid' ? 'Payé' : 'Impayé'}
                       </span>
                     </td>
-                    <td className="py-3 text-right font-semibold text-ink-900">{formatMoney(s.total, currency)}</td>
+                    <td className="py-3 text-right font-semibold text-ink-900 dark:text-ink-50">{formatMoney(s.total, currency)}</td>
                   </tr>
                 ))}
               </tbody>

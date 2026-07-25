@@ -20,17 +20,17 @@ export function AboutPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: i * 0.1 }}
-            className="rounded-2xl border border-ink-200 bg-brand-50/30 p-6"
+            className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50 dark:bg-brand-900/25/30 p-6"
           >
             <v.icon className="mb-3 text-brand-600" size={24} />
-            <h3 className="text-base font-bold text-ink-900">{v.title}</h3>
-            <p className="mt-2 text-sm text-ink-600">{v.text}</p>
+            <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">{v.title}</h3>
+            <p className="mt-2 text-sm text-ink-600 dark:text-ink-300">{v.text}</p>
           </motion.div>
         ))}
       </div>
 
       <section>
-        <h2 className="text-xl font-bold text-ink-900">Notre histoire</h2>
+        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">Notre histoire</h2>
         <p>Née de l'observation des défis quotidiens des commerçants africains — gestion manuelle du stock, difficulté à suivre les ventes multi-magasins, absence de facturation formalisée — LiAfrik Flow a été conçue dès le départ comme une solution <strong>offline-first</strong> et <strong>mobile-first</strong>. Nous savons que la connexion internet n'est pas toujours garantie en boutique, et qu'un vendeur travaille avant tout avec son téléphone.</p>
         <p className="mt-4">Aujourd'hui, LiAfrik Flow accompagne des commerces dans plus de 50 pays africains, avec une prise en charge native du Mobile Money, des devises locales et des spécificités régionales.</p>
       </section>

@@ -166,7 +166,7 @@ export function SettingsPage() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                tab === t.id ? 'bg-white text-brand-700 shadow-soft' : 'text-ink-600 hover:bg-white/60'
+                tab === t.id ? 'bg-white dark:bg-ink-800 text-brand-700 shadow-soft' : 'text-ink-600 dark:text-ink-300 hover:bg-white/60 dark:bg-ink-800/60'
               }`}
             >
               <t.icon size={16} /> {t.label}
@@ -178,7 +178,7 @@ export function SettingsPage() {
           {tab === 'company' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-base font-semibold text-ink-900">Informations entreprise</h3>
+                <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Informations entreprise</h3>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                   <Field label="Nom du commerce"><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" /></Field>
                   <Field label="Type de commerce"><input value={form.business_type} onChange={(e) => setForm({ ...form, business_type: e.target.value })} className="input" /></Field>
@@ -191,9 +191,9 @@ export function SettingsPage() {
                 </div>
               </div>
 
-              <div className="border-t border-ink-100 pt-5">
-                <h4 className="text-sm font-semibold text-ink-900">Coordonnées de facturation</h4>
-                <p className="mt-1 text-xs text-ink-500">Utilisées sur les factures, devis et reçus.</p>
+              <div className="border-t border-ink-100 dark:border-ink-800 pt-5">
+                <h4 className="text-sm font-semibold text-ink-900 dark:text-ink-50">Coordonnées de facturation</h4>
+                <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">Utilisées sur les factures, devis et reçus.</p>
                 <div className="mt-3 grid gap-4 sm:grid-cols-2">
                   <Field label="Téléphone"><input value={contactForm.phone} onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })} className="input" placeholder="+237 …" /></Field>
                   <Field label="Email"><input value={contactForm.email} onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })} className="input" placeholder="contact@…" /></Field>
@@ -202,14 +202,14 @@ export function SettingsPage() {
                 <button onClick={saveContact} className="btn-primary mt-4">Enregistrer les coordonnées</button>
               </div>
 
-              <div className="border-t border-ink-100 pt-5">
-                <h4 className="text-sm font-semibold text-ink-900">Logo & cachet</h4>
-                <p className="mt-1 text-xs text-ink-500">Apparaissent sur vos factures et devis (Partie 3).</p>
+              <div className="border-t border-ink-100 dark:border-ink-800 pt-5">
+                <h4 className="text-sm font-semibold text-ink-900 dark:text-ink-50">Logo & cachet</h4>
+                <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">Apparaissent sur vos factures et devis (Partie 3).</p>
                 <div className="mt-3 grid gap-4 sm:grid-cols-2">
                   <div>
                     <p className="label mb-1">Logo</p>
                     <div className="flex items-center gap-3">
-                      {logoUrl ? <img src={logoUrl} alt="Logo" className="h-12 w-12 rounded-lg border border-ink-200 object-cover" /> : <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-ink-200 text-ink-300"><ImageIcon size={18} /></div>}
+                      {logoUrl ? <img src={logoUrl} alt="Logo" className="h-12 w-12 rounded-lg border border-ink-200 dark:border-ink-700 object-cover" /> : <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-ink-200 dark:border-ink-700 text-ink-300"><ImageIcon size={18} /></div>}
                       <label className="btn-ghost cursor-pointer text-xs">
                         <Upload size={13} /> Changer
                         <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAsset(f, 'logo'); }} />
@@ -219,7 +219,7 @@ export function SettingsPage() {
                   <div>
                     <p className="label mb-1">Cachet</p>
                     <div className="flex items-center gap-3">
-                      {stampUrl ? <img src={stampUrl} alt="Cachet" className="h-12 w-12 rounded-lg border border-ink-200 object-cover" /> : <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-ink-200 text-ink-300"><ImageIcon size={18} /></div>}
+                      {stampUrl ? <img src={stampUrl} alt="Cachet" className="h-12 w-12 rounded-lg border border-ink-200 dark:border-ink-700 object-cover" /> : <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-ink-200 dark:border-ink-700 text-ink-300"><ImageIcon size={18} /></div>}
                       <label className="btn-ghost cursor-pointer text-xs">
                         <Upload size={13} /> Changer
                         <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAsset(f, 'stamp'); }} />
@@ -234,32 +234,32 @@ export function SettingsPage() {
 
           {tab === 'localization' && (
             <div>
-              <h3 className="text-base font-semibold text-ink-900">Localisation</h3>
+              <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Localisation</h3>
               <div className="mt-4 space-y-4">
-                <div className="rounded-xl border border-ink-200 p-4">
-                  <p className="text-xs uppercase text-ink-500">Pays</p>
-                  <p className="mt-1 font-semibold text-ink-900">{country?.name ?? tenant?.country_name}</p>
-                  <p className="text-xs text-ink-500">Indicatif : {country?.dialCode}</p>
+                <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-4">
+                  <p className="text-xs uppercase text-ink-500 dark:text-ink-400">Pays</p>
+                  <p className="mt-1 font-semibold text-ink-900 dark:text-ink-50">{country?.name ?? tenant?.country_name}</p>
+                  <p className="text-xs text-ink-500 dark:text-ink-400">Indicatif : {country?.dialCode}</p>
                 </div>
-                <div className="rounded-xl border border-ink-200 p-4">
+                <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs uppercase text-ink-500">Devise</p>
-                      <p className="mt-1 font-semibold text-ink-900">{tenant?.currency} · {currencyInfo?.label}</p>
-                      <p className="text-xs text-ink-500">Symbole : {currencyInfo?.symbol}</p>
+                      <p className="text-xs uppercase text-ink-500 dark:text-ink-400">Devise</p>
+                      <p className="mt-1 font-semibold text-ink-900 dark:text-ink-50">{tenant?.currency} · {currencyInfo?.label}</p>
+                      <p className="text-xs text-ink-500 dark:text-ink-400">Symbole : {currencyInfo?.symbol}</p>
                     </div>
                     <Badge tone="warning">Verrouillée</Badge>
                   </div>
-                  <div className="mt-3 rounded-lg bg-brand-50 p-3 text-xs text-ink-600">
-                    <p className="font-semibold text-ink-700">Pourquoi la devise est-elle verrouillée ?</p>
+                  <div className="mt-3 rounded-lg bg-brand-50 dark:bg-brand-900/25 p-3 text-xs text-ink-600 dark:text-ink-300">
+                    <p className="font-semibold text-ink-700 dark:text-ink-200">Pourquoi la devise est-elle verrouillée ?</p>
                     <p className="mt-1">La devise est fixée à l'onboarding pour garantir la cohérence de tous vos rapports, factures et écritures comptables. La changer invalidated les montants historiques. Pour un changement exceptionnel (ex: migration EUR → XOF), contactez le support LIYHA GROUP qui pourra procéder via une opération supervisée.</p>
                   </div>
                 </div>
                 {country && country.mobileMoney.length > 0 && (
-                  <div className="rounded-xl border border-ink-200 p-4">
-                    <p className="text-xs uppercase text-ink-500">Mobile Money disponible</p>
+                  <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-4">
+                    <p className="text-xs uppercase text-ink-500 dark:text-ink-400">Mobile Money disponible</p>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {country.mobileMoney.map((m) => <span key={m} className="rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">{m}</span>)}
+                      {country.mobileMoney.map((m) => <span key={m} className="rounded-full bg-brand-50 dark:bg-brand-900/25 px-3 py-1 text-xs font-semibold text-brand-700">{m}</span>)}
                     </div>
                   </div>
                 )}
@@ -269,16 +269,16 @@ export function SettingsPage() {
 
           {tab === 'security' && (
             <div>
-              <h3 className="text-base font-semibold text-ink-900">Sécurité</h3>
+              <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Sécurité</h3>
               <div className="mt-4 space-y-4">
-                <div className="rounded-xl border border-ink-200 p-4">
-                  <p className="font-semibold text-ink-900">Mot de passe</p>
-                  <p className="mt-1 text-sm text-ink-500">Modifiez votre mot de passe pour sécuriser votre compte.</p>
+                <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-4">
+                  <p className="font-semibold text-ink-900 dark:text-ink-50">Mot de passe</p>
+                  <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">Modifiez votre mot de passe pour sécuriser votre compte.</p>
                   <button onClick={() => setShowPwdModal(true)} className="btn-ghost mt-3">Changer le mot de passe</button>
                 </div>
-                <div className="rounded-xl border border-ink-200 p-4">
-                  <p className="font-semibold text-ink-900">Sessions actives</p>
-                  <p className="mt-1 text-sm text-ink-500">Pour des raisons de sécurité, vous pouvez vous déconnecter des autres appareils.</p>
+                <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-4">
+                  <p className="font-semibold text-ink-900 dark:text-ink-50">Sessions actives</p>
+                  <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">Pour des raisons de sécurité, vous pouvez vous déconnecter des autres appareils.</p>
                   <button onClick={async () => { await supabase.auth.signOut({ scope: 'others' }); setSaved(true); setTimeout(() => setSaved(false), 2000); }} className="btn-ghost mt-3">Déconnecter les autres sessions</button>
                 </div>
               </div>
@@ -287,11 +287,11 @@ export function SettingsPage() {
 
           {tab === 'billing' && (
             <div>
-              <h3 className="text-base font-semibold text-ink-900">Facturation & abonnement</h3>
-              <div className="mt-4 rounded-xl border border-brand-200 bg-brand-50/40 p-4">
-                <p className="text-xs uppercase text-ink-500">Forfait actuel</p>
-                <p className="mt-1 text-lg font-bold text-ink-900">{planInfo?.name ?? 'Aucun forfait'}</p>
-                <div className="mt-2 flex flex-wrap gap-3 text-sm text-ink-600">
+              <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Facturation & abonnement</h3>
+              <div className="mt-4 rounded-xl border border-brand-200 bg-brand-50 dark:bg-brand-900/25/40 p-4">
+                <p className="text-xs uppercase text-ink-500 dark:text-ink-400">Forfait actuel</p>
+                <p className="mt-1 text-lg font-bold text-ink-900 dark:text-ink-50">{planInfo?.name ?? 'Aucun forfait'}</p>
+                <div className="mt-2 flex flex-wrap gap-3 text-sm text-ink-600 dark:text-ink-300">
                   {planInfo && <span>Prix: <strong>${planInfo.price_usd}/mois</strong></span>}
                   {planInfo && <span>Utilisateurs: <strong>{planInfo.max_users}</strong></span>}
                   {planInfo && <span>Magasins: <strong>{planInfo.max_stores}</strong></span>}
@@ -299,11 +299,11 @@ export function SettingsPage() {
                 <button onClick={() => navigate('/subscribe')} className="btn-primary mt-4">Changer de forfait</button>
               </div>
               {subscription && (
-                <div className="mt-3 rounded-xl border border-ink-200 p-4">
-                  <p className="text-xs uppercase text-ink-500">Statut abonnement</p>
+                <div className="mt-3 rounded-xl border border-ink-200 dark:border-ink-700 p-4">
+                  <p className="text-xs uppercase text-ink-500 dark:text-ink-400">Statut abonnement</p>
                   <div className="mt-1 flex items-center gap-2">
                     <Badge tone={subscription.status === 'active' ? 'success' : subscription.status === 'trialing' ? 'warning' : 'error'}>{subscription.status}</Badge>
-                    {subscription.current_period_end && <span className="text-sm text-ink-500">jusqu'au {new Date(subscription.current_period_end).toLocaleDateString('fr-FR')}</span>}
+                    {subscription.current_period_end && <span className="text-sm text-ink-500 dark:text-ink-400">jusqu'au {new Date(subscription.current_period_end).toLocaleDateString('fr-FR')}</span>}
                   </div>
                 </div>
               )}
@@ -312,12 +312,12 @@ export function SettingsPage() {
 
           {tab === 'notifications' && (
             <div>
-              <h3 className="text-base font-semibold text-ink-900">Notifications</h3>
-              <p className="mt-1 text-sm text-ink-500">Choisissez les alertes que vous souhaitez recevoir.</p>
+              <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Notifications</h3>
+              <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">Choisissez les alertes que vous souhaitez recevoir.</p>
               <div className="mt-4 space-y-3">
                 {NOTIF_KEYS.map((key) => (
-                  <label key={key} className="flex items-center justify-between rounded-xl border border-ink-200 p-3">
-                    <span className="text-sm text-ink-700">{NOTIF_LABELS[key]}</span>
+                  <label key={key} className="flex items-center justify-between rounded-xl border border-ink-200 dark:border-ink-700 p-3">
+                    <span className="text-sm text-ink-700 dark:text-ink-200">{NOTIF_LABELS[key]}</span>
                     <input type="checkbox" checked={notifPrefs[key]} onChange={(e) => setNotifPrefs({ ...notifPrefs, [key]: e.target.checked })} className="h-4 w-4 accent-brand-500" />
                   </label>
                 ))}
@@ -329,11 +329,11 @@ export function SettingsPage() {
 
           {tab === 'appearance' && (
             <div>
-              <h3 className="text-base font-semibold text-ink-900">Apparence</h3>
-              <p className="mt-2 text-sm text-ink-500">Le mode sombre/clair se bascule depuis l'icône lune dans le header. La langue se change depuis le sélecteur du header.</p>
+              <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Apparence</h3>
+              <p className="mt-2 text-sm text-ink-500 dark:text-ink-400">Le mode sombre/clair se bascule depuis l'icône lune dans le header. La langue se change depuis le sélecteur du header.</p>
               <div className="mt-4 flex items-center gap-3">
                 <Badge tone="brand">{member?.role}</Badge>
-                <p className="text-xs text-ink-500">Votre rôle détermine les modules visibles et les permissions.</p>
+                <p className="text-xs text-ink-500 dark:text-ink-400">Votre rôle détermine les modules visibles et les permissions.</p>
               </div>
             </div>
           )}
