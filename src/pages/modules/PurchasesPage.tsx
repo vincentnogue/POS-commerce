@@ -166,16 +166,16 @@ export function PurchasesPage() {
           <EmptyState icon={Receipt} title="Aucun achat" description="Enregistrez vos commandes fournisseurs." action={<button onClick={() => setModalOpen(true)} className="btn-primary"><Plus size={15} /> Créer</button>} />
         ) : (
           <DataTable loading={loading} columns={[
-            { key: 'reference', label: 'Référence', render: (p) => <span className="font-semibold text-ink-900">{p.reference}</span> },
-            { key: 'supplier', label: 'Fournisseur', render: (p) => <span className="text-ink-600">{(p as any).supplier?.name ?? '—'}</span> },
-            { key: 'date', label: 'Date', render: (p) => <span className="text-ink-500">{new Date(p.purchase_date).toLocaleDateString('fr-FR')}</span> },
+            { key: 'reference', label: 'Référence', render: (p) => <span className="font-semibold text-ink-900 dark:text-ink-50">{p.reference}</span> },
+            { key: 'supplier', label: 'Fournisseur', render: (p) => <span className="text-ink-600 dark:text-ink-300">{(p as any).supplier?.name ?? '—'}</span> },
+            { key: 'date', label: 'Date', render: (p) => <span className="text-ink-500 dark:text-ink-400">{new Date(p.purchase_date).toLocaleDateString('fr-FR')}</span> },
             { key: 'status', label: 'Statut', render: (p) => <Badge tone={STATUS_LABELS[p.status]?.tone}>{STATUS_LABELS[p.status]?.label}</Badge> },
-            { key: 'total', label: 'Total', className: 'text-right', render: (p) => <span className="font-semibold text-ink-900">{canSeeCost ? formatMoney(p.total, currency) : '—'}</span> },
+            { key: 'total', label: 'Total', className: 'text-right', render: (p) => <span className="font-semibold text-ink-900 dark:text-ink-50">{canSeeCost ? formatMoney(p.total, currency) : '—'}</span> },
             { key: 'actions', label: '', className: 'text-right', render: (p) => (
               <div className="flex justify-end gap-2">
-                <button onClick={() => view(p)} className="rounded-lg p-1.5 text-ink-500 hover:bg-brand-50 hover:text-brand-600"><Eye size={15} /></button>
+                <button onClick={() => view(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 hover:text-brand-600"><Eye size={15} /></button>
                 {(p.status === 'ordered' || p.status === 'partially_received') && <button onClick={() => openReceive(p)} className="rounded-lg p-1.5 text-success-600 hover:bg-success-50" title="Réceptionner"><Package size={15} /></button>}
-                <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>
+                <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>
               </div>
             )},
           ]} rows={filtered} />
@@ -208,21 +208,21 @@ export function PurchasesPage() {
             <div className="mb-2 flex items-center justify-between"><p className="label mb-0">Lignes</p><button onClick={addItem} className="text-xs font-semibold text-brand-600 hover:underline">+ Ajouter</button></div>
             <div className="space-y-2">
               {form.items.map((it: any, i: number) => (
-                <div key={i} className="grid grid-cols-12 gap-2 rounded-xl border border-ink-200 p-2">
+                <div key={i} className="grid grid-cols-12 gap-2 rounded-xl border border-ink-200 dark:border-ink-700 p-2">
                   <select value={it.product_id} onChange={(e) => updateItem(i, 'product_id', e.target.value)} className="input col-span-5">
                     <option value="">Produit libre</option>
                     {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                   <input value={it.name} onChange={(e) => updateItem(i, 'name', e.target.value)} placeholder="Désignation" className="input col-span-3" />
                   <input type="number" value={it.quantity} onChange={(e) => updateItem(i, 'quantity', Number(e.target.value))} className="input col-span-1" />
-                  {canSeeCost ? <input type="number" value={it.unit_cost} onChange={(e) => updateItem(i, 'unit_cost', Number(e.target.value))} className="input col-span-2" /> : <span className="col-span-2 self-center text-center text-xs text-ink-400">Coût masqué</span>}
-                  <button onClick={() => removeItem(i)} className="col-span-1 rounded-lg text-ink-400 hover:text-error-500"><Trash2 size={14} /></button>
+                  {canSeeCost ? <input type="number" value={it.unit_cost} onChange={(e) => updateItem(i, 'unit_cost', Number(e.target.value))} className="input col-span-2" /> : <span className="col-span-2 self-center text-center text-xs text-ink-400 dark:text-ink-500">Coût masqué</span>}
+                  <button onClick={() => removeItem(i)} className="col-span-1 rounded-lg text-ink-400 dark:text-ink-500 hover:text-error-500"><Trash2 size={14} /></button>
                 </div>
               ))}
-              {form.items.length === 0 && <p className="py-4 text-center text-xs text-ink-400">Ajoutez au moins une ligne.</p>}
+              {form.items.length === 0 && <p className="py-4 text-center text-xs text-ink-400 dark:text-ink-500">Ajoutez au moins une ligne.</p>}
             </div>
           </div>
-          {canSeeCost && <div className="rounded-xl bg-brand-50 p-3 text-right text-base font-bold text-ink-900">Total : {formatMoney(total, currency)}</div>}
+          {canSeeCost && <div className="rounded-xl bg-brand-50 p-3 text-right text-base font-bold text-ink-900 dark:text-ink-50">Total : {formatMoney(total, currency)}</div>}
         </div>
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={() => setModalOpen(false)} className="btn-ghost">Annuler</button>
@@ -233,12 +233,12 @@ export function PurchasesPage() {
         {viewOpen && (
           <div>
             <table className="w-full text-sm">
-              <thead><tr className="border-b border-ink-100 text-left text-xs uppercase text-ink-500"><th className="pb-2">Désignation</th><th className="pb-2 text-right">Qté</th><th className="pb-2 text-right">Coût</th><th className="pb-2 text-right">Total</th></tr></thead>
+              <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400"><th className="pb-2">Désignation</th><th className="pb-2 text-right">Qté</th><th className="pb-2 text-right">Coût</th><th className="pb-2 text-right">Total</th></tr></thead>
               <tbody>
-                {viewItems.map((it) => <tr key={it.id} className="border-b border-ink-50"><td className="py-2">{it.name}</td><td className="py-2 text-right">{it.quantity}</td><td className="py-2 text-right">{canSeeCost ? formatMoney(it.unit_cost, currency) : '—'}</td><td className="py-2 text-right font-semibold">{canSeeCost ? formatMoney(it.total, currency) : '—'}</td></tr>)}
+                {viewItems.map((it) => <tr key={it.id} className="border-b border-ink-50 dark:border-ink-800"><td className="py-2">{it.name}</td><td className="py-2 text-right">{it.quantity}</td><td className="py-2 text-right">{canSeeCost ? formatMoney(it.unit_cost, currency) : '—'}</td><td className="py-2 text-right font-semibold">{canSeeCost ? formatMoney(it.total, currency) : '—'}</td></tr>)}
               </tbody>
             </table>
-            {canSeeCost && <div className="mt-4 flex justify-between border-t border-ink-100 pt-3 font-bold"><span>Total</span><span>{formatMoney(viewOpen.total, currency)}</span></div>}
+            {canSeeCost && <div className="mt-4 flex justify-between border-t border-ink-100 dark:border-ink-800 pt-3 font-bold"><span>Total</span><span>{formatMoney(viewOpen.total, currency)}</span></div>}
           </div>
         )}
       </Modal>
@@ -246,17 +246,17 @@ export function PurchasesPage() {
       <Modal open={!!receiveOpen} onClose={() => setReceiveOpen(null)} title={`Réceptionner — ${receiveOpen?.reference ?? ''}`}>
         {receiveOpen && (
           <div>
-            <p className="mb-3 text-sm text-ink-600">Indiquez la quantité reçue pour chaque ligne. Le stock sera mis à jour automatiquement.</p>
+            <p className="mb-3 text-sm text-ink-600 dark:text-ink-300">Indiquez la quantité reçue pour chaque ligne. Le stock sera mis à jour automatiquement.</p>
             <table className="w-full text-sm">
-              <thead><tr className="border-b border-ink-100 text-left text-xs uppercase text-ink-500"><th className="pb-2">Produit</th><th className="pb-2 text-right">Commandé</th><th className="pb-2 text-right">Reçu</th></tr></thead>
+              <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400"><th className="pb-2">Produit</th><th className="pb-2 text-right">Commandé</th><th className="pb-2 text-right">Reçu</th></tr></thead>
               <tbody>
                 {(Object.entries(receiveQtys)).map(([itemId, qty]) => {
                   const it = viewItems.find((x) => x.id === itemId);
                   if (!it) return null;
                   return (
-                    <tr key={itemId} className="border-b border-ink-50">
+                    <tr key={itemId} className="border-b border-ink-50 dark:border-ink-800">
                       <td className="py-2">{it.name}</td>
-                      <td className="py-2 text-right text-ink-600">{it.quantity}</td>
+                      <td className="py-2 text-right text-ink-600 dark:text-ink-300">{it.quantity}</td>
                       <td className="py-2 text-right"><input type="number" min={0} max={Number(it.quantity)} value={qty} onChange={(e) => setReceiveQtys({ ...receiveQtys, [itemId]: Number(e.target.value) })} className="input w-20 py-1 text-right" /></td>
                     </tr>
                   );

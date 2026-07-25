@@ -91,29 +91,29 @@ export function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-ink-800">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-ink-100 bg-white/85 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-ink-100 dark:border-ink-800 bg-white/85 dark:bg-ink-800/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 lg:px-8">
           <Logo />
           <nav className="hidden items-center gap-8 md:flex">
-            <button onClick={() => scrollTo('features')} className="text-sm font-semibold text-ink-700 hover:text-brand-600">Fonctionnalités</button>
-            <button onClick={() => scrollTo('africa')} className="text-sm font-semibold text-ink-700 hover:text-brand-600">L'Afrique</button>
-            <button onClick={() => scrollTo('pricing')} className="text-sm font-semibold text-ink-700 hover:text-brand-600">Tarifs</button>
-            <Link to="/pricing" className="text-sm font-semibold text-ink-700 hover:text-brand-600">Détails</Link>
-            <button onClick={() => scrollTo('about')} className="text-sm font-semibold text-ink-700 hover:text-brand-600">À propos</button>
+            <button onClick={() => scrollTo('features')} className="text-sm font-semibold text-ink-700 dark:text-ink-200 hover:text-brand-600">Fonctionnalités</button>
+            <button onClick={() => scrollTo('africa')} className="text-sm font-semibold text-ink-700 dark:text-ink-200 hover:text-brand-600">L'Afrique</button>
+            <button onClick={() => scrollTo('pricing')} className="text-sm font-semibold text-ink-700 dark:text-ink-200 hover:text-brand-600">Tarifs</button>
+            <Link to="/pricing" className="text-sm font-semibold text-ink-700 dark:text-ink-200 hover:text-brand-600">Détails</Link>
+            <button onClick={() => scrollTo('about')} className="text-sm font-semibold text-ink-700 dark:text-ink-200 hover:text-brand-600">À propos</button>
           </nav>
           <div className="hidden items-center gap-3 md:flex">
             <button
               onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
-              className="inline-flex h-9 items-center gap-1 rounded-full border border-ink-200 px-3 text-xs font-bold text-ink-600 transition hover:border-brand-200 hover:text-brand-600"
+              className="inline-flex h-9 items-center gap-1 rounded-full border border-ink-200 dark:border-ink-700 px-3 text-xs font-bold text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
             >
               {LANG_LABELS[lang]}<span className="text-ink-300">/</span>{LANG_LABELS[lang === 'fr' ? 'en' : 'fr' as Lang]}
             </button>
-            <Link to="/login" className="text-sm font-semibold text-ink-700 hover:text-brand-600">{t('nav.login')}</Link>
+            <Link to="/login" className="text-sm font-semibold text-ink-700 dark:text-ink-200 hover:text-brand-600">{t('nav.login')}</Link>
             <Link to="/signup" className="btn-primary">{t('nav.signup')}</Link>
           </div>
-          <button onClick={() => setMenuOpen((v) => !v)} className="rounded-full p-2 text-ink-700 md:hidden">
+          <button onClick={() => setMenuOpen((v) => !v)} className="rounded-full p-2 text-ink-700 dark:text-ink-200 md:hidden">
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
@@ -121,13 +121,13 @@ export function LandingPage() {
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
-            className="border-t border-ink-100 bg-white px-4 py-4 md:hidden"
+            className="border-t border-ink-100 dark:border-ink-800 bg-white dark:bg-ink-800 px-4 py-4 md:hidden"
           >
             <nav className="flex flex-col gap-3">
-              <button onClick={() => scrollTo('features')} className="text-left text-sm font-semibold text-ink-700">Fonctionnalités</button>
-              <button onClick={() => scrollTo('africa')} className="text-left text-sm font-semibold text-ink-700">L'Afrique</button>
-              <button onClick={() => scrollTo('pricing')} className="text-left text-sm font-semibold text-ink-700">Tarifs</button>
-              <Link to="/login" className="text-sm font-semibold text-ink-700">Se connecter</Link>
+              <button onClick={() => scrollTo('features')} className="text-left text-sm font-semibold text-ink-700 dark:text-ink-200">Fonctionnalités</button>
+              <button onClick={() => scrollTo('africa')} className="text-left text-sm font-semibold text-ink-700 dark:text-ink-200">L'Afrique</button>
+              <button onClick={() => scrollTo('pricing')} className="text-left text-sm font-semibold text-ink-700 dark:text-ink-200">Tarifs</button>
+              <Link to="/login" className="text-sm font-semibold text-ink-700 dark:text-ink-200">Se connecter</Link>
               <Link to="/signup" className="btn-primary mt-2">Essai gratuit</Link>
             </nav>
           </motion.div>
@@ -153,7 +153,7 @@ export function LandingPage() {
               initial="hidden"
               animate="show"
               transition={{ duration: 0.7, delay: 0.1 }}
-              className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-tight text-ink-900 sm:text-5xl lg:text-6xl"
+              className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-tight text-ink-900 dark:text-ink-50 sm:text-5xl lg:text-6xl"
             >
               La plateforme de gestion commerciale <span className="text-gradient-flow">n°1 en Afrique</span>
             </motion.h1>
@@ -162,7 +162,7 @@ export function LandingPage() {
               initial="hidden"
               animate="show"
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="mt-5 max-w-xl text-lg text-ink-600"
+              className="mt-5 max-w-xl text-lg text-ink-600 dark:text-ink-300"
             >
               POS, stock, facturation, multi-magasins, multi-devises et Mobile Money — tout réuni dans une seule application, pensée pour les commerces africains.
             </motion.p>
@@ -185,7 +185,7 @@ export function LandingPage() {
               initial="hidden"
               animate="show"
               transition={{ duration: 0.7, delay: 0.4 }}
-              className="mt-8 flex items-center gap-6 text-sm text-ink-500"
+              className="mt-8 flex items-center gap-6 text-sm text-ink-500 dark:text-ink-400"
             >
               <div className="flex items-center gap-2"><Check size={16} className="text-success-600" /> Sans carte bancaire</div>
               <div className="flex items-center gap-2"><Check size={16} className="text-success-600" /> Configuration en 5 min</div>
@@ -199,12 +199,12 @@ export function LandingPage() {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="relative"
           >
-            <div className="animate-float rounded-3xl border border-ink-200 bg-white p-4 shadow-float">
+            <div className="animate-float rounded-3xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-4 shadow-float">
               <div className="flex items-center gap-2 pb-3">
                 <div className="h-3 w-3 rounded-full bg-error-500" />
                 <div className="h-3 w-3 rounded-full bg-warning-500" />
                 <div className="h-3 w-3 rounded-full bg-success-600" />
-                <div className="ml-3 text-xs font-medium text-ink-400">app.liafrikflow.com/dashboard</div>
+                <div className="ml-3 text-xs font-medium text-ink-400 dark:text-ink-500">app.liafrikflow.com/dashboard</div>
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
@@ -213,17 +213,17 @@ export function LandingPage() {
                   { label: 'IMPAYÉS', value: '3', tone: 'bg-success-100 text-success-700', icon: FileText },
                   { label: 'LIVRAISONS', value: '7', tone: 'bg-warning-100 text-warning-600', icon: Store },
                 ].map((s) => (
-                  <div key={s.label} className="rounded-2xl border border-ink-200 p-3">
+                  <div key={s.label} className="rounded-2xl border border-ink-200 dark:border-ink-700 p-3">
                     <div className={`mb-2 inline-flex h-8 w-8 items-center justify-center rounded-full ${s.tone}`}>
                       <s.icon size={15} />
                     </div>
-                    <p className="text-[10px] font-semibold uppercase text-ink-500">{s.label}</p>
-                    <p className="text-lg font-bold text-ink-900">{s.value}</p>
+                    <p className="text-[10px] font-semibold uppercase text-ink-500 dark:text-ink-400">{s.label}</p>
+                    <p className="text-lg font-bold text-ink-900 dark:text-ink-50">{s.value}</p>
                   </div>
                 ))}
               </div>
-              <div className="mt-3 rounded-2xl border border-ink-200 p-4">
-                <p className="mb-3 text-xs font-semibold text-ink-700">Ventes des 7 derniers jours</p>
+              <div className="mt-3 rounded-2xl border border-ink-200 dark:border-ink-700 p-4">
+                <p className="mb-3 text-xs font-semibold text-ink-700 dark:text-ink-200">Ventes des 7 derniers jours</p>
                 <div className="flex items-end justify-between gap-2 h-32">
                   {[42, 65, 38, 80, 55, 90, 72].map((h, i) => (
                     <div key={i} className="flex flex-1 flex-col items-center gap-1">
@@ -233,13 +233,13 @@ export function LandingPage() {
                         transition={{ duration: 0.8, delay: 0.6 + i * 0.08 }}
                         className="w-full rounded-t-md bg-gradient-to-t from-brand-300 to-flow-400"
                       />
-                      <span className="text-[9px] text-ink-400">{['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'][i]}</span>
+                      <span className="text-[9px] text-ink-400 dark:text-ink-500">{['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'][i]}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-            <div className="absolute -right-3 -top-3 hidden rounded-2xl border border-ink-200 bg-white px-3 py-2 text-xs font-semibold text-ink-700 shadow-soft sm:block">
+            <div className="absolute -right-3 -top-3 hidden rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-xs font-semibold text-ink-700 dark:text-ink-200 shadow-soft sm:block">
               <span className="text-success-600">+24%</span> vs semaine dernière
             </div>
           </motion.div>
@@ -247,7 +247,7 @@ export function LandingPage() {
       </section>
 
       {/* Stats band */}
-      <section className="border-y border-ink-100 bg-brand-50/40">
+      <section className="border-y border-ink-100 dark:border-ink-800 bg-brand-50/40">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 py-10 lg:grid-cols-4 lg:px-8">
           {[
             { label: 'Pays africains couverts', value: 54, suffix: '' },
@@ -259,7 +259,7 @@ export function LandingPage() {
               <p className="text-3xl font-extrabold text-gradient-flow sm:text-4xl">
                 <Counter to={s.value} suffix={s.suffix} />
               </p>
-              <p className="mt-1 text-xs font-medium uppercase tracking-wide text-ink-600">{s.label}</p>
+              <p className="mt-1 text-xs font-medium uppercase tracking-wide text-ink-600 dark:text-ink-300">{s.label}</p>
             </div>
           ))}
         </div>
@@ -269,18 +269,18 @@ export function LandingPage() {
       <section id="features" className="mx-auto max-w-7xl px-4 py-20 lg:px-8">
         <Section className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">Fonctionnalités</p>
-          <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">Tout ce dont votre commerce a besoin</h2>
-          <p className="mt-3 text-ink-600">Une suite complète, modulaire et pensée pour le terrain africain.</p>
+          <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 dark:text-ink-50 sm:text-4xl">Tout ce dont votre commerce a besoin</h2>
+          <p className="mt-3 text-ink-600 dark:text-ink-300">Une suite complète, modulaire et pensée pour le terrain africain.</p>
         </Section>
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((f, i) => (
             <Section key={f.title} delay={(i % 4) * 0.08}>
-              <div className="group h-full rounded-2xl2 border border-ink-200 bg-white p-6 transition-all hover:-translate-y-1 hover:border-brand-200 hover:shadow-float">
+              <div className="group h-full rounded-2xl2 border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-6 transition-all hover:-translate-y-1 hover:border-brand-200 hover:shadow-float">
                 <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 transition group-hover:bg-brand-100">
                   <f.icon size={22} />
                 </div>
-                <h3 className="text-lg font-semibold text-ink-900">{f.title}</h3>
-                <p className="mt-2 text-sm text-ink-600">{f.desc}</p>
+                <h3 className="text-lg font-semibold text-ink-900 dark:text-ink-50">{f.title}</h3>
+                <p className="mt-2 text-sm text-ink-600 dark:text-ink-300">{f.desc}</p>
               </div>
             </Section>
           ))}
@@ -312,7 +312,7 @@ export function LandingPage() {
                   <div className="rounded-xl border border-ink-700 bg-ink-800 p-4">
                     <f.icon size={20} className="mb-2 text-flow-400" />
                     <p className="text-sm font-semibold">{f.title}</p>
-                    <p className="mt-0.5 text-xs text-ink-400">{f.desc}</p>
+                    <p className="mt-0.5 text-xs text-ink-400 dark:text-ink-500">{f.desc}</p>
                   </div>
                 </Section>
               ))}
@@ -322,7 +322,7 @@ export function LandingPage() {
           {/* Africa map illustration with animated dots */}
           <Section delay={0.2}>
             <div className="relative mx-auto aspect-square max-w-md">
-              <svg viewBox="0 0 400 400" className="absolute inset-0 h-full w-full text-ink-700">
+              <svg viewBox="0 0 400 400" className="absolute inset-0 h-full w-full text-ink-700 dark:text-ink-200">
                 <path
                   d="M200 60 C 240 60, 290 80, 310 120 C 330 160, 340 200, 330 250 C 320 300, 290 340, 250 360 C 210 380, 170 380, 130 360 C 90 340, 70 300, 70 250 C 70 200, 80 160, 110 120 C 140 80, 160 60, 200 60 Z"
                   fill="currentColor"
@@ -359,7 +359,7 @@ export function LandingPage() {
                 </div>
               ))}
               <div className="absolute inset-x-0 bottom-0 text-center">
-                <p className="text-xs font-medium text-ink-400">{COUNTRIES.length} pays · {supportedCurrencies.length} devises · 4 langues</p>
+                <p className="text-xs font-medium text-ink-400 dark:text-ink-500">{COUNTRIES.length} pays · {supportedCurrencies.length} devises · 4 langues</p>
               </div>
             </div>
           </Section>
@@ -377,27 +377,27 @@ export function LandingPage() {
       <section id="pricing" className="mx-auto max-w-7xl px-4 py-20 lg:px-8">
         <Section className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">Tarifs</p>
-          <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">Un plan pour chaque étape</h2>
-          <p className="mt-3 text-ink-600">Commencez gratuitement, évoluez à votre rythme. Sans engagement.</p>
+          <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 dark:text-ink-50 sm:text-4xl">Un plan pour chaque étape</h2>
+          <p className="mt-3 text-ink-600 dark:text-ink-300">Commencez gratuitement, évoluez à votre rythme. Sans engagement.</p>
         </Section>
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {PLANS.map((p, i) => (
             <Section key={p.code} delay={i * 0.08}>
-              <div className={`relative h-full rounded-2xl2 border bg-white p-6 ${p.highlight ? 'border-brand-300 shadow-float ring-1 ring-brand-200' : 'border-ink-200'}`}>
+              <div className={`relative h-full rounded-2xl2 border bg-white dark:bg-ink-800 p-6 ${p.highlight ? 'border-brand-300 shadow-float ring-1 ring-brand-200' : 'border-ink-200 dark:border-ink-700'}`}>
                 {p.popular && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-500 px-3 py-1 text-xs font-bold text-white">{t('pricing.popular')}</span>
                 )}
-                <h3 className="text-lg font-bold text-ink-900">{p.name}</h3>
+                <h3 className="text-lg font-bold text-ink-900 dark:text-ink-50">{p.name}</h3>
                 <div className="mt-4 flex items-end gap-1">
-                  <span className="text-4xl font-extrabold text-ink-900">${p.priceMonthly}</span>
-                  <span className="mb-1 text-sm text-ink-500">{t('pricing.perMonth')}</span>
+                  <span className="text-4xl font-extrabold text-ink-900 dark:text-ink-50">${p.priceMonthly}</span>
+                  <span className="mb-1 text-sm text-ink-500 dark:text-ink-400">{t('pricing.perMonth')}</span>
                 </div>
                 <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-brand-50 px-2.5 py-1.5 text-xs font-semibold text-brand-700">
                   <Sparkles size={12} /> {TRIAL_DAYS}j {t('pricing.trial')}
                 </div>
                 <ul className="mt-5 space-y-2.5">
                   {p.features.slice(0, 5).map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm text-ink-700">
+                    <li key={f} className="flex items-start gap-2 text-sm text-ink-700 dark:text-ink-200">
                       <Check size={16} className="mt-0.5 shrink-0 text-brand-500" /> {f}
                     </li>
                   ))}
@@ -421,25 +421,25 @@ export function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <Section className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">Témoignages</p>
-            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">Ils gèrent leur commerce avec LiAfrik Flow</h2>
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 dark:text-ink-50 sm:text-4xl">Ils gèrent leur commerce avec LiAfrik Flow</h2>
           </Section>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {TESTIMONIALS.map((tm, i) => (
               <Section key={tm.name} delay={i * 0.08}>
-                <div className="h-full rounded-2xl2 border border-ink-200 bg-white p-6">
+                <div className="h-full rounded-2xl2 border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-6">
                   <div className="mb-3 flex gap-0.5">
                     {Array.from({ length: 5 }).map((_, k) => (
                       <Star key={k} size={16} className="fill-action-400 text-action-400" />
                     ))}
                   </div>
-                  <p className="text-sm leading-relaxed text-ink-700">« {tm.quote} »</p>
+                  <p className="text-sm leading-relaxed text-ink-700 dark:text-ink-200">« {tm.quote} »</p>
                   <div className="mt-5 flex items-center gap-3">
                     <div className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white ${tm.tone}`}>
                       {tm.initials}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-ink-900">{tm.name}</p>
-                      <p className="text-xs text-ink-500">{tm.company}</p>
+                      <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{tm.name}</p>
+                      <p className="text-xs text-ink-500 dark:text-ink-400">{tm.company}</p>
                     </div>
                   </div>
                 </div>
@@ -456,7 +456,7 @@ export function LandingPage() {
             <Section>
               <h2 className="text-3xl font-extrabold sm:text-5xl">Prêt à digitaliser votre commerce ?</h2>
               <p className="mt-4 text-lg text-brand-50">Rejoignez les milliers de commerçants africains qui pilotent leur activité avec LiAfrik Flow.</p>
-              <Link to="/signup" className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-base font-bold text-brand-700 shadow-float transition hover:scale-105 active:scale-100">
+              <Link to="/signup" className="mt-8 inline-flex items-center gap-2 rounded-full bg-white dark:bg-ink-800 px-7 py-3.5 text-base font-bold text-brand-700 shadow-float transition hover:scale-105 active:scale-100">
                 Créer mon compte <ArrowRight size={18} />
               </Link>
             </Section>
@@ -465,13 +465,13 @@ export function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-ink-100 bg-white">
+      <footer className="border-t border-ink-100 dark:border-ink-800 bg-white dark:bg-ink-800">
         <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
           <div className="grid gap-8 md:grid-cols-4">
             <div>
               <Logo />
-              <p className="mt-3 text-sm text-ink-500">La plateforme de gestion commerciale n°1 en Afrique. Par LIYHA GROUP.</p>
-              <div className="mt-4 flex items-center gap-3 text-ink-400">
+              <p className="mt-3 text-sm text-ink-500 dark:text-ink-400">La plateforme de gestion commerciale n°1 en Afrique. Par LIYHA GROUP.</p>
+              <div className="mt-4 flex items-center gap-3 text-ink-400 dark:text-ink-500">
                 <Twitter size={18} className="hover:text-brand-600" />
                 <Linkedin size={18} className="hover:text-brand-600" />
                 <Facebook size={18} className="hover:text-brand-600" />
@@ -479,8 +479,8 @@ export function LandingPage() {
               </div>
             </div>
             <div>
-              <p className="text-sm font-semibold text-ink-900">Produit</p>
-              <ul className="mt-3 space-y-2 text-sm text-ink-500">
+              <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">Produit</p>
+              <ul className="mt-3 space-y-2 text-sm text-ink-500 dark:text-ink-400">
                 <li><button onClick={() => scrollTo('features')} className="hover:text-brand-600">Fonctionnalités</button></li>
                 <li><Link to="/pricing" className="hover:text-brand-600">Tarifs</Link></li>
                 <li><Link to="/login" className="hover:text-brand-600">Se connecter</Link></li>
@@ -488,8 +488,8 @@ export function LandingPage() {
               </ul>
             </div>
             <div>
-              <p className="text-sm font-semibold text-ink-900">{t('footer.company')}</p>
-              <ul className="mt-3 space-y-2 text-sm text-ink-500">
+              <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{t('footer.company')}</p>
+              <ul className="mt-3 space-y-2 text-sm text-ink-500 dark:text-ink-400">
                 <li><button onClick={() => scrollTo('about')} className="hover:text-brand-600">{t('nav.about')}</button></li>
                 <li><Link to="/blog" className="hover:text-brand-600">{t('nav.blog')}</Link></li>
                 <li><Link to="/careers" className="hover:text-brand-600">{t('nav.careers')}</Link></li>
@@ -497,8 +497,8 @@ export function LandingPage() {
               </ul>
             </div>
             <div>
-              <p className="text-sm font-semibold text-ink-900">{t('footer.legal')}</p>
-              <ul className="mt-3 space-y-2 text-sm text-ink-500">
+              <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{t('footer.legal')}</p>
+              <ul className="mt-3 space-y-2 text-sm text-ink-500 dark:text-ink-400">
                 <li><Link to="/privacy" className="hover:text-brand-600">{t('footer.privacy')}</Link></li>
                 <li><Link to="/terms" className="hover:text-brand-600">{t('footer.terms')}</Link></li>
                 <li><Link to="/legal" className="hover:text-brand-600">{t('footer.legalNotice')}</Link></li>
@@ -506,7 +506,7 @@ export function LandingPage() {
               </ul>
             </div>
           </div>
-          <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-ink-100 pt-6 text-xs text-ink-400 sm:flex-row">
+          <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-ink-100 dark:border-ink-800 pt-6 text-xs text-ink-400 dark:text-ink-500 sm:flex-row">
             <p>© {new Date().getFullYear()} LIYHA GROUP — Dubaï / Yaoundé-Soa. Tous droits réservés.</p>
             <p>Conçu en Afrique, pour l'Afrique, prêt pour le monde.</p>
           </div>
@@ -524,14 +524,14 @@ function CookieInlineBanner({ onClose }: { onClose: () => void }) {
     <motion.div
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
-      className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 rounded-2xl2 border border-ink-200 bg-white p-5 shadow-float"
+      className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 rounded-2xl2 border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-5 shadow-float"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-ink-700">
+        <p className="text-sm text-ink-700 dark:text-ink-200">
           Nous utilisons des cookies pour améliorer votre expérience. Voir notre <a href="#" className="font-semibold text-brand-600 underline">politique de confidentialité</a>.
         </p>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => { setPrefs({ necessary: true, analytics: false, marketing: false }); onClose(); }} className="rounded-full border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-700 hover:bg-ink-50">Refuser</button>
+          <button onClick={() => { setPrefs({ necessary: true, analytics: false, marketing: false }); onClose(); }} className="rounded-full border border-ink-200 dark:border-ink-700 px-3 py-1.5 text-xs font-semibold text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:bg-ink-900">Refuser</button>
           <button onClick={() => { setPrefs({ necessary: true, analytics: true, marketing: true }); onClose(); }} className="btn-primary px-3 py-1.5 text-xs">Accepter tout</button>
         </div>
       </div>

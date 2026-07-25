@@ -16,7 +16,7 @@ export function Logo({ size = 'md', clickable = false }: { size?: 'sm' | 'md' | 
         </div>
         <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-action-500 ring-2 ring-white" />
       </div>
-      <span className={`font-extrabold tracking-tight text-ink-900 ${s.text}`}>
+      <span className={`font-extrabold tracking-tight text-ink-900 dark:text-ink-50 ${s.text}`}>
         LiAfrik <span className="text-gradient-flow">Flow</span>
       </span>
     </div>

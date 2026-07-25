@@ -33,16 +33,16 @@ export function ContactPage() {
 
   return (
     <FooterPageLayout title="Contactez-nous">
-      <p className="text-ink-600">Une question, un projet, une demande de démo ? Notre équipe vous répond sous 24h.</p>
+      <p className="text-ink-600 dark:text-ink-300">Une question, un projet, une demande de démo ? Notre équipe vous répond sous 24h.</p>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
         {/* Contact form */}
-        <div className="rounded-2xl border border-ink-200 bg-white p-6">
+        <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-6">
           {sent ? (
             <div className="flex flex-col items-center py-8 text-center">
               <CheckCircle2 size={40} className="text-success-600" />
-              <p className="mt-4 text-lg font-semibold text-ink-900">Message envoyé !</p>
-              <p className="mt-1 text-sm text-ink-500">Nous vous répondrons sous 24h.</p>
+              <p className="mt-4 text-lg font-semibold text-ink-900 dark:text-ink-50">Message envoyé !</p>
+              <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">Nous vous répondrons sous 24h.</p>
               <button onClick={() => setSent(false)} className="btn-ghost mt-4">Envoyer un autre message</button>
             </div>
           ) : (
@@ -73,20 +73,20 @@ export function ContactPage() {
 
         {/* Contact info */}
         <div className="space-y-6">
-          <div className="rounded-2xl border border-ink-200 bg-brand-50/30 p-6">
+          <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 p-6">
             <MapPin className="mb-2 text-brand-600" size={20} />
-            <h3 className="text-base font-bold text-ink-900">Bureau opérationnel</h3>
-            <p className="mt-1 text-sm text-ink-600">Yaoundé-Soa, Cameroun<br />Centre, Cameroun</p>
+            <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">Bureau opérationnel</h3>
+            <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">Yaoundé-Soa, Cameroun<br />Centre, Cameroun</p>
           </div>
-          <div className="rounded-2xl border border-ink-200 bg-brand-50/30 p-6">
+          <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 p-6">
             <MapPin className="mb-2 text-brand-600" size={20} />
-            <h3 className="text-base font-bold text-ink-900">Siège social</h3>
-            <p className="mt-1 text-sm text-ink-600">Dubaï, Émirats arabes unis</p>
+            <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">Siège social</h3>
+            <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">Dubaï, Émirats arabes unis</p>
           </div>
-          <div className="rounded-2xl border border-ink-200 bg-brand-50/30 p-6">
+          <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 p-6">
             <Mail className="mb-2 text-brand-600" size={20} />
-            <h3 className="text-base font-bold text-ink-900">Email</h3>
-            <p className="mt-1 text-sm text-ink-600">
+            <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">Email</h3>
+            <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">
               <a href="mailto:contact@liyha.group" className="hover:text-brand-600">contact@liyha.group</a><br />
               <a href="mailto:support@liyha.group" className="hover:text-brand-600">support@liyha.group</a>
             </p>

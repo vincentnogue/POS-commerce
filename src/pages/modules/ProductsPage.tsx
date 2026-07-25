@@ -140,18 +140,18 @@ export function ProductsPage() {
             columns={[
               { key: 'name', label: 'Nom', render: (p: Product) => (
                 <div>
-                  <p className="font-semibold text-ink-900">{p.name}</p>
-                  {p.sku && <p className="text-xs text-ink-500">SKU: {p.sku}</p>}
+                  <p className="font-semibold text-ink-900 dark:text-ink-50">{p.name}</p>
+                  {p.sku && <p className="text-xs text-ink-500 dark:text-ink-400">SKU: {p.sku}</p>}
                 </div>
               )},
-              { key: 'category', label: 'Catégorie', render: (p: Product) => <span className="text-ink-600">{catName(p.category_id)}</span> },
-              { key: 'cost', label: 'Prix achat', className: 'text-right', render: (p: Product) => canSeeCost ? <span className="text-ink-600">{formatMoney(p.cost_price, currency)}</span> : <span className="text-ink-300">—</span> },
-              { key: 'sale', label: 'Prix vente', className: 'text-right', render: (p: Product) => <span className="font-semibold text-ink-900">{formatMoney(p.sale_price, currency)}</span> },
-              { key: 'stock', label: 'Stock min', className: 'text-right', render: (p: Product) => <span className="text-ink-600">{p.low_stock_threshold}</span> },
+              { key: 'category', label: 'Catégorie', render: (p: Product) => <span className="text-ink-600 dark:text-ink-300">{catName(p.category_id)}</span> },
+              { key: 'cost', label: 'Prix achat', className: 'text-right', render: (p: Product) => canSeeCost ? <span className="text-ink-600 dark:text-ink-300">{formatMoney(p.cost_price, currency)}</span> : <span className="text-ink-300">—</span> },
+              { key: 'sale', label: 'Prix vente', className: 'text-right', render: (p: Product) => <span className="font-semibold text-ink-900 dark:text-ink-50">{formatMoney(p.sale_price, currency)}</span> },
+              { key: 'stock', label: 'Stock min', className: 'text-right', render: (p: Product) => <span className="text-ink-600 dark:text-ink-300">{p.low_stock_threshold}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (p: Product) => (
                 <div className="flex justify-end gap-2">
-                  {canUpdate && <button onClick={() => openEdit(p)} className="rounded-lg p-1.5 text-ink-500 hover:bg-brand-50 hover:text-brand-600"><Pencil size={15} /></button>}
-                  {canDelete && <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>}
+                  {canUpdate && <button onClick={() => openEdit(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 hover:text-brand-600"><Pencil size={15} /></button>}
+                  {canDelete && <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>}
                 </div>
               )},
             ]}
@@ -172,7 +172,7 @@ export function ProductsPage() {
             </select>
           </Field>
           <Field label="Unité"><input value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} className="input" /></Field>
-          <Field label="Prix d'achat">{canSeeCost ? <input type="number" value={form.cost_price} onChange={(e) => setForm({ ...form, cost_price: e.target.value })} className="input" /> : <p className="text-xs text-ink-400">Non disponible pour votre rôle.</p>}</Field>
+          <Field label="Prix d'achat">{canSeeCost ? <input type="number" value={form.cost_price} onChange={(e) => setForm({ ...form, cost_price: e.target.value })} className="input" /> : <p className="text-xs text-ink-400 dark:text-ink-500">Non disponible pour votre rôle.</p>}</Field>
           <Field label="Prix de vente"><input type="number" value={form.sale_price} onChange={(e) => setForm({ ...form, sale_price: e.target.value })} className="input" /></Field>
           <Field label="TVA (%)"><input type="number" value={form.tax_rate} onChange={(e) => setForm({ ...form, tax_rate: e.target.value })} className="input" /></Field>
           <Field label="Seuil stock bas"><input type="number" value={form.low_stock_threshold} onChange={(e) => setForm({ ...form, low_stock_threshold: e.target.value })} className="input" /></Field>
