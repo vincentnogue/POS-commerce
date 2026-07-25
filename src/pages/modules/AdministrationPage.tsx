@@ -24,11 +24,11 @@ export function AdministrationPage() {
   if (!isAdmin) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-error-50 text-error-600">
+        <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-error-50 dark:bg-error-900/25 text-error-600">
           <AlertTriangle size={26} />
         </div>
-        <h2 className="text-lg font-semibold text-ink-900">Accès refusé</h2>
-        <p className="mt-1 max-w-sm text-sm text-ink-500">Vous n'avez pas les permissions nécessaires pour accéder à l'administration. Cette restriction est vérifiée côté serveur.</p>
+        <h2 className="text-lg font-semibold text-ink-900 dark:text-ink-50">Accès refusé</h2>
+        <p className="mt-1 max-w-sm text-sm text-ink-500 dark:text-ink-400">Vous n'avez pas les permissions nécessaires pour accéder à l'administration. Cette restriction est vérifiée côté serveur.</p>
         <button onClick={() => navigate('/dashboard')} className="btn-primary mt-5">Retour au tableau de bord</button>
       </div>
     );
@@ -56,7 +56,7 @@ export function AdministrationPage() {
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
-              tab === t.id ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 bg-white text-ink-700 hover:border-brand-200'
+              tab === t.id ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'
             }`}
           >
             <t.icon size={15} /> {t.label}
@@ -112,28 +112,28 @@ function SuperOverview() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="card p-6">
-          <h3 className="mb-4 text-base font-semibold text-ink-900">Répartition par forfait</h3>
+          <h3 className="mb-4 text-base font-semibold text-ink-900 dark:text-ink-50">Répartition par forfait</h3>
           <div className="space-y-2">
             {Object.entries(byPlan).map(([name, count]) => (
               <div key={name} className="flex items-center justify-between text-sm">
-                <span className="text-ink-700">{name}</span>
+                <span className="text-ink-700 dark:text-ink-200">{name}</span>
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-32 overflow-hidden rounded-full bg-ink-100">
+                  <div className="h-2 w-32 overflow-hidden rounded-full bg-ink-100 dark:bg-ink-800">
                     <div className="h-full rounded-full bg-brand-500" style={{ width: `${(count / tenants.length) * 100}%` }} />
                   </div>
-                  <span className="font-semibold text-ink-900">{count}</span>
+                  <span className="font-semibold text-ink-900 dark:text-ink-50">{count}</span>
                 </div>
               </div>
             ))}
           </div>
         </div>
         <div className="card p-6">
-          <h3 className="mb-4 text-base font-semibold text-ink-900">Répartition par pays</h3>
+          <h3 className="mb-4 text-base font-semibold text-ink-900 dark:text-ink-50">Répartition par pays</h3>
           <div className="space-y-2">
             {Object.entries(byCountry).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([name, count]) => (
               <div key={name} className="flex items-center justify-between text-sm">
-                <span className="text-ink-700">{name}</span>
-                <span className="font-semibold text-ink-900">{count}</span>
+                <span className="text-ink-700 dark:text-ink-200">{name}</span>
+                <span className="font-semibold text-ink-900 dark:text-ink-50">{count}</span>
               </div>
             ))}
           </div>
@@ -160,15 +160,15 @@ function SuperTenants() {
   return (
     <div className="card p-5">
       <table className="w-full text-sm">
-        <thead><tr className="border-b border-ink-100 text-left text-xs uppercase text-ink-500">
+        <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
           <th className="pb-2 font-semibold">Entreprise</th><th className="pb-2 font-semibold">Pays</th><th className="pb-2 font-semibold">Devise</th><th className="pb-2 font-semibold">Forfait</th><th className="pb-2 font-semibold">Statut</th>
         </tr></thead>
         <tbody>
           {tenants.map((t) => (
-            <tr key={t.id} className="border-b border-ink-50">
-              <td className="py-3"><p className="font-semibold text-ink-900">{t.name}</p><p className="text-xs text-ink-500">{t.city}</p></td>
-              <td className="py-3 text-ink-600">{t.country_name}</td>
-              <td className="py-3 text-ink-600">{t.currency}</td>
+            <tr key={t.id} className="border-b border-ink-50 dark:border-ink-800">
+              <td className="py-3"><p className="font-semibold text-ink-900 dark:text-ink-50">{t.name}</p><p className="text-xs text-ink-500 dark:text-ink-400">{t.city}</p></td>
+              <td className="py-3 text-ink-600 dark:text-ink-300">{t.country_name}</td>
+              <td className="py-3 text-ink-600 dark:text-ink-300">{t.currency}</td>
               <td className="py-3"><Badge tone="brand">{planName(t.plan_id)}</Badge></td>
               <td className="py-3"><Badge tone={t.status === 'active' ? 'success' : 'neutral'}>{t.status}</Badge></td>
             </tr>
@@ -211,21 +211,21 @@ function SuperPlans() {
     <div className="card p-5">
       <div className="mb-4 flex justify-end"><button onClick={() => { setEditing(null); setForm({ name: '', code: '', price_usd: 0, max_users: 1, max_stores: 1, max_products: 50 }); setModalOpen(true); }} className="btn-primary"><Plus size={16} /> Nouveau forfait</button></div>
       <table className="w-full text-sm">
-        <thead><tr className="border-b border-ink-100 text-left text-xs uppercase text-ink-500">
+        <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
           <th className="pb-2 font-semibold">Nom</th><th className="pb-2 font-semibold">Code</th><th className="pb-2 font-semibold">Prix (USD)</th><th className="pb-2 font-semibold">Utilisateurs</th><th className="pb-2 font-semibold">Magasins</th><th className="pb-2 font-semibold">Produits</th><th></th>
         </tr></thead>
         <tbody>
           {plans.map((p) => (
-            <tr key={p.id} className="border-b border-ink-50">
-              <td className="py-3 font-semibold text-ink-900">{p.name}</td>
-              <td className="py-3 text-ink-600">{p.code}</td>
-              <td className="py-3 font-semibold text-ink-900">${p.price_usd}</td>
-              <td className="py-3 text-ink-600">{p.max_users}</td>
-              <td className="py-3 text-ink-600">{p.max_stores}</td>
-              <td className="py-3 text-ink-600">{p.max_products}</td>
+            <tr key={p.id} className="border-b border-ink-50 dark:border-ink-800">
+              <td className="py-3 font-semibold text-ink-900 dark:text-ink-50">{p.name}</td>
+              <td className="py-3 text-ink-600 dark:text-ink-300">{p.code}</td>
+              <td className="py-3 font-semibold text-ink-900 dark:text-ink-50">${p.price_usd}</td>
+              <td className="py-3 text-ink-600 dark:text-ink-300">{p.max_users}</td>
+              <td className="py-3 text-ink-600 dark:text-ink-300">{p.max_stores}</td>
+              <td className="py-3 text-ink-600 dark:text-ink-300">{p.max_products}</td>
               <td className="py-3 text-right">
-                <button onClick={() => { setEditing(p); setForm({ name: p.name, code: p.code, price_usd: p.price_usd, max_users: p.max_users, max_stores: p.max_stores, max_products: p.max_products }); setModalOpen(true); }} className="rounded-lg p-1.5 text-ink-500 hover:bg-brand-50 hover:text-brand-600"><Pencil size={15} /></button>
-                <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 hover:bg-error-50 hover:text-error-600"><Trash2 size={15} /></button>
+                <button onClick={() => { setEditing(p); setForm({ name: p.name, code: p.code, price_usd: p.price_usd, max_users: p.max_users, max_stores: p.max_stores, max_products: p.max_products }); setModalOpen(true); }} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>
+                <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
               </td>
             </tr>
           ))}
@@ -279,17 +279,17 @@ function SuperCodes() {
         <EmptyState icon={Code2} title="Aucun code commercial" description="Créez des codes pour tracer vos commerciaux." />
       ) : (
         <table className="w-full text-sm">
-          <thead><tr className="border-b border-ink-100 text-left text-xs uppercase text-ink-500">
+          <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
             <th className="pb-2 font-semibold">Code</th><th className="pb-2 font-semibold">Commercial</th><th className="pb-2 font-semibold">Région</th><th className="pb-2 font-semibold">Ventes</th><th className="pb-2 font-semibold">Revenu généré</th><th className="pb-2 font-semibold">Statut</th><th></th>
           </tr></thead>
           <tbody>
             {codes.map((c) => (
-              <tr key={c.id} className="border-b border-ink-50">
+              <tr key={c.id} className="border-b border-ink-50 dark:border-ink-800">
                 <td className="py-3 font-mono font-semibold text-brand-700">{c.code}</td>
-                <td className="py-3"><p className="font-semibold text-ink-900">{c.rep_name}</p>{c.rep_email && <p className="text-xs text-ink-500">{c.rep_email}</p>}</td>
-                <td className="py-3 text-ink-600">{c.region ?? '—'}</td>
-                <td className="py-3 text-ink-600">{c.total_sales}</td>
-                <td className="py-3 font-semibold text-ink-900">${convertToUSD(c.total_revenue, 'USD').toFixed(0)}</td>
+                <td className="py-3"><p className="font-semibold text-ink-900 dark:text-ink-50">{c.rep_name}</p>{c.rep_email && <p className="text-xs text-ink-500 dark:text-ink-400">{c.rep_email}</p>}</td>
+                <td className="py-3 text-ink-600 dark:text-ink-300">{c.region ?? '—'}</td>
+                <td className="py-3 text-ink-600 dark:text-ink-300">{c.total_sales}</td>
+                <td className="py-3 font-semibold text-ink-900 dark:text-ink-50">${convertToUSD(c.total_revenue, 'USD').toFixed(0)}</td>
                 <td className="py-3"><Badge tone={c.is_active ? 'success' : 'neutral'}>{c.is_active ? 'Actif' : 'Inactif'}</Badge></td>
                 <td className="py-3"><button onClick={() => toggle(c)} className="text-xs font-semibold text-brand-600 hover:underline">{c.is_active ? 'Désactiver' : 'Activer'}</button></td>
               </tr>
@@ -327,13 +327,13 @@ function SuperAudit() {
       ) : (
         <div className="space-y-2">
           {logs.map((l) => (
-            <div key={l.id} className="rounded-xl border border-ink-100 p-3 text-sm">
+            <div key={l.id} className="rounded-xl border border-ink-100 dark:border-ink-800 p-3 text-sm">
               <div className="flex items-center justify-between">
-                <p className="font-semibold text-ink-900">{l.action}</p>
-                <span className="text-xs text-ink-500">{new Date(l.created_at).toLocaleString('fr-FR')}</span>
+                <p className="font-semibold text-ink-900 dark:text-ink-50">{l.action}</p>
+                <span className="text-xs text-ink-500 dark:text-ink-400">{new Date(l.created_at).toLocaleString('fr-FR')}</span>
               </div>
-              {l.actor_email && <p className="text-xs text-ink-500">par {l.actor_email}</p>}
-              {l.entity && <p className="text-xs text-ink-500">{l.entity}</p>}
+              {l.actor_email && <p className="text-xs text-ink-500 dark:text-ink-400">par {l.actor_email}</p>}
+              {l.entity && <p className="text-xs text-ink-500 dark:text-ink-400">{l.entity}</p>}
             </div>
           ))}
         </div>
@@ -377,36 +377,36 @@ function TeamRoles({ tenantId }: { tenantId: string }) {
   return (
     <div className="card p-6">
       <div className="mb-4">
-        <h3 className="text-base font-semibold text-ink-900">Activité de l'équipe</h3>
-        <p className="text-sm text-ink-500">Rôles, permissions et activité par membre du staff.</p>
+        <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Activité de l'équipe</h3>
+        <p className="text-sm text-ink-500 dark:text-ink-400">Rôles, permissions et activité par membre du staff.</p>
       </div>
       {members.length === 0 ? (
-        <p className="py-6 text-center text-sm text-ink-400">Aucun membre.</p>
+        <p className="py-6 text-center text-sm text-ink-400 dark:text-ink-500">Aucun membre.</p>
       ) : (
         <div className="space-y-2">
           {members.map((m) => (
-            <div key={m.id} className="flex flex-col gap-2 rounded-xl border border-ink-100 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div key={m.id} className="flex flex-col gap-2 rounded-xl border border-ink-100 dark:border-ink-800 p-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-action-500 text-xs font-bold text-white">
                   {(m.display_name ?? '?').slice(0, 2).toUpperCase()}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-ink-900">{m.display_name ?? 'Invité'}</p>
-                  <p className="text-xs text-ink-500">
+                  <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{m.display_name ?? 'Invité'}</p>
+                  <p className="text-xs text-ink-500 dark:text-ink-400">
                     {m.role === 'super_admin' ? 'Super Admin' : m.role === 'admin' ? 'Propriétaire' : m.role === 'manager' ? 'Manager' : 'Vendeur'}
                     {m.custom_role_id && roleLabels[m.custom_role_id] ? ` · ${roleLabels[m.custom_role_id]}` : ''}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 text-xs text-ink-500">
-                <span className="rounded-md bg-ink-100 px-2 py-1">{lastSale(m.user_id)}</span>
-                <span className="text-ink-400">Membre depuis {new Date(m.accepted_at ?? m.created_at).toLocaleDateString('fr-FR')}</span>
+              <div className="flex items-center gap-3 text-xs text-ink-500 dark:text-ink-400">
+                <span className="rounded-md bg-ink-100 dark:bg-ink-800 px-2 py-1">{lastSale(m.user_id)}</span>
+                <span className="text-ink-400 dark:text-ink-500">Membre depuis {new Date(m.accepted_at ?? m.created_at).toLocaleDateString('fr-FR')}</span>
               </div>
             </div>
           ))}
         </div>
       )}
-      <p className="mt-4 text-xs text-ink-500">La création de rôles personnalisés avec matrice de permissions fine par module est disponible dans Utilisateurs & Rôles.</p>
+      <p className="mt-4 text-xs text-ink-500 dark:text-ink-400">La création de rôles personnalisés avec matrice de permissions fine par module est disponible dans Utilisateurs & Rôles.</p>
     </div>
   );
 }

@@ -187,7 +187,7 @@ export function POSPage() {
         <div className="lg:col-span-2">
           <div className="card p-4">
             <div className="relative mb-4">
-              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
+              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 dark:text-ink-500" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -196,7 +196,7 @@ export function POSPage() {
               />
             </div>
             {loading ? (
-              <p className="py-10 text-center text-sm text-ink-400">Chargement…</p>
+              <p className="py-10 text-center text-sm text-ink-400 dark:text-ink-500">Chargement…</p>
             ) : filtered.length === 0 ? (
               <EmptyState icon={ShoppingCart} title="Aucun produit" description="Ajoutez des produits depuis le catalogue pour commencer à vendre." />
             ) : (
@@ -205,14 +205,14 @@ export function POSPage() {
                   <button
                     key={p.id}
                     onClick={() => addToCart(p)}
-                    className="group flex flex-col rounded-xl border border-ink-200 bg-white p-3 text-left transition hover:border-brand-300 hover:shadow-soft"
+                    className="group flex flex-col rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-3 text-left transition hover:border-brand-300 hover:shadow-soft"
                   >
-                    <div className="mb-2 flex h-16 items-center justify-center rounded-lg bg-brand-50 text-brand-500">
+                    <div className="mb-2 flex h-16 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/25 text-brand-500">
                       {p.image_url ? <img src={p.image_url} alt={p.name} className="h-full w-full rounded-lg object-cover" /> : <ShoppingCart size={22} />}
                     </div>
-                    <p className="line-clamp-2 text-sm font-semibold text-ink-900">{p.name}</p>
+                    <p className="line-clamp-2 text-sm font-semibold text-ink-900 dark:text-ink-50">{p.name}</p>
                     <p className="mt-1 text-sm font-bold text-brand-700">{formatMoney(p.sale_price, currency)}</p>
-                    {p.sku && <p className="text-xs text-ink-400">SKU: {p.sku}</p>}
+                    {p.sku && <p className="text-xs text-ink-400 dark:text-ink-500">SKU: {p.sku}</p>}
                   </button>
                 ))}
               </div>
@@ -222,13 +222,13 @@ export function POSPage() {
 
         {/* Cart */}
         <div className="card flex flex-col p-5">
-          <h3 className="mb-3 flex items-center gap-2 font-semibold text-ink-900">
+          <h3 className="mb-3 flex items-center gap-2 font-semibold text-ink-900 dark:text-ink-50">
             <Receipt size={18} /> Panier ({cart.length})
           </h3>
           {cart.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
               <ShoppingCart size={28} className="mb-2 text-ink-300" />
-              <p className="text-sm text-ink-400">Panier vide</p>
+              <p className="text-sm text-ink-400 dark:text-ink-500">Panier vide</p>
             </div>
           ) : (
             <div className="flex-1 space-y-3 overflow-y-auto scroll-thin">
@@ -239,30 +239,30 @@ export function POSPage() {
                     initial={{ opacity: 0, x: 10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
-                    className="rounded-xl border border-ink-200 p-3"
+                    className="rounded-xl border border-ink-200 dark:border-ink-700 p-3"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-semibold text-ink-900">{i.product.name}</p>
-                      <button onClick={() => removeItem(i.product.id)} className="text-ink-400 hover:text-error-500">
+                      <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{i.product.name}</p>
+                      <button onClick={() => removeItem(i.product.id)} className="text-ink-400 dark:text-ink-500 hover:text-error-500">
                         <Trash2 size={14} />
                       </button>
                     </div>
                     <div className="mt-2 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => updateQty(i.product.id, -1)} className="rounded-md border border-ink-200 p-1 text-ink-600 hover:bg-ink-50">
+                        <button onClick={() => updateQty(i.product.id, -1)} className="rounded-md border border-ink-200 dark:border-ink-700 p-1 text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:bg-ink-900">
                           <Minus size={12} />
                         </button>
                         <input
                           type="number"
                           value={i.quantity}
                           onChange={(e) => setQty(i.product.id, Number(e.target.value))}
-                          className="w-12 rounded-md border border-ink-200 px-2 py-1 text-center text-sm"
+                          className="w-12 rounded-md border border-ink-200 dark:border-ink-700 px-2 py-1 text-center text-sm"
                         />
-                        <button onClick={() => updateQty(i.product.id, 1)} className="rounded-md border border-ink-200 p-1 text-ink-600 hover:bg-ink-50">
+                        <button onClick={() => updateQty(i.product.id, 1)} className="rounded-md border border-ink-200 dark:border-ink-700 p-1 text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:bg-ink-900">
                           <Plus size={12} />
                         </button>
                       </div>
-                      <span className="text-sm font-semibold text-ink-900">{formatMoney(i.quantity * i.unit_price, currency)}</span>
+                      <span className="text-sm font-semibold text-ink-900 dark:text-ink-50">{formatMoney(i.quantity * i.unit_price, currency)}</span>
                     </div>
                   </motion.div>
                 ))}
@@ -271,11 +271,11 @@ export function POSPage() {
           )}
 
           {cart.length > 0 && (
-            <div className="mt-4 border-t border-ink-100 pt-4">
+            <div className="mt-4 border-t border-ink-100 dark:border-ink-800 pt-4">
               <div className="space-y-1.5 text-sm">
-                <div className="flex justify-between text-ink-600"><span>Sous-total</span><span>{formatMoney(subtotal, currency)}</span></div>
-                <div className="flex justify-between text-ink-600"><span>Taxes</span><span>{formatMoney(taxTotal, currency)}</span></div>
-                <div className="flex justify-between text-base font-bold text-ink-900"><span>Total</span><span>{formatMoney(total, currency)}</span></div>
+                <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>Sous-total</span><span>{formatMoney(subtotal, currency)}</span></div>
+                <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>Taxes</span><span>{formatMoney(taxTotal, currency)}</span></div>
+                <div className="flex justify-between text-base font-bold text-ink-900 dark:text-ink-50"><span>Total</span><span>{formatMoney(total, currency)}</span></div>
               </div>
               <button onClick={() => setCheckoutOpen(true)} className="btn-primary mt-4 w-full justify-center py-3">
                 Encaisser · {formatMoney(total, currency)}
@@ -310,7 +310,7 @@ export function POSPage() {
                   key={m.id}
                   onClick={() => setPaymentMethod(m.id)}
                   className={`flex flex-col items-center gap-1 rounded-xl border p-3 text-xs font-semibold transition ${
-                    paymentMethod === m.id ? 'border-brand-400 bg-brand-50 text-brand-700' : 'border-ink-200 text-ink-600 hover:border-brand-200'
+                    paymentMethod === m.id ? 'border-brand-400 bg-brand-50 dark:bg-brand-900/25 text-brand-700' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-200'
                   }`}
                 >
                   <m.icon size={18} /> {m.label}
@@ -324,7 +324,7 @@ export function POSPage() {
               <button
                 onClick={() => setDeliveryChoice('delivered')}
                 className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-semibold transition ${
-                  deliveryChoice === 'delivered' ? 'border-success-400 bg-success-50 text-success-700' : 'border-ink-200 text-ink-600 hover:border-success-200'
+                  deliveryChoice === 'delivered' ? 'border-success-400 bg-success-50 dark:bg-success-900/25 text-success-700' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-success-200'
                 }`}
               >
                 <Package size={16} /> Livré
@@ -332,7 +332,7 @@ export function POSPage() {
               <button
                 onClick={() => setDeliveryChoice('pending')}
                 className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-semibold transition ${
-                    deliveryChoice === 'pending' ? 'border-warning-400 bg-warning-50 text-warning-700' : 'border-ink-200 text-ink-600 hover:border-warning-200'
+                    deliveryChoice === 'pending' ? 'border-warning-400 bg-warning-50 dark:bg-warning-900/25 text-warning-700' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-warning-200'
                 }`}
               >
                 <Truck size={16} /> Non livré
@@ -340,8 +340,8 @@ export function POSPage() {
             </div>
             {deliveryChoice === 'pending' && <p className="mt-1 text-xs text-warning-700">Une livraison "en attente" sera créée automatiquement dans le module Livraisons.</p>}
           </div>
-          <div className="rounded-xl bg-brand-50 p-4 text-center">
-            <p className="text-xs uppercase text-ink-500">Total à payer</p>
+          <div className="rounded-xl bg-brand-50 dark:bg-brand-900/25 p-4 text-center">
+            <p className="text-xs uppercase text-ink-500 dark:text-ink-400">Total à payer</p>
             <p className="text-2xl font-bold text-brand-700">{formatMoney(total, currency)}</p>
           </div>
           {paymentMethod === 'cash' && (
@@ -368,10 +368,10 @@ export function POSPage() {
       {/* Success modal */}
       <Modal open={!!success} onClose={() => setSuccess(null)} title="Vente enregistrée" maxWidth="max-w-sm">
         <div className="flex flex-col items-center text-center">
-          <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-success-100 text-success-700">
+          <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-success-100 dark:bg-success-900/35 text-success-700">
             <Check size={28} />
           </div>
-          <p className="text-sm text-ink-600">Vente <strong>{success}</strong> enregistrée avec succès.</p>
+          <p className="text-sm text-ink-600 dark:text-ink-300">Vente <strong>{success}</strong> enregistrée avec succès.</p>
           {deliveryChoice === 'pending' && (
             <p className="mt-1 text-xs text-warning-700">Livraison "en attente" créée.</p>
           )}

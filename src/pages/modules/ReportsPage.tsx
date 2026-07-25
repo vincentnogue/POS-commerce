@@ -124,7 +124,7 @@ export function ReportsPage() {
       </div>
 
       <div className="card mb-6 p-6">
-        <h3 className="mb-4 text-base font-semibold text-ink-900">Revenu vs Dépenses</h3>
+        <h3 className="mb-4 text-base font-semibold text-ink-900 dark:text-ink-50">Revenu vs Dépenses</h3>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 5, right: 5, left: -10, bottom: 0 }}>
@@ -142,9 +142,9 @@ export function ReportsPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="card p-6">
-          <h3 className="mb-4 text-base font-semibold text-ink-900">Produits par catégorie</h3>
+          <h3 className="mb-4 text-base font-semibold text-ink-900 dark:text-ink-50">Produits par catégorie</h3>
           {catData.length === 0 ? (
-            <p className="py-12 text-center text-sm text-ink-400">Aucune donnée</p>
+            <p className="py-12 text-center text-sm text-ink-400 dark:text-ink-500">Aucune donnée</p>
           ) : (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -160,21 +160,21 @@ export function ReportsPage() {
         </div>
 
         <div className="card p-6">
-          <h3 className="mb-4 text-base font-semibold text-ink-900">Top produits</h3>
+          <h3 className="mb-4 text-base font-semibold text-ink-900 dark:text-ink-50">Top produits</h3>
           {topProducts.length === 0 ? (
-            <p className="py-12 text-center text-sm text-ink-400">Aucune donnée</p>
+            <p className="py-12 text-center text-sm text-ink-400 dark:text-ink-500">Aucune donnée</p>
           ) : (
             <div className="space-y-3">
               {topProducts.map((p, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-700">{i + 1}</span>
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-50 dark:bg-brand-900/25 text-xs font-bold text-brand-700">{i + 1}</span>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-ink-900">{p.name}</p>
-                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-ink-100">
+                    <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{p.name}</p>
+                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-ink-100 dark:bg-ink-800">
                       <div className="h-full rounded-full bg-brand-500" style={{ width: `${(p.revenue / topProducts[0].revenue) * 100}%` }} />
                     </div>
                   </div>
-                  <span className="text-sm font-semibold text-ink-700">{formatMoney(p.revenue, currency)}</span>
+                  <span className="text-sm font-semibold text-ink-700 dark:text-ink-200">{formatMoney(p.revenue, currency)}</span>
                 </div>
               ))}
             </div>

@@ -15,10 +15,10 @@ interface CheckoutRequest {
 }
 
 const PLAN_PRICES: Record<string, { monthly: string; annual: string }> = {
-  starter: { monthly: 'price_starter_monthly', annual: 'price_starter_annual' },
-  pro: { monthly: 'price_pro_monthly', annual: 'price_pro_annual' },
-  premium: { monthly: 'price_premium_monthly', annual: 'price_premium_annual' },
-  entreprise: { monthly: 'price_entreprise_monthly', annual: 'price_entreprise_annual' },
+  starter: { monthly: 'price_1Tx76oRhcVRS1qEcwt7F4RSF', annual: 'price_1Tx76oRhcVRS1qEcYbfeqVmb' },
+  pro: { monthly: 'price_1Tx76pRhcVRS1qEcvsxmVnsg', annual: 'price_1Tx76pRhcVRS1qEcT465gctn' },
+  premium: { monthly: 'price_1Tx76qRhcVRS1qEckBhi5j55', annual: 'price_1Tx76qRhcVRS1qEcdI6q1J7F' },
+  entreprise: { monthly: 'price_1Tx76rRhcVRS1qEcTywcmgel', annual: 'price_1Tx76rRhcVRS1qEcd8zOItdT' },
 };
 
 Deno.serve(async (req: Request) => {
