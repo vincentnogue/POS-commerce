@@ -444,31 +444,118 @@ function SuperSubscriptions() {
 
 function SuperAdmins() {
   const [admins, setAdmins] = useState<any[]>([]);
-  const [platformAdmins, setPlatformAdmins] = useState<any[]>([]);
+  const [superAdminMembers, setSuperAdminMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [newLabel, setNewLabel] = useState('');
+  const [editingEmail, setEditingEmail] = useState<string | null>(null);
+  const [editingLabel, setEditingLabel] = useState('');
+  const toast = useToast();
 
-  useEffect(() => { (async () => {
+  const callManage = async (body: Record<string, unknown>) => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/super-admin-manage`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const json = await res.json();
+    if (!res.ok || json.error) throw new Error(json.error ?? 'Erreur inconnue');
+    return json;
+  };
+
+  const reload = async () => {
+    setLoading(true);
     const [sa, pa] = await Promise.all([
       supabase.from('tenant_members').select('*, tenants!inner(name)').eq('role', 'super_admin').order('created_at', { ascending: false }),
-      supabase.from('platform_admins').select('*').order('created_at'),
+      callManage({ action: 'list' }).catch(() => ({ admins: [] })),
     ]);
-    setAdmins(sa.data ?? []);
-    setPlatformAdmins(pa.data ?? []);
+    setSuperAdminMembers(sa.data ?? []);
+    setAdmins(pa.admins ?? []);
     setLoading(false);
-  })(); }, []);
+  };
+
+  useEffect(() => { reload(); }, []);
+
+  const handleAdd = async () => {
+    if (!newEmail.trim()) return;
+    setBusy(true);
+    try {
+      const result = await callManage({ action: 'add', email: newEmail.trim(), label: newLabel.trim() });
+      toast('success', result.accountExists
+        ? `${newEmail} est maintenant Super Admin.`
+        : `${newEmail} ajouté à la liste — l'accès s'activera dès que ce compte sera créé.`);
+      setNewEmail(''); setNewLabel(''); setFormOpen(false);
+      await reload();
+    } catch (e: any) {
+      toast('error', e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleRemove = async (email: string) => {
+    if (!confirm(`Retirer ${email} des administrateurs de la plateforme ?`)) return;
+    setBusy(true);
+    try {
+      await callManage({ action: 'remove', email });
+      toast('success', `${email} retiré des Super Admins.`);
+      await reload();
+    } catch (e: any) {
+      toast('error', e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleUpdateLabel = async (email: string) => {
+    setBusy(true);
+    try {
+      await callManage({ action: 'update_label', email, label: editingLabel });
+      setEditingEmail(null);
+      await reload();
+    } catch (e: any) {
+      toast('error', e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const canRemove = admins.length > 2;
 
   return (
     <div className="space-y-6">
       <div className="card p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <Crown size={18} className="text-error-600" />
-          <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Administrateurs de la plateforme (vérifiés côté backend)</h3>
+        <div className="mb-2 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Crown size={18} className="text-error-600" />
+            <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Administrateurs de la plateforme</h3>
+          </div>
+          <button onClick={() => setFormOpen((v) => !v)} className="btn-primary text-sm"><Plus size={15} /> Ajouter</button>
         </div>
         <p className="mb-4 text-sm text-ink-500 dark:text-ink-400">
-          Ces emails sont vérifiés côté serveur (table platform_admins). L'accès au Super Admin nécessite d'être dans cette liste ET d'avoir le rôle super_admin.
+          Vérifiés côté serveur (table platform_admins). L'accès Super Admin nécessite d'être dans cette liste ET d'avoir le rôle super_admin.
+          {!canRemove && <span className="ml-1 font-semibold text-warning-600">Minimum 2 administrateurs — retrait désactivé tant qu'il n'y en a pas plus.</span>}
         </p>
+
+        {formOpen && (
+          <div className="mb-4 flex flex-col gap-2 rounded-xl border border-ink-100 dark:border-ink-800 p-4 sm:flex-row sm:items-end">
+            <Field label="Email">
+              <input value={newEmail} onChange={(e) => setNewEmail(e.target.value)} type="email" placeholder="email@exemple.com" className="input" />
+            </Field>
+            <Field label="Étiquette (optionnel)">
+              <input value={newLabel} onChange={(e) => setNewLabel(e.target.value)} placeholder="Ex: Responsable support" className="input" />
+            </Field>
+            <button disabled={busy} onClick={handleAdd} className="btn-primary shrink-0">Confirmer</button>
+          </div>
+        )}
+
         <div className="space-y-2">
-          {platformAdmins.map((pa) => (
+          {admins.map((pa) => (
             <div key={pa.id} className="flex items-center justify-between rounded-xl border border-ink-100 dark:border-ink-800 p-3">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-error-500 text-xs font-bold text-white">
@@ -476,21 +563,41 @@ function SuperAdmins() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{pa.email}</p>
-                  <p className="text-xs text-error-600">{pa.label ?? 'Admin'} — vérifié côté backend</p>
+                  {editingEmail === pa.email ? (
+                    <div className="mt-1 flex items-center gap-2">
+                      <input value={editingLabel} onChange={(e) => setEditingLabel(e.target.value)} className="input h-7 text-xs" />
+                      <button onClick={() => handleUpdateLabel(pa.email)} className="text-xs font-semibold text-brand-600">OK</button>
+                      <button onClick={() => setEditingEmail(null)} className="text-xs text-ink-400">Annuler</button>
+                    </div>
+                  ) : (
+                    <button onClick={() => { setEditingEmail(pa.email); setEditingLabel(pa.label ?? ''); }} className="text-xs text-error-600 hover:underline">
+                      {pa.label ?? 'Admin'} — modifier
+                    </button>
+                  )}
                 </div>
               </div>
-              <Badge tone="error"><Crown size={11} /> {pa.label}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge tone="error"><Crown size={11} /> {pa.label}</Badge>
+                <button
+                  disabled={!canRemove || busy}
+                  onClick={() => handleRemove(pa.email)}
+                  title={!canRemove ? 'Il doit rester au moins 2 administrateurs' : 'Retirer'}
+                  className="rounded-full p-1.5 text-ink-400 transition hover:bg-error-50 hover:text-error-600 disabled:opacity-30 disabled:hover:bg-transparent dark:hover:bg-error-900/25"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
             </div>
           ))}
         </div>
       </div>
       <div className="card p-6">
         <h3 className="mb-4 text-base font-semibold text-ink-900 dark:text-ink-50">Membres avec rôle super_admin</h3>
-        {loading ? <Spinner /> : admins.length === 0 ? (
+        {loading ? <Spinner /> : superAdminMembers.length === 0 ? (
           <EmptyState icon={Users} title="Aucun super admin" description="Aucun membre avec rôle super_admin." />
         ) : (
           <div className="space-y-2">
-            {admins.map((a) => (
+            {superAdminMembers.map((a) => (
               <div key={a.id} className="flex items-center justify-between rounded-xl border border-ink-100 dark:border-ink-800 p-3">
                 <div className="flex items-center gap-3">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">
