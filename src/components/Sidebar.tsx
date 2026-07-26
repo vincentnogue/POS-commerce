@@ -188,7 +188,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
         </div>
         <div className="px-4 pb-4 text-center text-[10px] text-ink-400 dark:text-ink-500">
           <div className="flex items-center justify-center gap-1">
-            <Globe size={10} /> LIYHA GROUP · Dubaï / Yaoundé-Soa
+            <Globe size={10} /> LiAfrik · Dubaï / Afrique
           </div>
         </div>
       </aside>

@@ -64,7 +64,7 @@ const FEATURES = [
 ];
 
 const TESTIMONIALS = [
-  { name: 'Aïssatou Diallo', company: 'Boutique Sahel, Bamako', quote: 'LiAfrik Flow a transformé ma gestion. Je vois enfin la rentabilité de chaque produit en temps réel.', initials: 'AD', tone: 'bg-action-500' },
+  { name: 'Aïssatou Diallo', company: 'Boutique Sahel, Bamako', quote: 'POS Flow a transformé ma gestion. Je vois enfin la rentabilité de chaque produit en temps réel.', initials: 'AD', tone: 'bg-action-500' },
   { name: 'Emmanuel Okonkwo', company: 'Okonkwo Stores, Lagos', quote: 'Le multi-magasins est un game-changer. 3 boutiques, un seul tableau de bord, zéro confusion.', initials: 'EO', tone: 'bg-brand-500' },
   { name: 'Fatou Ndiaye', company: 'Fatou Cosmetics, Dakar', quote: 'Encaissement avec Wave et Orange Money intégré, c\'est exactement ce qu\'il manquait au Sénégal.', initials: 'FN', tone: 'bg-flow-500' },
   { name: 'Larissa Stella', company: 'Stella Distribution, Yaoundé', quote: 'La gestion de stock multi-magasins m\'a fait gagner un temps fou. Je sais exactement ce que j\'ai en boutique, sans inventaire manuel.', initials: 'LS', tone: 'bg-success-600' },
@@ -308,7 +308,7 @@ export function LandingPage() {
               <p className="text-sm font-semibold uppercase tracking-wide text-flow-400">Pensé pour l'Afrique</p>
               <h2 className="mt-2 text-3xl font-extrabold sm:text-4xl">Couverture panafricaine, dès le premier jour</h2>
               <p className="mt-4 text-ink-300">
-                Des pays d'Afrique de l'Ouest à l'Afrique de l'Est, du Nord au Sud, LiAfrik Flow s'adapte à votre marché : devise locale, Mobile Money, langues, formats de date et fuseaux horaires.
+                Des pays d'Afrique de l'Ouest à l'Afrique de l'Est, du Nord au Sud, POS Flow s'adapte à votre marché : devise locale, Mobile Money, langues, formats de date et fuseaux horaires.
               </p>
             </Section>
             <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -433,7 +433,7 @@ export function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <Section className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">Témoignages</p>
-            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 dark:text-ink-50 sm:text-4xl">Ils gèrent leur commerce avec LiAfrik Flow</h2>
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 dark:text-ink-50 sm:text-4xl">Ils gèrent leur commerce avec POS Flow</h2>
           </Section>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {TESTIMONIALS.map((tm, i) => (
@@ -467,7 +467,7 @@ export function LandingPage() {
           <div className="mx-auto max-w-4xl px-4 text-center text-white lg:px-8">
             <Section>
               <h2 className="text-3xl font-extrabold sm:text-5xl">Prêt à digitaliser votre commerce ?</h2>
-              <p className="mt-4 text-lg text-brand-50">Rejoignez les milliers de commerçants africains qui pilotent leur activité avec LiAfrik Flow.</p>
+              <p className="mt-4 text-lg text-brand-50">Rejoignez les milliers de commerçants africains qui pilotent leur activité avec POS Flow.</p>
               <Link to="/signup" className="mt-8 inline-flex items-center gap-2 rounded-full bg-white dark:bg-ink-800 px-7 py-3.5 text-base font-bold text-brand-700 shadow-float transition hover:scale-105 active:scale-100">
                 Créer mon compte <ArrowRight size={18} />
               </Link>
@@ -482,7 +482,7 @@ export function LandingPage() {
           <div className="grid gap-8 md:grid-cols-4">
             <div>
               <Logo />
-              <p className="mt-3 text-sm text-ink-500 dark:text-ink-400">La plateforme de gestion commerciale n°1 en Afrique. Par LIYHA GROUP.</p>
+              <p className="mt-3 text-sm text-ink-500 dark:text-ink-400">La plateforme de gestion commerciale n°1 en Afrique. Par LiAfrik.</p>
               <div className="mt-4 flex items-center gap-3 text-ink-400 dark:text-ink-500">
                 <Twitter size={18} className="hover:text-brand-600" />
                 <Linkedin size={18} className="hover:text-brand-600" />
@@ -519,7 +519,7 @@ export function LandingPage() {
             </div>
           </div>
           <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-ink-100 dark:border-ink-800 pt-6 text-xs text-ink-400 dark:text-ink-500 sm:flex-row">
-            <p>© {new Date().getFullYear()} LIYHA GROUP — Dubaï / Yaoundé-Soa. Tous droits réservés.</p>
+            <p>© {new Date().getFullYear()} LiAfrik — Dubaï / Afrique. Tous droits réservés.</p>
             <p>Conçu en Afrique, pour l'Afrique, prêt pour le monde.</p>
           </div>
         </div>

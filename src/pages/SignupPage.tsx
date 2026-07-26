@@ -46,7 +46,7 @@ export function SignupPage() {
               ))}
             </ul>
           </div>
-          <p className="text-sm text-brand-50">© LIYHA GROUP — Dubaï / Yaoundé-Soa</p>
+          <p className="text-sm text-brand-50">© LiAfrik — Dubaï / Afrique</p>
         </div>
       </div>
 

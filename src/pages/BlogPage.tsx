@@ -20,7 +20,7 @@ export function BlogPage() {
   })(); }, []);
 
   return (
-    <FooterPageLayout title="Blog LiAfrik Flow">
+    <FooterPageLayout title="Blog POS Flow">
       <p className="text-ink-600 dark:text-ink-300">Conseils, analyses et actualités sur la gestion commerciale en Afrique.</p>
 
       <div className="mt-8 grid gap-6 sm:grid-cols-2">

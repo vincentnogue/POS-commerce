@@ -37,7 +37,7 @@ export function LoginPage() {
             <h2 className="text-4xl font-extrabold leading-tight">La gestion commerciale,<br />enfin simple.</h2>
             <p className="mt-4 max-w-md text-brand-50">Reconnectez-vous à votre tableau de bord, vos ventes, votre stock — partout en Afrique.</p>
           </div>
-          <p className="text-sm text-brand-50">© LIYHA GROUP — Dubaï / Yaoundé-Soa</p>
+          <p className="text-sm text-brand-50">© LiAfrik — Dubaï / Afrique</p>
         </div>
       </div>
 
@@ -54,7 +54,7 @@ export function LoginPage() {
           </Link>
           <div className="lg:hidden mb-6"><Link to="/"><Logo size="lg" /></Link></div>
           <h1 className="text-2xl font-bold text-ink-900 dark:text-ink-50">Connexion</h1>
-          <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">Heureux de vous revoir sur LiAfrik Flow.</p>
+          <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">Heureux de vous revoir sur POS Flow.</p>
 
           <form onSubmit={submit} className="mt-6 space-y-4">
             <div>

@@ -7,7 +7,7 @@ export function PrivacyPage() {
 
       <section>
         <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">1. Responsable du traitement</h2>
-        <p>LIYHA GROUP, éditeur de la plateforme LiAfrik Flow, est responsable du traitement des données personnelles collectées sur la plateforme. Pour toute question relative à la protection des données, vous pouvez contacter notre DPO à l'adresse : <a href="mailto:dpo@liyha.group" className="text-brand-600 hover:underline">dpo@liyha.group</a>.</p>
+        <p>LiAfrik, éditeur de la plateforme POS Flow, est responsable du traitement des données personnelles collectées sur la plateforme. Pour toute question relative à la protection des données, vous pouvez contacter notre DPO à l'adresse : <a href="mailto:dpo@liafrik.com" className="text-brand-600 hover:underline">dpo@liafrik.com</a>.</p>
       </section>
 
       <section>
@@ -33,7 +33,7 @@ export function PrivacyPage() {
 
       <section>
         <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">5. Vos droits</h2>
-        <p>Conformément aux réglementations applicables, vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation, de portabilité et d'opposition concernant vos données personnelles. Pour exercer ces droits, contactez-nous à <a href="mailto:privacy@liyha.group" className="text-brand-600 hover:underline">privacy@liyha.group</a>.</p>
+        <p>Conformément aux réglementations applicables, vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation, de portabilité et d'opposition concernant vos données personnelles. Pour exercer ces droits, contactez-nous à <a href="mailto:privacy@liafrik.com" className="text-brand-600 hover:underline">privacy@liafrik.com</a>.</p>
       </section>
 
       <section>

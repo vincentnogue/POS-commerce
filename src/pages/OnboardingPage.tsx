@@ -385,7 +385,7 @@ export function OnboardingPage() {
 
             {step === 6 && (
               <motion.div key="5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <StepHeader icon={UserPlus} title="Code commercial (optionnel)" subtitle="Si un commercial LIYHA GROUP vous a référé, saisissez son code." />
+                <StepHeader icon={UserPlus} title="Code commercial (optionnel)" subtitle="Si un commercial LiAfrik vous a référé, saisissez son code." />
                 <div className="mt-6">
                   <label className="label">Code commercial</label>
                   <div className="flex gap-2">
