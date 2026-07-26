@@ -116,7 +116,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
                   <p className="px-4 py-6 text-center text-sm text-ink-400 dark:text-ink-500">Aucune notification</p>
                 ) : (
                   notifs.map((n) => (
-                    <div key={n.id} className={`border-t border-ink-100 dark:border-ink-800 px-4 py-3 ${n.read ? '' : 'bg-brand-50 dark:bg-brand-900/25/50'}`}>
+                    <div key={n.id} className={`border-t border-ink-100 dark:border-ink-800 px-4 py-3 ${n.read ? '' : 'bg-brand-50/50 dark:bg-brand-900/25'}`}>
                       <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{n.title}</p>
                       {n.body && <p className="mt-0.5 text-xs text-ink-500 dark:text-ink-400">{n.body}</p>}
                     </div>

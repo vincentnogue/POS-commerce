@@ -985,7 +985,7 @@ function SuperAudit() {
           accessLogs.length === 0 ? <EmptyState icon={Shield} title="Aucune tentative" description="Les tentatives d'accès au Super Admin apparaîtront ici." /> : (
             <div className="space-y-2">
               {accessLogs.map((al) => (
-                <div key={al.id} className={`rounded-xl border p-3 text-sm ${al.authorized ? 'border-success-100 bg-success-50 dark:bg-success-900/25/30' : 'border-error-100 bg-error-50 dark:bg-error-900/25/30'}`}>
+                <div key={al.id} className={`rounded-xl border p-3 text-sm ${al.authorized ? 'border-success-100 bg-success-50/30 dark:bg-success-900/25' : 'border-error-100 bg-error-50/30 dark:bg-error-900/25'}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Badge tone={al.authorized ? 'success' : 'error'}>{al.authorized ? 'Autorisé' : 'Refusé'}</Badge>
