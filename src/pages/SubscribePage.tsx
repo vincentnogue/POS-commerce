@@ -69,7 +69,7 @@ export function SubscribePage() {
                 <Clock size={15} /> Il vous reste {access.trialDaysLeft} jour{access.trialDaysLeft > 1 ? 's' : ''} d'essai
               </div>
               <h1 className="text-3xl font-extrabold text-ink-900 dark:text-ink-50">Choisissez votre forfait</h1>
-              <p className="mt-2 text-sm text-ink-500 dark:text-ink-400">Continuez à utiliser LiAfrik Flow sans interruption après votre essai.</p>
+              <p className="mt-2 text-sm text-ink-500 dark:text-ink-400">Continuez à utiliser POS Flow sans interruption après votre essai.</p>
             </>
           ) : (
             <>

@@ -90,7 +90,7 @@ export function SuperAdminPage() {
     <div>
       <PageHeader
         title="Super Admin"
-        subtitle="Console de gestion de la plateforme LIYHA GROUP"
+        subtitle="Console de gestion de la plateforme LiAfrik"
         action={<Badge tone="error"><Crown size={12} /> Super Admin</Badge>}
       />
       <div className="mb-6 flex flex-wrap gap-2">
@@ -735,7 +735,7 @@ function SuperCodes() {
       )}
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Nouveau code commercial">
         <div className="space-y-4">
-          <Field label="Code"><input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="input" placeholder="Ex: LIYHA-001" /></Field>
+          <Field label="Code"><input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="input" placeholder="Ex: LIAFRIK-001" /></Field>
           <Field label="Nom du commercial"><input value={form.rep_name} onChange={(e) => setForm({ ...form, rep_name: e.target.value })} className="input" /></Field>
           <Field label="Email"><input value={form.rep_email} onChange={(e) => setForm({ ...form, rep_email: e.target.value })} className="input" /></Field>
           <Field label="Région"><input value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })} className="input" /></Field>

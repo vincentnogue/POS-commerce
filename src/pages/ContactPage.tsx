@@ -27,6 +27,13 @@ export function ContactPage() {
     });
     setSending(false);
     if (e) { setError(e.message); return; }
+    // Best-effort email notification — the message is already safely saved
+    // above regardless of whether this succeeds.
+    fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-contact-notification`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name.trim(), email: email.trim(), subject: subject.trim(), message: message.trim() }),
+    }).catch(() => {});
     setSent(true);
     setName(''); setEmail(''); setSubject(''); setMessage('');
   };
@@ -76,7 +83,7 @@ export function ContactPage() {
           <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50 dark:bg-brand-900/25/30 p-6">
             <MapPin className="mb-2 text-brand-600" size={20} />
             <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">Bureau opérationnel</h3>
-            <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">Yaoundé-Soa, Cameroun<br />Centre, Cameroun</p>
+            <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">Afrique de l'Ouest</p>
           </div>
           <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50 dark:bg-brand-900/25/30 p-6">
             <MapPin className="mb-2 text-brand-600" size={20} />
@@ -87,8 +94,8 @@ export function ContactPage() {
             <Mail className="mb-2 text-brand-600" size={20} />
             <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">Email</h3>
             <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">
-              <a href="mailto:contact@liyha.group" className="hover:text-brand-600">contact@liyha.group</a><br />
-              <a href="mailto:support@liyha.group" className="hover:text-brand-600">support@liyha.group</a>
+              <a href="mailto:cs@liafrik.com" className="hover:text-brand-600">cs@liafrik.com</a><br />
+              <a href="mailto:support@liafrik.com" className="hover:text-brand-600">support@liafrik.com</a>
             </p>
           </div>
         </div>

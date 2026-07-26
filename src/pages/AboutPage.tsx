@@ -4,15 +4,15 @@ import { FooterPageLayout } from '../components/FooterPageLayout';
 
 export function AboutPage() {
   return (
-    <FooterPageLayout title="À propos de LiAfrik Flow">
-      <p className="text-lg">LiAfrik Flow est la plateforme de gestion commerciale conçue par <strong>LIYHA GROUP</strong>, pensée pour les réalités du commerce africain et prête pour le monde entier.</p>
+    <FooterPageLayout title="À propos de POS Flow">
+      <p className="text-lg">POS Flow est la plateforme de gestion commerciale conçue par <strong>LiAfrik</strong>, pensée pour les réalités du commerce africain et prête pour le monde entier.</p>
 
       <div className="grid gap-6 sm:grid-cols-2 my-8">
         {[
           { icon: Target, title: 'Notre mission', text: "Démocratiser l'accès à des outils de gestion professionnelle pour chaque commerçant africain, de la boutique de quartier à la chaîne de supermarchés." },
           { icon: Globe2, title: 'Notre vision', text: "Devenir la référence panafricaine de la gestion commerciale, en accompagnant 100 000 entreprises vers la digitalisation d'ici 2030." },
           { icon: Heart, title: 'Nos valeurs', text: 'Proximité terrain, excellence technique, inclusion linguistique (FR/EN, bientôt PT/AR), et impact économique mesurable.' },
-          { icon: Building2, title: 'LIYHA GROUP', text: 'Société holding panafricaine, basée à Dubaï avec un bureau opérationnel à Yaoundé-Soa. LiAfrik Flow est notre produit flagship.' },
+          { icon: Building2, title: 'LiAfrik', text: 'Société holding panafricaine, basée à Dubaï avec des équipes opérationnelles réparties en Afrique. POS Flow est notre produit flagship.' },
         ].map((v, i) => (
           <motion.div
             key={v.title}
@@ -31,8 +31,8 @@ export function AboutPage() {
 
       <section>
         <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">Notre histoire</h2>
-        <p>Née de l'observation des défis quotidiens des commerçants africains — gestion manuelle du stock, difficulté à suivre les ventes multi-magasins, absence de facturation formalisée — LiAfrik Flow a été conçue dès le départ comme une solution <strong>offline-first</strong> et <strong>mobile-first</strong>. Nous savons que la connexion internet n'est pas toujours garantie en boutique, et qu'un vendeur travaille avant tout avec son téléphone.</p>
-        <p className="mt-4">Aujourd'hui, LiAfrik Flow accompagne des commerces dans plus de 50 pays africains, avec une prise en charge native du Mobile Money, des devises locales et des spécificités régionales.</p>
+        <p>Née de l'observation des défis quotidiens des commerçants africains — gestion manuelle du stock, difficulté à suivre les ventes multi-magasins, absence de facturation formalisée — POS Flow a été conçue dès le départ comme une solution <strong>offline-first</strong> et <strong>mobile-first</strong>. Nous savons que la connexion internet n'est pas toujours garantie en boutique, et qu'un vendeur travaille avant tout avec son téléphone.</p>
+        <p className="mt-4">Aujourd'hui, POS Flow accompagne des commerces dans plus de 50 pays africains, avec une prise en charge native du Mobile Money, des devises locales et des spécificités régionales.</p>
       </section>
     </FooterPageLayout>
   );

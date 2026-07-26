@@ -252,7 +252,7 @@ export function SettingsPage() {
                   </div>
                   <div className="mt-3 rounded-lg bg-brand-50 dark:bg-brand-900/25 p-3 text-xs text-ink-600 dark:text-ink-300">
                     <p className="font-semibold text-ink-700 dark:text-ink-200">Pourquoi la devise est-elle verrouillée ?</p>
-                    <p className="mt-1">La devise est fixée à l'onboarding pour garantir la cohérence de tous vos rapports, factures et écritures comptables. La changer invalidated les montants historiques. Pour un changement exceptionnel (ex: migration EUR → XOF), contactez le support LIYHA GROUP qui pourra procéder via une opération supervisée.</p>
+                    <p className="mt-1">La devise est fixée à l'onboarding pour garantir la cohérence de tous vos rapports, factures et écritures comptables. La changer invalidated les montants historiques. Pour un changement exceptionnel (ex: migration EUR → XOF), contactez le support LiAfrik qui pourra procéder via une opération supervisée.</p>
                   </div>
                 </div>
                 {country && country.mobileMoney.length > 0 && (
