@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Check, ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
+import { Check, ArrowRight, ArrowLeft, Sparkles, Moon, Sun } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { useI18n } from '../lib/i18n';
+import { useTheme } from '../lib/theme';
 import { PLANS, annualPrice, annualSavings, TRIAL_DAYS } from '../lib/plans';
 
 export function PricingPage() {
   const { t, lang } = useI18n();
+  const { theme, toggle: toggleTheme } = useTheme();
   const [annual, setAnnual] = useState(false);
 
   return (
@@ -16,6 +18,13 @@ export function PricingPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 lg:px-8">
           <Link to="/"><Logo /></Link>
           <div className="flex items-center gap-3">
+            <button
+              onClick={toggleTheme}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
+              aria-label="Mode sombre/clair"
+            >
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
             <Link to="/login" className="text-sm font-semibold text-ink-700 dark:text-ink-200 hover:text-brand-600">{t('nav.login')}</Link>
             <Link to="/signup" className="btn-primary">{t('nav.signup')}</Link>
           </div>

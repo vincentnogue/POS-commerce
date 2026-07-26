@@ -4,7 +4,7 @@ import { motion, useInView, useMotionValue, useTransform, animate } from 'framer
 import {
   ShoppingCart, Boxes, FileText, Store, Globe, FileBarChart, Wallet,
   ArrowRight, Check, Star, Menu, X, Play, TrendingUp, Shield, Smartphone,
-  Twitter, Linkedin, Facebook, Instagram, MapPin, Sparkles,
+  Twitter, Linkedin, Facebook, Instagram, MapPin, Sparkles, Moon, Sun,
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { COUNTRIES, CURRENCIES } from '../lib/localization';
@@ -12,6 +12,7 @@ import { useCookies } from '../lib/cookies';
 import { useI18n, LANG_LABELS } from '../lib/i18n';
 import type { Lang } from '../lib/i18n';
 import { PLANS, TRIAL_DAYS } from '../lib/plans';
+import { useTheme } from '../lib/theme';
 
 function Counter({ to, suffix = '' }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -75,6 +76,7 @@ export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { prefs } = useCookies();
   const { lang, setLang, t } = useI18n();
+  const { theme, toggle: toggleTheme } = useTheme();
   const [showBanner, setShowBanner] = useState(false);
   const supportedCurrencies = ['XAF', 'XOF', 'NGN', 'KES', 'GHS', 'ZAR', 'MAD', 'EGP', 'USD', 'EUR', 'GBP', 'AED'];
 
@@ -110,6 +112,13 @@ export function LandingPage() {
             >
               {LANG_LABELS[lang]}<span className="text-ink-300">/</span>{LANG_LABELS[lang === 'fr' ? 'en' : 'fr' as Lang]}
             </button>
+            <button
+              onClick={toggleTheme}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
+              aria-label="Mode sombre/clair"
+            >
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
             <Link to="/login" className="text-sm font-semibold text-ink-700 dark:text-ink-200 hover:text-brand-600">{t('nav.login')}</Link>
             <Link to="/signup" className="btn-primary">{t('nav.signup')}</Link>
           </div>
@@ -128,6 +137,9 @@ export function LandingPage() {
               <button onClick={() => scrollTo('africa')} className="text-left text-sm font-semibold text-ink-700 dark:text-ink-200">L'Afrique</button>
               <button onClick={() => scrollTo('pricing')} className="text-left text-sm font-semibold text-ink-700 dark:text-ink-200">Tarifs</button>
               <Link to="/login" className="text-sm font-semibold text-ink-700 dark:text-ink-200">Se connecter</Link>
+              <button onClick={toggleTheme} className="flex items-center gap-2 text-left text-sm font-semibold text-ink-700 dark:text-ink-200">
+                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />} {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+              </button>
               <Link to="/signup" className="btn-primary mt-2">Essai gratuit</Link>
             </nav>
           </motion.div>
