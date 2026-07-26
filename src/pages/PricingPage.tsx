@@ -113,7 +113,7 @@ export function PricingPage() {
             { title: 'Sans engagement', desc: 'Annulez à tout moment, vos données restent exportables.' },
             { title: 'Support inclus', desc: 'Tous les plans incluent un support. Entreprise dispose du 24/7.' },
           ].map((f) => (
-            <div key={f.title} className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50 dark:bg-brand-900/25/30 p-5">
+            <div key={f.title} className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 dark:bg-brand-900/25 p-5">
               <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{f.title}</p>
               <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">{f.desc}</p>
             </div>

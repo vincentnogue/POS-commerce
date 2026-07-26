@@ -259,7 +259,7 @@ export function LandingPage() {
       </section>
 
       {/* Stats band */}
-      <section className="border-y border-ink-100 dark:border-ink-800 bg-brand-50 dark:bg-brand-900/25/40">
+      <section className="border-y border-ink-100 dark:border-ink-800 bg-brand-50/40 dark:bg-brand-900/25">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 py-10 lg:grid-cols-4 lg:px-8">
           {[
             { label: 'Pays africains couverts', value: 54, suffix: '' },
@@ -429,7 +429,7 @@ export function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section className="bg-brand-50 dark:bg-brand-900/25/50 py-20">
+      <section className="bg-brand-50/50 dark:bg-brand-900/25 py-20">
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <Section className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">Témoignages</p>

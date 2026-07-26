@@ -80,17 +80,17 @@ export function ContactPage() {
 
         {/* Contact info */}
         <div className="space-y-6">
-          <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50 dark:bg-brand-900/25/30 p-6">
+          <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 dark:bg-brand-900/25 p-6">
             <MapPin className="mb-2 text-brand-600" size={20} />
             <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">Bureau opérationnel</h3>
             <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">Afrique de l'Ouest</p>
           </div>
-          <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50 dark:bg-brand-900/25/30 p-6">
+          <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 dark:bg-brand-900/25 p-6">
             <MapPin className="mb-2 text-brand-600" size={20} />
             <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">Siège social</h3>
             <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">Dubaï, Émirats arabes unis</p>
           </div>
-          <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50 dark:bg-brand-900/25/30 p-6">
+          <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 dark:bg-brand-900/25 p-6">
             <Mail className="mb-2 text-brand-600" size={20} />
             <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">Email</h3>
             <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">

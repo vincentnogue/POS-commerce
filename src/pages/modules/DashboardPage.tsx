@@ -168,7 +168,7 @@ export function DashboardPage() {
               <Link
                 key={s.label}
                 to={s.to}
-                className="group flex w-full items-center gap-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-3 transition hover:border-action-200 hover:bg-action-50 dark:hover:bg-action-900/25/40"
+                className="group flex w-full items-center gap-3 rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-3 transition hover:border-action-200 hover:bg-action-50/40 dark:hover:bg-action-900/25"
               >
                 <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-action-100 dark:bg-action-900/35 text-action-600 transition group-hover:bg-action-500 group-hover:text-white">
                   <s.icon size={16} />

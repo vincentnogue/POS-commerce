@@ -288,7 +288,7 @@ export function SettingsPage() {
           {tab === 'billing' && (
             <div>
               <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Facturation & abonnement</h3>
-              <div className="mt-4 rounded-xl border border-brand-200 bg-brand-50 dark:bg-brand-900/25/40 p-4">
+              <div className="mt-4 rounded-xl border border-brand-200 bg-brand-50/40 dark:bg-brand-900/25 p-4">
                 <p className="text-xs uppercase text-ink-500 dark:text-ink-400">Forfait actuel</p>
                 <p className="mt-1 text-lg font-bold text-ink-900 dark:text-ink-50">{planInfo?.name ?? 'Aucun forfait'}</p>
                 <div className="mt-2 flex flex-wrap gap-3 text-sm text-ink-600 dark:text-ink-300">
