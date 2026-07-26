@@ -4,7 +4,7 @@ import { Plus, Pencil, Trash2, Package, Download } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
-import { PageHeader, Modal, EmptyState } from '../../components/ui';
+import { PageHeader, Modal, EmptyState, useToast } from '../../components/ui';
 import { DataTable, SearchInput, Field, exportCSV } from '../../components/DataTable';
 import type { Product, Category } from '../../lib/types';
 
@@ -12,6 +12,7 @@ const EMPTY = { name: '', sku: '', barcode: '', description: '', cost_price: 0, 
 
 export function ProductsPage() {
   const { tenant, can } = useAuth();
+  const toast = useToast();
   const [params, setParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -78,9 +79,11 @@ export function ProductsPage() {
       is_active: true,
     };
     if (editing) {
-      await supabase.from('products').update(payload).eq('id', editing.id);
+      const { error } = await supabase.from('products').update(payload).eq('id', editing.id);
+      if (error) { toast('error', error.message); return; }
     } else {
-      const { data } = await supabase.from('products').insert(payload).select().single();
+      const { data, error } = await supabase.from('products').insert(payload).select().single();
+      if (error) { toast('error', error.message.replace('PLAN_LIMIT_REACHED: ', '')); return; }
       // Init inventory row for each store
       if (data) {
         const { data: stores } = await supabase.from('stores').select('id').eq('tenant_id', tenant.id);

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, Store as StoreIcon, MapPin, Phone, Navigation, Users } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
-import { PageHeader, Modal, EmptyState, Badge } from '../../components/ui';
+import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components/ui';
 import { Field } from '../../components/DataTable';
 import type { Store, Member, StoreAssignment } from '../../lib/types';
 
@@ -10,6 +10,7 @@ const EMPTY = { name: '', city: '', address: '', phone: '', latitude: '', longit
 
 export function StoresPage() {
   const { tenant, can } = useAuth();
+  const toast = useToast();
   const [stores, setStores] = useState<Store[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [assignments, setAssignments] = useState<StoreAssignment[]>([]);
@@ -65,9 +66,15 @@ export function StoresPage() {
       longitude: form.longitude ? Number(form.longitude) : null,
     };
     if (editing) {
-      if (canUpdate) await supabase.from('stores').update(payload).eq('id', editing.id);
+      if (canUpdate) {
+        const { error } = await supabase.from('stores').update(payload).eq('id', editing.id);
+        if (error) { toast('error', error.message); return; }
+      }
     } else {
-      if (canCreate) await supabase.from('stores').insert(payload);
+      if (canCreate) {
+        const { error } = await supabase.from('stores').insert(payload);
+        if (error) { toast('error', error.message.replace('PLAN_LIMIT_REACHED: ', '')); return; }
+      }
     }
     setModalOpen(false);
     await reload();
