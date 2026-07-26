@@ -90,12 +90,17 @@ export default {
           '0%, 100%': { opacity: '1', transform: 'scale(1)' },
           '50%': { opacity: '0.5', transform: 'scale(1.4)' },
         },
+        'pulse-glow': {
+          '0%, 100%': { opacity: '0.5', transform: 'scale(1)' },
+          '50%': { opacity: '0.9', transform: 'scale(1.08)' },
+        },
       },
       animation: {
         float: 'float 6s ease-in-out infinite',
         'fade-up': 'fade-up 0.6s ease-out both',
         shimmer: 'shimmer 2.5s linear infinite',
         'pulse-dot': 'pulse-dot 2s ease-in-out infinite',
+        'pulse-glow': 'pulse-glow 2.5s ease-in-out infinite',
       },
     },
   },
