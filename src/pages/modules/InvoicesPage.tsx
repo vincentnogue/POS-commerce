@@ -7,6 +7,7 @@ import { PageHeader, Modal, EmptyState, Badge } from '../../components/ui';
 import { DataTable, SearchInput, Select, Field, exportCSV } from '../../components/DataTable';
 import type { Invoice, Customer, InvoiceItem, Product } from '../../lib/types';
 import { useI18n } from '../../lib/i18n';
+import { downloadInvoicePdf, printInvoicePdf, type BrandSettings } from '../../lib/invoicePdf';
 
 const STATUS_FILTERS = [
   { value: '', label: 'Toutes' },
@@ -37,17 +38,21 @@ export function InvoicesPage() {
   const [viewOpen, setViewOpen] = useState<Invoice | null>(null);
   const [viewItems, setViewItems] = useState<InvoiceItem[]>([]);
   const [form, setForm] = useState<any>({ customer_id: '', issue_date: new Date().toISOString().slice(0, 10), due_date: '', items: [] });
+  const [brand, setBrand] = useState<BrandSettings>(null);
+  const [pdfBusy, setPdfBusy] = useState(false);
 
   const currency = tenant?.currency ?? 'XOF';
 
   useEffect(() => { (async () => {
     if (!tenant) return;
-    const [inv, cust, prod] = await Promise.all([
+    const [inv, cust, prod, brandRes] = await Promise.all([
       supabase.from('invoices').select('*, customer:customers(name)').eq('tenant_id', tenant.id).order('created_at', { ascending: false }),
       supabase.from('customers').select('*').eq('tenant_id', tenant.id).order('name'),
       supabase.from('products').select('*').eq('tenant_id', tenant.id).eq('is_active', true).order('name'),
+      supabase.from('brand_settings').select('*').eq('tenant_id', tenant.id).maybeSingle(),
     ]);
     setInvoices((inv.data as any[]) ?? []);
+    setBrand((brandRes.data as BrandSettings) ?? null);
     setCustomers((cust.data as Customer[]) ?? []);
     setProducts((prod.data as Product[]) ?? []);
     setLoading(false);
@@ -121,6 +126,45 @@ export function InvoicesPage() {
   const markPaid = async (inv: Invoice) => {
     await supabase.from('invoices').update({ status: 'paid', paid_amount: inv.total }).eq('id', inv.id);
     setInvoices((list) => list.map((x) => x.id === inv.id ? { ...x, status: 'paid', paid_amount: x.total } : x));
+  };
+
+  const pdfInput = (inv: Invoice) => ({
+    invoice: inv,
+    items: viewItems,
+    tenant,
+    brand,
+    customer: customers.find((c) => c.id === inv.customer_id) ?? null,
+    currency,
+  });
+
+  const handlePrint = async (inv: Invoice) => {
+    setPdfBusy(true);
+    try { await printInvoicePdf(pdfInput(inv)); } finally { setPdfBusy(false); }
+  };
+
+  const handleDownload = async (inv: Invoice) => {
+    setPdfBusy(true);
+    try { await downloadInvoicePdf(pdfInput(inv)); } finally { setPdfBusy(false); }
+  };
+
+  // WhatsApp can't attach a file automatically via a wa.me link (platform
+  // limitation, not something we can code around client-side). Best
+  // available UX: generate + download the real PDF, then open a WhatsApp
+  // chat with a ready-to-send message so the person only has to attach the
+  // file that was just downloaded.
+  const handleWhatsapp = async (inv: Invoice) => {
+    setPdfBusy(true);
+    try {
+      await downloadInvoicePdf(pdfInput(inv));
+      const customer = customers.find((c) => c.id === inv.customer_id);
+      const phone = customer?.phone || '';
+      const msg = encodeURIComponent(
+        `Bonjour${customer?.name ? ' ' + customer.name : ''}, voici votre facture ${inv.number} d'un montant de ${formatMoney(inv.total, currency)}. Le PDF vient d'être téléchargé sur votre appareil — merci de le joindre à ce message. 🙏`
+      );
+      window.open(phone ? `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${msg}` : `https://wa.me/?text=${msg}`, '_blank');
+    } finally {
+      setPdfBusy(false);
+    }
   };
 
   return (
@@ -232,19 +276,16 @@ export function InvoicesPage() {
 
             {/* Action buttons */}
             <div className="mt-5 flex flex-wrap gap-2 border-t border-ink-100 dark:border-ink-800 pt-4">
-              <button onClick={() => printInvoice(viewOpen, viewItems)} className="btn-ghost text-sm"><Printer size={15} /> {t('invoices.print')}</button>
-              <button onClick={() => downloadInvoicePDF(viewOpen, viewItems)} className="btn-ghost text-sm"><FileDown size={15} /> {t('invoices.downloadPdf')}</button>
+              <button disabled={pdfBusy} onClick={() => handlePrint(viewOpen)} className="btn-ghost text-sm disabled:opacity-50"><Printer size={15} /> {t('invoices.print')}</button>
+              <button disabled={pdfBusy} onClick={() => handleDownload(viewOpen)} className="btn-ghost text-sm disabled:opacity-50"><FileDown size={15} /> {t('invoices.downloadPdf')}</button>
               <button
-                onClick={() => {
-                  const phone = (viewOpen as any).customer?.phone || '';
-                  const msg = encodeURIComponent(`Facture ${viewOpen.number} — Total: ${formatMoney(viewOpen.total, currency)}`);
-                  window.open(phone ? `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${msg}` : `https://wa.me/?text=${msg}`, '_blank');
-                }}
-                className="btn-ghost text-sm"
+                disabled={pdfBusy}
+                onClick={() => handleWhatsapp(viewOpen)}
+                className="btn-ghost text-sm disabled:opacity-50"
               ><MessageCircle size={15} /> {t('invoices.sendWhatsapp')}</button>
               <button
                 onClick={() => {
-                  const email = (viewOpen as any).customer?.email || '';
+                  const email = customers.find((c) => c.id === viewOpen.customer_id)?.email || '';
                   if (email) window.location.href = `mailto:${email}?subject=${encodeURIComponent('Facture ' + viewOpen.number)}&body=${encodeURIComponent(`Veuillez trouver ci-joint la facture ${viewOpen.number} d'un montant de ${formatMoney(viewOpen.total, currency)}.`)}`;
                 }}
                 className="btn-ghost text-sm"
@@ -255,24 +296,4 @@ export function InvoicesPage() {
       </Modal>
     </div>
   );
-}
-
-function printInvoice(inv: Invoice, items: InvoiceItem[]) {
-  const w = window.open('', '_blank');
-  if (!w) return;
-  const rows = items.map((it) => `<tr><td>${it.name}</td><td style="text-align:right">${it.quantity}</td><td style="text-align:right">${it.unit_price}</td><td style="text-align:right;font-weight:bold">${it.total}</td></tr>`).join('');
-  w.document.write(`<!DOCTYPE html><html><head><title>Facture ${inv.number}</title><style>body{font-family:sans-serif;padding:40px;max-width:700px;margin:auto}h1{color:#1a365d}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}th{text-transform:uppercase;font-size:11px;color:#888}.total{margin-top:20px;text-align:right;font-size:18px;font-weight:bold}</style></head><body><h1>Facture ${inv.number}</h1><p>Date: ${inv.issue_date}</p><p>Statut: ${inv.status}</p><table><thead><tr><th>Désignation</th><th style="text-align:right">Qté</th><th style="text-align:right">Prix</th><th style="text-align:right">Total</th></tr></thead><tbody>${rows}</tbody></table><div class="total">Total: ${inv.total}</div></body></html>`);
-  w.document.close();
-  w.print();
-}
-
-function downloadInvoicePDF(inv: Invoice, items: InvoiceItem[]) {
-  const content = `Facture ${inv.number}\nDate: ${inv.issue_date}\nStatut: ${inv.status}\n\n${items.map((it) => `${it.name} x${it.quantity} = ${it.total}`).join('\n')}\n\nTotal: ${inv.total}`;
-  const blob = new Blob([content], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `facture-${inv.number}.txt`;
-  a.click();
-  URL.revokeObjectURL(url);
 }
