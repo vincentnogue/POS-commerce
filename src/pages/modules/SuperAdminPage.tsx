@@ -5,7 +5,6 @@ import {
   Pencil, Trash2, Ban, Check, Plus, Activity, CreditCard,
   Search, AlertTriangle, Mail, Eye, Loader2,
 } from 'lucide-react';
-import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { convertToUSD } from '../../lib/localization';
 import { PageHeader, Modal, Badge, StatCard, EmptyState, Spinner, useToast } from '../../components/ui';
@@ -22,9 +21,7 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 export function SuperAdminPage() {
-  const { member, isPlatformAdmin } = useAuth();
   const navigate = useNavigate();
-  const isSuperAdmin = member?.role === 'super_admin';
   const [tab, setTab] = useState<Tab>('overview');
   const [backendVerified, setBackendVerified] = useState<boolean | null>(null);
   const [verifyError, setVerifyError] = useState<string | null>(null);
@@ -60,7 +57,7 @@ export function SuperAdminPage() {
     );
   }
 
-  if (!backendVerified || !isSuperAdmin || !isPlatformAdmin) {
+  if (!backendVerified) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-error-50 dark:bg-error-900/25 text-error-600">
