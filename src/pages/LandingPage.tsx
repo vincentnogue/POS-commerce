@@ -148,7 +148,26 @@ export function LandingPage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden bg-grid">
-        <div className="absolute inset-0 bg-gradient-to-b from-brand-50/60 via-white to-white" />
+        <div className="absolute inset-0 bg-gradient-to-b from-brand-50/60 via-white to-white dark:from-brand-900/20 dark:via-ink-900 dark:to-ink-900" />
+        {/* Ambient floating gradient blobs for visual depth */}
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-brand-300/30 blur-3xl dark:bg-brand-700/20"
+          animate={{ y: [0, 24, 0], x: [0, 16, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute -right-16 top-40 h-80 w-80 rounded-full bg-flow-300/25 blur-3xl dark:bg-flow-700/15"
+          animate={{ y: [0, -28, 0], x: [0, -18, 0] }}
+          transition={{ duration: 17, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+        />
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute left-1/3 -bottom-20 h-64 w-64 rounded-full bg-action-300/20 blur-3xl dark:bg-action-700/10"
+          animate={{ y: [0, 20, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+        />
         <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 lg:grid-cols-2 lg:px-8 lg:py-24">
           <div>
             <motion.div
@@ -185,7 +204,8 @@ export function LandingPage() {
               transition={{ duration: 0.7, delay: 0.3 }}
               className="mt-8 flex flex-col gap-3 sm:flex-row"
             >
-              <Link to="/signup" className="btn-primary px-6 py-3 text-base">
+              <Link to="/signup" className="btn-primary relative px-6 py-3 text-base overflow-hidden">
+                <span className="absolute inset-0 -z-10 animate-pulse-glow rounded-full bg-brand-400/40 blur-md" />
                 Démarrer gratuitement <ArrowRight size={18} />
               </Link>
               <button onClick={() => scrollTo('features')} className="btn-ghost px-6 py-3 text-base">
@@ -216,7 +236,7 @@ export function LandingPage() {
                 <div className="h-3 w-3 rounded-full bg-error-500" />
                 <div className="h-3 w-3 rounded-full bg-warning-500" />
                 <div className="h-3 w-3 rounded-full bg-success-600" />
-                <div className="ml-3 text-xs font-medium text-ink-400 dark:text-ink-500">app.liafrikflow.com/dashboard</div>
+                <div className="ml-3 text-xs font-medium text-ink-400 dark:text-ink-500">app.posflow.africa/dashboard</div>
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
