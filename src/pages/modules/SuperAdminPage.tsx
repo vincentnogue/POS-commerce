@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Shield, Crown, Building2, Users, DollarSign, TrendingUp,
   Pencil, Trash2, Ban, Check, Plus, Activity, CreditCard,
-  Search, AlertTriangle, Mail, Eye, Loader2,
+  Search, AlertTriangle, Mail, Eye, Loader2, BarChart3, Award,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { convertToUSD } from '../../lib/localization';
@@ -11,7 +11,7 @@ import { PageHeader, Modal, Badge, StatCard, EmptyState, Spinner, useToast } fro
 import { Field } from '../../components/DataTable';
 import type { Tenant, Plan, CommercialCode, AuditLog } from '../../lib/types';
 
-type Tab = 'overview' | 'tenants' | 'employees' | 'subscriptions' | 'admins' | 'plans' | 'codes' | 'audit' | 'monitoring' | 'comms';
+type Tab = 'overview' | 'tenants' | 'employees' | 'subscriptions' | 'admins' | 'plans' | 'codes' | 'performance' | 'audit' | 'monitoring' | 'comms';
 
 const ROLE_LABELS: Record<string, string> = {
   super_admin: 'Super Admin',
@@ -80,6 +80,7 @@ export function SuperAdminPage() {
     { id: 'admins', label: 'Super Admins', icon: Crown },
     { id: 'plans', label: 'Forfaits', icon: DollarSign },
     { id: 'codes', label: 'Codes commerciaux', icon: Activity },
+    { id: 'performance', label: 'Performance', icon: BarChart3 },
     { id: 'monitoring', label: 'Monitoring', icon: Eye },
     { id: 'audit', label: "Journal d'audit", icon: Shield },
     { id: 'comms', label: 'Communications', icon: Mail },
@@ -112,6 +113,7 @@ export function SuperAdminPage() {
       {tab === 'admins' && <SuperAdmins />}
       {tab === 'plans' && <SuperPlans />}
       {tab === 'codes' && <SuperCodes />}
+      {tab === 'performance' && <SuperPerformance />}
       {tab === 'monitoring' && <SuperMonitoring />}
       {tab === 'audit' && <SuperAudit />}
       {tab === 'comms' && <SuperComms />}
@@ -707,13 +709,16 @@ function SuperCodes() {
 
   return (
     <div className="card p-5">
-      <div className="mb-4 flex justify-end"><button onClick={() => setModalOpen(true)} className="btn-primary"><Plus size={16} /> Nouveau code</button></div>
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-xs text-ink-500 dark:text-ink-400">Ventes et clients par code : voir l'onglet <span className="font-semibold text-brand-600">Performance</span>.</p>
+        <button onClick={() => setModalOpen(true)} className="btn-primary"><Plus size={16} /> Nouveau code</button>
+      </div>
       {codes.length === 0 ? (
         <EmptyState icon={Activity} title="Aucun code commercial" description="Créez des codes pour tracer vos commerciaux." />
       ) : (
         <table className="w-full text-sm">
           <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
-            <th className="pb-2 font-semibold">Code</th><th className="pb-2 font-semibold">Commercial</th><th className="pb-2 font-semibold">Région</th><th className="pb-2 font-semibold">Ventes</th><th className="pb-2 font-semibold">Revenu</th><th className="pb-2 font-semibold">Statut</th><th></th>
+            <th className="pb-2 font-semibold">Code</th><th className="pb-2 font-semibold">Commercial</th><th className="pb-2 font-semibold">Région</th><th className="pb-2 font-semibold">Statut</th><th></th>
           </tr></thead>
           <tbody>
             {codes.map((c) => (
@@ -721,8 +726,6 @@ function SuperCodes() {
                 <td className="py-3 font-mono font-semibold text-brand-700">{c.code}</td>
                 <td className="py-3"><p className="font-semibold text-ink-900 dark:text-ink-50">{c.rep_name}</p>{c.rep_email && <p className="text-xs text-ink-500 dark:text-ink-400">{c.rep_email}</p>}</td>
                 <td className="py-3 text-ink-600 dark:text-ink-300">{c.region ?? '—'}</td>
-                <td className="py-3 text-ink-600 dark:text-ink-300">{c.total_sales}</td>
-                <td className="py-3 font-semibold text-ink-900 dark:text-ink-50">${convertToUSD(c.total_revenue, 'USD').toFixed(0)}</td>
                 <td className="py-3"><Badge tone={c.is_active ? 'success' : 'neutral'}>{c.is_active ? 'Actif' : 'Inactif'}</Badge></td>
                 <td className="py-3"><button onClick={() => toggle(c)} className="text-xs font-semibold text-brand-600 hover:underline">{c.is_active ? 'Désactiver' : 'Activer'}</button></td>
               </tr>
@@ -742,6 +745,155 @@ function SuperCodes() {
           <button onClick={save} className="btn-primary">Créer</button>
         </div>
       </Modal>
+    </div>
+  );
+}
+
+function SuperPerformance() {
+  const [staff, setStaff] = useState<any[]>([]);
+  const [commercials, setCommercials] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedCode, setExpandedCode] = useState<string | null>(null);
+  const [view, setView] = useState<'staff' | 'commercials'>('staff');
+
+  useEffect(() => { (async () => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/platform-performance`;
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error ?? 'Erreur');
+      setStaff(json.staff ?? []);
+      setCommercials(json.commercials ?? []);
+    } catch (e: any) {
+      setError(e.message ?? 'Erreur de chargement.');
+    } finally {
+      setLoading(false);
+    }
+  })(); }, []);
+
+  const fmtUSD = (n: number) => `$${convertToUSD(n, 'USD').toFixed(0)}`;
+  const timeAgo = (iso: string | null) => {
+    if (!iso) return 'Jamais';
+    const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+    if (days === 0) return "Aujourd'hui";
+    if (days === 1) return 'Hier';
+    return `Il y a ${days} j`;
+  };
+
+  if (loading) return <div className="flex justify-center py-16"><Spinner /></div>;
+  if (error) return <EmptyState icon={AlertTriangle} title="Erreur" description={error} />;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <button onClick={() => setView('staff')} className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${view === 'staff' ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`}>
+          Performance staff
+        </button>
+        <button onClick={() => setView('commercials')} className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${view === 'commercials' ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`}>
+          Performance commerciaux
+        </button>
+      </div>
+
+      {view === 'staff' && (
+        <div className="card p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <Award size={18} className="text-brand-600" />
+            <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Performance du staff — toutes entreprises</h3>
+          </div>
+          {staff.length === 0 ? (
+            <EmptyState icon={Users} title="Aucune donnée" description="Aucun membre du staff trouvé." />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
+                    <th className="pb-2 font-semibold">Membre</th>
+                    <th className="pb-2 font-semibold">Entreprise</th>
+                    <th className="pb-2 font-semibold">Rôle</th>
+                    <th className="pb-2 text-right font-semibold">Ventes</th>
+                    <th className="pb-2 text-right font-semibold">CA généré</th>
+                    <th className="pb-2 text-right font-semibold">Actions (log)</th>
+                    <th className="pb-2 text-right font-semibold">Dernière activité</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {staff.map((s) => (
+                    <tr key={s.userId} className="border-b border-ink-50 dark:border-ink-800">
+                      <td className="py-3">
+                        <p className="font-semibold text-ink-900 dark:text-ink-50">{s.displayName}</p>
+                        {s.email && <p className="text-xs text-ink-500 dark:text-ink-400">{s.email}</p>}
+                      </td>
+                      <td className="py-3 text-ink-600 dark:text-ink-300">{s.tenantName}</td>
+                      <td className="py-3"><Badge tone="neutral">{ROLE_LABELS[s.role] ?? s.role}</Badge></td>
+                      <td className="py-3 text-right text-ink-700 dark:text-ink-200">{s.salesCount}</td>
+                      <td className="py-3 text-right font-semibold text-ink-900 dark:text-ink-50">{fmtUSD(s.salesRevenue)}</td>
+                      <td className="py-3 text-right text-ink-600 dark:text-ink-300">{s.activityCount}</td>
+                      <td className="py-3 text-right text-xs text-ink-500 dark:text-ink-400">{timeAgo(s.lastActivity)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {view === 'commercials' && (
+        <div className="card p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <Activity size={18} className="text-brand-600" />
+            <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Performance des commerciaux — par code</h3>
+          </div>
+          {commercials.length === 0 ? (
+            <EmptyState icon={Activity} title="Aucun code commercial" description="Créez des codes dans l'onglet Codes commerciaux." />
+          ) : (
+            <div className="space-y-2">
+              {commercials.map((c) => (
+                <div key={c.id} className="rounded-xl border border-ink-100 dark:border-ink-800">
+                  <button
+                    onClick={() => setExpandedCode(expandedCode === c.id ? null : c.id)}
+                    className="flex w-full items-center justify-between p-3 text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="rounded-md bg-brand-50 dark:bg-brand-900/25 px-2 py-1 font-mono text-xs font-semibold text-brand-700 dark:text-brand-300">{c.code}</span>
+                      <div>
+                        <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{c.repName}</p>
+                        <p className="text-xs text-ink-500 dark:text-ink-400">{c.region ?? '—'} · {c.clients.length} client(s) inscrit(s) avec ce code</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-ink-900 dark:text-ink-50">{fmtUSD(c.salesRevenue)}</p>
+                        <p className="text-xs text-ink-500 dark:text-ink-400">{c.salesCount} vente(s)</p>
+                      </div>
+                      <Badge tone={c.isActive ? 'success' : 'neutral'}>{c.isActive ? 'Actif' : 'Inactif'}</Badge>
+                    </div>
+                  </button>
+                  {expandedCode === c.id && (
+                    <div className="border-t border-ink-100 dark:border-ink-800 p-3">
+                      {c.clients.length === 0 ? (
+                        <p className="text-xs text-ink-500 dark:text-ink-400">Aucun client n'a encore utilisé ce code à l'inscription.</p>
+                      ) : (
+                        <div className="space-y-1.5">
+                          {c.clients.map((cl: any) => (
+                            <div key={cl.id} className="flex items-center justify-between rounded-lg bg-ink-50 dark:bg-ink-800/60 px-3 py-2 text-sm">
+                              <span className="font-medium text-ink-800 dark:text-ink-100">{cl.name}</span>
+                              <span className="text-xs text-ink-500 dark:text-ink-400">Inscrit le {new Date(cl.signedUpAt).toLocaleDateString('fr-FR')}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
