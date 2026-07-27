@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Plus, Download, Truck, Eye, Package } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
-import { PageHeader, Modal, EmptyState, Badge } from '../../components/ui';
+import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components/ui';
 import { DataTable, SearchInput, Select, Field, exportCSV } from '../../components/DataTable';
 import type { Delivery } from '../../lib/types';
 
@@ -17,6 +17,7 @@ const STATUS_LABELS: Record<string, { label: string; tone: any }> = {
 
 export function DeliveriesPage() {
   const { tenant } = useAuth();
+  const toast = useToast();
   const [params] = useSearchParams();
   const [deliveries, setDeliveries] = useState<(Delivery & { sale_items?: any[] })[]>([]);
   const [search, setSearch] = useState('');
@@ -46,7 +47,7 @@ export function DeliveriesPage() {
 
   const save = async () => {
     if (!tenant || !form.customer_name.trim()) return;
-    await supabase.from('deliveries').insert({
+    const { error } = await supabase.from('deliveries').insert({
       tenant_id: tenant.id,
       customer_name: form.customer_name.trim(),
       address: form.address || null,
@@ -56,15 +57,18 @@ export function DeliveriesPage() {
       scheduled_date: form.scheduled_date || null,
       status: 'pending',
     });
+    if (error) { toast('error', error.message); return; }
     setModalOpen(false);
     setForm({ customer_name: '', address: '', city: '', phone: '', carrier: '', scheduled_date: new Date().toISOString().slice(0, 10) });
     await reload();
+    toast('success', 'Livraison créée.');
   };
 
   const updateStatus = async (d: Delivery, status: string) => {
     const patch: any = { status };
     if (status === 'delivered') patch.delivered_at = new Date().toISOString();
-    await supabase.from('deliveries').update(patch).eq('id', d.id);
+    const { error } = await supabase.from('deliveries').update(patch).eq('id', d.id);
+    if (error) { toast('error', error.message); return; }
     await reload();
   };
 
@@ -75,7 +79,8 @@ export function DeliveriesPage() {
   };
 
   const updateItemDelivered = async (itemId: string, qty: number) => {
-    await supabase.from('delivery_items').update({ quantity_delivered: qty }).eq('id', itemId);
+    const { error } = await supabase.from('delivery_items').update({ quantity_delivered: qty }).eq('id', itemId);
+    if (error) { toast('error', error.message); return; }
     // Recompute delivery status
     if (detailOpen) {
       const updated = detailItems.map((it) => it.id === itemId ? { ...it, quantity_delivered: qty } : it);
@@ -95,7 +100,8 @@ export function DeliveriesPage() {
     // Mark all remaining items as delivered
     for (const it of detailItems) {
       if (Number(it.quantity_delivered) < Number(it.quantity_ordered)) {
-        await supabase.from('delivery_items').update({ quantity_delivered: it.quantity_ordered }).eq('id', it.id);
+        const { error } = await supabase.from('delivery_items').update({ quantity_delivered: it.quantity_ordered }).eq('id', it.id);
+        if (error) { toast('error', error.message); return; }
       }
     }
     await updateStatus(detailOpen, 'delivered');

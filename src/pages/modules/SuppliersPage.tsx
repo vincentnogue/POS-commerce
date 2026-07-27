@@ -3,7 +3,7 @@ import { Plus, Pencil, Trash2, Building2, Download, Mail, Phone, Package, X } fr
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
-import { PageHeader, Modal, EmptyState } from '../../components/ui';
+import { PageHeader, Modal, EmptyState, useToast } from '../../components/ui';
 import { DataTable, SearchInput, Field, exportCSV } from '../../components/DataTable';
 import type { Supplier, Product } from '../../lib/types';
 
@@ -11,6 +11,7 @@ const EMPTY = { name: '', contact_name: '', email: '', phone: '', address: '', c
 
 export function SuppliersPage() {
   const { tenant, can } = useAuth();
+  const toast = useToast();
   const [suppliers, setSuppliers] = useState<(Supplier & { product_count?: number })[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [supplierProducts, setSupplierProducts] = useState<Record<string, string[]>>({});
@@ -71,11 +72,15 @@ export function SuppliersPage() {
     const payload = { tenant_id: tenant.id, name: form.name.trim(), contact_name: form.contact_name || null, email: form.email || null, phone: form.phone || null, address: form.address || null, city: form.city || null, tax_id: form.tax_id || null, notes: form.notes || null };
     let supplierId: string;
     if (editing) {
-      if (canUpdate) await supabase.from('suppliers').update(payload).eq('id', editing.id);
+      if (canUpdate) {
+        const { error } = await supabase.from('suppliers').update(payload).eq('id', editing.id);
+        if (error) { toast('error', error.message); return; }
+      }
       supplierId = editing.id;
     } else {
       if (canCreate) {
-        const { data } = await supabase.from('suppliers').insert(payload).select().single();
+        const { data, error } = await supabase.from('suppliers').insert(payload).select().single();
+        if (error) { toast('error', error.message); return; }
         supplierId = data?.id;
       } else {
         return;
@@ -83,13 +88,16 @@ export function SuppliersPage() {
     }
     if (supplierId) {
       // Sync supplier_products: remove all, re-insert selected
-      await supabase.from('supplier_products').delete().eq('supplier_id', supplierId);
+      const { error: delErr } = await supabase.from('supplier_products').delete().eq('supplier_id', supplierId);
+      if (delErr) { toast('error', delErr.message); return; }
       if (linkedProductIds.length > 0) {
-        await supabase.from('supplier_products').insert(linkedProductIds.map((pid) => ({ tenant_id: tenant.id, supplier_id: supplierId, product_id: pid })));
+        const { error: linkErr } = await supabase.from('supplier_products').insert(linkedProductIds.map((pid) => ({ tenant_id: tenant.id, supplier_id: supplierId, product_id: pid })));
+        if (linkErr) { toast('error', linkErr.message); return; }
       }
     }
     setModalOpen(false);
     await reload();
+    toast('success', editing ? 'Fournisseur mis à jour.' : 'Fournisseur ajouté.');
   };
 
   const remove = async (s: Supplier) => {

@@ -221,14 +221,16 @@ function SuperTenants() {
 
   const toggleStatus = async (t: Tenant) => {
     const newStatus = t.status === 'active' ? 'suspended' : 'active';
-    await supabase.from('tenants').update({ status: newStatus }).eq('id', t.id);
+    const { error } = await supabase.from('tenants').update({ status: newStatus }).eq('id', t.id);
+    if (error) { toast('error', error.message); return; }
     setTenants((list) => list.map((x) => x.id === t.id ? { ...x, status: newStatus } : x));
     toast(newStatus === 'active' ? 'success' : 'info', `${t.name} ${newStatus === 'active' ? 'activé' : 'suspendu'}`);
   };
 
   const deleteTenant = async (t: Tenant) => {
     if (!confirm(`Supprimer définitivement ${t.name} ? Cette action est irréversible.`)) return;
-    await supabase.from('tenants').delete().eq('id', t.id);
+    const { error } = await supabase.from('tenants').delete().eq('id', t.id);
+    if (error) { toast('error', `Échec de la suppression : ${error.message}`); return; }
     setTenants((list) => list.filter((x) => x.id !== t.id));
     toast('error', `${t.name} supprimé`);
   };
@@ -625,6 +627,7 @@ function SuperPlans() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Plan | null>(null);
   const [form, setForm] = useState<any>({ name: '', code: '', price_usd: 0, max_users: 1, max_stores: 1, max_products: 50 });
+  const toast = useToast();
 
   const reload = async () => {
     const { data } = await supabase.from('plans').select('*').order('sort_order');
@@ -633,14 +636,18 @@ function SuperPlans() {
   useEffect(() => { reload(); }, []);
 
   const save = async () => {
-    if (editing) { await supabase.from('plans').update(form).eq('id', editing.id); }
-    else { await supabase.from('plans').insert({ ...form, features: [], is_active: true, sort_order: plans.length }); }
+    const { error } = editing
+      ? await supabase.from('plans').update(form).eq('id', editing.id)
+      : await supabase.from('plans').insert({ ...form, features: [], is_active: true, sort_order: plans.length });
+    if (error) { toast('error', error.message); return; }
     setModalOpen(false); await reload();
+    toast('success', 'Forfait enregistré.');
   };
 
   const remove = async (p: Plan) => {
     if (!confirm(`Supprimer le forfait ${p.name} ?`)) return;
-    await supabase.from('plans').delete().eq('id', p.id);
+    const { error } = await supabase.from('plans').delete().eq('id', p.id);
+    if (error) { toast('error', error.message); return; }
     await reload();
   };
 
@@ -690,6 +697,7 @@ function SuperCodes() {
   const [codes, setCodes] = useState<CommercialCode[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<any>({ code: '', rep_name: '', rep_email: '', region: '' });
+  const toast = useToast();
 
   const reload = async () => {
     const { data } = await supabase.from('commercial_codes').select('*').order('created_at', { ascending: false });
@@ -698,12 +706,15 @@ function SuperCodes() {
   useEffect(() => { reload(); }, []);
 
   const save = async () => {
-    await supabase.from('commercial_codes').insert({ code: form.code, rep_name: form.rep_name, rep_email: form.rep_email || null, region: form.region || null, is_active: true });
+    const { error } = await supabase.from('commercial_codes').insert({ code: form.code, rep_name: form.rep_name, rep_email: form.rep_email || null, region: form.region || null, is_active: true });
+    if (error) { toast('error', error.message); return; }
     setModalOpen(false); setForm({ code: '', rep_name: '', rep_email: '', region: '' }); await reload();
+    toast('success', 'Code commercial créé.');
   };
 
   const toggle = async (c: CommercialCode) => {
-    await supabase.from('commercial_codes').update({ is_active: !c.is_active }).eq('id', c.id);
+    const { error } = await supabase.from('commercial_codes').update({ is_active: !c.is_active }).eq('id', c.id);
+    if (error) { toast('error', error.message); return; }
     await reload();
   };
 
@@ -1031,14 +1042,23 @@ function SuperComms() {
   const send = async () => {
     if (!subject || !body) { toast('error', 'Sujet et message requis'); return; }
     setSending(true);
-    await supabase.from('audit_log').insert({
-      action: 'platform_communication',
-      entity: `Segment: ${segment}, Recipients: ${recipientCount}`,
-      actor_email: 'super_admin',
-    });
-    setSending(false);
-    toast('success', `Communication envoyée à ${recipientCount} entreprise(s)`);
-    setSubject(''); setBody('');
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/broadcast-notification`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject, body, segment }),
+      });
+      const result = await res.json();
+      if (!res.ok || result.error) throw new Error(result.error ?? 'Erreur inconnue');
+      toast('success', `Notification envoyée à ${result.sent} destinataire(s) dans ${result.tenants ?? recipientCount} entreprise(s).`);
+      setSubject(''); setBody('');
+    } catch (e: any) {
+      toast('error', e.message);
+    } finally {
+      setSending(false);
+    }
   };
 
   return (

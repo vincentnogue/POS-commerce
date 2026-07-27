@@ -3,7 +3,7 @@ import { Plus, ClipboardList, Download, Trash2, Eye, Send, FileText, Printer, Me
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
-import { PageHeader, Modal, EmptyState, Badge } from '../../components/ui';
+import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components/ui';
 import { DataTable, SearchInput, Field, exportCSV } from '../../components/DataTable';
 import type { Quote, Customer, Product, QuoteItem } from '../../lib/types';
 
@@ -17,6 +17,7 @@ const STATUS_LABELS: Record<string, { label: string; tone: any }> = {
 
 export function QuotesPage() {
   const { tenant } = useAuth();
+  const toast = useToast();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -70,7 +71,7 @@ export function QuotesPage() {
   const save = async () => {
     if (!tenant || form.items.length === 0) return;
     const num = `DEV-${new Date().getFullYear()}-${String(quotes.length + 1).padStart(4, '0')}`;
-    const { data: q } = await supabase.from('quotes').insert({
+    const { data: q, error } = await supabase.from('quotes').insert({
       tenant_id: tenant.id,
       customer_id: form.customer_id || null,
       number: num,
@@ -79,15 +80,18 @@ export function QuotesPage() {
       expiry_date: form.expiry_date || null,
       subtotal: total, tax_total: 0, discount_total: 0, total,
     }).select().single();
+    if (error) { toast('error', error.message); return; }
     if (q) {
-      await supabase.from('quote_items').insert(form.items.map((it: any) => ({
+      const { error: itemsErr } = await supabase.from('quote_items').insert(form.items.map((it: any) => ({
         quote_id: q.id, product_id: it.product_id || null, name: it.name, quantity: it.quantity, unit_price: it.unit_price, discount: it.discount, tax_rate: it.tax_rate, total: it.total,
       })));
+      if (itemsErr) { toast('error', itemsErr.message); return; }
     }
     setModalOpen(false);
     setForm({ customer_id: '', issue_date: new Date().toISOString().slice(0, 10), expiry_date: '', items: [] });
     const { data } = await supabase.from('quotes').select('*, customer:customers(name)').eq('tenant_id', tenant.id).order('created_at', { ascending: false });
     setQuotes((data as any[]) ?? []);
+    toast('success', 'Devis créé.');
   };
 
   const view = async (q: Quote) => {
@@ -98,22 +102,26 @@ export function QuotesPage() {
 
   const remove = async (q: Quote) => {
     if (!confirm(`Supprimer le devis ${q.number} ?`)) return;
-    await supabase.from('quotes').delete().eq('id', q.id);
+    const { error } = await supabase.from('quotes').delete().eq('id', q.id);
+    if (error) { toast('error', error.message); return; }
     setQuotes((list) => list.filter((x) => x.id !== q.id));
   };
 
   const send = async (q: Quote) => {
-    await supabase.from('quotes').update({ status: 'sent' }).eq('id', q.id);
+    const { error } = await supabase.from('quotes').update({ status: 'sent' }).eq('id', q.id);
+    if (error) { toast('error', error.message); return; }
     setQuotes((list) => list.map((x) => x.id === q.id ? { ...x, status: 'sent' } : x));
   };
 
   const acceptQuote = async (q: Quote) => {
-    await supabase.from('quotes').update({ status: 'accepted' }).eq('id', q.id);
+    const { error } = await supabase.from('quotes').update({ status: 'accepted' }).eq('id', q.id);
+    if (error) { toast('error', error.message); return; }
     setQuotes((list) => list.map((x) => x.id === q.id ? { ...x, status: 'accepted' } : x));
   };
 
   const refuseQuote = async (q: Quote) => {
-    await supabase.from('quotes').update({ status: 'refused' }).eq('id', q.id);
+    const { error } = await supabase.from('quotes').update({ status: 'refused' }).eq('id', q.id);
+    if (error) { toast('error', error.message); return; }
     setQuotes((list) => list.map((x) => x.id === q.id ? { ...x, status: 'refused' } : x));
   };
 
@@ -121,7 +129,7 @@ export function QuotesPage() {
     if (!tenant) return;
     const items = viewItems.length > 0 ? viewItems : (await supabase.from('quote_items').select('*').eq('quote_id', q.id)).data ?? [];
     const num = `FAC-${new Date().getFullYear()}-${String(quotes.length + 1).padStart(4, '0')}`;
-    const { data: inv } = await supabase.from('invoices').insert({
+    const { data: inv, error } = await supabase.from('invoices').insert({
       tenant_id: tenant.id,
       customer_id: q.customer_id,
       number: num,
@@ -130,13 +138,16 @@ export function QuotesPage() {
       due_date: null,
       subtotal: q.subtotal, tax_total: q.tax_total, discount_total: q.discount_total, total: q.total, paid_amount: 0,
     }).select().single();
+    if (error) { toast('error', error.message); return; }
     if (inv) {
-      await supabase.from('invoice_items').insert(items.map((it: any) => ({
+      const { error: itemsErr } = await supabase.from('invoice_items').insert(items.map((it: any) => ({
         invoice_id: inv.id, product_id: it.product_id || null, name: it.name, quantity: it.quantity, unit_price: it.unit_price, discount: it.discount, tax_rate: it.tax_rate, total: it.total,
       })));
-      await supabase.from('quotes').update({ status: 'accepted' }).eq('id', q.id);
+      if (itemsErr) { toast('error', itemsErr.message); return; }
+      const { error: statusErr } = await supabase.from('quotes').update({ status: 'accepted' }).eq('id', q.id);
+      if (statusErr) { toast('error', statusErr.message); return; }
       setQuotes((list) => list.map((x) => x.id === q.id ? { ...x, status: 'accepted' } : x));
-      alert(`Devis converti en facture ${num}.`);
+      toast('success', `Devis converti en facture ${num}.`);
     }
   };
 

@@ -130,7 +130,8 @@ export function UsersPage() {
   const remove = async (m: Member) => {
     if (m.user_id === member?.user_id) { setInfo('Vous ne pouvez pas vous retirer vous-même.'); return; }
     if (!confirm(`Retirer ${m.display_name ?? 'cet utilisateur'} ?`)) return;
-    await supabase.from('tenant_members').delete().eq('id', m.id);
+    const { error } = await supabase.from('tenant_members').delete().eq('id', m.id);
+    if (error) { setInfo(`Erreur: ${error.message}`); return; }
     await reload();
   };
 
@@ -138,7 +139,8 @@ export function UsersPage() {
     const patch: any = { role };
     if (customRoleId) patch.custom_role_id = customRoleId;
     else patch.custom_role_id = null;
-    await supabase.from('tenant_members').update(patch).eq('id', m.id);
+    const { error } = await supabase.from('tenant_members').update(patch).eq('id', m.id);
+    if (error) { setInfo(`Erreur: ${error.message}`); return; }
     await reload();
   };
 
@@ -174,9 +176,11 @@ export function UsersPage() {
       permissions: roleForm.permissions,
     };
     if (editingRole) {
-      await supabase.from('custom_roles').update(payload).eq('id', editingRole.id);
+      const { error } = await supabase.from('custom_roles').update(payload).eq('id', editingRole.id);
+      if (error) { setInfo(`Erreur: ${error.message}`); return; }
     } else {
-      await supabase.from('custom_roles').insert(payload);
+      const { error } = await supabase.from('custom_roles').insert(payload);
+      if (error) { setInfo(`Erreur: ${error.message}`); return; }
     }
     setRoleModalOpen(false);
     await reload();
@@ -184,7 +188,8 @@ export function UsersPage() {
 
   const deleteRole = async (r: CustomRole) => {
     if (!confirm(`Supprimer le rôle "${r.name}" ? Les membres associés redeviendront "Vendeur".`)) return;
-    await supabase.from('custom_roles').delete().eq('id', r.id);
+    const { error } = await supabase.from('custom_roles').delete().eq('id', r.id);
+    if (error) { setInfo(`Erreur: ${error.message}`); return; }
     await reload();
   };
 

@@ -7,7 +7,7 @@ import {
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { convertToUSD } from '../../lib/localization';
-import { PageHeader, Modal, Badge, EmptyState, StatCard } from '../../components/ui';
+import { PageHeader, Modal, Badge, EmptyState, StatCard, useToast } from '../../components/ui';
 import { Field } from '../../components/DataTable';
 import type { CommercialCode, AuditLog, Plan, Tenant } from '../../lib/types';
 
@@ -180,6 +180,7 @@ function SuperTenants() {
 }
 
 function SuperPlans() {
+  const toast = useToast();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Plan | null>(null);
@@ -192,18 +193,19 @@ function SuperPlans() {
   useEffect(() => { reload(); }, []);
 
   const save = async () => {
-    if (editing) {
-      await supabase.from('plans').update(form).eq('id', editing.id);
-    } else {
-      await supabase.from('plans').insert({ ...form, features: [], is_active: true, sort_order: plans.length });
-    }
+    const { error } = editing
+      ? await supabase.from('plans').update(form).eq('id', editing.id)
+      : await supabase.from('plans').insert({ ...form, features: [], is_active: true, sort_order: plans.length });
+    if (error) { toast('error', error.message); return; }
     setModalOpen(false);
     await reload();
+    toast('success', 'Forfait enregistré.');
   };
 
   const remove = async (p: Plan) => {
     if (!confirm(`Supprimer le forfait ${p.name} ?`)) return;
-    await supabase.from('plans').delete().eq('id', p.id);
+    const { error } = await supabase.from('plans').delete().eq('id', p.id);
+    if (error) { toast('error', error.message); return; }
     await reload();
   };
 
@@ -250,6 +252,7 @@ function SuperPlans() {
 }
 
 function SuperCodes() {
+  const toast = useToast();
   const [codes, setCodes] = useState<CommercialCode[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<any>({ code: '', rep_name: '', rep_email: '', region: '' });
@@ -261,14 +264,17 @@ function SuperCodes() {
   useEffect(() => { reload(); }, []);
 
   const save = async () => {
-    await supabase.from('commercial_codes').insert({ code: form.code, rep_name: form.rep_name, rep_email: form.rep_email || null, region: form.region || null, is_active: true });
+    const { error } = await supabase.from('commercial_codes').insert({ code: form.code, rep_name: form.rep_name, rep_email: form.rep_email || null, region: form.region || null, is_active: true });
+    if (error) { toast('error', error.message); return; }
     setModalOpen(false);
     setForm({ code: '', rep_name: '', rep_email: '', region: '' });
     await reload();
+    toast('success', 'Code commercial créé.');
   };
 
   const toggle = async (c: CommercialCode) => {
-    await supabase.from('commercial_codes').update({ is_active: !c.is_active }).eq('id', c.id);
+    const { error } = await supabase.from('commercial_codes').update({ is_active: !c.is_active }).eq('id', c.id);
+    if (error) { toast('error', error.message); return; }
     await reload();
   };
 

@@ -3,7 +3,7 @@ import { Plus, Download, FileText, Trash2, Eye, Printer, MessageCircle, Mail, Fi
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
-import { PageHeader, Modal, EmptyState, Badge } from '../../components/ui';
+import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components/ui';
 import { DataTable, SearchInput, Select, Field, exportCSV } from '../../components/DataTable';
 import type { Invoice, Customer, InvoiceItem, Product } from '../../lib/types';
 import { useI18n } from '../../lib/i18n';
@@ -28,6 +28,7 @@ const STATUS_LABELS: Record<string, { label: string; tone: any }> = {
 export function InvoicesPage() {
   const { tenant } = useAuth();
   const { t } = useI18n();
+  const toast = useToast();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -91,7 +92,7 @@ export function InvoicesPage() {
   const save = async () => {
     if (!tenant || form.items.length === 0) return;
     const num = `FAC-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(4, '0')}`;
-    const { data: inv } = await supabase.from('invoices').insert({
+    const { data: inv, error } = await supabase.from('invoices').insert({
       tenant_id: tenant.id,
       customer_id: form.customer_id || null,
       number: num,
@@ -100,15 +101,18 @@ export function InvoicesPage() {
       due_date: form.due_date || null,
       subtotal, tax_total: taxTotal, discount_total: 0, total, paid_amount: 0,
     }).select().single();
+    if (error) { toast('error', error.message); return; }
     if (inv) {
-      await supabase.from('invoice_items').insert(form.items.map((it: any) => ({
+      const { error: itemsErr } = await supabase.from('invoice_items').insert(form.items.map((it: any) => ({
         invoice_id: inv.id, product_id: it.product_id || null, name: it.name, quantity: it.quantity, unit_price: it.unit_price, discount: 0, tax_rate: it.tax_rate, total: it.total,
       })));
+      if (itemsErr) { toast('error', itemsErr.message); return; }
     }
     setModalOpen(false);
     setForm({ customer_id: '', issue_date: new Date().toISOString().slice(0, 10), due_date: '', items: [] });
     const { data } = await supabase.from('invoices').select('*, customer:customers(name)').eq('tenant_id', tenant.id).order('created_at', { ascending: false });
     setInvoices((data as any[]) ?? []);
+    toast('success', 'Facture créée.');
   };
 
   const view = async (inv: Invoice) => {
@@ -119,12 +123,14 @@ export function InvoicesPage() {
 
   const remove = async (inv: Invoice) => {
     if (!confirm(`Supprimer la facture ${inv.number} ?`)) return;
-    await supabase.from('invoices').delete().eq('id', inv.id);
+    const { error } = await supabase.from('invoices').delete().eq('id', inv.id);
+    if (error) { toast('error', error.message); return; }
     setInvoices((list) => list.filter((x) => x.id !== inv.id));
   };
 
   const markPaid = async (inv: Invoice) => {
-    await supabase.from('invoices').update({ status: 'paid', paid_amount: inv.total }).eq('id', inv.id);
+    const { error } = await supabase.from('invoices').update({ status: 'paid', paid_amount: inv.total }).eq('id', inv.id);
+    if (error) { toast('error', error.message); return; }
     setInvoices((list) => list.map((x) => x.id === inv.id ? { ...x, status: 'paid', paid_amount: x.total } : x));
   };
 

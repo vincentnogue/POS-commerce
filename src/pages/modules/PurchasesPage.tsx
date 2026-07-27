@@ -3,7 +3,7 @@ import { Plus, Receipt, Download, Trash2, Eye, Check, Package } from 'lucide-rea
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
-import { PageHeader, Modal, EmptyState, Badge } from '../../components/ui';
+import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components/ui';
 import { DataTable, SearchInput, Select, Field, exportCSV } from '../../components/DataTable';
 import type { Purchase, Supplier, Product, PurchaseItem } from '../../lib/types';
 
@@ -17,6 +17,7 @@ const STATUS_LABELS: Record<string, { label: string; tone: any }> = {
 
 export function PurchasesPage() {
   const { tenant, can } = useAuth();
+  const toast = useToast();
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -91,21 +92,29 @@ export function PurchasesPage() {
   const save = async () => {
     if (!tenant || form.items.length === 0) return;
     const ref = `ACH-${Date.now().toString().slice(-8)}`;
-    const { data: p } = await supabase.from('purchases').insert({
+    const { data: p, error } = await supabase.from('purchases').insert({
       tenant_id: tenant.id, supplier_id: form.supplier_id || null, store_id: form.store_id || null,
       reference: ref, status: 'ordered', subtotal: total, tax_total: 0, total, paid_amount: 0, purchase_date: form.purchase_date,
     }).select().single();
+    if (error) { toast('error', error.message); return; }
     if (p) {
-      await supabase.from('purchase_items').insert(form.items.map((it: any) => ({ purchase_id: p.id, product_id: it.product_id || null, name: it.name, quantity: it.quantity, unit_cost: it.unit_cost, total: it.total })));
+      const { error: itemsErr } = await supabase.from('purchase_items').insert(form.items.map((it: any) => ({ purchase_id: p.id, product_id: it.product_id || null, name: it.name, quantity: it.quantity, unit_cost: it.unit_cost, total: it.total })));
+      if (itemsErr) { toast('error', itemsErr.message); return; }
     }
     setModalOpen(false);
     setForm({ supplier_id: '', purchase_date: new Date().toISOString().slice(0, 10), store_id: '', items: [] });
     const { data } = await supabase.from('purchases').select('*, supplier:suppliers(name)').eq('tenant_id', tenant.id).order('created_at', { ascending: false });
     setPurchases((data as any[]) ?? []);
+    toast('success', 'Achat créé.');
   };
 
   const view = async (p: Purchase) => { setViewOpen(p); const { data } = await supabase.from('purchase_items').select('*').eq('purchase_id', p.id); setViewItems((data as PurchaseItem[]) ?? []); };
-  const remove = async (p: Purchase) => { if (!confirm(`Supprimer l'achat ${p.reference} ?`)) return; await supabase.from('purchases').delete().eq('id', p.id); setPurchases((list) => list.filter((x) => x.id !== p.id)); };
+  const remove = async (p: Purchase) => {
+    if (!confirm(`Supprimer l'achat ${p.reference} ?`)) return;
+    const { error } = await supabase.from('purchases').delete().eq('id', p.id);
+    if (error) { toast('error', error.message); return; }
+    setPurchases((list) => list.filter((x) => x.id !== p.id));
+  };
 
   const openReceive = async (p: Purchase) => {
     setReceiveOpen(p);
@@ -127,25 +136,31 @@ export function PurchasesPage() {
       if (it.product_id) {
         const existing = inventory.find((inv) => inv.product_id === it.product_id && (inv.store_id === (receiveOpen as any).store_id || (!inv.store_id && !(receiveOpen as any).store_id)));
         if (existing) {
-          await supabase.from('inventory').update({ quantity: Number(existing.quantity) + receiveQty, updated_at: new Date().toISOString() }).eq('id', existing.id);
+          const { error } = await supabase.from('inventory').update({ quantity: Number(existing.quantity) + receiveQty, updated_at: new Date().toISOString() }).eq('id', existing.id);
+          if (error) { toast('error', error.message); return; }
         } else {
-          await supabase.from('inventory').insert({ tenant_id: tenant.id, product_id: it.product_id, store_id: (receiveOpen as any).store_id ?? null, quantity: receiveQty });
+          const { error } = await supabase.from('inventory').insert({ tenant_id: tenant.id, product_id: it.product_id, store_id: (receiveOpen as any).store_id ?? null, quantity: receiveQty });
+          if (error) { toast('error', error.message); return; }
         }
-        await supabase.from('stock_movements').insert({ tenant_id: tenant.id, product_id: it.product_id, store_id: (receiveOpen as any).store_id ?? null, movement_type: 'purchase', quantity: receiveQty, reason: `Réception achat ${receiveOpen.reference}` });
+        const { error: movErr } = await supabase.from('stock_movements').insert({ tenant_id: tenant.id, product_id: it.product_id, store_id: (receiveOpen as any).store_id ?? null, movement_type: 'purchase', quantity: receiveQty, reason: `Réception achat ${receiveOpen.reference}` });
+        if (movErr) { toast('error', movErr.message); return; }
         // Update product cost_price if different
         if (Number(it.unit_cost) > 0) {
-          await supabase.from('products').update({ cost_price: Number(it.unit_cost), updated_at: new Date().toISOString() }).eq('id', it.product_id);
+          const { error: costErr } = await supabase.from('products').update({ cost_price: Number(it.unit_cost), updated_at: new Date().toISOString() }).eq('id', it.product_id);
+          if (costErr) { toast('error', costErr.message); return; }
         }
       }
       if (receiveQty < Number(it.quantity)) allReceived = false;
     }
     const newStatus = allReceived ? 'received' : 'partially_received';
-    await supabase.from('purchases').update({ status: newStatus }).eq('id', receiveOpen.id);
+    const { error: statusErr } = await supabase.from('purchases').update({ status: newStatus }).eq('id', receiveOpen.id);
+    if (statusErr) { toast('error', statusErr.message); return; }
     setReceiveOpen(null);
     const { data } = await supabase.from('purchases').select('*, supplier:suppliers(name)').eq('tenant_id', tenant.id).order('created_at', { ascending: false });
     setPurchases((data as any[]) ?? []);
     const { data: inv } = await supabase.from('inventory').select('*').eq('tenant_id', tenant.id);
     setInventory(inv ?? []);
+    toast('success', 'Réception enregistrée, stock mis à jour.');
   };
 
   return (
