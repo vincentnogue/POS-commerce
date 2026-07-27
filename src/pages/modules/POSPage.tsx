@@ -4,7 +4,7 @@ import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Bank
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
-import { PageHeader, Modal, EmptyState } from '../../components/ui';
+import { PageHeader, Modal, EmptyState, useToast } from '../../components/ui';
 import type { Product, Customer } from '../../lib/types';
 
 type CartItem = {
@@ -33,18 +33,24 @@ export function POSPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [customerSearch, setCustomerSearch] = useState('');
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [stores, setStores] = useState<{ id: string; name: string }[]>([]);
+  const [storeId, setStoreId] = useState<string | null>(null);
+  const toast = useToast();
 
   const currency = tenant?.currency ?? 'XOF';
 
   useEffect(() => {
     if (!tenant) return;
     (async () => {
-      const [p, c] = await Promise.all([
+      const [p, c, s] = await Promise.all([
         supabase.from('products').select('*').eq('tenant_id', tenant.id).eq('is_active', true).order('name'),
         supabase.from('customers').select('*').eq('tenant_id', tenant.id).order('name'),
+        supabase.from('stores').select('id, name').eq('tenant_id', tenant.id).order('name'),
       ]);
       setProducts((p.data as Product[]) ?? []);
       setCustomers((c.data as Customer[]) ?? []);
+      setStores((s.data as any[]) ?? []);
+      setStoreId((s.data as any[])?.[0]?.id ?? null);
       setLoading(false);
     })();
   }, [tenant]);
@@ -91,7 +97,7 @@ export function POSPage() {
       .from('sales')
       .insert({
         tenant_id: tenant.id,
-        store_id: null,
+        store_id: storeId,
         customer_id: customer?.id ?? null,
         reference: ref,
         subtotal,
@@ -108,9 +114,16 @@ export function POSPage() {
       .select()
       .single();
 
-    if (error || !sale) return;
+    if (error || !sale) {
+      toast('error', error?.message ?? "Échec de l'enregistrement de la vente. Rien n'a été débité.");
+      return;
+    }
 
-    await supabase.from('sale_items').insert(
+    // This writes the actual line items — and triggers automatic stock
+    // decrement server-side (see migration 0018). If this fails, the sale
+    // header exists but is empty, which is worse than not selling at all,
+    // so we must surface the error clearly rather than silently continuing.
+    const { error: itemsErr } = await supabase.from('sale_items').insert(
       cart.map((i) => ({
         sale_id: sale.id,
         product_id: i.product.id,
@@ -122,10 +135,14 @@ export function POSPage() {
         total: i.quantity * i.unit_price * (1 + Number(i.product.tax_rate) / 100),
       }))
     );
+    if (itemsErr) {
+      toast('error', `Vente ${ref} créée mais articles non enregistrés : ${itemsErr.message}. Contactez le support.`);
+      return;
+    }
 
     // If "Non livré", create a pending delivery with per-product line items
     if (deliveryChoice === 'pending') {
-      const { data: delivery } = await supabase.from('deliveries').insert({
+      const { data: delivery, error: delErr } = await supabase.from('deliveries').insert({
         tenant_id: tenant.id,
         sale_id: sale.id,
         customer_name: customer?.name ?? 'Client comptant',
@@ -136,8 +153,10 @@ export function POSPage() {
         scheduled_date: new Date().toISOString().slice(0, 10),
       }).select().single();
 
-      if (delivery) {
-        await supabase.from('delivery_items').insert(
+      if (delErr) {
+        toast('error', `Vente enregistrée, mais la livraison n'a pas pu être créée : ${delErr.message}`);
+      } else if (delivery) {
+        const { error: diErr } = await supabase.from('delivery_items').insert(
           cart.map((i) => ({
             delivery_id: delivery.id,
             product_id: i.product.id,
@@ -146,6 +165,7 @@ export function POSPage() {
             quantity_delivered: 0,
           }))
         );
+        if (diErr) toast('error', `Livraison créée mais détails non enregistrés : ${diErr.message}`);
       }
     }
 
@@ -181,6 +201,15 @@ export function POSPage() {
         title="Point de Vente"
         subtitle="Encaissez vos ventes en quelques secondes."
       />
+
+      {stores.length > 1 && (
+        <div className="mb-4 flex items-center gap-2">
+          <label className="text-sm font-medium text-ink-600 dark:text-ink-300">Magasin :</label>
+          <select value={storeId ?? ''} onChange={(e) => setStoreId(e.target.value)} className="input w-auto">
+            {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Products */}
