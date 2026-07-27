@@ -3,7 +3,7 @@ import { Plus, Wallet, Download, Trash2, Pencil } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
-import { PageHeader, Modal, EmptyState, StatCard } from '../../components/ui';
+import { PageHeader, Modal, EmptyState, StatCard, useToast } from '../../components/ui';
 import { DataTable, SearchInput, Select, Field, exportCSV } from '../../components/DataTable';
 import type { Expense, Store, Supplier } from '../../lib/types';
 
@@ -11,6 +11,7 @@ const CATEGORIES = ['Loyer', 'Salaires', 'Électricité', 'Eau', 'Transport', 'M
 const EMPTY = { description: '', amount: 0, category: CATEGORIES[0], payment_method: 'cash', store_id: '', supplier_id: '', expense_date: new Date().toISOString().slice(0, 10), notes: '' };
 
 export function ExpensesPage() {
+  const toast = useToast();
   const { tenant } = useAuth();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [stores, setStores] = useState<Store[]>([]);
@@ -51,16 +52,20 @@ export function ExpensesPage() {
   const save = async () => {
     if (!tenant || !form.description.trim()) return;
     const payload = { tenant_id: tenant.id, description: form.description.trim(), amount: Number(form.amount), category: form.category, payment_method: form.payment_method, store_id: form.store_id || null, supplier_id: form.supplier_id || null, expense_date: form.expense_date, notes: form.notes || null };
-    if (editing) await supabase.from('expenses').update(payload).eq('id', editing.id);
-    else await supabase.from('expenses').insert(payload);
+    const { error } = editing
+      ? await supabase.from('expenses').update(payload).eq('id', editing.id)
+      : await supabase.from('expenses').insert(payload);
+    if (error) { toast('error', error.message); return; }
     setModalOpen(false);
     const { data } = await supabase.from('expenses').select('*').eq('tenant_id', tenant.id).order('expense_date', { ascending: false });
     setExpenses((data as Expense[]) ?? []);
+    toast('success', editing ? 'Dépense mise à jour.' : 'Dépense ajoutée.');
   };
 
   const remove = async (e: Expense) => {
     if (!confirm('Supprimer cette dépense ?')) return;
-    await supabase.from('expenses').delete().eq('id', e.id);
+    const { error } = await supabase.from('expenses').delete().eq('id', e.id);
+    if (error) { toast('error', error.message); return; }
     setExpenses((list) => list.filter((x) => x.id !== e.id));
   };
 

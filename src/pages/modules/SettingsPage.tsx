@@ -4,7 +4,7 @@ import { Settings as SettingsIcon, Building2, Globe, Shield, CreditCard, Bell, P
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { CURRENCIES, getCountry } from '../../lib/localization';
-import { PageHeader, Badge, Modal } from '../../components/ui';
+import { PageHeader, Badge, Modal, useToast } from '../../components/ui';
 import { Field } from '../../components/DataTable';
 import type { Plan } from '../../lib/types';
 
@@ -24,6 +24,7 @@ type NotifPrefs = Record<string, boolean>;
 export function SettingsPage() {
   const { tenant, member, refreshProfile, subscription } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
   const [tab, setTab] = useState<Tab>('company');
   const [saved, setSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -57,12 +58,13 @@ export function SettingsPage() {
 
   const saveCompany = async () => {
     if (!tenant) return;
-    await supabase.from('tenants').update({
+    const { error } = await supabase.from('tenants').update({
       name: form.name,
       business_type: form.business_type || null,
       region: form.region || null,
       city: form.city || null,
     }).eq('id', tenant.id);
+    if (error) { toast('error', error.message); return; }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
     await refreshProfile();
@@ -72,20 +74,19 @@ export function SettingsPage() {
     if (!tenant) return;
     // Save contact info to brand_settings (used on invoices/quotes)
     const { data: existing } = await supabase.from('brand_settings').select('id').eq('tenant_id', tenant.id).maybeSingle();
-    if (existing) {
-      await supabase.from('brand_settings').update({
-        phone: contactForm.phone || null,
-        address: contactForm.address || null,
-        email: contactForm.email || null,
-      }).eq('tenant_id', tenant.id);
-    } else {
-      await supabase.from('brand_settings').insert({
-        tenant_id: tenant.id,
-        phone: contactForm.phone || null,
-        address: contactForm.address || null,
-        email: contactForm.email || null,
-      });
-    }
+    const { error } = existing
+      ? await supabase.from('brand_settings').update({
+          phone: contactForm.phone || null,
+          address: contactForm.address || null,
+          email: contactForm.email || null,
+        }).eq('tenant_id', tenant.id)
+      : await supabase.from('brand_settings').insert({
+          tenant_id: tenant.id,
+          phone: contactForm.phone || null,
+          address: contactForm.address || null,
+          email: contactForm.email || null,
+        });
+    if (error) { toast('error', error.message); return; }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -108,16 +109,16 @@ export function SettingsPage() {
     const ext = file.name.split('.').pop();
     const path = `${tenant.id}/${type}.${ext}`;
     const { error } = await supabase.storage.from('brand-assets').upload(path, file, { upsert: true });
-    if (error) { alert('Erreur: ' + error.message); setUploading(false); return; }
+    if (error) { toast('error', error.message); setUploading(false); return; }
     const url = supabase.storage.from('brand-assets').getPublicUrl(path).data.publicUrl;
     const { data: existing } = await supabase.from('brand_settings').select('id').eq('tenant_id', tenant.id).maybeSingle();
-    if (existing) {
-      await supabase.from('brand_settings').update({ [type === 'logo' ? 'logo_url' : 'stamp_url']: url }).eq('tenant_id', tenant.id);
-    } else {
-      await supabase.from('brand_settings').insert({ tenant_id: tenant.id, [type === 'logo' ? 'logo_url' : 'stamp_url']: url });
-    }
+    const { error: saveErr } = existing
+      ? await supabase.from('brand_settings').update({ [type === 'logo' ? 'logo_url' : 'stamp_url']: url }).eq('tenant_id', tenant.id)
+      : await supabase.from('brand_settings').insert({ tenant_id: tenant.id, [type === 'logo' ? 'logo_url' : 'stamp_url']: url });
+    if (saveErr) { toast('error', saveErr.message); setUploading(false); return; }
     if (type === 'logo') setLogoUrl(url); else setStampUrl(url);
     setUploading(false);
+    toast('success', type === 'logo' ? 'Logo mis à jour.' : 'Cachet mis à jour.');
   };
 
   useEffect(() => {
@@ -135,11 +136,10 @@ export function SettingsPage() {
   const saveNotifs = async () => {
     if (!tenant) return;
     const { data: existing } = await supabase.from('notification_prefs').select('id').eq('tenant_id', tenant.id).maybeSingle();
-    if (existing) {
-      await supabase.from('notification_prefs').update({ prefs: notifPrefs }).eq('tenant_id', tenant.id);
-    } else {
-      await supabase.from('notification_prefs').insert({ tenant_id: tenant.id, prefs: notifPrefs });
-    }
+    const { error } = existing
+      ? await supabase.from('notification_prefs').update({ prefs: notifPrefs }).eq('tenant_id', tenant.id)
+      : await supabase.from('notification_prefs').insert({ tenant_id: tenant.id, prefs: notifPrefs });
+    if (error) { toast('error', error.message); return; }
     setSaved(true); setTimeout(() => setSaved(false), 2000);
   };
 

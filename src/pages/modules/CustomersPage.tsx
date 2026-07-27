@@ -3,13 +3,14 @@ import { Plus, Pencil, Trash2, Users, Download, Mail, Phone } from 'lucide-react
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
-import { PageHeader, Modal, EmptyState } from '../../components/ui';
+import { PageHeader, Modal, EmptyState, useToast } from '../../components/ui';
 import { DataTable, SearchInput, Field, exportCSV } from '../../components/DataTable';
 import type { Customer } from '../../lib/types';
 
 const EMPTY = { name: '', email: '', phone: '', address: '', city: '', tax_id: '', notes: '' };
 
 export function CustomersPage() {
+  const toast = useToast();
   const { tenant } = useAuth();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState('');
@@ -38,16 +39,20 @@ export function CustomersPage() {
   const save = async () => {
     if (!tenant || !form.name.trim()) return;
     const payload = { tenant_id: tenant.id, name: form.name.trim(), email: form.email || null, phone: form.phone || null, address: form.address || null, city: form.city || null, tax_id: form.tax_id || null, notes: form.notes || null };
-    if (editing) await supabase.from('customers').update(payload).eq('id', editing.id);
-    else await supabase.from('customers').insert(payload);
+    const { error } = editing
+      ? await supabase.from('customers').update(payload).eq('id', editing.id)
+      : await supabase.from('customers').insert(payload);
+    if (error) { toast('error', error.message); return; }
     setModalOpen(false);
     const { data } = await supabase.from('customers').select('*').eq('tenant_id', tenant.id).order('name');
     setCustomers((data as Customer[]) ?? []);
+    toast('success', editing ? 'Client mis à jour.' : 'Client ajouté.');
   };
 
   const remove = async (c: Customer) => {
     if (!confirm(`Supprimer "${c.name}" ?`)) return;
-    await supabase.from('customers').delete().eq('id', c.id);
+    const { error } = await supabase.from('customers').delete().eq('id', c.id);
+    if (error) { toast('error', error.message); return; }
     setCustomers((list) => list.filter((x) => x.id !== c.id));
   };
 
