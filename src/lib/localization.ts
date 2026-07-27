@@ -139,11 +139,17 @@ export const USD_REFERENCE_RATES: Record<string, number> = {
 
 export function formatMoney(amount: number, currency: string): string {
   const info = CURRENCIES[currency] ?? { symbol: currency, decimals: 2 };
-  const value = Number(amount || 0).toLocaleString('fr-FR', {
-    minimumFractionDigits: info.decimals,
-    maximumFractionDigits: info.decimals,
-  });
-  return `${value} ${info.symbol}`;
+  const value = Number(amount || 0);
+  const sign = value < 0 ? '-' : '';
+  const abs = Math.abs(value);
+  const fixed = abs.toFixed(info.decimals);
+  const [intPart, decPart] = fixed.split('.');
+  // Manual ASCII-only grouping — avoids the Unicode narrow-no-break-space
+  // that Intl/toLocaleString('fr-FR') uses, which isn't in jsPDF's default
+  // font glyph set and was rendering as a stray "/" on printed invoices.
+  const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const formatted = decPart ? `${grouped},${decPart}` : grouped;
+  return `${sign}${formatted} ${info.symbol}`;
 }
 
 export function getCountry(code: string): CountryInfo | undefined {

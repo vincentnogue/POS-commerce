@@ -2,12 +2,13 @@ import { useEffect, useState, useMemo } from 'react';
 import { Plus, Download, Boxes, AlertTriangle, ArrowRightLeft, Check, X } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
-import { PageHeader, Modal, EmptyState, Badge } from '../../components/ui';
+import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components/ui';
 import { DataTable, SearchInput, Select, Field, exportCSV } from '../../components/DataTable';
 import type { Product, Store } from '../../lib/types';
 
 export function StockPage() {
   const { tenant, user, can } = useAuth();
+  const toast = useToast();
   const [tab, setTab] = useState<'inventory' | 'transfers'>('inventory');
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -83,12 +84,14 @@ export function StockPage() {
 
     const existing = inventory.find((i) => i.product_id === form.product_id && i.store_id === form.store_id);
     if (existing) {
-      await supabase.from('inventory').update({ quantity: Number(existing.quantity) + effective, updated_at: new Date().toISOString() }).eq('id', existing.id);
+      const { error } = await supabase.from('inventory').update({ quantity: Number(existing.quantity) + effective, updated_at: new Date().toISOString() }).eq('id', existing.id);
+      if (error) { toast('error', error.message.includes('row-level security') ? "Vous n'avez pas la permission de modifier le stock." : error.message); return; }
     } else {
-      await supabase.from('inventory').insert({ tenant_id: tenant.id, product_id: form.product_id, store_id: form.store_id || null, quantity: effective });
+      const { error } = await supabase.from('inventory').insert({ tenant_id: tenant.id, product_id: form.product_id, store_id: form.store_id || null, quantity: effective });
+      if (error) { toast('error', error.message.includes('row-level security') ? "Vous n'avez pas la permission de modifier le stock." : error.message); return; }
     }
 
-    await supabase.from('stock_movements').insert({
+    const { error: movErr } = await supabase.from('stock_movements').insert({
       tenant_id: tenant.id,
       product_id: form.product_id,
       store_id: form.store_id || null,
@@ -97,11 +100,13 @@ export function StockPage() {
       reason: form.reason || null,
       user_id: user?.id,
     });
+    if (movErr) { toast('error', movErr.message); return; }
 
     setMoveOpen(false);
     setForm({ product_id: '', store_id: stores[0]?.id ?? '', type: 'in', quantity: 1, reason: '' });
     const { data } = await supabase.from('inventory').select('*, product:products(name), store:stores(name)').eq('tenant_id', tenant.id);
     setInventory(data ?? []);
+    toast('success', 'Mouvement de stock enregistré.');
   };
 
   const createTransfer = async () => {
@@ -149,7 +154,8 @@ export function StockPage() {
     }
 
     // Decrement source inventory immediately
-    await supabase.from('inventory').update({ quantity: Number(srcInv.quantity) - qty, updated_at: new Date().toISOString() }).eq('id', srcInv.id);
+    const { error: decErr } = await supabase.from('inventory').update({ quantity: Number(srcInv.quantity) - qty, updated_at: new Date().toISOString() }).eq('id', srcInv.id);
+    if (decErr) { setTransferErr(decErr.message); return; }
 
     // Record stock movement (out of source)
     await supabase.from('stock_movements').insert({
@@ -167,19 +173,22 @@ export function StockPage() {
     const { data } = await supabase.from('inventory').select('*, product:products(name), store:stores(name)').eq('tenant_id', tenant.id);
     setInventory(data ?? []);
     await reloadTransfers();
+    toast('success', 'Transfert initié.');
   };
 
   const receiveTransfer = async (t: any) => {
     if (!tenant || !user) return;
     const canReceive = isAdmin || assignments.has(t.dest_store_id);
-    if (!canReceive) return;
+    if (!canReceive) { toast('error', "Vous n'êtes pas assigné à ce magasin pour recevoir des transferts."); return; }
 
     // Add to destination inventory
     const destInv = inventory.find((i) => i.product_id === t.product_id && i.store_id === t.dest_store_id);
     if (destInv) {
-      await supabase.from('inventory').update({ quantity: Number(destInv.quantity) + Number(t.quantity), updated_at: new Date().toISOString() }).eq('id', destInv.id);
+      const { error } = await supabase.from('inventory').update({ quantity: Number(destInv.quantity) + Number(t.quantity), updated_at: new Date().toISOString() }).eq('id', destInv.id);
+      if (error) { toast('error', error.message); return; }
     } else {
-      await supabase.from('inventory').insert({ tenant_id: tenant.id, product_id: t.product_id, store_id: t.dest_store_id, quantity: t.quantity });
+      const { error } = await supabase.from('inventory').insert({ tenant_id: tenant.id, product_id: t.product_id, store_id: t.dest_store_id, quantity: t.quantity });
+      if (error) { toast('error', error.message); return; }
     }
 
     // Record stock movement (in to destination)
@@ -193,12 +202,13 @@ export function StockPage() {
       user_id: user.id,
     });
 
-    // Mark transfer received
-    await supabase.from('stock_transfers').update({ status: 'received', received_by: user.id, received_at: new Date().toISOString() }).eq('id', t.id);
+    const { error: statusErr } = await supabase.from('stock_transfers').update({ status: 'received', received_by: user.id, received_at: new Date().toISOString() }).eq('id', t.id);
+    if (statusErr) { toast('error', statusErr.message); return; }
 
     const { data } = await supabase.from('inventory').select('*, product:products(name), store:stores(name)').eq('tenant_id', tenant.id);
     setInventory(data ?? []);
     await reloadTransfers();
+    toast('success', 'Transfert reçu, stock mis à jour.');
   };
 
   const cancelTransfer = async (t: any) => {
@@ -206,14 +216,18 @@ export function StockPage() {
     // Restore source inventory
     const srcInv = inventory.find((i) => i.product_id === t.product_id && i.store_id === t.source_store_id);
     if (srcInv) {
-      await supabase.from('inventory').update({ quantity: Number(srcInv.quantity) + Number(t.quantity), updated_at: new Date().toISOString() }).eq('id', srcInv.id);
+      const { error } = await supabase.from('inventory').update({ quantity: Number(srcInv.quantity) + Number(t.quantity), updated_at: new Date().toISOString() }).eq('id', srcInv.id);
+      if (error) { toast('error', error.message); return; }
     } else {
-      await supabase.from('inventory').insert({ tenant_id: tenant.id, product_id: t.product_id, store_id: t.source_store_id, quantity: t.quantity });
+      const { error } = await supabase.from('inventory').insert({ tenant_id: tenant.id, product_id: t.product_id, store_id: t.source_store_id, quantity: t.quantity });
+      if (error) { toast('error', error.message); return; }
     }
-    await supabase.from('stock_transfers').update({ status: 'cancelled' }).eq('id', t.id);
+    const { error: statusErr } = await supabase.from('stock_transfers').update({ status: 'cancelled' }).eq('id', t.id);
+    if (statusErr) { toast('error', statusErr.message); return; }
     const { data } = await supabase.from('inventory').select('*, product:products(name), store:stores(name)').eq('tenant_id', tenant.id);
     setInventory(data ?? []);
     await reloadTransfers();
+    toast('success', 'Transfert annulé, stock restauré.');
   };
 
   const transferableSourceStores = stores.filter((s) => isAdmin || assignments.has(s.id));
@@ -268,6 +282,16 @@ export function StockPage() {
                   )},
                   { key: 'total', label: 'Total', className: 'text-right', render: (r) => <span className="font-bold text-ink-900 dark:text-ink-50">{r.total}</span> },
                   { key: 'status', label: 'Statut', className: 'text-right', render: (r) => r.low ? <Badge tone="warning">Stock bas</Badge> : <Badge tone="success">OK</Badge> },
+                  ...(canCreate ? [{
+                    key: 'actions', label: '', className: 'text-right', render: (r: any) => (
+                      <button
+                        onClick={() => { setForm({ product_id: r.product.id, store_id: storeFilter || stores[0]?.id || '', type: 'in', quantity: 1, reason: '' }); setMoveOpen(true); }}
+                        className="rounded-lg border border-ink-200 dark:border-ink-700 px-2.5 py-1 text-xs font-semibold text-brand-600 transition hover:bg-brand-50 dark:hover:bg-brand-900/25"
+                      >
+                        Ajuster
+                      </button>
+                    ),
+                  }] : []),
                 ]}
                 rows={stockByProduct}
               />
