@@ -6,6 +6,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
+// Sections that can NEVER be delegated to platform_staff, regardless of
+// what's in their `permissions` — managing other Super Admins is always
+// restricted to full platform_admins.
+const STAFF_NON_GRANTABLE = ['admins'];
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -19,6 +24,10 @@ Deno.serve(async (req: Request) => {
       status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
+
+  const sbGet = (path: string) => fetch(`${supabaseUrl}/rest/v1/${path}`, {
+    headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
+  });
 
   try {
     const authHeader = req.headers.get('Authorization');
@@ -40,20 +49,27 @@ Deno.serve(async (req: Request) => {
     const email = (user.email ?? '').toLowerCase();
     const userId = user.id;
 
-    const adminRes = await fetch(`${supabaseUrl}/rest/v1/platform_admins?email=eq.${encodeURIComponent(email)}&select=email,label`, {
-      headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` },
-    });
-    const adminData = await adminRes.json();
-    const isAuthorized = Array.isArray(adminData) && adminData.length > 0;
+    const [adminData, staffData, memberData] = await Promise.all([
+      sbGet(`platform_admins?email=eq.${encodeURIComponent(email)}&select=email,label`).then((r) => r.json()),
+      sbGet(`platform_staff?email=eq.${encodeURIComponent(email)}&select=email,label,permissions`).then((r) => r.json()),
+      sbGet(`tenant_members?user_id=eq.${userId}&role=eq.super_admin&select=id`).then((r) => r.json()),
+    ]);
 
-    const memberRes = await fetch(
-      `${supabaseUrl}/rest/v1/tenant_members?user_id=eq.${userId}&role=eq.super_admin&select=id`,
-      { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } },
-    );
-    const memberData = await memberRes.json();
+    const isFullAdmin = Array.isArray(adminData) && adminData.length > 0;
+    const staffRecord = Array.isArray(staffData) && staffData.length > 0 ? staffData[0] : null;
+    const isStaff = !!staffRecord;
     const isSuperAdminRole = Array.isArray(memberData) && memberData.length > 0;
 
-    const fullyAuthorized = isAuthorized && isSuperAdminRole;
+    // Full admins get everything. Staff get only what's in their permissions
+    // object, minus the never-grantable sections, and only if they also
+    // carry the super_admin tenant role (needed for the underlying reads).
+    const fullyAuthorized = (isFullAdmin || isStaff) && isSuperAdminRole;
+
+    let permissions: Record<string, boolean> | null = null;
+    if (fullyAuthorized && !isFullAdmin && isStaff) {
+      permissions = { ...staffRecord.permissions };
+      for (const key of STAFF_NON_GRANTABLE) delete permissions[key];
+    }
 
     await fetch(`${supabaseUrl}/rest/v1/super_admin_access_log`, {
       method: 'POST',
@@ -66,9 +82,9 @@ Deno.serve(async (req: Request) => {
         actor_user_id: userId,
         authorized: fullyAuthorized,
         reason: fullyAuthorized
-          ? 'Access granted'
-          : !isAuthorized
-            ? 'Email not in platform_admins allowlist'
+          ? (isFullAdmin ? 'Access granted (full admin)' : 'Access granted (staff, scoped)')
+          : !(isFullAdmin || isStaff)
+            ? 'Email not in platform_admins/platform_staff allowlist'
             : 'User does not have super_admin role',
       }),
     });
@@ -76,8 +92,8 @@ Deno.serve(async (req: Request) => {
     if (!fullyAuthorized) {
       return new Response(JSON.stringify({
         authorized: false,
-        reason: !isAuthorized
-          ? 'Email non autorise. Acces reserve aux administrateurs de la plateforme.'
+        reason: !(isFullAdmin || isStaff)
+          ? 'Email non autorise. Acces reserve au personnel de la plateforme.'
           : 'Role super_admin requis.',
       }), {
         status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -87,7 +103,9 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({
       authorized: true,
       email,
-      label: adminData[0]?.label ?? 'Admin',
+      label: isFullAdmin ? (adminData[0]?.label ?? 'Admin') : (staffRecord?.label ?? 'Staff'),
+      isFullAdmin,
+      permissions, // null for full admins (no restriction); object for staff
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
