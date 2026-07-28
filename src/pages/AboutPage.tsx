@@ -1,18 +1,20 @@
 import { motion } from 'framer-motion';
 import { Building2, Globe2, Heart, Target } from 'lucide-react';
 import { FooterPageLayout } from '../components/FooterPageLayout';
+import { useI18n } from '../lib/i18n';
 
 export function AboutPage() {
+  const { t } = useI18n();
   return (
-    <FooterPageLayout title="À propos de POS Flow">
-      <p className="text-lg">POS Flow est la plateforme de gestion commerciale conçue par <strong>LiAfrik</strong>, pensée pour les réalités du commerce africain et prête pour le monde entier.</p>
+    <FooterPageLayout title={t('about.title')}>
+      <p className="text-lg">{t('about.intro')}</p>
 
       <div className="grid gap-6 sm:grid-cols-2 my-8">
         {[
-          { icon: Target, title: 'Notre mission', text: "Démocratiser l'accès à des outils de gestion professionnelle pour chaque commerçant africain, de la boutique de quartier à la chaîne de supermarchés." },
-          { icon: Globe2, title: 'Notre vision', text: "Devenir la référence panafricaine de la gestion commerciale, en accompagnant 100 000 entreprises vers la digitalisation d'ici 2030." },
-          { icon: Heart, title: 'Nos valeurs', text: 'Proximité terrain, excellence technique, inclusion linguistique (FR/EN, bientôt PT/AR), et impact économique mesurable.' },
-          { icon: Building2, title: 'LiAfrik', text: 'Société holding panafricaine, basée à Dubaï avec des équipes opérationnelles réparties en Afrique. POS Flow est notre produit flagship.' },
+          { icon: Target, title: t('about.mission.title'), text: t('about.mission.text') },
+          { icon: Globe2, title: t('about.vision.title'), text: t('about.vision.text') },
+          { icon: Heart, title: t('about.values.title'), text: t('about.values.text') },
+          { icon: Building2, title: t('about.company.title'), text: t('about.company.text') },
         ].map((v, i) => (
           <motion.div
             key={v.title}
@@ -30,9 +32,9 @@ export function AboutPage() {
       </div>
 
       <section>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">Notre histoire</h2>
-        <p>Née de l'observation des défis quotidiens des commerçants africains — gestion manuelle du stock, difficulté à suivre les ventes multi-magasins, absence de facturation formalisée — POS Flow a été conçue dès le départ comme une solution <strong>offline-first</strong> et <strong>mobile-first</strong>. Nous savons que la connexion internet n'est pas toujours garantie en boutique, et qu'un vendeur travaille avant tout avec son téléphone.</p>
-        <p className="mt-4">Aujourd'hui, POS Flow accompagne des commerces dans plus de 50 pays africains, avec une prise en charge native du Mobile Money, des devises locales et des spécificités régionales.</p>
+        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('about.history.title')}</h2>
+        <p>{t('about.history.p1')}</p>
+        <p className="mt-4">{t('about.history.p2')}</p>
       </section>
     </FooterPageLayout>
   );
