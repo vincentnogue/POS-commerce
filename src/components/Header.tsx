@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Bell, Moon, Sun, Menu } from 'lucide-react';
+import { Search, Bell, Moon, Sun, Menu, Download } from 'lucide-react';
 import { useTheme } from '../lib/theme';
 import { useAuth } from '../lib/auth';
 import { useI18n, LANG_LABELS } from '../lib/i18n';
 import type { Lang } from '../lib/i18n';
 import { supabase } from '../lib/supabase';
 import type { Notification } from '../lib/types';
+import { useInstallPrompt } from '../lib/useInstallPrompt';
 
 export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
   const { theme, toggle } = useTheme();
+  const { canInstall, promptInstall } = useInstallPrompt();
   const { user } = useAuth();
   const { lang, setLang, t } = useI18n();
   const [notifOpen, setNotifOpen] = useState(false);
@@ -80,6 +82,14 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
           <span className="text-ink-300">/</span>
           {LANG_LABELS[lang === 'fr' ? 'en' : 'fr' as Lang]}
         </button>
+        {canInstall && (
+          <button
+            onClick={promptInstall}
+            className="hidden sm:inline-flex h-9 items-center gap-1.5 rounded-full border border-ink-200 dark:border-ink-700 px-3 text-xs font-semibold text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
+          >
+            <Download size={14} /> Installer
+          </button>
+        )}
         <button
           onClick={toggle}
           className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"

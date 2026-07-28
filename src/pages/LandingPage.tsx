@@ -4,7 +4,7 @@ import { motion, useInView, useMotionValue, useTransform, animate } from 'framer
 import {
   ShoppingCart, Boxes, FileText, Store, Globe, FileBarChart, Wallet,
   ArrowRight, Check, Star, Menu, X, Play, TrendingUp, Shield, Smartphone,
-  Twitter, Linkedin, Facebook, Instagram, MapPin, Sparkles, Moon, Sun,
+  Twitter, Linkedin, Facebook, Instagram, MapPin, Sparkles, Moon, Sun, Download,
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { COUNTRIES, CURRENCIES } from '../lib/localization';
@@ -13,6 +13,7 @@ import { useI18n, LANG_LABELS } from '../lib/i18n';
 import type { Lang } from '../lib/i18n';
 import { PLANS, TRIAL_DAYS } from '../lib/plans';
 import { useTheme } from '../lib/theme';
+import { useInstallPrompt } from '../lib/useInstallPrompt';
 
 function Counter({ to, suffix = '' }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -53,7 +54,7 @@ function Section({ children, delay = 0, className = '' }: { children: React.Reac
 }
 
 const FEATURES = [
-  { icon: ShoppingCart, title: 'Point de Vente (POS)', desc: 'Encaissement rapide, scan produits, tickets en direct. Pensé pour les commerces africains.' },
+  { icon: ShoppingCart, title: 'Point de Vente (POS)', desc: 'Encaissement rapide, scan produits, tickets en direct. Fonctionne même avec une connexion instable.' },
   { icon: Boxes, title: 'Gestion du stock', desc: 'Entrées/sorties, alertes stock bas, inventaire multi-magasins en temps réel.' },
   { icon: FileText, title: 'Facturation', desc: 'Factures, devis, avoirs. Impayés suivis, relances automatiques, exports comptables.' },
   { icon: Store, title: 'Multi-magasins', desc: 'Gérez plusieurs points de vente sous un même compte, avec isolation stricte par boutique.' },
@@ -77,6 +78,7 @@ export function LandingPage() {
   const { prefs } = useCookies();
   const { lang, setLang, t } = useI18n();
   const { theme, toggle: toggleTheme } = useTheme();
+  const { canInstall, promptInstall } = useInstallPrompt();
   const [showBanner, setShowBanner] = useState(false);
   const supportedCurrencies = ['XAF', 'XOF', 'NGN', 'KES', 'GHS', 'ZAR', 'MAD', 'EGP', 'USD', 'EUR', 'GBP', 'AED'];
 
@@ -177,7 +179,7 @@ export function LandingPage() {
               transition={{ duration: 0.6 }}
               className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 dark:bg-brand-900/25 px-3 py-1.5 text-xs font-semibold text-brand-700"
             >
-              <Sparkles size={14} /> Conçu en Afrique, pour l'Afrique, prêt pour le monde
+              <Sparkles size={14} /> Né du terrain africain, conçu pour le monde entier
             </motion.div>
             <motion.h1
               variants={fadeUp}
@@ -186,7 +188,7 @@ export function LandingPage() {
               transition={{ duration: 0.7, delay: 0.1 }}
               className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-tight text-ink-900 dark:text-ink-50 sm:text-5xl lg:text-6xl"
             >
-              La plateforme de gestion commerciale <span className="text-gradient-flow">n°1 en Afrique</span>
+              La plateforme de gestion commerciale <span className="text-gradient-flow">qui s'adapte à votre marché</span>
             </motion.h1>
             <motion.p
               variants={fadeUp}
@@ -195,7 +197,7 @@ export function LandingPage() {
               transition={{ duration: 0.7, delay: 0.2 }}
               className="mt-5 max-w-xl text-lg text-ink-600 dark:text-ink-300"
             >
-              POS, stock, facturation, multi-magasins, multi-devises et Mobile Money — tout réuni dans une seule application, pensée pour les commerces africains.
+              POS, stock, facturation, multi-magasins, multi-devises et Mobile Money — tout réuni dans une seule application, conçue pour résister aux réalités du terrain et s'adapter à tous les marchés, en Afrique comme ailleurs.
             </motion.p>
             <motion.div
               variants={fadeUp}
@@ -211,6 +213,11 @@ export function LandingPage() {
               <button onClick={() => scrollTo('features')} className="btn-ghost px-6 py-3 text-base">
                 <Play size={16} /> Voir la démo
               </button>
+              {canInstall && (
+                <button onClick={promptInstall} className="btn-ghost px-6 py-3 text-base">
+                  <Download size={16} /> Installer l'app
+                </button>
+              )}
             </motion.div>
             <motion.div
               variants={fadeUp}
@@ -487,7 +494,7 @@ export function LandingPage() {
           <div className="mx-auto max-w-4xl px-4 text-center text-white lg:px-8">
             <Section>
               <h2 className="text-3xl font-extrabold sm:text-5xl">Prêt à digitaliser votre commerce ?</h2>
-              <p className="mt-4 text-lg text-brand-50">Rejoignez les milliers de commerçants africains qui pilotent leur activité avec POS Flow.</p>
+              <p className="mt-4 text-lg text-brand-50">Rejoignez les milliers de commerçants — en Afrique et au-delà — qui pilotent leur activité avec POS Flow.</p>
               <Link to="/signup" className="mt-8 inline-flex items-center gap-2 rounded-full bg-white dark:bg-ink-800 px-7 py-3.5 text-base font-bold text-brand-700 shadow-float transition hover:scale-105 active:scale-100">
                 Créer mon compte <ArrowRight size={18} />
               </Link>
@@ -502,7 +509,7 @@ export function LandingPage() {
           <div className="grid gap-8 md:grid-cols-4">
             <div>
               <Logo />
-              <p className="mt-3 text-sm text-ink-500 dark:text-ink-400">La plateforme de gestion commerciale n°1 en Afrique. Par LiAfrik.</p>
+              <p className="mt-3 text-sm text-ink-500 dark:text-ink-400">La plateforme de gestion commerciale conçue pour le terrain, pensée pour le monde. Par LiAfrik.</p>
               <div className="mt-4 flex items-center gap-3 text-ink-400 dark:text-ink-500">
                 <Twitter size={18} className="hover:text-brand-600" />
                 <Linkedin size={18} className="hover:text-brand-600" />
@@ -540,7 +547,7 @@ export function LandingPage() {
           </div>
           <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-ink-100 dark:border-ink-800 pt-6 text-xs text-ink-400 dark:text-ink-500 sm:flex-row">
             <p>© {new Date().getFullYear()} LiAfrik — Dubaï / Afrique. Tous droits réservés.</p>
-            <p>Conçu en Afrique, pour l'Afrique, prêt pour le monde.</p>
+            <p>Né des réalités du terrain africain. Prêt pour le monde entier.</p>
           </div>
         </div>
       </footer>
