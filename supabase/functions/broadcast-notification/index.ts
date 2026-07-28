@@ -40,8 +40,12 @@ Deno.serve(async (req: Request) => {
     const callerEmail = (callerUser.email ?? '').toLowerCase();
 
     const adminCheck = await (await sb(supabaseUrl, serviceRoleKey, `platform_admins?email=eq.${encodeURIComponent(callerEmail)}&select=email`)).json();
+    const staffCheck = await (await sb(supabaseUrl, serviceRoleKey, `platform_staff?email=eq.${encodeURIComponent(callerEmail)}&select=permissions`)).json();
     const memberCheck = await (await sb(supabaseUrl, serviceRoleKey, `tenant_members?user_id=eq.${callerUser.id}&role=eq.super_admin&select=id`)).json();
-    if (!(Array.isArray(adminCheck) && adminCheck.length > 0) || !(Array.isArray(memberCheck) && memberCheck.length > 0)) {
+    const isFullAdmin = Array.isArray(adminCheck) && adminCheck.length > 0;
+    const staffCanComms = Array.isArray(staffCheck) && staffCheck.length > 0 && !!staffCheck[0]?.permissions?.comms;
+    const hasRole = Array.isArray(memberCheck) && memberCheck.length > 0;
+    if (!(isFullAdmin || staffCanComms) || !hasRole) {
       return json({ error: 'Forbidden: super admin access required' }, 403);
     }
 

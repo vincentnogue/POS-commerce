@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Shield, Crown, Building2, Users, DollarSign, TrendingUp,
   Pencil, Trash2, Ban, Check, Plus, Activity, CreditCard,
-  Search, AlertTriangle, Mail, Eye, Loader2, BarChart3, Award,
+  Search, AlertTriangle, Mail, Eye, Loader2, BarChart3, Award, UserCog,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { convertToUSD } from '../../lib/localization';
@@ -11,7 +11,22 @@ import { PageHeader, Modal, Badge, StatCard, EmptyState, Spinner, useToast } fro
 import { Field } from '../../components/DataTable';
 import type { Tenant, Plan, CommercialCode, AuditLog } from '../../lib/types';
 
-type Tab = 'overview' | 'tenants' | 'employees' | 'subscriptions' | 'admins' | 'plans' | 'codes' | 'performance' | 'audit' | 'monitoring' | 'comms';
+type Tab = 'overview' | 'tenants' | 'employees' | 'subscriptions' | 'admins' | 'staff' | 'plans' | 'codes' | 'performance' | 'audit' | 'monitoring' | 'comms';
+
+// Sections a scoped staff member can ever be granted. Must mirror
+// GRANTABLE_SECTIONS in the platform-staff-manage edge function.
+const GRANTABLE_SECTIONS: { id: Tab; label: string }[] = [
+  { id: 'overview', label: 'Vue plateforme' },
+  { id: 'tenants', label: 'Entreprises' },
+  { id: 'employees', label: 'Employés' },
+  { id: 'subscriptions', label: 'Abonnements' },
+  { id: 'plans', label: 'Forfaits' },
+  { id: 'codes', label: 'Codes commerciaux' },
+  { id: 'performance', label: 'Performance' },
+  { id: 'audit', label: "Journal d'audit" },
+  { id: 'monitoring', label: 'Monitoring' },
+  { id: 'comms', label: 'Communications' },
+];
 
 const ROLE_LABELS: Record<string, string> = {
   super_admin: 'Super Admin',
@@ -22,9 +37,11 @@ const ROLE_LABELS: Record<string, string> = {
 
 export function SuperAdminPage() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>('overview');
+  const [tab, setTab] = useState<Tab | null>(null);
   const [backendVerified, setBackendVerified] = useState<boolean | null>(null);
   const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [isFullAdmin, setIsFullAdmin] = useState(false);
+  const [staffPermissions, setStaffPermissions] = useState<Record<string, boolean> | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -37,6 +54,8 @@ export function SuperAdminPage() {
         const json = await res.json();
         if (res.ok && json.authorized) {
           setBackendVerified(true);
+          setIsFullAdmin(!!json.isFullAdmin);
+          setStaffPermissions(json.permissions ?? null);
         } else {
           setBackendVerified(false);
           setVerifyError(json.reason ?? json.error ?? 'Accès refusé.');
@@ -72,12 +91,13 @@ export function SuperAdminPage() {
     );
   }
 
-  const tabs: { id: Tab; label: string; icon: typeof Shield }[] = [
+  const allTabs: { id: Tab; label: string; icon: typeof Shield }[] = [
     { id: 'overview', label: 'Vue plateforme', icon: TrendingUp },
     { id: 'tenants', label: 'Entreprises', icon: Building2 },
     { id: 'employees', label: 'Employés', icon: Users },
     { id: 'subscriptions', label: 'Abonnements', icon: CreditCard },
     { id: 'admins', label: 'Super Admins', icon: Crown },
+    { id: 'staff', label: 'Staff plateforme', icon: UserCog },
     { id: 'plans', label: 'Forfaits', icon: DollarSign },
     { id: 'codes', label: 'Codes commerciaux', icon: Activity },
     { id: 'performance', label: 'Performance', icon: BarChart3 },
@@ -85,6 +105,15 @@ export function SuperAdminPage() {
     { id: 'audit', label: "Journal d'audit", icon: Shield },
     { id: 'comms', label: 'Communications', icon: Mail },
   ];
+
+  // 'admins' and 'staff' (managing staff itself) are never delegable — only
+  // full platform admins ever see them. Everything else is gated by the
+  // staff member's granted permissions.
+  const tabs = isFullAdmin
+    ? allTabs
+    : allTabs.filter((t) => t.id !== 'admins' && t.id !== 'staff' && staffPermissions?.[t.id]);
+
+  const activeTab = tab && tabs.some((t) => t.id === tab) ? tab : tabs[0]?.id ?? null;
 
   return (
     <div>
@@ -99,24 +128,30 @@ export function SuperAdminPage() {
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
-              tab === t.id ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'
+              activeTab === t.id ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'
             }`}
           >
             <t.icon size={15} /> {t.label}
           </button>
         ))}
       </div>
-      {tab === 'overview' && <SuperOverview />}
-      {tab === 'tenants' && <SuperTenants />}
-      {tab === 'employees' && <SuperEmployees />}
-      {tab === 'subscriptions' && <SuperSubscriptions />}
-      {tab === 'admins' && <SuperAdmins />}
-      {tab === 'plans' && <SuperPlans />}
-      {tab === 'codes' && <SuperCodes />}
-      {tab === 'performance' && <SuperPerformance />}
-      {tab === 'monitoring' && <SuperMonitoring />}
-      {tab === 'audit' && <SuperAudit />}
-      {tab === 'comms' && <SuperComms />}
+      {!isFullAdmin && (
+        <div className="mb-4 rounded-xl border border-warning-200 bg-warning-50 dark:bg-warning-900/25 dark:border-warning-800 px-4 py-2 text-xs text-warning-700 dark:text-warning-300">
+          Accès staff plateforme — sections limitées à ce qui vous a été accordé.
+        </div>
+      )}
+      {activeTab === 'overview' && <SuperOverview />}
+      {activeTab === 'tenants' && <SuperTenants />}
+      {activeTab === 'employees' && <SuperEmployees />}
+      {activeTab === 'subscriptions' && <SuperSubscriptions />}
+      {activeTab === 'admins' && <SuperAdmins />}
+      {activeTab === 'staff' && <SuperStaff />}
+      {activeTab === 'plans' && <SuperPlans />}
+      {activeTab === 'codes' && <SuperCodes />}
+      {activeTab === 'performance' && <SuperPerformance />}
+      {activeTab === 'monitoring' && <SuperMonitoring />}
+      {activeTab === 'audit' && <SuperAudit />}
+      {activeTab === 'comms' && <SuperComms />}
     </div>
   );
 }
@@ -618,6 +653,186 @@ function SuperAdmins() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function SuperStaff() {
+  const [staff, setStaff] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [newLabel, setNewLabel] = useState('');
+  const [newPerms, setNewPerms] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(GRANTABLE_SECTIONS.map((s) => [s.id, false]))
+  );
+  const [editingEmail, setEditingEmail] = useState<string | null>(null);
+  const [editingPerms, setEditingPerms] = useState<Record<string, boolean>>({});
+  const toast = useToast();
+
+  const callManage = async (body: Record<string, unknown>) => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/platform-staff-manage`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const json = await res.json();
+    if (!res.ok || json.error) throw new Error(json.error ?? 'Erreur inconnue');
+    return json;
+  };
+
+  const reload = async () => {
+    setLoading(true);
+    try {
+      const result = await callManage({ action: 'list' });
+      setStaff(result.staff ?? []);
+    } catch {
+      setStaff([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { reload(); }, []);
+
+  const handleAdd = async () => {
+    if (!newEmail.trim()) return;
+    setBusy(true);
+    try {
+      const result = await callManage({ action: 'add', email: newEmail.trim(), label: newLabel.trim(), permissions: newPerms });
+      toast('success', result.accountExists
+        ? `${newEmail} a maintenant un accès staff limité.`
+        : `${newEmail} ajouté — l'accès s'activera dès que ce compte sera créé.`);
+      setNewEmail(''); setNewLabel('');
+      setNewPerms(Object.fromEntries(GRANTABLE_SECTIONS.map((s) => [s.id, false])));
+      setFormOpen(false);
+      await reload();
+    } catch (e: any) {
+      toast('error', e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleRemove = async (email: string) => {
+    if (!confirm(`Retirer ${email} du staff plateforme ?`)) return;
+    setBusy(true);
+    try {
+      await callManage({ action: 'remove', email });
+      toast('success', `${email} retiré.`);
+      await reload();
+    } catch (e: any) {
+      toast('error', e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const startEdit = (s: any) => {
+    setEditingEmail(s.email);
+    setEditingPerms({ ...Object.fromEntries(GRANTABLE_SECTIONS.map((sec) => [sec.id, false])), ...s.permissions });
+  };
+
+  const saveEdit = async (email: string) => {
+    setBusy(true);
+    try {
+      await callManage({ action: 'update', email, permissions: editingPerms });
+      setEditingEmail(null);
+      await reload();
+      toast('success', 'Permissions mises à jour.');
+    } catch (e: any) {
+      toast('error', e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const permBadges = (perms: Record<string, boolean>) => {
+    const granted = GRANTABLE_SECTIONS.filter((s) => perms?.[s.id]);
+    if (granted.length === 0) return <span className="text-xs text-ink-400 dark:text-ink-500">Aucun accès accordé</span>;
+    return (
+      <div className="mt-1 flex flex-wrap gap-1">
+        {granted.map((s) => <Badge key={s.id} tone="neutral">{s.label}</Badge>)}
+      </div>
+    );
+  };
+
+  return (
+    <div className="card p-6">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <UserCog size={18} className="text-brand-600" />
+          <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Staff plateforme (accès limité)</h3>
+        </div>
+        <button onClick={() => setFormOpen((v) => !v)} className="btn-primary text-sm"><Plus size={15} /> Ajouter</button>
+      </div>
+      <p className="mb-4 text-sm text-ink-500 dark:text-ink-400">
+        Employés LiAfrik avec un accès partiel au Super Admin (ex: support client). Distinct des Super Admins — ne peuvent jamais gérer d'autres admins/staff.
+      </p>
+
+      {formOpen && (
+        <div className="mb-4 space-y-3 rounded-xl border border-ink-100 dark:border-ink-800 p-4">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Field label="Email"><input value={newEmail} onChange={(e) => setNewEmail(e.target.value)} type="email" placeholder="email@exemple.com" className="input" /></Field>
+            <Field label="Étiquette"><input value={newLabel} onChange={(e) => setNewLabel(e.target.value)} placeholder="Ex: Support client" className="input" /></Field>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase text-ink-500 dark:text-ink-400">Sections accessibles</p>
+            <div className="flex flex-wrap gap-3">
+              {GRANTABLE_SECTIONS.map((s) => (
+                <label key={s.id} className="flex items-center gap-1.5 text-sm text-ink-700 dark:text-ink-200">
+                  <input type="checkbox" checked={!!newPerms[s.id]} onChange={(e) => setNewPerms((p) => ({ ...p, [s.id]: e.target.checked }))} />
+                  {s.label}
+                </label>
+              ))}
+            </div>
+          </div>
+          <button disabled={busy} onClick={handleAdd} className="btn-primary">Confirmer</button>
+        </div>
+      )}
+
+      {loading ? <Spinner /> : staff.length === 0 ? (
+        <EmptyState icon={UserCog} title="Aucun staff" description="Aucun membre du staff plateforme pour l'instant." />
+      ) : (
+        <div className="space-y-2">
+          {staff.map((s) => (
+            <div key={s.id} className="rounded-xl border border-ink-100 dark:border-ink-800 p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">
+                    {s.email.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{s.email}</p>
+                    <p className="text-xs text-ink-500 dark:text-ink-400">{s.label}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => editingEmail === s.email ? setEditingEmail(null) : startEdit(s)} className="rounded-full p-1.5 text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={14} /></button>
+                  <button disabled={busy} onClick={() => handleRemove(s.email)} className="rounded-full p-1.5 text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={14} /></button>
+                </div>
+              </div>
+              {editingEmail === s.email ? (
+                <div className="mt-3 border-t border-ink-100 dark:border-ink-800 pt-3">
+                  <div className="flex flex-wrap gap-3">
+                    {GRANTABLE_SECTIONS.map((sec) => (
+                      <label key={sec.id} className="flex items-center gap-1.5 text-sm text-ink-700 dark:text-ink-200">
+                        <input type="checkbox" checked={!!editingPerms[sec.id]} onChange={(e) => setEditingPerms((p) => ({ ...p, [sec.id]: e.target.checked }))} />
+                        {sec.label}
+                      </label>
+                    ))}
+                  </div>
+                  <button disabled={busy} onClick={() => saveEdit(s.email)} className="btn-primary mt-3 text-sm">Enregistrer</button>
+                </div>
+              ) : permBadges(s.permissions ?? {})}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
