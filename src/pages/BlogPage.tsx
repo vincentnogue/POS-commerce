@@ -4,8 +4,10 @@ import { Calendar, ArrowRight } from 'lucide-react';
 import { FooterPageLayout } from '../components/FooterPageLayout';
 import { supabase } from '../lib/supabase';
 import type { BlogPost } from '../lib/types';
+import { useI18n } from '../lib/i18n';
 
 export function BlogPage() {
+  const { t, lang } = useI18n();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -20,15 +22,15 @@ export function BlogPage() {
   })(); }, []);
 
   return (
-    <FooterPageLayout title="Blog POS Flow">
-      <p className="text-ink-600 dark:text-ink-300">Conseils, analyses et actualités sur la gestion commerciale en Afrique.</p>
+    <FooterPageLayout title={t('blog.title')}>
+      <p className="text-ink-600 dark:text-ink-300">{t('blog.intro')}</p>
 
       <div className="mt-8 grid gap-6 sm:grid-cols-2">
         {loading && [0, 1].map((i) => (
           <div key={i} className="h-48 animate-pulse rounded-2xl bg-ink-100 dark:bg-ink-800" />
         ))}
         {!loading && posts.length === 0 && (
-          <p className="text-ink-500 dark:text-ink-400">Aucun article pour le moment.</p>
+          <p className="text-ink-500 dark:text-ink-400">{t('blog.empty')}</p>
         )}
         {!loading && posts.map((p) => (
           <Link
@@ -38,13 +40,13 @@ export function BlogPage() {
           >
             <div className="mb-3 flex items-center gap-2 text-xs text-ink-500 dark:text-ink-400">
               <Calendar size={13} />
-              {p.published_at ? new Date(p.published_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+              {p.published_at ? new Date(p.published_at).toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
               · {p.author}
             </div>
             <h2 className="text-lg font-bold text-ink-900 dark:text-ink-50 group-hover:text-brand-600">{p.title}</h2>
             {p.excerpt && <p className="mt-2 text-sm text-ink-600 dark:text-ink-300 line-clamp-3">{p.excerpt}</p>}
             <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-600">
-              Lire l'article <ArrowRight size={14} className="transition group-hover:translate-x-0.5" />
+              {t('blog.readMore')} <ArrowRight size={14} className="transition group-hover:translate-x-0.5" />
             </span>
           </Link>
         ))}

@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Mail, MapPin, Send, CheckCircle2 } from 'lucide-react';
 import { FooterPageLayout } from '../components/FooterPageLayout';
 import { supabase } from '../lib/supabase';
+import { useI18n } from '../lib/i18n';
 
 export function ContactPage() {
+  const { t } = useI18n();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('');
@@ -14,7 +16,7 @@ export function ContactPage() {
 
   const submit = async () => {
     if (!name.trim() || !email.trim() || !message.trim()) {
-      setError('Veuillez remplir tous les champs obligatoires.');
+      setError(t('contact.form.requiredError'));
       return;
     }
     setSending(true);
@@ -39,8 +41,8 @@ export function ContactPage() {
   };
 
   return (
-    <FooterPageLayout title="Contactez-nous">
-      <p className="text-ink-600 dark:text-ink-300">Une question, un projet, une demande de démo ? Notre équipe vous répond sous 24h.</p>
+    <FooterPageLayout title={t('contact.title')}>
+      <p className="text-ink-600 dark:text-ink-300">{t('contact.intro')}</p>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
         {/* Contact form */}
@@ -48,31 +50,31 @@ export function ContactPage() {
           {sent ? (
             <div className="flex flex-col items-center py-8 text-center">
               <CheckCircle2 size={40} className="text-success-600" />
-              <p className="mt-4 text-lg font-semibold text-ink-900 dark:text-ink-50">Message envoyé !</p>
-              <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">Nous vous répondrons sous 24h.</p>
-              <button onClick={() => setSent(false)} className="btn-ghost mt-4">Envoyer un autre message</button>
+              <p className="mt-4 text-lg font-semibold text-ink-900 dark:text-ink-50">{t('contact.sent.title')}</p>
+              <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{t('contact.sent.text')}</p>
+              <button onClick={() => setSent(false)} className="btn-ghost mt-4">{t('contact.sent.another')}</button>
             </div>
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="label">Nom complet *</label>
-                <input value={name} onChange={(e) => setName(e.target.value)} className="input" placeholder="Votre nom" />
+                <label className="label">{t('contact.form.name')}</label>
+                <input value={name} onChange={(e) => setName(e.target.value)} className="input" placeholder={t('contact.form.namePlaceholder')} />
               </div>
               <div>
-                <label className="label">Email *</label>
+                <label className="label">{t('contact.form.email')}</label>
                 <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" className="input" placeholder="vous@exemple.com" />
               </div>
               <div>
-                <label className="label">Sujet</label>
-                <input value={subject} onChange={(e) => setSubject(e.target.value)} className="input" placeholder="Objet de votre message" />
+                <label className="label">{t('contact.form.subject')}</label>
+                <input value={subject} onChange={(e) => setSubject(e.target.value)} className="input" placeholder={t('contact.form.subjectPlaceholder')} />
               </div>
               <div>
-                <label className="label">Message *</label>
-                <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={5} className="input resize-none" placeholder="Votre message..." />
+                <label className="label">{t('contact.form.message')}</label>
+                <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={5} className="input resize-none" placeholder={t('contact.form.messagePlaceholder')} />
               </div>
               {error && <p className="text-sm text-error-600">{error}</p>}
               <button onClick={submit} disabled={sending} className="btn-primary w-full justify-center">
-                {sending ? 'Envoi...' : 'Envoyer'} <Send size={16} />
+                {sending ? t('contact.form.sending') : t('contact.form.send')} <Send size={16} />
               </button>
             </div>
           )}
@@ -82,17 +84,17 @@ export function ContactPage() {
         <div className="space-y-6">
           <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 dark:bg-brand-900/25 p-6">
             <MapPin className="mb-2 text-brand-600" size={20} />
-            <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">Bureau opérationnel</h3>
-            <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">Afrique de l'Ouest</p>
+            <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">{t('contact.info.office')}</h3>
+            <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">{t('contact.info.officeValue')}</p>
           </div>
           <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 dark:bg-brand-900/25 p-6">
             <MapPin className="mb-2 text-brand-600" size={20} />
-            <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">Siège social</h3>
-            <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">Dubaï, Émirats arabes unis</p>
+            <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">{t('contact.info.hq')}</h3>
+            <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">{t('contact.info.hqValue')}</p>
           </div>
           <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 dark:bg-brand-900/25 p-6">
             <Mail className="mb-2 text-brand-600" size={20} />
-            <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">Email</h3>
+            <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">{t('contact.info.email')}</h3>
             <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">
               <a href="mailto:cs@liafrik.com" className="hover:text-brand-600">cs@liafrik.com</a><br />
               <a href="mailto:support@liafrik.com" className="hover:text-brand-600">support@liafrik.com</a>
