@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ShoppingCart, Package, Boxes, Store,
   FileText, Truck, Users, Building2, Receipt, Wallet, ClipboardList,
   FileBarChart, Calculator, UserCog, Settings, Shield, Crown,
-  ChevronDown, LogOut, X, Globe,
+  ChevronDown, LogOut, X, Globe, Lock,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { Logo } from './Logo';
@@ -64,11 +64,15 @@ const AVATAR_COLORS: Record<string, string> = {
 };
 
 export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => void }) {
-  const { tenant, member, tenants, switchTenant, signOut, user } = useAuth();
+  const { tenant, member, tenants, switchTenant, signOut, user, isSuperAdmin, planModules } = useAuth();
   const [tenantMenuOpen, setTenantMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  const filteredNav = NAV;
+  const ALWAYS_AVAILABLE = ['dashboard', 'pos', 'settings'];
+  const isLocked = (mod?: string) =>
+    !!mod && !ALWAYS_AVAILABLE.includes(mod) && !!planModules && !planModules.includes(mod);
+
+  const filteredNav = NAV.filter((item) => !item.superAdminOnly || isSuperAdmin);
 
   const initials = member?.display_name
     ? getInitials(member.display_name)
@@ -148,6 +152,22 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
         <nav className="flex-1 overflow-y-auto px-3 py-2 scroll-thin">
           {filteredNav.map((item) => {
             const Icon = item.icon;
+            const locked = isLocked(item.module);
+            if (locked) {
+              return (
+                <NavLink
+                  key={item.to}
+                  to="/subscribe"
+                  onClick={() => onClose()}
+                  className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-400 dark:text-ink-500 opacity-70 transition-colors hover:bg-white/60 dark:hover:bg-ink-800/60"
+                  title="Fonctionnalité non incluse dans votre forfait actuel"
+                >
+                  <Icon size={18} strokeWidth={1.8} className="shrink-0 text-ink-400 dark:text-ink-500" />
+                  <span className="truncate">{item.label}</span>
+                  <Lock size={13} className="ml-auto shrink-0" />
+                </NavLink>
+              );
+            }
             return (
               <NavLink
                 key={item.to}
@@ -157,7 +177,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
                   `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                     isActive
                       ? 'bg-white dark:bg-ink-800 text-brand-700 shadow-soft'
-                      : 'text-ink-700 dark:text-ink-200 hover:bg-white/60 dark:bg-ink-800/60 hover:text-brand-700'
+                      : 'text-ink-700 dark:text-ink-200 hover:bg-white/60 dark:hover:bg-ink-800/60 hover:text-brand-700'
                   }`
                 }
               >

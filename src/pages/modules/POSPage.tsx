@@ -28,6 +28,7 @@ export function POSPage() {
   const [paidAmount, setPaidAmount] = useState('');
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [lastReceipt, setLastReceipt] = useState<{ items: CartItem[]; total: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [deliveryChoice, setDeliveryChoice] = useState<'delivered' | 'pending'>('delivered');
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -170,6 +171,7 @@ export function POSPage() {
     }
 
     setSuccess(ref);
+    setLastReceipt({ items: cart, total });
     setCart([]);
     setPaidAmount('');
     setCheckoutOpen(false);
@@ -179,19 +181,19 @@ export function POSPage() {
   };
 
   const printReceipt = () => {
-    if (!success) return;
+    if (!success || !lastReceipt) return;
     const w = window.open('', '_blank');
     if (!w) return;
-    const rows = cart.length > 0 ? cart.map((i) => `<tr><td>${i.product.name}</td><td style="text-align:right">${i.quantity}</td><td style="text-align:right">${formatMoney(i.unit_price, currency)}</td><td style="text-align:right;font-weight:bold">${formatMoney(i.quantity * i.unit_price, currency)}</td></tr>`).join('') : '';
-    w.document.write(`<!DOCTYPE html><html><head><title>Reçu ${success}</title><style>body{font-family:monospace;padding:30px;max-width:400px;margin:auto;font-size:12px}h2{color:#1a365d;text-align:center}table{width:100%;border-collapse:collapse;margin-top:15px}th,td{padding:4px 6px;border-bottom:1px dashed #ccc;text-align:left}th{text-transform:uppercase;font-size:10px;color:#888}.total{margin-top:15px;text-align:right;font-size:16px;font-weight:bold}.info{text-align:center;color:#666;margin-top:10px}</style></head><body><h2>POS Flow</h2><p style="text-align:center">Reçu de vente ${success}</p><p style="text-align:center">${new Date().toLocaleString('fr-FR')}</p><table><thead><tr><th>Désignation</th><th style="text-align:right">Qté</th><th style="text-align:right">Prix</th><th style="text-align:right">Total</th></tr></thead><tbody>${rows}</tbody></table><div class="total">Total: ${formatMoney(total, currency)}</div><div class="info">Merci de votre confiance !<br/>${tenant?.name ?? ''}</div></body></html>`);
+    const rows = lastReceipt.items.map((i) => `<tr><td>${i.product.name}</td><td style="text-align:right">${i.quantity}</td><td style="text-align:right">${formatMoney(i.unit_price, currency)}</td><td style="text-align:right;font-weight:bold">${formatMoney(i.quantity * i.unit_price, currency)}</td></tr>`).join('');
+    w.document.write(`<!DOCTYPE html><html><head><title>Reçu ${success}</title><style>body{font-family:monospace;padding:30px;max-width:400px;margin:auto;font-size:12px}h2{color:#1a365d;text-align:center}table{width:100%;border-collapse:collapse;margin-top:15px}th,td{padding:4px 6px;border-bottom:1px dashed #ccc;text-align:left}th{text-transform:uppercase;font-size:10px;color:#888}.total{margin-top:15px;text-align:right;font-size:16px;font-weight:bold}.info{text-align:center;color:#666;margin-top:10px}</style></head><body><h2>POS Flow</h2><p style="text-align:center">Reçu de vente ${success}</p><p style="text-align:center">${new Date().toLocaleString('fr-FR')}</p><table><thead><tr><th>Désignation</th><th style="text-align:right">Qté</th><th style="text-align:right">Prix</th><th style="text-align:right">Total</th></tr></thead><tbody>${rows}</tbody></table><div class="total">Total: ${formatMoney(lastReceipt.total, currency)}</div><div class="info">Merci de votre confiance !<br/>${tenant?.name ?? ''}</div></body></html>`);
     w.document.close();
     w.print();
   };
 
   const sendWhatsApp = () => {
-    if (!success) return;
-    const lines = cart.length > 0 ? cart.map((i) => `${i.product.name} x${i.quantity} = ${formatMoney(i.quantity * i.unit_price, currency)}`).join('%0a') : '';
-    const msg = `*Reçu de vente ${success}*%0a%0a${lines}%0a%0a*Total: ${formatMoney(total, currency)}*%0a%0aMerci de votre confiance !`;
+    if (!success || !lastReceipt) return;
+    const lines = lastReceipt.items.map((i) => `${i.product.name} x${i.quantity} = ${formatMoney(i.quantity * i.unit_price, currency)}`).join('%0a');
+    const msg = `*Reçu de vente ${success}*%0a%0a${lines}%0a%0a*Total: ${formatMoney(lastReceipt.total, currency)}*%0a%0aMerci de votre confiance !`;
     window.open(`https://wa.me/?text=${msg}`, '_blank');
   };
 

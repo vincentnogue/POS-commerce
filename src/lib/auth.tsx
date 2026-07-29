@@ -22,6 +22,8 @@ type AuthContextValue = {
   loading: boolean;
   subscription: Subscription | null;
   access: ReturnType<typeof computeAccess>;
+  planModules: string[] | null;
+  isSuperAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string) => Promise<{ error: string | null; data: any }>;
   signOut: () => Promise<void>;
@@ -42,17 +44,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [activeTenantId, setActiveTenantId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [planModules, setPlanModules] = useState<string[] | null>(null);
   const [customRole, setCustomRole] = useState<CustomRole | null>(null);
 
   const loadSubscription = useCallback(async (tenantId: string | null) => {
-    if (!tenantId) { setSubscription(null); setCustomRole(null); return; }
-    const [subRes, roleRes] = await Promise.all([
+    if (!tenantId) { setSubscription(null); setPlanModules(null); setCustomRole(null); return; }
+    const [subRes, roleRes, tenantRes] = await Promise.all([
       supabase.from('subscriptions').select('*').eq('tenant_id', tenantId).maybeSingle(),
       // Load custom role for the active member (resolved in loadProfile)
       Promise.resolve({ data: null as any }),
+      supabase.from('tenants').select('plan_id').eq('id', tenantId).maybeSingle(),
     ]);
     setSubscription((subRes.data as Subscription) ?? null);
     setCustomRole((roleRes.data as CustomRole) ?? null);
+    const planId = tenantRes.data?.plan_id;
+    if (planId) {
+      const { data: plan } = await supabase.from('plans').select('included_modules').eq('id', planId).maybeSingle();
+      setPlanModules((plan?.included_modules as string[]) ?? null);
+    } else {
+      setPlanModules(null);
+    }
   }, []);
 
   const loadCustomRole = useCallback(async (member: Member | null) => {
@@ -172,11 +183,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     : (customRole?.permissions ?? builtInPerms);
 
   const can = useCallback((mod: ModuleCode, act: PermissionAction): boolean => {
-    if (isSuperAdmin || role === 'admin') return true;
+    if (isSuperAdmin) return true;
+    // Plan-tier gating (mirrors can_on_tenant() in Postgres): a handful of
+    // modules are always available regardless of plan; everything else
+    // must be included in the tenant's current plan, independent of role.
+    const alwaysAvailable = mod === 'dashboard' || mod === 'pos' || mod === 'settings';
+    if (!alwaysAvailable && planModules && !planModules.includes(mod)) return false;
+    if (role === 'admin') return true;
     const modPerms = permissions[mod];
     if (!modPerms) return false;
     return modPerms[act] === true;
-  }, [permissions, isSuperAdmin, role]);
+  }, [permissions, isSuperAdmin, role, planModules]);
   const access = useMemo(
     () => computeAccess(tenant, subscription, isSuperAdmin, tenant?.created_at),
     [tenant, subscription, isSuperAdmin],
@@ -185,7 +202,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        user, member, tenant, tenants, permissions, customRole, can, loading, subscription, access,
+        user, member, tenant, tenants, permissions, customRole, can, loading, subscription, access, planModules, isSuperAdmin,
         signIn, signUp, signOut, refreshProfile, switchTenant, activeTenantId,
       }}
     >
