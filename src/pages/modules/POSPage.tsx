@@ -278,7 +278,7 @@ export function POSPage() {
                     </div>
                     <div className="mt-2 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => updateQty(i.product.id, -1)} className="rounded-md border border-ink-200 dark:border-ink-700 p-1 text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:bg-ink-900">
+                        <button onClick={() => updateQty(i.product.id, -1)} className="rounded-md border border-ink-200 dark:border-ink-700 p-1 text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-900">
                           <Minus size={12} />
                         </button>
                         <input
@@ -287,7 +287,7 @@ export function POSPage() {
                           onChange={(e) => setQty(i.product.id, Number(e.target.value))}
                           className="w-12 rounded-md border border-ink-200 dark:border-ink-700 px-2 py-1 text-center text-sm"
                         />
-                        <button onClick={() => updateQty(i.product.id, 1)} className="rounded-md border border-ink-200 dark:border-ink-700 p-1 text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:bg-ink-900">
+                        <button onClick={() => updateQty(i.product.id, 1)} className="rounded-md border border-ink-200 dark:border-ink-700 p-1 text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-900">
                           <Plus size={12} />
                         </button>
                       </div>

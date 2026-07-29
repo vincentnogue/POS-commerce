@@ -379,7 +379,7 @@ export function UsersPage() {
                           key={a}
                           onClick={() => togglePerm(m, a)}
                           className={`rounded-md px-2.5 py-1 text-[11px] font-semibold transition ${
-                            active ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-500 dark:text-ink-400 hover:bg-ink-200 dark:bg-ink-700'
+                            active ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-500 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700'
                           }`}
                           title={`${ACTION_LABELS[a]} — ${MODULE_LABELS[m]}`}
                         >

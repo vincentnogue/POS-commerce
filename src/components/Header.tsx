@@ -54,7 +54,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-ink-100 dark:border-ink-800 bg-white/80 dark:bg-ink-800/80 px-4 backdrop-blur lg:px-6">
-      <button onClick={onOpenSidebar} className="rounded-full p-2 text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:bg-ink-800 lg:hidden">
+      <button onClick={onOpenSidebar} className="rounded-full p-2 text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 lg:hidden">
         <Menu size={20} />
       </button>
 

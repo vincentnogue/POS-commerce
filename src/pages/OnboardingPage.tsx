@@ -307,8 +307,8 @@ export function OnboardingPage() {
                 <StepHeader icon={CreditCard} title="Choix du forfait" subtitle="Sélectionnez le plan adapté à votre activité." />
                 <div className="mt-6 space-y-3">
                   {[
-                    { code: 'starter', name: 'Starter', price: '$9/mois', desc: '1 magasin · 2 utilisateurs · 100 produits' },
-                    { code: 'pro', name: 'Pro', price: '$19/mois', desc: '2 magasins · 5 utilisateurs · 1 000 produits' },
+                    { code: 'starter', name: 'Starter', price: '$9/mois', desc: '1 magasin · 2 utilisateurs · 50 produits' },
+                    { code: 'pro', name: 'Pro', price: '$19/mois', desc: '2 magasins · 5 utilisateurs · 500 produits' },
                     { code: 'premium', name: 'Premium', price: '$49/mois', desc: '5 magasins · 15 utilisateurs · 10 000 produits' },
                     { code: 'entreprise', name: 'Entreprise', price: '$119/mois', desc: '20 magasins · 50 utilisateurs · illimité' },
                   ].map((p) => (
