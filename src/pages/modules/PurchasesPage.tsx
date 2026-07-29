@@ -32,6 +32,9 @@ export function PurchasesPage() {
   const [viewItems, setViewItems] = useState<PurchaseItem[]>([]);
   const [receiveOpen, setReceiveOpen] = useState<Purchase | null>(null);
   const [receiveQtys, setReceiveQtys] = useState<Record<string, number>>({});
+  const [rejectQtys, setRejectQtys] = useState<Record<string, number>>({});
+  const [rejectReasons, setRejectReasons] = useState<Record<string, string>>({});
+  const [receiveItems, setReceiveItems] = useState<PurchaseItem[]>([]);
   const [form, setForm] = useState<any>({ supplier_id: '', purchase_date: new Date().toISOString().slice(0, 10), store_id: '', items: [] });
   const [stores, setStores] = useState<{ id: string; name: string }[]>([]);
 
@@ -119,20 +122,52 @@ export function PurchasesPage() {
   const openReceive = async (p: Purchase) => {
     setReceiveOpen(p);
     const { data } = await supabase.from('purchase_items').select('*').eq('purchase_id', p.id);
+    const allItems = (data as PurchaseItem[]) ?? [];
+    setReceiveItems(allItems);
     const qtys: Record<string, number> = {};
-    (data ?? []).forEach((it: any) => { qtys[it.id] = Number(it.quantity); });
+    const rejQtys: Record<string, number> = {};
+    const rejReasons: Record<string, string> = {};
+    allItems.forEach((it: any) => { qtys[it.id] = Number(it.quantity); rejQtys[it.id] = 0; rejReasons[it.id] = ''; });
     setReceiveQtys(qtys);
+    setRejectQtys(rejQtys);
+    setRejectReasons(rejReasons);
   };
 
   const confirmReceive = async () => {
     if (!receiveOpen || !tenant) return;
-    const items = await supabase.from('purchase_items').select('*').eq('purchase_id', receiveOpen.id);
-    const allItems = (items.data as PurchaseItem[]) ?? [];
-    let allReceived = true;
-    // Update stock for each received item
+    const allItems = receiveItems;
+
+    // A rejection must always carry a comment — accountability toward the supplier.
+    for (const it of allItems) {
+      const rejectQty = rejectQtys[it.id] ?? 0;
+      if (rejectQty > 0 && !(rejectReasons[it.id] ?? '').trim()) {
+        toast('error', `Indiquez un motif de rejet pour "${it.name}".`);
+        return;
+      }
+    }
+
+    let allProcessed = true;
+    // Update stock for each received item (rejected quantities never enter inventory)
     for (const it of allItems) {
       const receiveQty = receiveQtys[it.id] ?? 0;
-      if (receiveQty <= 0) { allReceived = false; continue; }
+      const rejectQty = rejectQtys[it.id] ?? 0;
+
+      if (rejectQty > 0) {
+        const { error: rejErr } = await supabase.from('purchase_items').update({
+          rejected_quantity: rejectQty, rejection_reason: rejectReasons[it.id],
+        }).eq('id', it.id);
+        if (rejErr) { toast('error', rejErr.message); return; }
+        if (it.product_id) {
+          const { error: movErr } = await supabase.from('stock_movements').insert({
+            tenant_id: tenant.id, product_id: it.product_id, store_id: (receiveOpen as any).store_id ?? null,
+            movement_type: 'purchase_rejected', quantity: rejectQty,
+            reason: `Rejet réception ${receiveOpen.reference} — ${rejectReasons[it.id]}`,
+          });
+          if (movErr) { toast('error', movErr.message); return; }
+        }
+      }
+
+      if (receiveQty <= 0) { if (receiveQty + rejectQty < Number(it.quantity)) allProcessed = false; continue; }
       if (it.product_id) {
         const existing = inventory.find((inv) => inv.product_id === it.product_id && (inv.store_id === (receiveOpen as any).store_id || (!inv.store_id && !(receiveOpen as any).store_id)));
         if (existing) {
@@ -150,9 +185,9 @@ export function PurchasesPage() {
           if (costErr) { toast('error', costErr.message); return; }
         }
       }
-      if (receiveQty < Number(it.quantity)) allReceived = false;
+      if (receiveQty + rejectQty < Number(it.quantity)) allProcessed = false;
     }
-    const newStatus = allReceived ? 'received' : 'partially_received';
+    const newStatus = allProcessed ? 'received' : 'partially_received';
     const { error: statusErr } = await supabase.from('purchases').update({ status: newStatus }).eq('id', receiveOpen.id);
     if (statusErr) { toast('error', statusErr.message); return; }
     setReceiveOpen(null);
@@ -258,21 +293,32 @@ export function PurchasesPage() {
         )}
       </Modal>
       {/* Receive modal */}
-      <Modal open={!!receiveOpen} onClose={() => setReceiveOpen(null)} title={`Réceptionner — ${receiveOpen?.reference ?? ''}`}>
+      <Modal open={!!receiveOpen} onClose={() => setReceiveOpen(null)} title={`Réceptionner — ${receiveOpen?.reference ?? ''}`} maxWidth="max-w-2xl">
         {receiveOpen && (
           <div>
-            <p className="mb-3 text-sm text-ink-600 dark:text-ink-300">Indiquez la quantité reçue pour chaque ligne. Le stock sera mis à jour automatiquement.</p>
+            <p className="mb-3 text-sm text-ink-600 dark:text-ink-300">Indiquez la quantité reçue et, si besoin, rejetée (avec motif) pour chaque ligne. Le stock n'est mis à jour que pour les quantités acceptées.</p>
             <table className="w-full text-sm">
-              <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400"><th className="pb-2">Produit</th><th className="pb-2 text-right">Commandé</th><th className="pb-2 text-right">Reçu</th></tr></thead>
+              <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400"><th className="pb-2">Produit</th><th className="pb-2 text-right">Commandé</th><th className="pb-2 text-right">Reçu</th><th className="pb-2 text-right">Rejeté</th><th className="pb-2">Motif du rejet</th></tr></thead>
               <tbody>
-                {(Object.entries(receiveQtys)).map(([itemId, qty]) => {
-                  const it = viewItems.find((x) => x.id === itemId);
-                  if (!it) return null;
+                {receiveItems.map((it) => {
+                  const qty = receiveQtys[it.id] ?? 0;
+                  const rejQty = rejectQtys[it.id] ?? 0;
                   return (
-                    <tr key={itemId} className="border-b border-ink-50 dark:border-ink-800">
+                    <tr key={it.id} className="border-b border-ink-50 dark:border-ink-800 align-top">
                       <td className="py-2">{it.name}</td>
                       <td className="py-2 text-right text-ink-600 dark:text-ink-300">{it.quantity}</td>
-                      <td className="py-2 text-right"><input type="number" min={0} max={Number(it.quantity)} value={qty} onChange={(e) => setReceiveQtys({ ...receiveQtys, [itemId]: Number(e.target.value) })} className="input w-20 py-1 text-right" /></td>
+                      <td className="py-2 text-right"><input type="number" min={0} max={Number(it.quantity)} value={qty} onChange={(e) => setReceiveQtys({ ...receiveQtys, [it.id]: Number(e.target.value) })} className="input w-20 py-1 text-right" /></td>
+                      <td className="py-2 text-right"><input type="number" min={0} max={Number(it.quantity)} value={rejQty} onChange={(e) => setRejectQtys({ ...rejectQtys, [it.id]: Number(e.target.value) })} className="input w-20 py-1 text-right" /></td>
+                      <td className="py-2">
+                        {rejQty > 0 && (
+                          <input
+                            value={rejectReasons[it.id] ?? ''}
+                            onChange={(e) => setRejectReasons({ ...rejectReasons, [it.id]: e.target.value })}
+                            placeholder="Ex: endommagé, mauvaise référence…"
+                            className="input py-1 text-xs"
+                          />
+                        )}
+                      </td>
                     </tr>
                   );
                 })}

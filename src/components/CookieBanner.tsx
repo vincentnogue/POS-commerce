@@ -64,7 +64,7 @@ export function CookieBanner() {
                 ) : (
                   <button onClick={() => setShowPrefs(true)} className="btn-ghost px-3 py-1.5 text-xs"><SettingsIcon size={13} /> Personnaliser</button>
                 )}
-                <button onClick={() => setShow(false)} className="ml-auto rounded-full p-1.5 text-ink-400 dark:text-ink-500 hover:bg-ink-100 dark:bg-ink-800"><X size={16} /></button>
+                <button onClick={() => setShow(false)} className="ml-auto rounded-full p-1.5 text-ink-400 dark:text-ink-500 hover:bg-ink-100 dark:hover:bg-ink-800"><X size={16} /></button>
               </div>
             </div>
           </div>

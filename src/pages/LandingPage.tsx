@@ -570,7 +570,7 @@ function CookieInlineBanner({ onClose }: { onClose: () => void }) {
           Nous utilisons des cookies pour améliorer votre expérience. Voir notre <a href="#" className="font-semibold text-brand-600 underline">politique de confidentialité</a>.
         </p>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => { setPrefs({ necessary: true, analytics: false, marketing: false }); onClose(); }} className="rounded-full border border-ink-200 dark:border-ink-700 px-3 py-1.5 text-xs font-semibold text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:bg-ink-900">Refuser</button>
+          <button onClick={() => { setPrefs({ necessary: true, analytics: false, marketing: false }); onClose(); }} className="rounded-full border border-ink-200 dark:border-ink-700 px-3 py-1.5 text-xs font-semibold text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-900">Refuser</button>
           <button onClick={() => { setPrefs({ necessary: true, analytics: true, marketing: true }); onClose(); }} className="btn-primary px-3 py-1.5 text-xs">Accepter tout</button>
         </div>
       </div>

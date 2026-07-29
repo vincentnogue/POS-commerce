@@ -112,7 +112,7 @@ export function Modal({
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-ink-900 dark:text-ink-50">{title}</h2>
-          <button onClick={onClose} className="rounded-full p-1 text-ink-400 dark:text-ink-500 hover:bg-ink-100 dark:bg-ink-800 hover:text-ink-700 dark:text-ink-200">✕</button>
+          <button onClick={onClose} className="rounded-full p-1 text-ink-400 dark:text-ink-500 hover:bg-ink-100 dark:hover:bg-ink-800 hover:text-ink-700 dark:text-ink-200">✕</button>
         </div>
         {children}
       </motion.div>

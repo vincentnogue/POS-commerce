@@ -185,6 +185,8 @@ export type PurchaseItem = {
   quantity: number;
   unit_cost: number;
   total: number;
+  rejected_quantity: number;
+  rejection_reason: string | null;
 };
 
 export type QuoteItem = {

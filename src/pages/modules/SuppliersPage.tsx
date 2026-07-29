@@ -179,7 +179,7 @@ export function SuppliersPage() {
                 <button
                   key={p.id}
                   onClick={() => toggleProduct(p.id)}
-                  className={`flex w-full items-center justify-between px-3 py-2 text-sm transition ${selected ? 'bg-brand-50 dark:bg-brand-900/25 text-brand-700' : 'text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:bg-ink-900'}`}
+                  className={`flex w-full items-center justify-between px-3 py-2 text-sm transition ${selected ? 'bg-brand-50 dark:bg-brand-900/25 text-brand-700' : 'text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-900'}`}
                 >
                   <span>{p.name}</span>
                   {selected && <X size={14} className="text-brand-400" />}
