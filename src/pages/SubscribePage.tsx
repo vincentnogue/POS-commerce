@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Check, AlertCircle, CreditCard, Sparkles } from 'lucide-react';
+import { Clock, Check, AlertCircle, CreditCard, Sparkles, Smartphone } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { useAuth } from '../lib/auth';
 import { supabase } from '../lib/supabase';
 import { PLANS, annualPrice } from '../lib/plans';
 
 export function SubscribePage() {
-  const { tenant, access } = useAuth();
+  const { tenant, user, access } = useAuth();
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly');
+  const [provider, setProvider] = useState<'stripe' | 'flutterwave'>('stripe');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
@@ -19,23 +20,32 @@ export function SubscribePage() {
     setError(null);
     setCheckoutPlan(planCode);
     try {
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-checkout`;
       const { data: sessionData } = await supabase.auth.getSession();
-      const res = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionData.session?.access_token ?? ''}`,
-          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({
-          plan_code: planCode,
-          billing,
-          tenant_id: tenant.id,
-          success_url: `${window.location.origin}/dashboard?upgraded=1`,
-          cancel_url: `${window.location.origin}/subscribe?canceled=1`,
-        }),
-      });
+      const authHeaders = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${sessionData.session?.access_token ?? ''}`,
+        apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+      };
+
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${provider === 'stripe' ? 'stripe-checkout' : 'flutterwave-checkout'}`;
+      const body = provider === 'stripe'
+        ? {
+            plan_code: planCode,
+            billing,
+            tenant_id: tenant.id,
+            success_url: `${window.location.origin}/dashboard?upgraded=1`,
+            cancel_url: `${window.location.origin}/subscribe?canceled=1`,
+          }
+        : {
+            plan_code: planCode,
+            billing,
+            tenant_id: tenant.id,
+            customer_email: user?.email ?? '',
+            customer_name: tenant.name,
+            success_url: `${window.location.origin}/dashboard?upgraded=1`,
+          };
+
+      const res = await fetch(apiUrl, { method: 'POST', headers: authHeaders, body: JSON.stringify(body) });
       const json = await res.json();
       if (!res.ok) { setError(json.error ?? "Erreur lors de l'initialisation du paiement."); return; }
       if (json.url) window.location.href = json.url;
@@ -98,6 +108,19 @@ export function SubscribePage() {
               onClick={() => setBilling('annual')}
               className={`rounded-full px-5 py-2 text-sm font-semibold transition ${billing === 'annual' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
             >Annuel <span className="text-xs opacity-80">2 mois offerts</span></button>
+          </div>
+        </div>
+
+        <div className="mb-8 flex justify-center">
+          <div className="inline-flex rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
+            <button
+              onClick={() => setProvider('stripe')}
+              className={`flex items-center gap-1.5 rounded-full px-5 py-2 text-sm font-semibold transition ${provider === 'stripe' ? 'bg-ink-900 text-white dark:bg-brand-500' : 'text-ink-600 dark:text-ink-300'}`}
+            ><CreditCard size={15} /> Carte bancaire</button>
+            <button
+              onClick={() => setProvider('flutterwave')}
+              className={`flex items-center gap-1.5 rounded-full px-5 py-2 text-sm font-semibold transition ${provider === 'flutterwave' ? 'bg-ink-900 text-white dark:bg-brand-500' : 'text-ink-600 dark:text-ink-300'}`}
+            ><Smartphone size={15} /> Mobile Money</button>
           </div>
         </div>
 
