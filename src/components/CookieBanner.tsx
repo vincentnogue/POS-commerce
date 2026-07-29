@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cookie, Check, X, Settings as SettingsIcon } from 'lucide-react';
 import { useCookies } from '../lib/cookies';
@@ -38,7 +39,7 @@ export function CookieBanner() {
             <div className="flex-1">
               <p className="text-sm text-ink-700 dark:text-ink-200">
                 Nous utilisons des cookies pour améliorer votre expérience. Consultez notre{' '}
-                <a href="#" className="font-semibold text-brand-600 underline">politique de confidentialité</a>.
+                <Link to="/privacy" className="font-semibold text-brand-600 underline">politique de confidentialité</Link>.
               </p>
               {showPrefs && (
                 <div className="mt-3 space-y-2 rounded-xl bg-ink-50 dark:bg-ink-900 p-3">

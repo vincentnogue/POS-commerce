@@ -567,7 +567,7 @@ function CookieInlineBanner({ onClose }: { onClose: () => void }) {
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-ink-700 dark:text-ink-200">
-          Nous utilisons des cookies pour améliorer votre expérience. Voir notre <a href="#" className="font-semibold text-brand-600 underline">politique de confidentialité</a>.
+          Nous utilisons des cookies pour améliorer votre expérience. Voir notre <Link to="/privacy" className="font-semibold text-brand-600 underline">politique de confidentialité</Link>.
         </p>
         <div className="flex flex-wrap gap-2">
           <button onClick={() => { setPrefs({ necessary: true, analytics: false, marketing: false }); onClose(); }} className="rounded-full border border-ink-200 dark:border-ink-700 px-3 py-1.5 text-xs font-semibold text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-900">Refuser</button>
