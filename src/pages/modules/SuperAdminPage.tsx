@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Shield, Crown, Building2, Users, DollarSign, TrendingUp,
   Pencil, Trash2, Ban, Check, Plus, Activity, CreditCard,
-  Search, AlertTriangle, Mail, Eye, Loader2, BarChart3, Award, UserCog,
+  Search, AlertTriangle, Mail, Eye, Loader2, BarChart3, Award, UserCog, Headset, Send,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { convertToUSD } from '../../lib/localization';
@@ -11,7 +11,7 @@ import { PageHeader, Modal, Badge, StatCard, EmptyState, Spinner, useToast } fro
 import { Field } from '../../components/DataTable';
 import type { Tenant, Plan, CommercialCode, AuditLog } from '../../lib/types';
 
-type Tab = 'overview' | 'tenants' | 'employees' | 'subscriptions' | 'admins' | 'staff' | 'plans' | 'codes' | 'performance' | 'audit' | 'monitoring' | 'comms';
+type Tab = 'overview' | 'tenants' | 'employees' | 'subscriptions' | 'admins' | 'staff' | 'plans' | 'codes' | 'performance' | 'audit' | 'monitoring' | 'comms' | 'support';
 
 // Sections a scoped staff member can ever be granted. Must mirror
 // GRANTABLE_SECTIONS in the platform-staff-manage edge function.
@@ -26,6 +26,7 @@ const GRANTABLE_SECTIONS: { id: Tab; label: string }[] = [
   { id: 'audit', label: "Journal d'audit" },
   { id: 'monitoring', label: 'Monitoring' },
   { id: 'comms', label: 'Communications' },
+  { id: 'support', label: 'Support client' },
 ];
 
 const ROLE_LABELS: Record<string, string> = {
@@ -104,6 +105,7 @@ export function SuperAdminPage() {
     { id: 'monitoring', label: 'Monitoring', icon: Eye },
     { id: 'audit', label: "Journal d'audit", icon: Shield },
     { id: 'comms', label: 'Communications', icon: Mail },
+    { id: 'support', label: 'Support client', icon: Headset },
   ];
 
   // 'admins' and 'staff' (managing staff itself) are never delegable — only
@@ -152,6 +154,7 @@ export function SuperAdminPage() {
       {activeTab === 'monitoring' && <SuperMonitoring />}
       {activeTab === 'audit' && <SuperAudit />}
       {activeTab === 'comms' && <SuperComms />}
+      {activeTab === 'support' && <SuperSupport />}
     </div>
   );
 }
@@ -1297,6 +1300,166 @@ function SuperComms() {
             {sending ? 'Envoi…' : <><Mail size={16} /> Envoyer</>}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function SuperSupport() {
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [active, setActive] = useState<any | null>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [reply, setReply] = useState('');
+  const [sending, setSending] = useState(false);
+  const toast = useToast();
+
+  const callAgent = async (body: Record<string, unknown>) => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/support-agent`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const json = await res.json();
+    if (!res.ok || json.error) throw new Error(json.error ?? 'Erreur inconnue');
+    return json;
+  };
+
+  const reload = async () => {
+    setLoading(true);
+    try {
+      const result = await callAgent({ action: 'list' });
+      setConversations(result.conversations ?? []);
+    } catch (e: any) {
+      toast('error', e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { reload(); const i = setInterval(reload, 10000); return () => clearInterval(i); }, []);
+
+  const openConversation = async (conv: any) => {
+    setActive(conv);
+    try {
+      const result = await callAgent({ action: 'messages', conversation_id: conv.id });
+      setMessages(result.messages ?? []);
+    } catch (e: any) {
+      toast('error', e.message);
+    }
+  };
+
+  const sendReply = async () => {
+    if (!active || !reply.trim()) return;
+    setSending(true);
+    try {
+      await callAgent({ action: 'reply', conversation_id: active.id, message: reply.trim() });
+      setMessages((prev) => [...prev, { id: `local-${Date.now()}`, sender: 'agent', content: reply.trim(), created_at: new Date().toISOString() }]);
+      setReply('');
+      await reload();
+    } catch (e: any) {
+      toast('error', e.message);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const closeConversation = async () => {
+    if (!active) return;
+    try {
+      await callAgent({ action: 'close', conversation_id: active.id });
+      toast('success', 'Conversation clôturée.');
+      setActive(null);
+      await reload();
+    } catch (e: any) {
+      toast('error', e.message);
+    }
+  };
+
+  const statusBadge = (status: string) => {
+    if (status === 'pending_human') return <Badge tone="warning">En attente</Badge>;
+    if (status === 'active') return <Badge tone="brand">Active</Badge>;
+    if (status === 'closed') return <Badge tone="neutral">Clôturée</Badge>;
+    return <Badge tone="neutral">IA</Badge>;
+  };
+
+  const sorted = [...conversations].sort((a, b) => {
+    const priority: Record<string, number> = { pending_human: 0, active: 1, ai: 2, closed: 3 };
+    return (priority[a.status] ?? 9) - (priority[b.status] ?? 9);
+  });
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+      <div className="card max-h-[70vh] overflow-y-auto p-3">
+        <div className="mb-2 flex items-center justify-between px-2">
+          <h3 className="text-sm font-semibold text-ink-900 dark:text-ink-50">Conversations</h3>
+          {loading && <Loader2 size={14} className="animate-spin text-ink-400" />}
+        </div>
+        {sorted.length === 0 ? (
+          <EmptyState icon={Headset} title="Aucune conversation" description="Les demandes de support apparaîtront ici." />
+        ) : (
+          <div className="space-y-1">
+            {sorted.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => openConversation(c)}
+                className={`w-full rounded-xl p-2.5 text-left transition ${active?.id === c.id ? 'bg-brand-50 dark:bg-brand-900/25' : 'hover:bg-ink-50 dark:hover:bg-ink-800/60'}`}
+              >
+                <div className="flex items-center justify-between">
+                  <p className="truncate text-sm font-semibold text-ink-900 dark:text-ink-50">{c.visitor_email || c.tenants?.name || 'Visiteur anonyme'}</p>
+                  {statusBadge(c.status)}
+                </div>
+                <p className="mt-0.5 text-xs text-ink-400 dark:text-ink-500">{new Date(c.last_message_at).toLocaleString('fr-FR')}</p>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="card flex h-[70vh] flex-col p-0">
+        {!active ? (
+          <div className="flex flex-1 items-center justify-center">
+            <EmptyState icon={Headset} title="Sélectionnez une conversation" description="Choisissez une conversation dans la liste pour répondre." />
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between border-b border-ink-100 dark:border-ink-800 p-4">
+              <div>
+                <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{active.visitor_email || active.tenants?.name || 'Visiteur anonyme'}</p>
+                <p className="text-xs text-ink-400 dark:text-ink-500">{statusBadge(active.status)}</p>
+              </div>
+              {active.status !== 'closed' && (
+                <button onClick={closeConversation} className="btn-ghost text-xs"><Check size={13} /> Clôturer</button>
+              )}
+            </div>
+            <div className="flex-1 space-y-3 overflow-y-auto p-4">
+              {messages.map((m) => (
+                <div key={m.id} className={`flex ${m.sender === 'agent' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm ${
+                    m.sender === 'agent' ? 'bg-brand-500 text-white' : m.sender === 'ai' ? 'bg-ink-100 dark:bg-ink-700 text-ink-800 dark:text-ink-100' : 'bg-action-50 dark:bg-action-900/30 text-ink-800 dark:text-ink-100'
+                  }`}>
+                    {m.sender === 'ai' && <span className="mb-0.5 block text-[10px] font-semibold uppercase text-ink-400">Assistant IA</span>}
+                    {m.content}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {active.status !== 'closed' && (
+              <div className="flex items-center gap-2 border-t border-ink-100 dark:border-ink-800 p-3">
+                <input
+                  value={reply}
+                  onChange={(e) => setReply(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') sendReply(); }}
+                  placeholder="Répondre au client…"
+                  className="input flex-1"
+                />
+                <button onClick={sendReply} disabled={sending || !reply.trim()} className="btn-primary"><Send size={15} /></button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
