@@ -4,6 +4,7 @@ import { I18nProvider } from './lib/i18n';
 import { ThemeProvider } from './lib/theme';
 import { CookieProvider } from './lib/cookies';
 import { CookieBanner } from './components/CookieBanner';
+import { SupportChatWidget } from './components/SupportChatWidget';
 import { ToastProvider } from './components/ui';
 import { AppLayout } from './components/AppLayout';
 import { RequireAuth, RequireActiveSubscription } from './components/RouteGuards';
@@ -91,6 +92,7 @@ export default function App() {
             </Routes>
           </BrowserRouter>
           <CookieBanner />
+          <SupportChatWidget />
             </ToastProvider>
           </AuthProvider>
         </CookieProvider>
