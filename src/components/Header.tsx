@@ -85,9 +85,10 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
         {canInstall && (
           <button
             onClick={promptInstall}
-            className="hidden sm:inline-flex h-9 items-center gap-1.5 rounded-full border border-ink-200 dark:border-ink-700 px-3 text-xs font-semibold text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
+            title="Installer l'application"
+            className="hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
           >
-            <Download size={14} /> Installer
+            <Download size={16} />
           </button>
         )}
         <button

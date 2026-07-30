@@ -109,7 +109,7 @@ export function PricingPage() {
 
         <div className="mt-16 grid gap-6 sm:grid-cols-3">
           {[
-            { title: 'Paiement flexible', desc: 'Carte bancaire via Stripe, Mobile Money via Flutterwave (à venir).' },
+            { title: 'Paiement flexible', desc: 'Carte bancaire via Stripe, Mobile Money via Flutterwave.' },
             { title: 'Sans engagement', desc: 'Annulez à tout moment, vos données restent exportables.' },
             { title: 'Support inclus', desc: 'Tous les plans incluent un support. Entreprise dispose du 24/7.' },
           ].map((f) => (
