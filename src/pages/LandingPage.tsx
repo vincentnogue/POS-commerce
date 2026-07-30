@@ -105,7 +105,7 @@ export function LandingPage() {
             <button onClick={() => scrollTo('africa')} className="text-sm font-semibold text-ink-700 dark:text-ink-200 hover:text-brand-600">L'Afrique</button>
             <button onClick={() => scrollTo('pricing')} className="text-sm font-semibold text-ink-700 dark:text-ink-200 hover:text-brand-600">Tarifs</button>
             <Link to="/pricing" className="text-sm font-semibold text-ink-700 dark:text-ink-200 hover:text-brand-600">Détails</Link>
-            <button onClick={() => scrollTo('about')} className="text-sm font-semibold text-ink-700 dark:text-ink-200 hover:text-brand-600">À propos</button>
+            <Link to="/about" className="text-sm font-semibold text-ink-700 dark:text-ink-200 hover:text-brand-600">À propos</Link>
           </nav>
           <div className="hidden items-center gap-3 md:flex">
             <button
@@ -213,12 +213,12 @@ export function LandingPage() {
               <button onClick={() => scrollTo('features')} className="btn-ghost px-6 py-3 text-base">
                 <Play size={16} /> Voir la démo
               </button>
-              {canInstall && (
-                <button onClick={promptInstall} className="btn-ghost px-6 py-3 text-base">
-                  <Download size={16} /> Installer l'app
-                </button>
-              )}
             </motion.div>
+            {canInstall && (
+              <button onClick={promptInstall} className="mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-ink-500 dark:text-ink-400 transition hover:text-brand-600">
+                <Download size={13} /> Installer l'app sur cet appareil
+              </button>
+            )}
             <motion.div
               variants={fadeUp}
               initial="hidden"
@@ -529,7 +529,7 @@ export function LandingPage() {
             <div>
               <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{t('footer.company')}</p>
               <ul className="mt-3 space-y-2 text-sm text-ink-500 dark:text-ink-400">
-                <li><button onClick={() => scrollTo('about')} className="hover:text-brand-600">{t('nav.about')}</button></li>
+                <li><Link to="/about" className="hover:text-brand-600">{t('nav.about')}</Link></li>
                 <li><Link to="/blog" className="hover:text-brand-600">{t('nav.blog')}</Link></li>
                 <li><Link to="/careers" className="hover:text-brand-600">{t('nav.careers')}</Link></li>
                 <li><Link to="/contact" className="hover:text-brand-600">{t('nav.contact')}</Link></li>
