@@ -18,6 +18,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
   const [notifs, setNotifs] = useState<Notification[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
   const [query, setQuery] = useState('');
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const navigate = useNavigate();
   const ref = useRef<HTMLDivElement>(null);
 
@@ -63,11 +64,18 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter' && query.trim()) navigate(`/products?q=${encodeURIComponent(query)}`); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && query.trim()) { navigate(`/products?q=${encodeURIComponent(query)}`); setMobileSearchOpen(false); }
+            if (e.key === 'Escape') setMobileSearchOpen(false);
+          }}
           placeholder={t('header.search')}
-          className="hidden w-full rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 py-2 pl-10 pr-4 text-sm placeholder:text-ink-400 dark:text-ink-500 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-50 sm:block"
+          autoFocus={mobileSearchOpen}
+          className={`${mobileSearchOpen ? 'flex' : 'hidden'} w-full rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 py-2 pl-10 pr-4 text-sm placeholder:text-ink-400 dark:text-ink-500 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-50 sm:block`}
         />
-        <button className="rounded-full border border-ink-200 dark:border-ink-700 p-2 text-ink-600 dark:text-ink-300 sm:hidden">
+        <button
+          onClick={() => setMobileSearchOpen((v) => !v)}
+          className={`rounded-full border border-ink-200 dark:border-ink-700 p-2 text-ink-600 dark:text-ink-300 sm:hidden ${mobileSearchOpen ? 'hidden' : ''}`}
+        >
           <Search size={18} />
         </button>
       </div>
