@@ -78,7 +78,7 @@ export function SubscribePage() {
               <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-warning-50 dark:bg-warning-900/25 px-4 py-1.5 text-sm font-medium text-warning-700">
                 <Clock size={15} /> Il vous reste {access.trialDaysLeft} jour{access.trialDaysLeft > 1 ? 's' : ''} d'essai
               </div>
-              <h1 className="text-3xl font-medium text-ink-900 dark:text-ink-50">Choisissez votre forfait</h1>
+              <h1 className="text-3xl font-semibold text-ink-900 dark:text-ink-50">Choisissez votre forfait</h1>
               <p className="mt-2 text-sm text-ink-500 dark:text-ink-400">Continuez à utiliser POS Flow sans interruption après votre essai.</p>
             </>
           ) : (
@@ -86,7 +86,7 @@ export function SubscribePage() {
               <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-error-50 dark:bg-error-900/25 px-4 py-1.5 text-sm font-medium text-error-700">
                 <AlertCircle size={15} /> Votre essai est terminé
               </div>
-              <h1 className="text-3xl font-medium text-ink-900 dark:text-ink-50">Activez votre abonnement</h1>
+              <h1 className="text-3xl font-semibold text-ink-900 dark:text-ink-50">Activez votre abonnement</h1>
               <p className="mt-2 text-sm text-ink-500 dark:text-ink-400">Choisissez un forfait pour retrouver l'accès à vos modules.</p>
             </>
           )}

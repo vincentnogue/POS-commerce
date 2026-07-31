@@ -186,7 +186,7 @@ export function LandingPage() {
               initial="hidden"
               animate="show"
               transition={{ duration: 0.7, delay: 0.1 }}
-              className="mt-5 text-4xl font-medium leading-[1.05] tracking-tight text-ink-900 dark:text-ink-50 sm:text-5xl lg:text-6xl"
+              className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-ink-900 dark:text-ink-50 sm:text-5xl lg:text-6xl"
             >
               La plateforme de gestion commerciale <span className="text-gradient-flow">qui s'adapte à votre marché</span>
             </motion.h1>

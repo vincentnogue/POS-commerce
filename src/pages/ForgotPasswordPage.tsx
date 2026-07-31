@@ -58,14 +58,14 @@ export function ForgotPasswordPage() {
           {sent ? (
             <div className="rounded-2xl border border-success-100 dark:border-success-900/40 bg-success-50 dark:bg-success-900/25 p-5">
               <CheckCircle2 size={22} className="mb-2 text-success-600" />
-              <h1 className="text-lg font-medium text-ink-900 dark:text-ink-50">Vérifiez votre boîte mail</h1>
+              <h1 className="text-lg font-semibold text-ink-900 dark:text-ink-50">Vérifiez votre boîte mail</h1>
               <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">
                 Si un compte existe pour <strong>{email}</strong>, un email avec un lien de réinitialisation vient d'être envoyé. Pensez à vérifier vos spams.
               </p>
             </div>
           ) : (
             <>
-              <h1 className="text-2xl font-medium text-ink-900 dark:text-ink-50">Mot de passe oublié</h1>
+              <h1 className="text-2xl font-semibold text-ink-900 dark:text-ink-50">Mot de passe oublié</h1>
               <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">On vous envoie un lien de réinitialisation par email.</p>
 
               <form onSubmit={submit} className="mt-6 space-y-4">
