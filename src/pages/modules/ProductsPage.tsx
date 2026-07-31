@@ -143,13 +143,13 @@ export function ProductsPage() {
             columns={[
               { key: 'name', label: 'Nom', render: (p: Product) => (
                 <div>
-                  <p className="font-semibold text-ink-900 dark:text-ink-50">{p.name}</p>
+                  <p className="font-medium text-ink-900 dark:text-ink-50">{p.name}</p>
                   {p.sku && <p className="text-xs text-ink-500 dark:text-ink-400">SKU: {p.sku}</p>}
                 </div>
               )},
               { key: 'category', label: 'Catégorie', render: (p: Product) => <span className="text-ink-600 dark:text-ink-300">{catName(p.category_id)}</span> },
               { key: 'cost', label: 'Prix achat', className: 'text-right', render: (p: Product) => canSeeCost ? <span className="text-ink-600 dark:text-ink-300">{formatMoney(p.cost_price, currency)}</span> : <span className="text-ink-300">—</span> },
-              { key: 'sale', label: 'Prix vente', className: 'text-right', render: (p: Product) => <span className="font-semibold text-ink-900 dark:text-ink-50">{formatMoney(p.sale_price, currency)}</span> },
+              { key: 'sale', label: 'Prix vente', className: 'text-right', render: (p: Product) => <span className="font-medium text-ink-900 dark:text-ink-50">{formatMoney(p.sale_price, currency)}</span> },
               { key: 'stock', label: 'Stock min', className: 'text-right', render: (p: Product) => <span className="text-ink-600 dark:text-ink-300">{p.low_stock_threshold}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (p: Product) => (
                 <div className="flex justify-end gap-2">

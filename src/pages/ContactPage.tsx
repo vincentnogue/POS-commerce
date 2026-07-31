@@ -50,7 +50,7 @@ export function ContactPage() {
           {sent ? (
             <div className="flex flex-col items-center py-8 text-center">
               <CheckCircle2 size={40} className="text-success-600" />
-              <p className="mt-4 text-lg font-semibold text-ink-900 dark:text-ink-50">{t('contact.sent.title')}</p>
+              <p className="mt-4 text-lg font-medium text-ink-900 dark:text-ink-50">{t('contact.sent.title')}</p>
               <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{t('contact.sent.text')}</p>
               <button onClick={() => setSent(false)} className="btn-ghost mt-4">{t('contact.sent.another')}</button>
             </div>
@@ -84,17 +84,17 @@ export function ContactPage() {
         <div className="space-y-6">
           <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 dark:bg-brand-900/25 p-6">
             <MapPin className="mb-2 text-brand-600" size={20} />
-            <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">{t('contact.info.office')}</h3>
+            <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t('contact.info.office')}</h3>
             <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">{t('contact.info.officeValue')}</p>
           </div>
           <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 dark:bg-brand-900/25 p-6">
             <MapPin className="mb-2 text-brand-600" size={20} />
-            <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">{t('contact.info.hq')}</h3>
+            <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t('contact.info.hq')}</h3>
             <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">{t('contact.info.hqValue')}</p>
           </div>
           <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 dark:bg-brand-900/25 p-6">
             <Mail className="mb-2 text-brand-600" size={20} />
-            <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">{t('contact.info.email')}</h3>
+            <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t('contact.info.email')}</h3>
             <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">
               <a href="mailto:cs@liafrik.com" className="hover:text-brand-600">cs@liafrik.com</a><br />
               <a href="mailto:support@liafrik.com" className="hover:text-brand-600">support@liafrik.com</a>

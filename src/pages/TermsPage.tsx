@@ -8,12 +8,12 @@ export function TermsPage() {
       <p className="text-sm text-ink-500 dark:text-ink-400">{t('terms.lastUpdate')}</p>
 
       <section>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('terms.s1.title')}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('terms.s1.title')}</h2>
         <p>{t('terms.s1.text')}</p>
       </section>
 
       <section>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('terms.s2.title')}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('terms.s2.title')}</h2>
         <p>
           <strong>{t('terms.s2.platform')}</strong>{t('terms.s2.platformDef')}{' '}
           <strong>{t('terms.s2.tenant')}</strong>{t('terms.s2.tenantDef')}{' '}
@@ -22,32 +22,32 @@ export function TermsPage() {
       </section>
 
       <section>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('terms.s3.title')}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('terms.s3.title')}</h2>
         <p>{t('terms.s3.text')}</p>
       </section>
 
       <section>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('terms.s4.title')}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('terms.s4.title')}</h2>
         <p>{t('terms.s4.text')}</p>
       </section>
 
       <section>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('terms.s5.title')}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('terms.s5.title')}</h2>
         <p>{t('terms.s5.text')}</p>
       </section>
 
       <section>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('terms.s6.title')}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('terms.s6.title')}</h2>
         <p>{t('terms.s6.text')}</p>
       </section>
 
       <section>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('terms.s7.title')}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('terms.s7.title')}</h2>
         <p>{t('terms.s7.text')}</p>
       </section>
 
       <section>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('terms.s8.title')}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('terms.s8.title')}</h2>
         <p>{t('terms.s8.text')} <a href="mailto:legal@liafrik.com" className="text-brand-600 hover:underline">legal@liafrik.com</a>.</p>
       </section>
     </FooterPageLayout>

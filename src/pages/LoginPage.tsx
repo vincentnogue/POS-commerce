@@ -34,10 +34,10 @@ export function LoginPage() {
         <div className="relative flex h-full flex-col justify-between p-12 text-white">
           <Logo size="lg" clickable />
           <div>
-            <h2 className="text-4xl font-extrabold leading-tight">La gestion commerciale,<br />enfin simple.</h2>
+            <h2 className="text-4xl font-medium leading-tight">La gestion commerciale,<br />enfin simple.</h2>
             <p className="mt-4 max-w-md text-brand-50">Reconnectez-vous à votre tableau de bord, vos ventes, votre stock — partout en Afrique.</p>
           </div>
-          <p className="text-sm text-brand-50">© LiAfrik — Dubaï / Afrique</p>
+          <p className="text-sm text-brand-50">© {new Date().getFullYear()} LiAfrik — Dubaï / Afrique</p>
         </div>
       </div>
 
@@ -53,7 +53,7 @@ export function LoginPage() {
             <ArrowLeft size={15} /> Retour
           </Link>
           <div className="lg:hidden mb-6"><Link to="/"><Logo size="lg" /></Link></div>
-          <h1 className="text-2xl font-bold text-ink-900 dark:text-ink-50">Connexion</h1>
+          <h1 className="text-2xl font-medium text-ink-900 dark:text-ink-50">Connexion</h1>
           <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">Heureux de vous revoir sur POS Flow.</p>
 
           <form onSubmit={submit} className="mt-6 space-y-4">
@@ -70,7 +70,7 @@ export function LoginPage() {
             <div>
               <div className="flex items-center justify-between">
                 <label className="label">Mot de passe</label>
-                <Link to="/forgot-password" className="text-xs font-semibold text-brand-600 hover:underline">Mot de passe oublié ?</Link>
+                <Link to="/forgot-password" className="text-xs font-medium text-brand-600 hover:underline">Mot de passe oublié ?</Link>
               </div>
               <div className="relative">
                 <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 dark:text-ink-500" />
@@ -92,7 +92,7 @@ export function LoginPage() {
 
           <p className="mt-6 text-center text-sm text-ink-500 dark:text-ink-400">
             Pas encore de compte ?{' '}
-            <Link to="/signup" className="font-semibold text-brand-600 hover:underline">Créer un compte</Link>
+            <Link to="/signup" className="font-medium text-brand-600 hover:underline">Créer un compte</Link>
           </p>
         </motion.div>
       </div>

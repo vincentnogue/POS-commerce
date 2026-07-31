@@ -78,13 +78,13 @@ export function CustomersPage() {
             columns={[
               { key: 'name', label: 'Nom', render: (c) => (
                 <div>
-                  <p className="font-semibold text-ink-900 dark:text-ink-50">{c.name}</p>
+                  <p className="font-medium text-ink-900 dark:text-ink-50">{c.name}</p>
                   {c.email && <p className="flex items-center gap-1 text-xs text-ink-500 dark:text-ink-400"><Mail size={11} /> {c.email}</p>}
                 </div>
               )},
               { key: 'phone', label: 'Téléphone', render: (c) => c.phone ? <span className="flex items-center gap-1 text-ink-600 dark:text-ink-300"><Phone size={12} /> {c.phone}</span> : <span className="text-ink-400 dark:text-ink-500">—</span> },
               { key: 'city', label: 'Ville', render: (c) => <span className="text-ink-600 dark:text-ink-300">{c.city ?? '—'}</span> },
-              { key: 'balance', label: 'Solde', className: 'text-right', render: (c) => <span className={Number(c.balance) < 0 ? 'font-semibold text-error-600' : 'text-ink-900 dark:text-ink-50'}>{formatMoney(c.balance, currency)}</span> },
+              { key: 'balance', label: 'Solde', className: 'text-right', render: (c) => <span className={Number(c.balance) < 0 ? 'font-medium text-error-600' : 'text-ink-900 dark:text-ink-50'}>{formatMoney(c.balance, currency)}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (c) => (
                 <div className="flex justify-end gap-2">
                   <button onClick={() => openEdit(c)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>

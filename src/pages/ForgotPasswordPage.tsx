@@ -36,10 +36,10 @@ export function ForgotPasswordPage() {
         <div className="relative flex h-full flex-col justify-between p-12 text-white">
           <Logo size="lg" clickable />
           <div>
-            <h2 className="text-4xl font-extrabold leading-tight">Ça arrive à tout<br />le monde.</h2>
+            <h2 className="text-4xl font-medium leading-tight">Ça arrive à tout<br />le monde.</h2>
             <p className="mt-4 max-w-md text-brand-50">Entrez votre email et on vous envoie un lien pour choisir un nouveau mot de passe.</p>
           </div>
-          <p className="text-sm text-brand-50">© LiAfrik — Dubaï / Afrique</p>
+          <p className="text-sm text-brand-50">© {new Date().getFullYear()} LiAfrik — Dubaï / Afrique</p>
         </div>
       </div>
 
@@ -58,14 +58,14 @@ export function ForgotPasswordPage() {
           {sent ? (
             <div className="rounded-2xl border border-success-100 dark:border-success-900/40 bg-success-50 dark:bg-success-900/25 p-5">
               <CheckCircle2 size={22} className="mb-2 text-success-600" />
-              <h1 className="text-lg font-bold text-ink-900 dark:text-ink-50">Vérifiez votre boîte mail</h1>
+              <h1 className="text-lg font-medium text-ink-900 dark:text-ink-50">Vérifiez votre boîte mail</h1>
               <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">
                 Si un compte existe pour <strong>{email}</strong>, un email avec un lien de réinitialisation vient d'être envoyé. Pensez à vérifier vos spams.
               </p>
             </div>
           ) : (
             <>
-              <h1 className="text-2xl font-bold text-ink-900 dark:text-ink-50">Mot de passe oublié</h1>
+              <h1 className="text-2xl font-medium text-ink-900 dark:text-ink-50">Mot de passe oublié</h1>
               <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">On vous envoie un lien de réinitialisation par email.</p>
 
               <form onSubmit={submit} className="mt-6 space-y-4">

@@ -133,7 +133,7 @@ export function DeliveriesPage() {
           <DataTable
             loading={loading}
             columns={[
-              { key: 'customer', label: 'Client', render: (d) => <div><span className="font-semibold text-ink-900 dark:text-ink-50">{d.customer_name}</span>{d.sale_id && <p className="text-[10px] text-brand-600">Vente liée</p>}</div> },
+              { key: 'customer', label: 'Client', render: (d) => <div><span className="font-medium text-ink-900 dark:text-ink-50">{d.customer_name}</span>{d.sale_id && <p className="text-[10px] text-brand-600">Vente liée</p>}</div> },
               { key: 'city', label: 'Ville', render: (d) => <span className="text-ink-600 dark:text-ink-300">{d.city ?? '—'}</span> },
               { key: 'date', label: 'Date prévue', render: (d) => <span className="text-ink-500 dark:text-ink-400">{d.scheduled_date ? new Date(d.scheduled_date).toLocaleDateString('fr-FR') : '—'}</span> },
               { key: 'carrier', label: 'Transporteur', render: (d) => <span className="text-ink-600 dark:text-ink-300">{d.carrier ?? '—'}</span> },
@@ -204,7 +204,7 @@ export function DeliveriesPage() {
                               className="input w-20 py-1 text-right"
                             />
                           </td>
-                          <td className={`py-2 text-right font-semibold ${reste > 0 ? 'text-warning-600' : 'text-success-600'}`}>{reste}</td>
+                          <td className={`py-2 text-right font-medium ${reste > 0 ? 'text-warning-600' : 'text-success-600'}`}>{reste}</td>
                         </tr>
                       );
                     })}

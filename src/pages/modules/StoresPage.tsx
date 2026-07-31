@@ -136,7 +136,7 @@ export function StoresPage() {
                   </div>
                   <Badge tone={s.is_active ? 'success' : 'neutral'}>{s.is_active ? 'Actif' : 'Inactif'}</Badge>
                 </div>
-                <h3 className="mt-3 text-lg font-semibold text-ink-900 dark:text-ink-50">{s.name}</h3>
+                <h3 className="mt-3 text-lg font-medium text-ink-900 dark:text-ink-50">{s.name}</h3>
                 <div className="mt-2 space-y-1 text-sm text-ink-500 dark:text-ink-400">
                   {s.address && <p className="flex items-start gap-1.5"><MapPin size={14} className="mt-0.5 shrink-0" /> {s.address}</p>}
                   {s.city && <p className="pl-5">{s.city}</p>}
@@ -154,7 +154,7 @@ export function StoresPage() {
                 </div>
                 {storeAssigns.length > 0 && (
                   <div className="mt-3 border-t border-ink-100 dark:border-ink-800 pt-3">
-                    <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-ink-600 dark:text-ink-300"><Users size={12} /> Assignés ({storeAssigns.length})</p>
+                    <p className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-ink-600 dark:text-ink-300"><Users size={12} /> Assignés ({storeAssigns.length})</p>
                     <div className="flex flex-wrap gap-1">
                       {storeAssigns.map((a) => (
                         <span key={a.id} className={`rounded-md px-2 py-0.5 text-[10px] ${a.can_transfer ? 'bg-brand-50 dark:bg-brand-900/25 text-brand-700' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`} title={a.can_transfer ? 'Peut transférer' : 'Lecture seule'}>
@@ -207,7 +207,7 @@ export function StoresPage() {
               return (
                 <div key={m.id} className="flex items-center justify-between rounded-xl border border-ink-100 dark:border-ink-800 p-3">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-action-500 text-xs font-bold text-white">{(m.display_name ?? '?').slice(0, 2).toUpperCase()}</div>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-action-500 text-xs font-medium text-white">{(m.display_name ?? '?').slice(0, 2).toUpperCase()}</div>
                     <span className="text-sm font-medium text-ink-900 dark:text-ink-50">{m.display_name ?? 'Membre'}</span>
                   </div>
                   <div className="flex items-center gap-3">

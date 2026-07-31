@@ -6,7 +6,7 @@ export function LegalPage() {
   return (
     <FooterPageLayout title={t('legal.title')}>
       <section>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('legal.publisher.title')}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('legal.publisher.title')}</h2>
         <p><strong>LiAfrik</strong><br />
         {t('legal.publisher.holding')}<br />
         {t('legal.publisher.hq')}<br />
@@ -15,27 +15,27 @@ export function LegalPage() {
       </section>
 
       <section>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('legal.director.title')}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('legal.director.title')}</h2>
         <p>{t('legal.director.text')}</p>
       </section>
 
       <section>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('legal.hosting.title')}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('legal.hosting.title')}</h2>
         <p>{t('legal.hosting.text')}</p>
       </section>
 
       <section>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('legal.ip.title')}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('legal.ip.title')}</h2>
         <p>{t('legal.ip.text')}</p>
       </section>
 
       <section>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('legal.trademark.title')}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('legal.trademark.title')}</h2>
         <p>{t('legal.trademark.text')}</p>
       </section>
 
       <section>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('legal.mediation.title')}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('legal.mediation.title')}</h2>
         <p>{t('legal.mediation.text')}</p>
       </section>
     </FooterPageLayout>

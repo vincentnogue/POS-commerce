@@ -198,11 +198,11 @@ export function InvoicesPage() {
           <DataTable
             loading={loading}
             columns={[
-              { key: 'number', label: 'Numéro', render: (i) => <span className="font-semibold text-ink-900 dark:text-ink-50">{i.number}</span> },
+              { key: 'number', label: 'Numéro', render: (i) => <span className="font-medium text-ink-900 dark:text-ink-50">{i.number}</span> },
               { key: 'customer', label: 'Client', render: (i) => <span className="text-ink-600 dark:text-ink-300">{(i as any).customer?.name ?? '—'}</span> },
               { key: 'date', label: 'Date', render: (i) => <span className="text-ink-500 dark:text-ink-400">{new Date(i.issue_date).toLocaleDateString('fr-FR')}</span> },
               { key: 'status', label: 'Statut', render: (i) => { const sd = getStatusDisplay(i); return <Badge tone={sd.tone}>{sd.label}</Badge>; } },
-              { key: 'total', label: 'Total', className: 'text-right', render: (i) => <span className="font-semibold text-ink-900 dark:text-ink-50">{formatMoney(i.total, currency)}</span> },
+              { key: 'total', label: 'Total', className: 'text-right', render: (i) => <span className="font-medium text-ink-900 dark:text-ink-50">{formatMoney(i.total, currency)}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (i) => (
                 <div className="flex justify-end gap-1.5">
                   <button onClick={() => view(i)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Eye size={15} /></button>
@@ -230,7 +230,7 @@ export function InvoicesPage() {
           <div>
             <div className="mb-2 flex items-center justify-between">
               <p className="label mb-0">Lignes</p>
-              <button onClick={addItem} className="text-xs font-semibold text-brand-600 hover:underline">+ Ajouter une ligne</button>
+              <button onClick={addItem} className="text-xs font-medium text-brand-600 hover:underline">+ Ajouter une ligne</button>
             </div>
             <div className="space-y-2">
               {form.items.map((it: any, i: number) => (
@@ -251,7 +251,7 @@ export function InvoicesPage() {
           <div className="rounded-xl bg-brand-50 dark:bg-brand-900/25 p-4 text-sm">
             <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>Sous-total</span><span>{formatMoney(subtotal, currency)}</span></div>
             <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>Taxes</span><span>{formatMoney(taxTotal, currency)}</span></div>
-            <div className="mt-1 flex justify-between font-bold text-ink-900 dark:text-ink-50"><span>Total</span><span>{formatMoney(total, currency)}</span></div>
+            <div className="mt-1 flex justify-between font-medium text-ink-900 dark:text-ink-50"><span>Total</span><span>{formatMoney(total, currency)}</span></div>
           </div>
         </div>
         <div className="mt-6 flex justify-end gap-2">
@@ -266,7 +266,7 @@ export function InvoicesPage() {
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-sm text-ink-500 dark:text-ink-400">Client</p>
-                <p className="font-semibold text-ink-900 dark:text-ink-50">{(viewOpen as any).customer?.name ?? '—'}</p>
+                <p className="font-medium text-ink-900 dark:text-ink-50">{(viewOpen as any).customer?.name ?? '—'}</p>
               </div>
               {(() => { const sd = getStatusDisplay(viewOpen); return <Badge tone={sd.tone}>{sd.label}</Badge>; })()}
             </div>
@@ -274,11 +274,11 @@ export function InvoicesPage() {
               <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400"><th className="pb-2">Désignation</th><th className="pb-2 text-right">Qté</th><th className="pb-2 text-right">Prix</th><th className="pb-2 text-right">Total</th></tr></thead>
               <tbody>
                 {viewItems.map((it) => (
-                  <tr key={it.id} className="border-b border-ink-50 dark:border-ink-800"><td className="py-2">{it.name}</td><td className="py-2 text-right">{it.quantity}</td><td className="py-2 text-right">{formatMoney(it.unit_price, currency)}</td><td className="py-2 text-right font-semibold">{formatMoney(it.total, currency)}</td></tr>
+                  <tr key={it.id} className="border-b border-ink-50 dark:border-ink-800"><td className="py-2">{it.name}</td><td className="py-2 text-right">{it.quantity}</td><td className="py-2 text-right">{formatMoney(it.unit_price, currency)}</td><td className="py-2 text-right font-medium">{formatMoney(it.total, currency)}</td></tr>
                 ))}
               </tbody>
             </table>
-            <div className="mt-4 flex justify-between border-t border-ink-100 dark:border-ink-800 pt-3 text-base font-bold"><span>Total</span><span>{formatMoney(viewOpen.total, currency)}</span></div>
+            <div className="mt-4 flex justify-between border-t border-ink-100 dark:border-ink-800 pt-3 text-base font-medium"><span>Total</span><span>{formatMoney(viewOpen.total, currency)}</span></div>
 
             {/* Action buttons */}
             <div className="mt-5 flex flex-wrap gap-2 border-t border-ink-100 dark:border-ink-800 pt-4">

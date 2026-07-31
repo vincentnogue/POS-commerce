@@ -83,7 +83,7 @@ export function SuperAdminPage() {
         <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-error-50 dark:bg-error-900/25 text-error-600">
           <Shield size={26} />
         </div>
-        <h2 className="text-lg font-semibold text-ink-900 dark:text-ink-50">Accès réservé</h2>
+        <h2 className="text-lg font-medium text-ink-900 dark:text-ink-50">Accès réservé</h2>
         <p className="mt-1 max-w-sm text-sm text-ink-500 dark:text-ink-400">
           {verifyError ?? "Ce module est réservé aux administrateurs de la plateforme. Votre tentative d'accès a été journalisée."}
         </p>
@@ -129,7 +129,7 @@ export function SuperAdminPage() {
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
               activeTab === t.id ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'
             }`}
           >
@@ -207,7 +207,7 @@ function SuperOverview() {
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="card p-6">
-          <h3 className="mb-4 text-base font-semibold text-ink-900 dark:text-ink-50">Répartition par forfait</h3>
+          <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">Répartition par forfait</h3>
           <div className="space-y-2">
             {Object.entries(byPlan).map(([name, count]) => (
               <div key={name} className="flex items-center justify-between text-sm">
@@ -216,19 +216,19 @@ function SuperOverview() {
                   <div className="h-2 w-32 overflow-hidden rounded-full bg-ink-100 dark:bg-ink-800">
                     <div className="h-full rounded-full bg-brand-500" style={{ width: `${tenants.length ? (count / tenants.length) * 100 : 0}%` }} />
                   </div>
-                  <span className="font-semibold text-ink-900 dark:text-ink-50">{count}</span>
+                  <span className="font-medium text-ink-900 dark:text-ink-50">{count}</span>
                 </div>
               </div>
             ))}
           </div>
         </div>
         <div className="card p-6">
-          <h3 className="mb-4 text-base font-semibold text-ink-900 dark:text-ink-50">Répartition par pays</h3>
+          <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">Répartition par pays</h3>
           <div className="space-y-2">
             {Object.entries(byCountry).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([name, count]) => (
               <div key={name} className="flex items-center justify-between text-sm">
                 <span className="text-ink-700 dark:text-ink-200">{name}</span>
-                <span className="font-semibold text-ink-900 dark:text-ink-50">{count}</span>
+                <span className="font-medium text-ink-900 dark:text-ink-50">{count}</span>
               </div>
             ))}
           </div>
@@ -291,7 +291,7 @@ function SuperTenants() {
   return (
     <div className="card p-5">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">{tenants.length} entreprises</h3>
+        <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{tenants.length} entreprises</h3>
         <div className="relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 dark:text-ink-500" />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher…" className="input pl-9" />
@@ -300,14 +300,14 @@ function SuperTenants() {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
-            <th className="pb-2 font-semibold">Entreprise</th><th className="pb-2 font-semibold">Pays</th><th className="pb-2 font-semibold">Forfait</th><th className="pb-2 font-semibold">Statut</th><th className="pb-2 font-semibold">Créé le</th><th className="pb-2 font-semibold text-right">Actions</th>
+            <th className="pb-2 font-medium">Entreprise</th><th className="pb-2 font-medium">Pays</th><th className="pb-2 font-medium">Forfait</th><th className="pb-2 font-medium">Statut</th><th className="pb-2 font-medium">Créé le</th><th className="pb-2 font-medium text-right">Actions</th>
           </tr></thead>
           <tbody>
             {filtered.map((t) => {
               const ss = subStatus(t);
               return (
                 <tr key={t.id} className="border-b border-ink-50 dark:border-ink-800">
-                  <td className="py-3"><p className="font-semibold text-ink-900 dark:text-ink-50">{t.name}</p><p className="text-xs text-ink-500 dark:text-ink-400">{t.city}</p></td>
+                  <td className="py-3"><p className="font-medium text-ink-900 dark:text-ink-50">{t.name}</p><p className="text-xs text-ink-500 dark:text-ink-400">{t.city}</p></td>
                   <td className="py-3 text-ink-600 dark:text-ink-300">{t.country_name}</td>
                   <td className="py-3"><Badge tone="brand">{planName(t.plan_id)}</Badge></td>
                   <td className="py-3"><Badge tone={ss.tone}>{ss.label}</Badge></td>
@@ -370,7 +370,7 @@ function SuperEmployees() {
       </div>
       <div className="card p-5">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Tous les employés de la plateforme</h3>
+          <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">Tous les employés de la plateforme</h3>
           <div className="flex gap-2">
             <div className="relative">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 dark:text-ink-500" />
@@ -391,17 +391,17 @@ function SuperEmployees() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
-                <th className="pb-2 font-semibold">Employé</th><th className="pb-2 font-semibold">Entreprise</th><th className="pb-2 font-semibold">Rôle</th><th className="pb-2 font-semibold">Membre depuis</th>
+                <th className="pb-2 font-medium">Employé</th><th className="pb-2 font-medium">Entreprise</th><th className="pb-2 font-medium">Rôle</th><th className="pb-2 font-medium">Membre depuis</th>
               </tr></thead>
               <tbody>
                 {filtered.map((m) => (
                   <tr key={m.id} className="border-b border-ink-50 dark:border-ink-800">
                     <td className="py-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-xs font-medium text-white">
                           {(m.display_name ?? '?').slice(0, 2).toUpperCase()}
                         </div>
-                        <p className="font-semibold text-ink-900 dark:text-ink-50">{m.display_name ?? 'Invité'}</p>
+                        <p className="font-medium text-ink-900 dark:text-ink-50">{m.display_name ?? 'Invité'}</p>
                       </div>
                     </td>
                     <td className="py-3"><p className="text-ink-700 dark:text-ink-200">{m.tenants?.name ?? '—'}</p><p className="text-xs text-ink-500 dark:text-ink-400">{m.tenants?.city}, {m.tenants?.country_name}</p></td>
@@ -451,24 +451,24 @@ function SuperSubscriptions() {
         <div className="card border-error-200 p-4">
           <div className="flex items-center gap-2 text-error-700">
             <AlertTriangle size={18} />
-            <p className="text-sm font-semibold">{unpaid.length} abonnement(s) en retard de paiement — relance nécessaire</p>
+            <p className="text-sm font-medium">{unpaid.length} abonnement(s) en retard de paiement — relance nécessaire</p>
           </div>
         </div>
       )}
       <div className="card p-5">
-        <h3 className="mb-4 text-base font-semibold text-ink-900 dark:text-ink-50">Historique des abonnements</h3>
+        <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">Historique des abonnements</h3>
         {loading ? <Spinner /> : subs.length === 0 ? (
           <EmptyState icon={CreditCard} title="Aucun abonnement" description="Les abonnements apparaîtront ici." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
-                <th className="pb-2 font-semibold">Entreprise</th><th className="pb-2 font-semibold">Forfait</th><th className="pb-2 font-semibold">Statut</th><th className="pb-2 font-semibold">Cycle</th><th className="pb-2 font-semibold">Période fin</th>
+                <th className="pb-2 font-medium">Entreprise</th><th className="pb-2 font-medium">Forfait</th><th className="pb-2 font-medium">Statut</th><th className="pb-2 font-medium">Cycle</th><th className="pb-2 font-medium">Période fin</th>
               </tr></thead>
               <tbody>
                 {subs.map((s) => (
                   <tr key={s.id} className="border-b border-ink-50 dark:border-ink-800">
-                    <td className="py-3"><p className="font-semibold text-ink-900 dark:text-ink-50">{s.tenants?.name ?? '—'}</p><p className="text-xs text-ink-500 dark:text-ink-400">{s.tenants?.country_name}</p></td>
+                    <td className="py-3"><p className="font-medium text-ink-900 dark:text-ink-50">{s.tenants?.name ?? '—'}</p><p className="text-xs text-ink-500 dark:text-ink-400">{s.tenants?.country_name}</p></td>
                     <td className="py-3"><Badge tone="brand">{planName(s.plan_id)}</Badge></td>
                     <td className="py-3"><Badge tone={s.status === 'active' ? 'success' : s.status === 'trialing' ? 'warning' : s.status === 'past_due' ? 'error' : 'neutral'}>{s.status}</Badge></td>
                     <td className="py-3 text-ink-600 dark:text-ink-300">{s.billing_cycle}</td>
@@ -575,13 +575,13 @@ function SuperAdmins() {
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Crown size={18} className="text-error-600" />
-            <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Administrateurs de la plateforme</h3>
+            <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">Administrateurs de la plateforme</h3>
           </div>
           <button onClick={() => setFormOpen((v) => !v)} className="btn-primary text-sm"><Plus size={15} /> Ajouter</button>
         </div>
         <p className="mb-4 text-sm text-ink-500 dark:text-ink-400">
           Vérifiés côté serveur (table platform_admins). L'accès Super Admin nécessite d'être dans cette liste ET d'avoir le rôle super_admin.
-          {!canRemove && <span className="ml-1 font-semibold text-warning-600">Minimum 2 administrateurs — retrait désactivé tant qu'il n'y en a pas plus.</span>}
+          {!canRemove && <span className="ml-1 font-medium text-warning-600">Minimum 2 administrateurs — retrait désactivé tant qu'il n'y en a pas plus.</span>}
         </p>
 
         {formOpen && (
@@ -600,15 +600,15 @@ function SuperAdmins() {
           {admins.map((pa) => (
             <div key={pa.id} className="flex items-center justify-between rounded-xl border border-ink-100 dark:border-ink-800 p-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-error-500 text-xs font-bold text-white">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-error-500 text-xs font-medium text-white">
                   {pa.email.slice(0, 2).toUpperCase()}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{pa.email}</p>
+                  <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{pa.email}</p>
                   {editingEmail === pa.email ? (
                     <div className="mt-1 flex items-center gap-2">
                       <input value={editingLabel} onChange={(e) => setEditingLabel(e.target.value)} className="input h-7 text-xs" />
-                      <button onClick={() => handleUpdateLabel(pa.email)} className="text-xs font-semibold text-brand-600">OK</button>
+                      <button onClick={() => handleUpdateLabel(pa.email)} className="text-xs font-medium text-brand-600">OK</button>
                       <button onClick={() => setEditingEmail(null)} className="text-xs text-ink-400">Annuler</button>
                     </div>
                   ) : (
@@ -634,7 +634,7 @@ function SuperAdmins() {
         </div>
       </div>
       <div className="card p-6">
-        <h3 className="mb-4 text-base font-semibold text-ink-900 dark:text-ink-50">Membres avec rôle super_admin</h3>
+        <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">Membres avec rôle super_admin</h3>
         {loading ? <Spinner /> : superAdminMembers.length === 0 ? (
           <EmptyState icon={Users} title="Aucun super admin" description="Aucun membre avec rôle super_admin." />
         ) : (
@@ -642,11 +642,11 @@ function SuperAdmins() {
             {superAdminMembers.map((a) => (
               <div key={a.id} className="flex items-center justify-between rounded-xl border border-ink-100 dark:border-ink-800 p-3">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-xs font-medium text-white">
                     {(a.display_name ?? '?').slice(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{a.display_name ?? 'Invité'}</p>
+                    <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{a.display_name ?? 'Invité'}</p>
                     <p className="text-xs text-ink-500 dark:text-ink-400">{(a.tenants as any)?.name ?? '—'}</p>
                   </div>
                 </div>
@@ -769,7 +769,7 @@ function SuperStaff() {
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <UserCog size={18} className="text-brand-600" />
-          <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Staff plateforme (accès limité)</h3>
+          <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">Staff plateforme (accès limité)</h3>
         </div>
         <button onClick={() => setFormOpen((v) => !v)} className="btn-primary text-sm"><Plus size={15} /> Ajouter</button>
       </div>
@@ -784,7 +784,7 @@ function SuperStaff() {
             <Field label="Étiquette"><input value={newLabel} onChange={(e) => setNewLabel(e.target.value)} placeholder="Ex: Support client" className="input" /></Field>
           </div>
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase text-ink-500 dark:text-ink-400">Sections accessibles</p>
+            <p className="mb-2 text-xs font-medium uppercase text-ink-500 dark:text-ink-400">Sections accessibles</p>
             <div className="flex flex-wrap gap-3">
               {GRANTABLE_SECTIONS.map((s) => (
                 <label key={s.id} className="flex items-center gap-1.5 text-sm text-ink-700 dark:text-ink-200">
@@ -806,11 +806,11 @@ function SuperStaff() {
             <div key={s.id} className="rounded-xl border border-ink-100 dark:border-ink-800 p-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-xs font-medium text-white">
                     {s.email.slice(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{s.email}</p>
+                    <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{s.email}</p>
                     <p className="text-xs text-ink-500 dark:text-ink-400">{s.label}</p>
                   </div>
                 </div>
@@ -874,14 +874,14 @@ function SuperPlans() {
       <div className="mb-4 flex justify-end"><button onClick={() => { setEditing(null); setForm({ name: '', code: '', price_usd: 0, max_users: 1, max_stores: 1, max_products: 50 }); setModalOpen(true); }} className="btn-primary"><Plus size={16} /> Nouveau forfait</button></div>
       <table className="w-full text-sm">
         <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
-          <th className="pb-2 font-semibold">Nom</th><th className="pb-2 font-semibold">Code</th><th className="pb-2 font-semibold">Prix (USD)</th><th className="pb-2 font-semibold">Utilisateurs</th><th className="pb-2 font-semibold">Magasins</th><th className="pb-2 font-semibold">Produits</th><th></th>
+          <th className="pb-2 font-medium">Nom</th><th className="pb-2 font-medium">Code</th><th className="pb-2 font-medium">Prix (USD)</th><th className="pb-2 font-medium">Utilisateurs</th><th className="pb-2 font-medium">Magasins</th><th className="pb-2 font-medium">Produits</th><th></th>
         </tr></thead>
         <tbody>
           {plans.map((p) => (
             <tr key={p.id} className="border-b border-ink-50 dark:border-ink-800">
-              <td className="py-3 font-semibold text-ink-900 dark:text-ink-50">{p.name}</td>
+              <td className="py-3 font-medium text-ink-900 dark:text-ink-50">{p.name}</td>
               <td className="py-3 text-ink-600 dark:text-ink-300">{p.code}</td>
-              <td className="py-3 font-semibold text-ink-900 dark:text-ink-50">${p.price_usd}</td>
+              <td className="py-3 font-medium text-ink-900 dark:text-ink-50">${p.price_usd}</td>
               <td className="py-3 text-ink-600 dark:text-ink-300">{p.max_users}</td>
               <td className="py-3 text-ink-600 dark:text-ink-300">{p.max_stores}</td>
               <td className="py-3 text-ink-600 dark:text-ink-300">{p.max_products}</td>
@@ -939,7 +939,7 @@ function SuperCodes() {
   return (
     <div className="card p-5">
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-xs text-ink-500 dark:text-ink-400">Ventes et clients par code : voir l'onglet <span className="font-semibold text-brand-600">Performance</span>.</p>
+        <p className="text-xs text-ink-500 dark:text-ink-400">Ventes et clients par code : voir l'onglet <span className="font-medium text-brand-600">Performance</span>.</p>
         <button onClick={() => setModalOpen(true)} className="btn-primary"><Plus size={16} /> Nouveau code</button>
       </div>
       {codes.length === 0 ? (
@@ -947,16 +947,16 @@ function SuperCodes() {
       ) : (
         <table className="w-full text-sm">
           <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
-            <th className="pb-2 font-semibold">Code</th><th className="pb-2 font-semibold">Commercial</th><th className="pb-2 font-semibold">Région</th><th className="pb-2 font-semibold">Statut</th><th></th>
+            <th className="pb-2 font-medium">Code</th><th className="pb-2 font-medium">Commercial</th><th className="pb-2 font-medium">Région</th><th className="pb-2 font-medium">Statut</th><th></th>
           </tr></thead>
           <tbody>
             {codes.map((c) => (
               <tr key={c.id} className="border-b border-ink-50 dark:border-ink-800">
-                <td className="py-3 font-mono font-semibold text-brand-700">{c.code}</td>
-                <td className="py-3"><p className="font-semibold text-ink-900 dark:text-ink-50">{c.rep_name}</p>{c.rep_email && <p className="text-xs text-ink-500 dark:text-ink-400">{c.rep_email}</p>}</td>
+                <td className="py-3 font-mono font-medium text-brand-700">{c.code}</td>
+                <td className="py-3"><p className="font-medium text-ink-900 dark:text-ink-50">{c.rep_name}</p>{c.rep_email && <p className="text-xs text-ink-500 dark:text-ink-400">{c.rep_email}</p>}</td>
                 <td className="py-3 text-ink-600 dark:text-ink-300">{c.region ?? '—'}</td>
                 <td className="py-3"><Badge tone={c.is_active ? 'success' : 'neutral'}>{c.is_active ? 'Actif' : 'Inactif'}</Badge></td>
-                <td className="py-3"><button onClick={() => toggle(c)} className="text-xs font-semibold text-brand-600 hover:underline">{c.is_active ? 'Désactiver' : 'Activer'}</button></td>
+                <td className="py-3"><button onClick={() => toggle(c)} className="text-xs font-medium text-brand-600 hover:underline">{c.is_active ? 'Désactiver' : 'Activer'}</button></td>
               </tr>
             ))}
           </tbody>
@@ -1018,10 +1018,10 @@ function SuperPerformance() {
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
-        <button onClick={() => setView('staff')} className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${view === 'staff' ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`}>
+        <button onClick={() => setView('staff')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${view === 'staff' ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`}>
           Performance staff
         </button>
-        <button onClick={() => setView('commercials')} className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${view === 'commercials' ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`}>
+        <button onClick={() => setView('commercials')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${view === 'commercials' ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`}>
           Performance commerciaux
         </button>
       </div>
@@ -1030,7 +1030,7 @@ function SuperPerformance() {
         <div className="card p-5">
           <div className="mb-4 flex items-center gap-2">
             <Award size={18} className="text-brand-600" />
-            <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Performance du staff — toutes entreprises</h3>
+            <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">Performance du staff — toutes entreprises</h3>
           </div>
           {staff.length === 0 ? (
             <EmptyState icon={Users} title="Aucune donnée" description="Aucun membre du staff trouvé." />
@@ -1039,26 +1039,26 @@ function SuperPerformance() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
-                    <th className="pb-2 font-semibold">Membre</th>
-                    <th className="pb-2 font-semibold">Entreprise</th>
-                    <th className="pb-2 font-semibold">Rôle</th>
-                    <th className="pb-2 text-right font-semibold">Ventes</th>
-                    <th className="pb-2 text-right font-semibold">CA généré</th>
-                    <th className="pb-2 text-right font-semibold">Actions (log)</th>
-                    <th className="pb-2 text-right font-semibold">Dernière activité</th>
+                    <th className="pb-2 font-medium">Membre</th>
+                    <th className="pb-2 font-medium">Entreprise</th>
+                    <th className="pb-2 font-medium">Rôle</th>
+                    <th className="pb-2 text-right font-medium">Ventes</th>
+                    <th className="pb-2 text-right font-medium">CA généré</th>
+                    <th className="pb-2 text-right font-medium">Actions (log)</th>
+                    <th className="pb-2 text-right font-medium">Dernière activité</th>
                   </tr>
                 </thead>
                 <tbody>
                   {staff.map((s) => (
                     <tr key={s.userId} className="border-b border-ink-50 dark:border-ink-800">
                       <td className="py-3">
-                        <p className="font-semibold text-ink-900 dark:text-ink-50">{s.displayName}</p>
+                        <p className="font-medium text-ink-900 dark:text-ink-50">{s.displayName}</p>
                         {s.email && <p className="text-xs text-ink-500 dark:text-ink-400">{s.email}</p>}
                       </td>
                       <td className="py-3 text-ink-600 dark:text-ink-300">{s.tenantName}</td>
                       <td className="py-3"><Badge tone="neutral">{ROLE_LABELS[s.role] ?? s.role}</Badge></td>
                       <td className="py-3 text-right text-ink-700 dark:text-ink-200">{s.salesCount}</td>
-                      <td className="py-3 text-right font-semibold text-ink-900 dark:text-ink-50">{fmtUSD(s.salesRevenue)}</td>
+                      <td className="py-3 text-right font-medium text-ink-900 dark:text-ink-50">{fmtUSD(s.salesRevenue)}</td>
                       <td className="py-3 text-right text-ink-600 dark:text-ink-300">{s.activityCount}</td>
                       <td className="py-3 text-right text-xs text-ink-500 dark:text-ink-400">{timeAgo(s.lastActivity)}</td>
                     </tr>
@@ -1074,7 +1074,7 @@ function SuperPerformance() {
         <div className="card p-5">
           <div className="mb-4 flex items-center gap-2">
             <Activity size={18} className="text-brand-600" />
-            <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">Performance des commerciaux — par code</h3>
+            <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">Performance des commerciaux — par code</h3>
           </div>
           {commercials.length === 0 ? (
             <EmptyState icon={Activity} title="Aucun code commercial" description="Créez des codes dans l'onglet Codes commerciaux." />
@@ -1087,15 +1087,15 @@ function SuperPerformance() {
                     className="flex w-full items-center justify-between p-3 text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="rounded-md bg-brand-50 dark:bg-brand-900/25 px-2 py-1 font-mono text-xs font-semibold text-brand-700 dark:text-brand-300">{c.code}</span>
+                      <span className="rounded-md bg-brand-50 dark:bg-brand-900/25 px-2 py-1 font-mono text-xs font-medium text-brand-700 dark:text-brand-300">{c.code}</span>
                       <div>
-                        <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{c.repName}</p>
+                        <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{c.repName}</p>
                         <p className="text-xs text-ink-500 dark:text-ink-400">{c.region ?? '—'} · {c.clients.length} client(s) inscrit(s) avec ce code</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <p className="text-sm font-bold text-ink-900 dark:text-ink-50">{fmtUSD(c.salesRevenue)}</p>
+                        <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{fmtUSD(c.salesRevenue)}</p>
                         <p className="text-xs text-ink-500 dark:text-ink-400">{c.salesCount} vente(s)</p>
                       </div>
                       <Badge tone={c.isActive ? 'success' : 'neutral'}>{c.isActive ? 'Actif' : 'Inactif'}</Badge>
@@ -1151,14 +1151,14 @@ function SuperMonitoring() {
         ))}
       </div>
       <div className="card p-5">
-        <h3 className="mb-4 text-base font-semibold text-ink-900 dark:text-ink-50">État des entreprises</h3>
+        <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">État des entreprises</h3>
         <div className="space-y-2">
           {tenants.map((t) => (
             <div key={t.id} className="flex items-center justify-between rounded-xl border border-ink-100 dark:border-ink-800 p-3">
               <div className="flex items-center gap-3">
                 <div className={`h-2.5 w-2.5 rounded-full ${t.status === 'active' ? 'bg-success-500' : 'bg-error-500'}`} />
                 <div>
-                  <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{t.name}</p>
+                  <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{t.name}</p>
                   <p className="text-xs text-ink-500 dark:text-ink-400">{t.country_name} · {t.currency}</p>
                 </div>
               </div>
@@ -1191,8 +1191,8 @@ function SuperAudit() {
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
-        <button onClick={() => setView('audit')} className={`rounded-full px-4 py-2 text-sm font-semibold ${view === 'audit' ? 'bg-brand-500 text-white' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200'}`}>Journal d'audit</button>
-        <button onClick={() => setView('access')} className={`rounded-full px-4 py-2 text-sm font-semibold ${view === 'access' ? 'bg-brand-500 text-white' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200'}`}>Tentatives d'accès Super Admin</button>
+        <button onClick={() => setView('audit')} className={`rounded-full px-4 py-2 text-sm font-medium ${view === 'audit' ? 'bg-brand-500 text-white' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200'}`}>Journal d'audit</button>
+        <button onClick={() => setView('access')} className={`rounded-full px-4 py-2 text-sm font-medium ${view === 'access' ? 'bg-brand-500 text-white' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200'}`}>Tentatives d'accès Super Admin</button>
       </div>
       <div className="card p-5">
         {view === 'audit' ? (
@@ -1201,7 +1201,7 @@ function SuperAudit() {
               {logs.map((l) => (
                 <div key={l.id} className="rounded-xl border border-ink-100 dark:border-ink-800 p-3 text-sm">
                   <div className="flex items-center justify-between">
-                    <p className="font-semibold text-ink-900 dark:text-ink-50">{l.action}</p>
+                    <p className="font-medium text-ink-900 dark:text-ink-50">{l.action}</p>
                     <span className="text-xs text-ink-500 dark:text-ink-400">{new Date(l.created_at).toLocaleString('fr-FR')}</span>
                   </div>
                   {l.actor_email && <p className="text-xs text-ink-500 dark:text-ink-400">par {l.actor_email}</p>}
@@ -1218,7 +1218,7 @@ function SuperAudit() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Badge tone={al.authorized ? 'success' : 'error'}>{al.authorized ? 'Autorisé' : 'Refusé'}</Badge>
-                      <span className="font-semibold text-ink-900 dark:text-ink-50">{al.actor_email ?? 'Inconnu'}</span>
+                      <span className="font-medium text-ink-900 dark:text-ink-50">{al.actor_email ?? 'Inconnu'}</span>
                     </div>
                     <span className="text-xs text-ink-500 dark:text-ink-400">{new Date(al.created_at).toLocaleString('fr-FR')}</span>
                   </div>
@@ -1281,7 +1281,7 @@ function SuperComms() {
 
   return (
     <div className="card max-w-2xl p-6">
-      <h3 className="mb-4 text-base font-semibold text-ink-900 dark:text-ink-50">Communication globale</h3>
+      <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">Communication globale</h3>
       <p className="mb-4 text-sm text-ink-500 dark:text-ink-400">Envoyez une annonce à tous les tenants ou un segment spécifique.</p>
       <div className="space-y-4">
         <Field label="Segment">
@@ -1394,7 +1394,7 @@ function SuperSupport() {
     <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
       <div className="card max-h-[70vh] overflow-y-auto p-3">
         <div className="mb-2 flex items-center justify-between px-2">
-          <h3 className="text-sm font-semibold text-ink-900 dark:text-ink-50">Conversations</h3>
+          <h3 className="text-sm font-medium text-ink-900 dark:text-ink-50">Conversations</h3>
           {loading && <Loader2 size={14} className="animate-spin text-ink-400" />}
         </div>
         {sorted.length === 0 ? (
@@ -1408,7 +1408,7 @@ function SuperSupport() {
                 className={`w-full rounded-xl p-2.5 text-left transition ${active?.id === c.id ? 'bg-brand-50 dark:bg-brand-900/25' : 'hover:bg-ink-50 dark:hover:bg-ink-800/60'}`}
               >
                 <div className="flex items-center justify-between">
-                  <p className="truncate text-sm font-semibold text-ink-900 dark:text-ink-50">{c.visitor_email || c.tenants?.name || 'Visiteur anonyme'}</p>
+                  <p className="truncate text-sm font-medium text-ink-900 dark:text-ink-50">{c.visitor_email || c.tenants?.name || 'Visiteur anonyme'}</p>
                   {statusBadge(c.status)}
                 </div>
                 <p className="mt-0.5 text-xs text-ink-400 dark:text-ink-500">{new Date(c.last_message_at).toLocaleString('fr-FR')}</p>
@@ -1427,7 +1427,7 @@ function SuperSupport() {
           <>
             <div className="flex items-center justify-between border-b border-ink-100 dark:border-ink-800 p-4">
               <div>
-                <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{active.visitor_email || active.tenants?.name || 'Visiteur anonyme'}</p>
+                <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{active.visitor_email || active.tenants?.name || 'Visiteur anonyme'}</p>
                 <p className="text-xs text-ink-400 dark:text-ink-500">{statusBadge(active.status)}</p>
               </div>
               {active.status !== 'closed' && (
@@ -1440,7 +1440,7 @@ function SuperSupport() {
                   <div className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm ${
                     m.sender === 'agent' ? 'bg-brand-500 text-white' : m.sender === 'ai' ? 'bg-ink-100 dark:bg-ink-700 text-ink-800 dark:text-ink-100' : 'bg-action-50 dark:bg-action-900/30 text-ink-800 dark:text-ink-100'
                   }`}>
-                    {m.sender === 'ai' && <span className="mb-0.5 block text-[10px] font-semibold uppercase text-ink-400">Assistant IA</span>}
+                    {m.sender === 'ai' && <span className="mb-0.5 block text-[10px] font-medium uppercase text-ink-400">Assistant IA</span>}
                     {m.content}
                   </div>
                 </div>

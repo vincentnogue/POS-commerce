@@ -134,7 +134,7 @@ export function SuppliersPage() {
             columns={[
               { key: 'name', label: 'Nom', render: (s) => (
                 <div>
-                  <p className="font-semibold text-ink-900 dark:text-ink-50">{s.name}</p>
+                  <p className="font-medium text-ink-900 dark:text-ink-50">{s.name}</p>
                   {s.contact_name && <p className="text-xs text-ink-500 dark:text-ink-400">Contact: {s.contact_name}</p>}
                   {(supplierProducts[s.id] ?? []).length > 0 && <p className="text-[10px] text-brand-600">{(supplierProducts[s.id] ?? []).length} produit(s) associé(s)</p>}
                 </div>
@@ -142,7 +142,7 @@ export function SuppliersPage() {
               { key: 'email', label: 'Email', render: (s) => s.email ? <span className="flex items-center gap-1 text-ink-600 dark:text-ink-300"><Mail size={12} /> {s.email}</span> : <span className="text-ink-400 dark:text-ink-500">—</span> },
               { key: 'phone', label: 'Téléphone', render: (s) => s.phone ? <span className="flex items-center gap-1 text-ink-600 dark:text-ink-300"><Phone size={12} /> {s.phone}</span> : <span className="text-ink-400 dark:text-ink-500">—</span> },
               { key: 'city', label: 'Ville', render: (s) => <span className="text-ink-600 dark:text-ink-300">{s.city ?? '—'}</span> },
-              { key: 'balance', label: 'Solde', className: 'text-right', render: (s) => <span className={Number(s.balance) > 0 ? 'font-semibold text-warning-600' : 'text-ink-900 dark:text-ink-50'}>{formatMoney(s.balance, currency)}</span> },
+              { key: 'balance', label: 'Solde', className: 'text-right', render: (s) => <span className={Number(s.balance) > 0 ? 'font-medium text-warning-600' : 'text-ink-900 dark:text-ink-50'}>{formatMoney(s.balance, currency)}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (s) => (
                 <div className="flex justify-end gap-2">
                   {canUpdate && <button onClick={() => openEdit(s)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>}
@@ -167,7 +167,7 @@ export function SuppliersPage() {
         <div className="mt-5 border-t border-ink-100 dark:border-ink-800 pt-4">
           <div className="mb-2 flex items-center gap-2">
             <Package size={15} className="text-brand-600" />
-            <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">Produits livrés habituellement</p>
+            <p className="text-sm font-medium text-ink-900 dark:text-ink-50">Produits livrés habituellement</p>
           </div>
           <input value={productSearch} onChange={(e) => setProductSearch(e.target.value)} className="input mb-2" placeholder="Rechercher un produit…" />
           <div className="max-h-40 overflow-y-auto scroll-thin rounded-xl border border-ink-100 dark:border-ink-800">

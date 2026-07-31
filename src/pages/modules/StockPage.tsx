@@ -123,50 +123,24 @@ export function StockPage() {
     const qty = Number(transferForm.quantity);
     if (qty <= 0) { setTransferErr('La quantité doit être positive.'); return; }
 
-    // Client-side assignment check (server enforces too via RLS)
-    const canTransferFromSource = isAdmin || assignments.has(transferForm.source_store_id);
-    if (!canTransferFromSource) {
-      setTransferErr('Vous n\'êtes pas assigné au magasin source pour les transferts.');
-      return;
-    }
-
-    // Check source stock
-    const srcInv = inventory.find((i) => i.product_id === transferForm.product_id && i.store_id === transferForm.source_store_id);
-    if (!srcInv || Number(srcInv.quantity) < qty) {
-      setTransferErr('Stock insuffisant dans le magasin source.');
-      return;
-    }
-
-    const { error } = await supabase.from('stock_transfers').insert({
-      tenant_id: tenant.id,
-      product_id: transferForm.product_id,
-      source_store_id: transferForm.source_store_id,
-      dest_store_id: transferForm.dest_store_id,
-      quantity: qty,
-      status: 'pending',
-      notes: transferForm.notes || null,
-      initiated_by: user.id,
+    // Single atomic database transaction — checks stock, decrements source,
+    // creates the transfer and the movement log all-or-nothing server-side,
+    // instead of separate client round-trips that could race with a
+    // concurrent operation on the same product/store.
+    const { error } = await supabase.rpc('initiate_stock_transfer', {
+      p_tenant_id: tenant.id,
+      p_product_id: transferForm.product_id,
+      p_source_store_id: transferForm.source_store_id,
+      p_dest_store_id: transferForm.dest_store_id,
+      p_quantity: qty,
+      p_notes: transferForm.notes || null,
+      p_user_id: user.id,
     });
 
     if (error) {
-      setTransferErr(error.message.includes('row-level security') ? 'Autorisation refusée : vous n\'êtes pas assigné à ce magasin.' : error.message);
+      setTransferErr(error.message);
       return;
     }
-
-    // Decrement source inventory immediately
-    const { error: decErr } = await supabase.from('inventory').update({ quantity: Number(srcInv.quantity) - qty, updated_at: new Date().toISOString() }).eq('id', srcInv.id);
-    if (decErr) { setTransferErr(decErr.message); return; }
-
-    // Record stock movement (out of source)
-    await supabase.from('stock_movements').insert({
-      tenant_id: tenant.id,
-      product_id: transferForm.product_id,
-      store_id: transferForm.source_store_id,
-      movement_type: 'transfer_out',
-      quantity: qty,
-      reason: `Transfert vers ${stores.find((s) => s.id === transferForm.dest_store_id)?.name ?? ''}`,
-      user_id: user.id,
-    });
 
     setTransferOpen(false);
     setTransferForm({ product_id: '', source_store_id: '', dest_store_id: '', quantity: 1, notes: '' });
@@ -178,33 +152,8 @@ export function StockPage() {
 
   const receiveTransfer = async (t: any) => {
     if (!tenant || !user) return;
-    const canReceive = isAdmin || assignments.has(t.dest_store_id);
-    if (!canReceive) { toast('error', "Vous n'êtes pas assigné à ce magasin pour recevoir des transferts."); return; }
-
-    // Add to destination inventory
-    const destInv = inventory.find((i) => i.product_id === t.product_id && i.store_id === t.dest_store_id);
-    if (destInv) {
-      const { error } = await supabase.from('inventory').update({ quantity: Number(destInv.quantity) + Number(t.quantity), updated_at: new Date().toISOString() }).eq('id', destInv.id);
-      if (error) { toast('error', error.message); return; }
-    } else {
-      const { error } = await supabase.from('inventory').insert({ tenant_id: tenant.id, product_id: t.product_id, store_id: t.dest_store_id, quantity: t.quantity });
-      if (error) { toast('error', error.message); return; }
-    }
-
-    // Record stock movement (in to destination)
-    await supabase.from('stock_movements').insert({
-      tenant_id: tenant.id,
-      product_id: t.product_id,
-      store_id: t.dest_store_id,
-      movement_type: 'transfer_in',
-      quantity: t.quantity,
-      reason: `Transfert reçu de ${t.source?.name ?? ''}`,
-      user_id: user.id,
-    });
-
-    const { error: statusErr } = await supabase.from('stock_transfers').update({ status: 'received', received_by: user.id, received_at: new Date().toISOString() }).eq('id', t.id);
-    if (statusErr) { toast('error', statusErr.message); return; }
-
+    const { error } = await supabase.rpc('receive_stock_transfer', { p_transfer_id: t.id, p_user_id: user.id });
+    if (error) { toast('error', error.message); return; }
     const { data } = await supabase.from('inventory').select('*, product:products(name), store:stores(name)').eq('tenant_id', tenant.id);
     setInventory(data ?? []);
     await reloadTransfers();
@@ -213,17 +162,8 @@ export function StockPage() {
 
   const cancelTransfer = async (t: any) => {
     if (!tenant || !user) return;
-    // Restore source inventory
-    const srcInv = inventory.find((i) => i.product_id === t.product_id && i.store_id === t.source_store_id);
-    if (srcInv) {
-      const { error } = await supabase.from('inventory').update({ quantity: Number(srcInv.quantity) + Number(t.quantity), updated_at: new Date().toISOString() }).eq('id', srcInv.id);
-      if (error) { toast('error', error.message); return; }
-    } else {
-      const { error } = await supabase.from('inventory').insert({ tenant_id: tenant.id, product_id: t.product_id, store_id: t.source_store_id, quantity: t.quantity });
-      if (error) { toast('error', error.message); return; }
-    }
-    const { error: statusErr } = await supabase.from('stock_transfers').update({ status: 'cancelled' }).eq('id', t.id);
-    if (statusErr) { toast('error', statusErr.message); return; }
+    const { error } = await supabase.rpc('cancel_stock_transfer', { p_transfer_id: t.id, p_user_id: user.id });
+    if (error) { toast('error', error.message); return; }
     const { data } = await supabase.from('inventory').select('*, product:products(name), store:stores(name)').eq('tenant_id', tenant.id);
     setInventory(data ?? []);
     await reloadTransfers();
@@ -249,8 +189,8 @@ export function StockPage() {
       />
 
       <div className="mb-4 inline-flex rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
-        <button onClick={() => setTab('inventory')} className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${tab === 'inventory' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>Inventaire</button>
-        <button onClick={() => setTab('transfers')} className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${tab === 'transfers' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>Transferts {transfers.filter((t) => t.status === 'pending').length > 0 && <span className="ml-1 rounded-full bg-warning-500 px-1.5 text-[10px] text-white">{transfers.filter((t) => t.status === 'pending').length}</span>}</button>
+        <button onClick={() => setTab('inventory')} className={`rounded-lg px-4 py-2 text-sm font-medium transition ${tab === 'inventory' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>Inventaire</button>
+        <button onClick={() => setTab('transfers')} className={`rounded-lg px-4 py-2 text-sm font-medium transition ${tab === 'transfers' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>Transferts {transfers.filter((t) => t.status === 'pending').length > 0 && <span className="ml-1 rounded-full bg-warning-500 px-1.5 text-[10px] text-white">{transfers.filter((t) => t.status === 'pending').length}</span>}</button>
       </div>
 
       {tab === 'inventory' && (
@@ -271,7 +211,7 @@ export function StockPage() {
               <DataTable
                 loading={loading}
                 columns={[
-                  { key: 'name', label: 'Produit', render: (r) => <p className="font-semibold text-ink-900 dark:text-ink-50">{r.product.name}</p> },
+                  { key: 'name', label: 'Produit', render: (r) => <p className="font-medium text-ink-900 dark:text-ink-50">{r.product.name}</p> },
                   { key: 'sku', label: 'SKU', render: (r) => <span className="text-ink-500 dark:text-ink-400">{r.product.sku ?? '—'}</span> },
                   { key: 'stores', label: 'Répartition', render: (r) => (
                     <div className="flex flex-wrap gap-1">
@@ -280,13 +220,13 @@ export function StockPage() {
                       ))}
                     </div>
                   )},
-                  { key: 'total', label: 'Total', className: 'text-right', render: (r) => <span className="font-bold text-ink-900 dark:text-ink-50">{r.total}</span> },
+                  { key: 'total', label: 'Total', className: 'text-right', render: (r) => <span className="font-medium text-ink-900 dark:text-ink-50">{r.total}</span> },
                   { key: 'status', label: 'Statut', className: 'text-right', render: (r) => r.low ? <Badge tone="warning">Stock bas</Badge> : <Badge tone="success">OK</Badge> },
                   ...(canCreate ? [{
                     key: 'actions', label: '', className: 'text-right', render: (r: any) => (
                       <button
                         onClick={() => { setForm({ product_id: r.product.id, store_id: storeFilter || stores[0]?.id || '', type: 'in', quantity: 1, reason: '' }); setMoveOpen(true); }}
-                        className="rounded-lg border border-ink-200 dark:border-ink-700 px-2.5 py-1 text-xs font-semibold text-brand-600 transition hover:bg-brand-50 dark:hover:bg-brand-900/25"
+                        className="rounded-lg border border-ink-200 dark:border-ink-700 px-2.5 py-1 text-xs font-medium text-brand-600 transition hover:bg-brand-50 dark:hover:bg-brand-900/25"
                       >
                         Ajuster
                       </button>
@@ -309,9 +249,9 @@ export function StockPage() {
               loading={loading}
               columns={[
                 { key: 'date', label: 'Date', render: (t) => <span className="text-ink-500 dark:text-ink-400">{new Date(t.created_at).toLocaleDateString('fr-FR')}</span> },
-                { key: 'product', label: 'Produit', render: (t) => <span className="font-semibold text-ink-900 dark:text-ink-50">{t.product?.name ?? '—'}</span> },
+                { key: 'product', label: 'Produit', render: (t) => <span className="font-medium text-ink-900 dark:text-ink-50">{t.product?.name ?? '—'}</span> },
                 { key: 'route', label: 'Itinéraire', render: (t) => <span className="text-ink-600 dark:text-ink-300">{t.source?.name} → {t.dest?.name}</span> },
-                { key: 'qty', label: 'Qté', className: 'text-right', render: (t) => <span className="font-bold text-ink-900 dark:text-ink-50">{t.quantity}</span> },
+                { key: 'qty', label: 'Qté', className: 'text-right', render: (t) => <span className="font-medium text-ink-900 dark:text-ink-50">{t.quantity}</span> },
                 { key: 'status', label: 'Statut', render: (t) => <Badge tone={t.status === 'received' ? 'success' : t.status === 'cancelled' ? 'error' : 'warning'}>{t.status === 'received' ? 'Reçu' : t.status === 'cancelled' ? 'Annulé' : 'En cours'}</Badge> },
                 { key: 'actions', label: '', className: 'text-right', render: (t) => (
                   <div className="flex justify-end gap-2">
