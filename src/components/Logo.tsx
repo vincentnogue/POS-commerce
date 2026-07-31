@@ -16,8 +16,8 @@ export function Logo({ size = 'md', clickable = false }: { size?: 'sm' | 'md' | 
         </div>
         <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-action-500 ring-2 ring-white" />
       </div>
-      <span className={`font-medium tracking-tight text-ink-900 dark:text-ink-50 ${s.text}`}>
-        POS <span className="text-gradient-flow">Flow</span>
+      <span className={`tracking-tight text-ink-900 dark:text-ink-50 ${s.text}`}>
+        <span className="font-semibold">POS</span> <span className="font-medium text-gradient-flow">Flow</span>
       </span>
     </div>
   );

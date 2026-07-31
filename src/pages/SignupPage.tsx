@@ -61,7 +61,7 @@ export function SignupPage() {
             <ArrowLeft size={15} /> Retour
           </Link>
           <div className="lg:hidden mb-6"><Link to="/"><Logo size="lg" /></Link></div>
-          <h1 className="text-2xl font-medium text-ink-900 dark:text-ink-50">Créer votre compte</h1>
+          <h1 className="text-2xl font-semibold text-ink-900 dark:text-ink-50">Créer votre compte</h1>
           <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">L'onboarding vous guidera ensuite pour configurer votre commerce.</p>
 
           <form onSubmit={submit} className="mt-6 space-y-4">

@@ -28,7 +28,7 @@ export function FooterPageLayout({ title, children }: { title: string; children:
         </div>
       </header>
       <article className="mx-auto max-w-3xl px-4 py-12 lg:px-8">
-        <h1 className="text-3xl font-medium tracking-tight text-ink-900 dark:text-ink-50 sm:text-4xl">{title}</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-ink-900 dark:text-ink-50 sm:text-4xl">{title}</h1>
         <div className="mt-8 space-y-6 text-ink-700 dark:text-ink-200 leading-relaxed">{children}</div>
       </article>
     </div>

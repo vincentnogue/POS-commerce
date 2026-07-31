@@ -39,7 +39,7 @@ export function PricingPage() {
           className="mx-auto max-w-2xl text-center"
         >
           <p className="text-sm font-medium uppercase tracking-wide text-brand-600">{t('nav.pricing')}</p>
-          <h1 className="mt-2 text-4xl font-medium tracking-tight text-ink-900 dark:text-ink-50 sm:text-5xl">Un plan pour chaque ambition</h1>
+          <h1 className="mt-2 text-4xl font-semibold tracking-tight text-ink-900 dark:text-ink-50 sm:text-5xl">Un plan pour chaque ambition</h1>
           <p className="mt-4 text-lg text-ink-600 dark:text-ink-300">{t('pricing.subtitle')}</p>
 
           {/* Monthly / Annual toggle */}
