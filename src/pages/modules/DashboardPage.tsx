@@ -130,10 +130,10 @@ export function DashboardPage() {
         >
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">{t('dashboard.chart.title')}</h3>
+              <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t('dashboard.chart.title')}</h3>
               <p className="text-xs text-ink-500 dark:text-ink-400">{formatMoney(chartData.reduce((s, d) => s + d.value, 0), currency)} {t('dashboard.chart.total')}</p>
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 dark:bg-brand-900/25 px-2.5 py-1 text-xs font-semibold text-brand-700">
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 dark:bg-brand-900/25 px-2.5 py-1 text-xs font-medium text-brand-700">
               <TrendingUp size={12} /> {t('dashboard.chart.weekly')}
             </span>
           </div>
@@ -165,7 +165,7 @@ export function DashboardPage() {
           transition={{ duration: 0.4, delay: 0.2 }}
           className="card p-6"
         >
-          <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-ink-900 dark:text-ink-50">
+          <h3 className="mb-4 flex items-center gap-2 text-base font-medium text-ink-900 dark:text-ink-50">
             <Zap size={16} className="text-action-500" /> {t('dashboard.shortcuts.title')}
           </h3>
           <div className="space-y-2.5">
@@ -179,7 +179,7 @@ export function DashboardPage() {
                   <s.icon size={16} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{s.label}</p>
+                  <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{s.label}</p>
                   <p className="text-xs text-ink-500 dark:text-ink-400">{s.desc}</p>
                 </div>
                 <ArrowRight size={15} className="text-ink-400 dark:text-ink-500 transition group-hover:text-action-500" />
@@ -197,8 +197,8 @@ export function DashboardPage() {
         className="card mt-6 p-6"
       >
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">{t('dashboard.recentSales.title')}</h3>
-          <Link to="/invoices" className="text-xs font-semibold text-brand-600 hover:underline">{t('dashboard.recentSales.viewAll')}</Link>
+          <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t('dashboard.recentSales.title')}</h3>
+          <Link to="/invoices" className="text-xs font-medium text-brand-600 hover:underline">{t('dashboard.recentSales.viewAll')}</Link>
         </div>
         {loading ? (
           <p className="py-8 text-center text-sm text-ink-400 dark:text-ink-500">{t('dashboard.recentSales.loading')}</p>
@@ -207,7 +207,7 @@ export function DashboardPage() {
             <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 dark:bg-brand-900/25 text-brand-500">
               <Sparkles size={22} />
             </div>
-            <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{t('dashboard.recentSales.empty')}</p>
+            <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{t('dashboard.recentSales.empty')}</p>
             <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">{t('dashboard.recentSales.emptyDesc')}</p>
             <Link to="/pos" className="btn-primary mt-4"><Plus size={15} /> {t('dashboard.recentSales.emptyCta')}</Link>
           </div>
@@ -216,10 +216,10 @@ export function DashboardPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
-                  <th className="pb-2 font-semibold">{t('dashboard.table.reference')}</th>
-                  <th className="pb-2 font-semibold">{t('dashboard.table.date')}</th>
-                  <th className="pb-2 font-semibold">{t('dashboard.table.payment')}</th>
-                  <th className="pb-2 text-right font-semibold">{t('dashboard.table.amount')}</th>
+                  <th className="pb-2 font-medium">{t('dashboard.table.reference')}</th>
+                  <th className="pb-2 font-medium">{t('dashboard.table.date')}</th>
+                  <th className="pb-2 font-medium">{t('dashboard.table.payment')}</th>
+                  <th className="pb-2 text-right font-medium">{t('dashboard.table.amount')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -232,7 +232,7 @@ export function DashboardPage() {
                         {s.payment_status === 'paid' ? t('dashboard.paid') : t('dashboard.unpaid')}
                       </span>
                     </td>
-                    <td className="py-3 text-right font-semibold text-ink-900 dark:text-ink-50">{formatMoney(s.total, currency)}</td>
+                    <td className="py-3 text-right font-medium text-ink-900 dark:text-ink-50">{formatMoney(s.total, currency)}</td>
                   </tr>
                 ))}
               </tbody>

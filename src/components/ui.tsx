@@ -29,8 +29,8 @@ export function StatCard({
       <div className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full ${tones[tone]}`}>
         <Icon size={18} strokeWidth={2} />
       </div>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-500 dark:text-ink-400">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-ink-900 dark:text-ink-50">{value}</p>
+      <p className="text-[11px] font-medium uppercase tracking-wide text-ink-500 dark:text-ink-400">{label}</p>
+      <p className="mt-1 text-2xl font-medium text-ink-900 dark:text-ink-50">{value}</p>
     </motion.div>
   );
 }
@@ -45,7 +45,7 @@ export function PageHeader({
   return (
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-ink-900 dark:text-ink-50 sm:text-3xl">{title}</h1>
+        <h1 className="text-2xl font-medium tracking-tight text-ink-900 dark:text-ink-50 sm:text-3xl">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{subtitle}</p>}
       </div>
       {action && <div className="flex items-center gap-2">{action}</div>}
@@ -66,7 +66,7 @@ export function EmptyState({
       <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 dark:bg-brand-900/25 text-brand-500">
         <Icon size={26} />
       </div>
-      <h3 className="text-lg font-semibold text-ink-900 dark:text-ink-50">{title}</h3>
+      <h3 className="text-lg font-medium text-ink-900 dark:text-ink-50">{title}</h3>
       {description && <p className="mt-1 max-w-sm text-sm text-ink-500 dark:text-ink-400">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
@@ -111,7 +111,7 @@ export function Modal({
         className={`relative w-full ${maxWidth} rounded-2xl2 bg-white dark:bg-ink-800 p-6 shadow-float`}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-ink-900 dark:text-ink-50">{title}</h2>
+          <h2 className="text-lg font-medium text-ink-900 dark:text-ink-50">{title}</h2>
           <button onClick={onClose} className="rounded-full p-1 text-ink-400 dark:text-ink-500 hover:bg-ink-100 dark:hover:bg-ink-800 hover:text-ink-700 dark:text-ink-200">✕</button>
         </div>
         {children}
@@ -165,7 +165,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 className={`flex items-center gap-3 rounded-xl border px-4 py-3 shadow-float ${tones[t.tone]}`}
               >
                 <Icon size={18} className="shrink-0" />
-                <span className="text-sm font-semibold">{t.message}</span>
+                <span className="text-sm font-medium">{t.message}</span>
                 <button onClick={() => setToasts((prev) => prev.filter((x) => x.id !== t.id))} className="ml-2 opacity-60 hover:opacity-100">
                   <X size={14} />
                 </button>

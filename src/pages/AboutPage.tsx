@@ -25,14 +25,14 @@ export function AboutPage() {
             className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 dark:bg-brand-900/25 p-6"
           >
             <v.icon className="mb-3 text-brand-600" size={24} />
-            <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">{v.title}</h3>
+            <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{v.title}</h3>
             <p className="mt-2 text-sm text-ink-600 dark:text-ink-300">{v.text}</p>
           </motion.div>
         ))}
       </div>
 
       <section>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('about.history.title')}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('about.history.title')}</h2>
         <p>{t('about.history.p1')}</p>
         <p className="mt-4">{t('about.history.p2')}</p>
       </section>

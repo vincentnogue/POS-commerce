@@ -17,10 +17,10 @@ export function TrialBanner() {
       <div className="sticky top-16 z-10 flex items-center justify-between gap-3 border-b border-error-200 bg-error-50 dark:bg-error-900/25 px-4 py-2.5 text-sm lg:px-8">
         <div className="flex items-center gap-2 text-error-700">
           <AlertCircle size={16} className="shrink-0" />
-          <span className="font-semibold">Votre essai gratuit est terminé.</span>
+          <span className="font-medium">Votre essai gratuit est terminé.</span>
           <span className="hidden sm:inline">Choisissez un forfait pour retrouver l'accès à vos modules.</span>
         </div>
-        <Link to="/subscribe" className="shrink-0 rounded-lg bg-error-600 px-4 py-1.5 text-xs font-bold text-white transition hover:bg-error-700">
+        <Link to="/subscribe" className="shrink-0 rounded-lg bg-error-600 px-4 py-1.5 text-xs font-medium text-white transition hover:bg-error-700">
           Choisir un forfait
         </Link>
       </div>
@@ -33,10 +33,10 @@ export function TrialBanner() {
     <div className={`sticky top-16 z-10 flex items-center justify-between gap-3 border-b px-4 py-2.5 text-sm lg:px-8 ${tone}`}>
       <div className="flex items-center gap-2">
         <Clock size={16} className="shrink-0" />
-        <span className="font-semibold">Il vous reste {daysLeft} jour{daysLeft > 1 ? 's' : ''} d'essai gratuit.</span>
+        <span className="font-medium">Il vous reste {daysLeft} jour{daysLeft > 1 ? 's' : ''} d'essai gratuit.</span>
         <span className="hidden sm:inline">Choisissez un forfait pour éviter toute interruption.</span>
       </div>
-      <Link to="/subscribe" className="shrink-0 rounded-lg bg-white/80 dark:bg-ink-800/80 px-4 py-1.5 text-xs font-bold text-ink-800 dark:text-ink-100 transition hover:bg-white dark:hover:bg-ink-800">
+      <Link to="/subscribe" className="shrink-0 rounded-lg bg-white/80 dark:bg-ink-800/80 px-4 py-1.5 text-xs font-medium text-ink-800 dark:text-ink-100 transition hover:bg-white dark:hover:bg-ink-800">
         Choisir un forfait
       </Link>
     </div>

@@ -43,9 +43,9 @@ export function BlogPage() {
               {p.published_at ? new Date(p.published_at).toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
               · {p.author}
             </div>
-            <h2 className="text-lg font-bold text-ink-900 dark:text-ink-50 group-hover:text-brand-600">{p.title}</h2>
+            <h2 className="text-lg font-medium text-ink-900 dark:text-ink-50 group-hover:text-brand-600">{p.title}</h2>
             {p.excerpt && <p className="mt-2 text-sm text-ink-600 dark:text-ink-300 line-clamp-3">{p.excerpt}</p>}
-            <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-600">
+            <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600">
               {t('blog.readMore')} <ArrowRight size={14} className="transition group-hover:translate-x-0.5" />
             </span>
           </Link>

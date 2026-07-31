@@ -39,14 +39,14 @@ export function SignupPage() {
         <div className="relative flex h-full flex-col justify-between p-12 text-white">
           <Logo size="lg" clickable />
           <div>
-            <h2 className="text-4xl font-extrabold leading-tight">Démarrez gratuitement,<br />en 5 minutes.</h2>
+            <h2 className="text-4xl font-medium leading-tight">Démarrez gratuitement,<br />en 5 minutes.</h2>
             <ul className="mt-6 space-y-3 text-brand-50">
               {['Aucune carte bancaire requise', 'POS, stock, facturation inclus', 'Multi-magasins, multi-devises', 'Mobile Money intégré'].map((f) => (
                 <li key={f} className="flex items-center gap-2"><Check size={16} /> {f}</li>
               ))}
             </ul>
           </div>
-          <p className="text-sm text-brand-50">© LiAfrik — Dubaï / Afrique</p>
+          <p className="text-sm text-brand-50">© {new Date().getFullYear()} LiAfrik — Dubaï / Afrique</p>
         </div>
       </div>
 
@@ -61,7 +61,7 @@ export function SignupPage() {
             <ArrowLeft size={15} /> Retour
           </Link>
           <div className="lg:hidden mb-6"><Link to="/"><Logo size="lg" /></Link></div>
-          <h1 className="text-2xl font-bold text-ink-900 dark:text-ink-50">Créer votre compte</h1>
+          <h1 className="text-2xl font-medium text-ink-900 dark:text-ink-50">Créer votre compte</h1>
           <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">L'onboarding vous guidera ensuite pour configurer votre commerce.</p>
 
           <form onSubmit={submit} className="mt-6 space-y-4">
@@ -98,7 +98,7 @@ export function SignupPage() {
 
           <p className="mt-6 text-center text-sm text-ink-500 dark:text-ink-400">
             Déjà un compte ?{' '}
-            <Link to="/login" className="font-semibold text-brand-600 hover:underline">Se connecter</Link>
+            <Link to="/login" className="font-medium text-brand-600 hover:underline">Se connecter</Link>
           </p>
         </motion.div>
       </div>

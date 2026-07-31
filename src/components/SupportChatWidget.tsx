@@ -121,7 +121,7 @@ export function SupportChatWidget() {
       >
         {open ? <X size={22} /> : <MessageCircle size={22} />}
         {!open && unread > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-error-500 text-[10px] font-bold text-white">{unread}</span>
+          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-error-500 text-[10px] font-medium text-white">{unread}</span>
         )}
       </button>
 
@@ -130,7 +130,7 @@ export function SupportChatWidget() {
           <div className="flex items-center gap-2 border-b border-ink-100 dark:border-ink-800 bg-brand-500 px-4 py-3 text-white">
             {status === 'ai' ? <Sparkles size={18} /> : <Headset size={18} />}
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold">Support POS Flow</p>
+              <p className="text-sm font-medium">Support POS Flow</p>
               <p className="text-[11px] text-brand-50">
                 {status === 'ai' && "Assistant IA — en ligne"}
                 {status === 'pending_human' && "En attente d'un agent…"}
@@ -165,7 +165,7 @@ export function SupportChatWidget() {
           {status !== 'closed' && (
             <div className="border-t border-ink-100 dark:border-ink-800 p-3">
               {status === 'ai' && (
-                <button onClick={requestHuman} className="mb-2 w-full rounded-lg border border-ink-200 dark:border-ink-700 py-1.5 text-xs font-semibold text-ink-600 dark:text-ink-300 transition hover:border-brand-300 hover:text-brand-600">
+                <button onClick={requestHuman} className="mb-2 w-full rounded-lg border border-ink-200 dark:border-ink-700 py-1.5 text-xs font-medium text-ink-600 dark:text-ink-300 transition hover:border-brand-300 hover:text-brand-600">
                   <Headset size={12} className="mr-1 inline" /> Parler à un membre de l'équipe
                 </button>
               )}

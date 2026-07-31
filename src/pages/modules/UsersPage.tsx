@@ -212,12 +212,12 @@ export function UsersPage() {
       <div className="mb-4 inline-flex rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
         <button
           onClick={() => setTab('members')}
-          className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${tab === 'members' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${tab === 'members' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
         >Équipe</button>
         {canManageRoles && (
           <button
             onClick={() => setTab('roles')}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${tab === 'roles' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition ${tab === 'roles' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
           >Rôles & Permissions</button>
         )}
       </div>
@@ -233,11 +233,11 @@ export function UsersPage() {
                 return (
                   <div key={m.id} className="flex flex-col gap-3 rounded-xl border border-ink-100 dark:border-ink-800 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-action-500 text-sm font-bold text-white">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-action-500 text-sm font-medium text-white">
                         {(m.display_name ?? '?').slice(0, 2).toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{m.display_name ?? 'Invité'}</p>
+                        <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{m.display_name ?? 'Invité'}</p>
                         {m.user_id === member?.user_id && <p className="text-xs text-ink-500 dark:text-ink-400">Vous</p>}
                         {customRole && <p className="text-xs text-brand-600">{customRole.name}</p>}
                       </div>
@@ -302,7 +302,7 @@ export function UsersPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
                           <Shield size={16} className="text-brand-600" />
-                          <h4 className="font-semibold text-ink-900 dark:text-ink-50">{r.name}</h4>
+                          <h4 className="font-medium text-ink-900 dark:text-ink-50">{r.name}</h4>
                         </div>
                         <div className="flex gap-1">
                           <button onClick={() => openEditRole(r)} className="rounded-md p-1 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={13} /></button>
@@ -361,7 +361,7 @@ export function UsersPage() {
           </div>
           <div className="rounded-xl border border-ink-100 dark:border-ink-800">
             <div className="flex items-center justify-between border-b border-ink-100 dark:border-ink-800 px-4 py-2.5">
-              <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">Matrice de permissions</p>
+              <p className="text-sm font-medium text-ink-900 dark:text-ink-50">Matrice de permissions</p>
               <div className="flex gap-2 text-[10px]">
                 <span className="font-medium text-ink-400 dark:text-ink-500">Module</span>
                 <span className="flex-1 text-center font-medium text-ink-400 dark:text-ink-500">Droits (Voir / Créer / Modifier / Supprimer)</span>
@@ -378,7 +378,7 @@ export function UsersPage() {
                         <button
                           key={a}
                           onClick={() => togglePerm(m, a)}
-                          className={`rounded-md px-2.5 py-1 text-[11px] font-semibold transition ${
+                          className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition ${
                             active ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-500 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700'
                           }`}
                           title={`${ACTION_LABELS[a]} — ${MODULE_LABELS[m]}`}

@@ -25,12 +25,12 @@ export function CareersPage() {
       <p className="text-ink-600 dark:text-ink-300">{t('careers.intro')}</p>
 
       <section className="mt-8">
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('careers.culture.title')}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('careers.culture.title')}</h2>
         <p>{t('careers.culture.text')}</p>
       </section>
 
       <section className="mt-8">
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{t('careers.openRoles.title')}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('careers.openRoles.title')}</h2>
         <div className="mt-4 space-y-4">
           {loading && [0, 1].map((i) => (
             <div key={i} className="h-24 animate-pulse rounded-2xl bg-ink-100 dark:bg-ink-800" />
@@ -42,11 +42,11 @@ export function CareersPage() {
             <div key={j.id} className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h3 className="text-base font-bold text-ink-900 dark:text-ink-50">{j.title}</h3>
+                  <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{j.title}</h3>
                   <div className="mt-1 flex flex-wrap gap-3 text-xs text-ink-500 dark:text-ink-400">
                     {j.department && <span className="inline-flex items-center gap-1"><Briefcase size={12} /> {j.department}</span>}
                     {j.location && <span className="inline-flex items-center gap-1"><MapPin size={12} /> {j.location}</span>}
-                    <span className="rounded-full bg-brand-50 dark:bg-brand-900/25 px-2 py-0.5 font-semibold text-brand-700">{j.type}</span>
+                    <span className="rounded-full bg-brand-50 dark:bg-brand-900/25 px-2 py-0.5 font-medium text-brand-700">{j.type}</span>
                   </div>
                   <p className="mt-2 text-sm text-ink-600 dark:text-ink-300">{j.description.slice(0, 180)}{j.description.length > 180 ? '...' : ''}</p>
                 </div>

@@ -320,11 +320,11 @@ export function OnboardingPage() {
                       }`}
                     >
                       <div>
-                        <p className="text-sm font-bold text-ink-900 dark:text-ink-50">{p.name}</p>
+                        <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{p.name}</p>
                         <p className="text-xs text-ink-500 dark:text-ink-400">{p.desc}</p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-sm font-semibold text-brand-700">{p.price}</span>
+                        <span className="text-sm font-medium text-brand-700">{p.price}</span>
                         <div className={`flex h-5 w-5 items-center justify-center rounded-full border ${planCode === p.code ? 'border-brand-500 bg-brand-500' : 'border-ink-300 dark:border-ink-600'}`}>
                           {planCode === p.code && <Check size={12} className="text-white" />}
                         </div>
@@ -399,12 +399,12 @@ export function OnboardingPage() {
                     <button onClick={verifyCode} className="btn-ghost shrink-0">Vérifier</button>
                   </div>
                   {commercialCodeValid === true && (
-                    <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-success-700">
+                    <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-success-700">
                       <Check size={14} /> Code valide — rattaché à {commercialRep}
                     </p>
                   )}
                   {commercialCodeValid === false && (
-                    <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-error-600">
+                    <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-error-600">
                       <AlertCircle size={14} /> Code invalide ou inactif
                     </p>
                   )}
@@ -447,7 +447,7 @@ function StepHeader({ icon: Icon, title, subtitle }: { icon: typeof Building2; t
         <Icon size={20} />
       </div>
       <div>
-        <h2 className="text-xl font-bold text-ink-900 dark:text-ink-50">{title}</h2>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{title}</h2>
         <p className="text-sm text-ink-500 dark:text-ink-400">{subtitle}</p>
       </div>
     </div>

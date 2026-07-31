@@ -110,7 +110,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
               className="flex w-full items-center justify-between rounded-xl border border-brand-100 bg-white dark:bg-ink-800 px-3 py-2.5 text-left transition hover:border-brand-200"
             >
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-ink-900 dark:text-ink-50">{tenant?.name ?? 'Aucun magasin'}</p>
+                <p className="truncate text-sm font-medium text-ink-900 dark:text-ink-50">{tenant?.name ?? 'Aucun magasin'}</p>
                 <p className="truncate text-xs text-ink-500 dark:text-ink-400">
                   {tenant?.city ?? '—'} · {tenant?.country_name}
                 </p>
@@ -130,7 +130,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
                       key={t.id}
                       onClick={() => { switchTenant(t.id); setTenantMenuOpen(false); }}
                       className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-brand-50 dark:hover:bg-brand-900/25 ${
-                        t.id === tenant?.id ? 'bg-brand-50 dark:bg-brand-900/25 font-semibold' : ''
+                        t.id === tenant?.id ? 'bg-brand-50 dark:bg-brand-900/25 font-medium' : ''
                       }`}
                     >
                       <div className="min-w-0">
@@ -191,17 +191,17 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
         {/* Profile + sign out */}
         <div className="m-3 rounded-xl border border-brand-100 bg-white dark:bg-ink-800 p-3">
           <div className="flex items-center gap-3">
-            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white ${avatarColor}`}>
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-medium text-white ${avatarColor}`}>
               {initials}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-ink-900 dark:text-ink-50">{member?.display_name ?? tenant?.name ?? user?.email}</p>
+              <p className="truncate text-sm font-medium text-ink-900 dark:text-ink-50">{member?.display_name ?? tenant?.name ?? user?.email}</p>
               <p className="truncate text-xs text-ink-500 dark:text-ink-400">{member ? ROLE_LABELS[(member.role as Role) ?? 'staff'] : '—'}</p>
             </div>
           </div>
           <button
             onClick={handleSignOut}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold text-ink-700 dark:text-ink-200 transition hover:border-error-200 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-medium text-ink-700 dark:text-ink-200 transition hover:border-error-200 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"
           >
             <LogOut size={15} /> Se déconnecter
           </button>

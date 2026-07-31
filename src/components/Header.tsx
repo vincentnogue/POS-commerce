@@ -75,7 +75,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
       <div className="ml-auto flex items-center gap-2">
         <button
           onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
-          className="inline-flex h-9 items-center gap-1 rounded-full border border-ink-200 dark:border-ink-700 px-3 text-xs font-bold text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
+          className="inline-flex h-9 items-center gap-1 rounded-full border border-ink-200 dark:border-ink-700 px-3 text-xs font-medium text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
           aria-label="Switch language"
         >
           {LANG_LABELS[lang]}
@@ -105,7 +105,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
           >
             <Bell size={17} />
             {unread > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-action-500 px-1 text-[10px] font-bold text-white">
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-action-500 px-1 text-[10px] font-medium text-white">
                 {unread}
               </span>
             )}
@@ -113,9 +113,9 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
           {notifOpen && (
             <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl2 border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 py-2 shadow-float">
               <div className="flex items-center justify-between px-4 py-2">
-                <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">Notifications</p>
+                <p className="text-sm font-medium text-ink-900 dark:text-ink-50">Notifications</p>
                 {unread > 0 && (
-                  <button onClick={markAllRead} className="text-xs font-semibold text-brand-600 hover:underline">
+                  <button onClick={markAllRead} className="text-xs font-medium text-brand-600 hover:underline">
                     Tout marquer lu
                   </button>
                 )}
@@ -128,7 +128,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
                 ) : (
                   notifs.map((n) => (
                     <div key={n.id} className={`border-t border-ink-100 dark:border-ink-800 px-4 py-3 ${n.read ? '' : 'bg-brand-50/50 dark:bg-brand-900/25'}`}>
-                      <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{n.title}</p>
+                      <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{n.title}</p>
                       {n.body && <p className="mt-0.5 text-xs text-ink-500 dark:text-ink-400">{n.body}</p>}
                     </div>
                   ))

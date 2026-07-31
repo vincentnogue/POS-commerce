@@ -21,7 +21,7 @@ export function DataTable<T>({
         <thead>
           <tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">
             {columns.map((c) => (
-              <th key={c.key} className={`pb-2.5 font-semibold ${c.className ?? ''}`}>{c.label}</th>
+              <th key={c.key} className={`pb-2.5 font-medium ${c.className ?? ''}`}>{c.label}</th>
             ))}
           </tr>
         </thead>

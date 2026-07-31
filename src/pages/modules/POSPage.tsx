@@ -241,8 +241,8 @@ export function POSPage() {
                     <div className="mb-2 flex h-16 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/25 text-brand-500">
                       {p.image_url ? <img src={p.image_url} alt={p.name} className="h-full w-full rounded-lg object-cover" /> : <ShoppingCart size={22} />}
                     </div>
-                    <p className="line-clamp-2 text-sm font-semibold text-ink-900 dark:text-ink-50">{p.name}</p>
-                    <p className="mt-1 text-sm font-bold text-brand-700">{formatMoney(p.sale_price, currency)}</p>
+                    <p className="line-clamp-2 text-sm font-medium text-ink-900 dark:text-ink-50">{p.name}</p>
+                    <p className="mt-1 text-sm font-medium text-brand-700">{formatMoney(p.sale_price, currency)}</p>
                     {p.sku && <p className="text-xs text-ink-400 dark:text-ink-500">SKU: {p.sku}</p>}
                   </button>
                 ))}
@@ -253,7 +253,7 @@ export function POSPage() {
 
         {/* Cart */}
         <div className="card flex flex-col p-5">
-          <h3 className="mb-3 flex items-center gap-2 font-semibold text-ink-900 dark:text-ink-50">
+          <h3 className="mb-3 flex items-center gap-2 font-medium text-ink-900 dark:text-ink-50">
             <Receipt size={18} /> Panier ({cart.length})
           </h3>
           {cart.length === 0 ? (
@@ -273,7 +273,7 @@ export function POSPage() {
                     className="rounded-xl border border-ink-200 dark:border-ink-700 p-3"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-semibold text-ink-900 dark:text-ink-50">{i.product.name}</p>
+                      <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{i.product.name}</p>
                       <button onClick={() => removeItem(i.product.id)} className="text-ink-400 dark:text-ink-500 hover:text-error-500">
                         <Trash2 size={14} />
                       </button>
@@ -293,7 +293,7 @@ export function POSPage() {
                           <Plus size={12} />
                         </button>
                       </div>
-                      <span className="text-sm font-semibold text-ink-900 dark:text-ink-50">{formatMoney(i.quantity * i.unit_price, currency)}</span>
+                      <span className="text-sm font-medium text-ink-900 dark:text-ink-50">{formatMoney(i.quantity * i.unit_price, currency)}</span>
                     </div>
                   </motion.div>
                 ))}
@@ -306,7 +306,7 @@ export function POSPage() {
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>Sous-total</span><span>{formatMoney(subtotal, currency)}</span></div>
                 <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>Taxes</span><span>{formatMoney(taxTotal, currency)}</span></div>
-                <div className="flex justify-between text-base font-bold text-ink-900 dark:text-ink-50"><span>Total</span><span>{formatMoney(total, currency)}</span></div>
+                <div className="flex justify-between text-base font-medium text-ink-900 dark:text-ink-50"><span>Total</span><span>{formatMoney(total, currency)}</span></div>
               </div>
               <button onClick={() => setCheckoutOpen(true)} className="btn-primary mt-4 w-full justify-center py-3">
                 Encaisser · {formatMoney(total, currency)}
@@ -340,7 +340,7 @@ export function POSPage() {
                 <button
                   key={m.id}
                   onClick={() => setPaymentMethod(m.id)}
-                  className={`flex flex-col items-center gap-1 rounded-xl border p-3 text-xs font-semibold transition ${
+                  className={`flex flex-col items-center gap-1 rounded-xl border p-3 text-xs font-medium transition ${
                     paymentMethod === m.id ? 'border-brand-400 bg-brand-50 dark:bg-brand-900/25 text-brand-700' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-200'
                   }`}
                 >
@@ -354,7 +354,7 @@ export function POSPage() {
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setDeliveryChoice('delivered')}
-                className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-semibold transition ${
+                className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-medium transition ${
                   deliveryChoice === 'delivered' ? 'border-success-400 bg-success-50 dark:bg-success-900/25 text-success-700' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-success-200'
                 }`}
               >
@@ -362,7 +362,7 @@ export function POSPage() {
               </button>
               <button
                 onClick={() => setDeliveryChoice('pending')}
-                className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-semibold transition ${
+                className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-medium transition ${
                     deliveryChoice === 'pending' ? 'border-warning-400 bg-warning-50 dark:bg-warning-900/25 text-warning-700' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-warning-200'
                 }`}
               >
@@ -373,7 +373,7 @@ export function POSPage() {
           </div>
           <div className="rounded-xl bg-brand-50 dark:bg-brand-900/25 p-4 text-center">
             <p className="text-xs uppercase text-ink-500 dark:text-ink-400">Total à payer</p>
-            <p className="text-2xl font-bold text-brand-700">{formatMoney(total, currency)}</p>
+            <p className="text-2xl font-medium text-brand-700">{formatMoney(total, currency)}</p>
           </div>
           {paymentMethod === 'cash' && (
             <div>
@@ -386,7 +386,7 @@ export function POSPage() {
                 placeholder={String(total)}
               />
               {paidAmount && Number(paidAmount) > total && (
-                <p className="mt-1 text-xs font-semibold text-success-700">Rendu : {formatMoney(Number(paidAmount) - total, currency)}</p>
+                <p className="mt-1 text-xs font-medium text-success-700">Rendu : {formatMoney(Number(paidAmount) - total, currency)}</p>
               )}
             </div>
           )}

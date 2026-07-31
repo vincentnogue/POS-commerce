@@ -75,18 +75,18 @@ export function SubscribePage() {
         >
           {!access.hasActiveSubscription && access.trialDaysLeft > 0 ? (
             <>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-warning-50 dark:bg-warning-900/25 px-4 py-1.5 text-sm font-semibold text-warning-700">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-warning-50 dark:bg-warning-900/25 px-4 py-1.5 text-sm font-medium text-warning-700">
                 <Clock size={15} /> Il vous reste {access.trialDaysLeft} jour{access.trialDaysLeft > 1 ? 's' : ''} d'essai
               </div>
-              <h1 className="text-3xl font-extrabold text-ink-900 dark:text-ink-50">Choisissez votre forfait</h1>
+              <h1 className="text-3xl font-medium text-ink-900 dark:text-ink-50">Choisissez votre forfait</h1>
               <p className="mt-2 text-sm text-ink-500 dark:text-ink-400">Continuez à utiliser POS Flow sans interruption après votre essai.</p>
             </>
           ) : (
             <>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-error-50 dark:bg-error-900/25 px-4 py-1.5 text-sm font-semibold text-error-700">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-error-50 dark:bg-error-900/25 px-4 py-1.5 text-sm font-medium text-error-700">
                 <AlertCircle size={15} /> Votre essai est terminé
               </div>
-              <h1 className="text-3xl font-extrabold text-ink-900 dark:text-ink-50">Activez votre abonnement</h1>
+              <h1 className="text-3xl font-medium text-ink-900 dark:text-ink-50">Activez votre abonnement</h1>
               <p className="mt-2 text-sm text-ink-500 dark:text-ink-400">Choisissez un forfait pour retrouver l'accès à vos modules.</p>
             </>
           )}
@@ -102,11 +102,11 @@ export function SubscribePage() {
           <div className="inline-flex rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
             <button
               onClick={() => setBilling('monthly')}
-              className={`rounded-full px-5 py-2 text-sm font-semibold transition ${billing === 'monthly' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
+              className={`rounded-full px-5 py-2 text-sm font-medium transition ${billing === 'monthly' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
             >Mensuel</button>
             <button
               onClick={() => setBilling('annual')}
-              className={`rounded-full px-5 py-2 text-sm font-semibold transition ${billing === 'annual' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
+              className={`rounded-full px-5 py-2 text-sm font-medium transition ${billing === 'annual' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
             >Annuel <span className="text-xs opacity-80">2 mois offerts</span></button>
           </div>
         </div>
@@ -115,11 +115,11 @@ export function SubscribePage() {
           <div className="inline-flex rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
             <button
               onClick={() => setProvider('stripe')}
-              className={`flex items-center gap-1.5 rounded-full px-5 py-2 text-sm font-semibold transition ${provider === 'stripe' ? 'bg-ink-900 text-white dark:bg-brand-500' : 'text-ink-600 dark:text-ink-300'}`}
+              className={`flex items-center gap-1.5 rounded-full px-5 py-2 text-sm font-medium transition ${provider === 'stripe' ? 'bg-ink-900 text-white dark:bg-brand-500' : 'text-ink-600 dark:text-ink-300'}`}
             ><CreditCard size={15} /> Carte bancaire</button>
             <button
               onClick={() => setProvider('flutterwave')}
-              className={`flex items-center gap-1.5 rounded-full px-5 py-2 text-sm font-semibold transition ${provider === 'flutterwave' ? 'bg-ink-900 text-white dark:bg-brand-500' : 'text-ink-600 dark:text-ink-300'}`}
+              className={`flex items-center gap-1.5 rounded-full px-5 py-2 text-sm font-medium transition ${provider === 'flutterwave' ? 'bg-ink-900 text-white dark:bg-brand-500' : 'text-ink-600 dark:text-ink-300'}`}
             ><Smartphone size={15} /> Mobile Money</button>
           </div>
         </div>
@@ -136,10 +136,10 @@ export function SubscribePage() {
                 className={`card p-6 ${plan.highlight ? 'ring-2 ring-brand-300' : ''}`}
               >
                 {plan.popular && (
-                  <span className="mb-3 inline-block rounded-full bg-brand-500 px-3 py-0.5 text-[10px] font-bold uppercase text-white">Populaire</span>
+                  <span className="mb-3 inline-block rounded-full bg-brand-500 px-3 py-0.5 text-[10px] font-medium uppercase text-white">Populaire</span>
                 )}
-                <h3 className="text-lg font-bold text-ink-900 dark:text-ink-50">{plan.name}</h3>
-                <p className="mt-2 text-3xl font-extrabold text-ink-900 dark:text-ink-50">
+                <h3 className="text-lg font-medium text-ink-900 dark:text-ink-50">{plan.name}</h3>
+                <p className="mt-2 text-3xl font-medium text-ink-900 dark:text-ink-50">
                   ${price}<span className="text-sm font-normal text-ink-500 dark:text-ink-400">/{billing === 'annual' ? 'an' : 'mois'}</span>
                 </p>
                 <ul className="mt-4 space-y-2 text-sm text-ink-600 dark:text-ink-300">

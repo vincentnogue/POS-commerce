@@ -14,7 +14,7 @@ export function FooterPageLayout({ title, children }: { title: string; children:
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3.5">
           <Link to="/"><Logo /></Link>
           <div className="flex items-center gap-3">
-            <Link to="/" className="inline-flex items-center gap-1 text-sm font-semibold text-ink-600 dark:text-ink-300 hover:text-brand-600">
+            <Link to="/" className="inline-flex items-center gap-1 text-sm font-medium text-ink-600 dark:text-ink-300 hover:text-brand-600">
               <ArrowLeft size={14} /> {t('pricing.backHome')}
             </Link>
             <button
@@ -28,7 +28,7 @@ export function FooterPageLayout({ title, children }: { title: string; children:
         </div>
       </header>
       <article className="mx-auto max-w-3xl px-4 py-12 lg:px-8">
-        <h1 className="text-3xl font-extrabold tracking-tight text-ink-900 dark:text-ink-50 sm:text-4xl">{title}</h1>
+        <h1 className="text-3xl font-medium tracking-tight text-ink-900 dark:text-ink-50 sm:text-4xl">{title}</h1>
         <div className="mt-8 space-y-6 text-ink-700 dark:text-ink-200 leading-relaxed">{children}</div>
       </article>
     </div>
