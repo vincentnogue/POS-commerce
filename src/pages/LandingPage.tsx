@@ -139,6 +139,12 @@ export function LandingPage() {
               <button onClick={() => scrollTo('africa')} className="text-left text-sm font-medium text-ink-700 dark:text-ink-200">L'Afrique</button>
               <button onClick={() => scrollTo('pricing')} className="text-left text-sm font-medium text-ink-700 dark:text-ink-200">Tarifs</button>
               <Link to="/login" className="text-sm font-medium text-ink-700 dark:text-ink-200">Se connecter</Link>
+              <button
+                onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
+                className="flex items-center gap-2 text-left text-sm font-medium text-ink-700 dark:text-ink-200"
+              >
+                {LANG_LABELS[lang]}<span className="text-ink-300">/</span>{LANG_LABELS[lang === 'fr' ? 'en' : 'fr' as Lang]}
+              </button>
               <button onClick={toggleTheme} className="flex items-center gap-2 text-left text-sm font-medium text-ink-700 dark:text-ink-200">
                 {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />} {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
               </button>
@@ -247,7 +253,7 @@ export function LandingPage() {
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
-                  { label: 'CA DU MOIS', value: '4,2M FCFA', tone: 'bg-brand-100 dark:bg-brand-900/35 text-brand-700', icon: TrendingUp },
+                  { label: 'CA DU MOIS', value: '$8,400', tone: 'bg-brand-100 dark:bg-brand-900/35 text-brand-700', icon: TrendingUp },
                   { label: 'VENTES', value: '128', tone: 'bg-action-100 dark:bg-action-900/35 text-action-600', icon: ShoppingCart },
                   { label: 'IMPAYÉS', value: '3', tone: 'bg-success-100 dark:bg-success-900/35 text-success-700', icon: FileText },
                   { label: 'LIVRAISONS', value: '7', tone: 'bg-warning-100 dark:bg-warning-900/35 text-warning-600', icon: Store },
@@ -533,6 +539,7 @@ export function LandingPage() {
                 <li><Link to="/blog" className="hover:text-brand-600">{t('nav.blog')}</Link></li>
                 <li><Link to="/careers" className="hover:text-brand-600">{t('nav.careers')}</Link></li>
                 <li><Link to="/contact" className="hover:text-brand-600">{t('nav.contact')}</Link></li>
+                <li><Link to="/help" className="hover:text-brand-600">Centre d'aide</Link></li>
               </ul>
             </div>
             <div>
