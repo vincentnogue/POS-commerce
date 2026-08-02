@@ -82,10 +82,30 @@ export default function App() {
                     <Route path="/signup" element={<SignupPage />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                     <Route path="/reset-password" element={<ResetPasswordPage />} />
-                    <Route path="/onboarding" element={<RequireAuth><OnboardingPage /></RequireAuth>} />
-                    <Route path="/subscribe" element={<RequireAuth><SubscribePage /></RequireAuth>} />
+                    <Route
+                      path="/onboarding"
+                      element={
+                        <RequireAuth>
+                          <OnboardingPage />
+                        </RequireAuth>
+                      }
+                    />
+                    <Route
+                      path="/subscribe"
+                      element={
+                        <RequireAuth>
+                          <SubscribePage />
+                        </RequireAuth>
+                      }
+                    />
 
-                    <Route element={<RequireActiveSubscription><AppLayout /></RequireActiveSubscription>}>
+                    <Route
+                      element={
+                        <RequireActiveSubscription>
+                          <AppLayout />
+                        </RequireActiveSubscription>
+                      }
+                    >
                       <Route path="/dashboard" element={<DashboardPage />} />
                       <Route path="/pos" element={<POSPage />} />
                       <Route path="/products" element={<ProductsPage />} />
@@ -109,9 +129,11 @@ export default function App() {
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </Suspense>
+
+                {/* Déplacés dans BrowserRouter */}
+                <CookieBanner />
+                <SupportChatWidget />
               </BrowserRouter>
-              <CookieBanner />
-              <SupportChatWidget />
             </ToastProvider>
           </AuthProvider>
         </CookieProvider>
