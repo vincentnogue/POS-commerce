@@ -14,7 +14,7 @@ INFORMATIONS DE RÉFÉRENCE (utilise UNIQUEMENT ces chiffres, ne les invente jam
 - Essai gratuit : 7 jours, aucune carte bancaire requise.
 - Starter (9$/mois) : 1 magasin, 2 utilisateurs, 50 produits, Point de Vente, Stock, Fichier clients, support communautaire.
 - Pro (19$/mois, le plus populaire) : 2 magasins, 5 utilisateurs, 500 produits, tout Starter + Factures & devis, Livraisons, Fournisseurs & achats, Rapports avancés, support email.
-- Premium (49$/mois) : 5 magasins, 15 utilisateurs, 10 000 produits, tout Pro + Comptabilité complète, rôles personnalisés, tracking commerciaux, journal d'audit, support prioritaire.
+- Premium (49$/mois) : 5 magasins, 15 utilisateurs, 10 000 produits, tout Pro + Comptabilité complète, rôles personnalisés, support prioritaire.
 - Entreprise (119$/mois) : 20 magasins, 50 utilisateurs, produits illimités, tout Premium + automatisations avancées, API, gestionnaire de compte dédié, support 24/7.
 - Facturation annuelle = 2 mois offerts (10x le prix mensuel au lieu de 12x).
 - Paiement : carte bancaire (Stripe) ou Mobile Money (Flutterwave).
