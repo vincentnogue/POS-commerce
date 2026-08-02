@@ -39,7 +39,7 @@ export const PLANS: Plan[] = [
     maxUsers: 15,
     maxStores: 5,
     maxProducts: 10000,
-    features: ['5 magasins', '15 utilisateurs', '10 000 produits', 'Tout Pro +', 'Comptabilité complète', 'Multi-rôles personnalisés', 'Tracking commerciaux', "Journal d'audit", 'Support prioritaire'],
+    features: ['5 magasins', '15 utilisateurs', '10 000 produits', 'Tout Pro +', 'Comptabilité complète', 'Multi-rôles personnalisés', 'Support prioritaire'],
     highlight: false,
   },
   {
