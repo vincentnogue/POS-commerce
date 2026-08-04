@@ -14,6 +14,135 @@
   }
 }
 
+:root {
+  --color-brand-50: #E5F4FB;
+  --color-brand-100: #C4EAF7;
+  --color-brand-200: #95D8EF;
+  --color-brand-300: #5CBEE4;
+  --color-brand-400: #2C92C2;
+  --color-brand-500: #0369A1;
+  --color-brand-600: #035A8C;
+  --color-brand-700: #034A73;
+  --color-brand-800: #023A5A;
+  --color-brand-900: #012B41;
+  --color-action-50: #E8F5FB;
+  --color-action-100: #C9E9F5;
+  --color-action-200: #94D5EB;
+  --color-action-300: #5CB4DB;
+  --color-action-400: #317EA9;
+  --color-action-500: #0369A1;
+  --color-action-600: #035A8C;
+  --color-action-700: #02496D;
+  --color-action-800: #023A5A;
+  --color-action-900: #012B41;
+  --color-flow-50: #E7F6FB;
+  --color-flow-100: #C8EAFA;
+  --color-flow-200: #93D3F3;
+  --color-flow-300: #52B6E8;
+  --color-flow-400: #1C8ACA;
+  --color-flow-500: #0B7285;
+  --color-flow-600: #095C6C;
+  --color-flow-700: #074956;
+  --color-flow-800: #053842;
+  --color-flow-900: #032A33;
+}
+.theme-ocean {
+  --color-brand-50: #E5F4FB;
+  --color-brand-100: #C4EAF7;
+  --color-brand-200: #95D8EF;
+  --color-brand-300: #5CBEE4;
+  --color-brand-400: #2C92C2;
+  --color-brand-500: #0369A1;
+  --color-brand-600: #035A8C;
+  --color-brand-700: #034A73;
+  --color-brand-800: #023A5A;
+  --color-brand-900: #012B41;
+  --color-action-50: #E8F5FB;
+  --color-action-100: #C9E9F5;
+  --color-action-200: #94D5EB;
+  --color-action-300: #5CB4DB;
+  --color-action-400: #317EA9;
+  --color-action-500: #0369A1;
+  --color-action-600: #035A8C;
+  --color-action-700: #02496D;
+  --color-action-800: #023A5A;
+  --color-action-900: #012B41;
+  --color-flow-50: #E7F6FB;
+  --color-flow-100: #C8EAFA;
+  --color-flow-200: #93D3F3;
+  --color-flow-300: #52B6E8;
+  --color-flow-400: #1C8ACA;
+  --color-flow-500: #0B7285;
+  --color-flow-600: #095C6C;
+  --color-flow-700: #074956;
+  --color-flow-800: #053842;
+  --color-flow-900: #032A33;
+}
+.theme-coral {
+  --color-brand-50: #FFF2EA;
+  --color-brand-100: #FFE1D1;
+  --color-brand-200: #FFC0A9;
+  --color-brand-300: #FF976E;
+  --color-brand-400: #FF794F;
+  --color-brand-500: #FF6B35;
+  --color-brand-600: #E15E2B;
+  --color-brand-700: #B84E23;
+  --color-brand-800: #893F1A;
+  --color-brand-900: #642E14;
+  --color-action-50: #FFF2EA;
+  --color-action-100: #FFE1D1;
+  --color-action-200: #FFC0A9;
+  --color-action-300: #FF976E;
+  --color-action-400: #FF794F;
+  --color-action-500: #FF6B35;
+  --color-action-600: #E15E2B;
+  --color-action-700: #B84E23;
+  --color-action-800: #893F1A;
+  --color-action-900: #642E14;
+  --color-flow-50: #FFEFE8;
+  --color-flow-100: #FFD8CC;
+  --color-flow-200: #FFB19E;
+  --color-flow-300: #FF8B70;
+  --color-flow-400: #F76653;
+  --color-flow-500: #F44A37;
+  --color-flow-600: #D73E2D;
+  --color-flow-700: #B53425;
+  --color-flow-800: #8C2A1D;
+  --color-flow-900: #6A2017;
+}
+.theme-default {
+  --color-brand-50: #EAF3EE;
+  --color-brand-100: #D6E9DF;
+  --color-brand-200: #A9D3BF;
+  --color-brand-300: #7CBBA0;
+  --color-brand-400: #4FA480;
+  --color-brand-500: #2E8C66;
+  --color-brand-600: #237451;
+  --color-brand-700: #1B5C40;
+  --color-brand-800: #144430;
+  --color-brand-900: #0D2C20;
+  --color-action-50: #FFF3EC;
+  --color-action-100: #FFE3D0;
+  --color-action-200: #FFC7A0;
+  --color-action-300: #FFA770;
+  --color-action-400: #FF8A4A;
+  --color-action-500: #F96F22;
+  --color-action-600: #E25A16;
+  --color-action-700: #BC4813;
+  --color-action-800: #963913;
+  --color-action-900: #7A3013;
+  --color-flow-50: #E6FBF7;
+  --color-flow-100: #C2F4E9;
+  --color-flow-200: #8EE9D5;
+  --color-flow-300: #5ADDC0;
+  --color-flow-400: #2FC9A8;
+  --color-flow-500: #14B594;
+  --color-flow-600: #0E9A7C;
+  --color-flow-700: #0A7E64;
+  --color-flow-800: #07614C;
+  --color-flow-900: #054534;
+}
+
 @layer components {
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-full bg-action-500 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition-all hover:bg-action-600 hover:shadow-float active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;

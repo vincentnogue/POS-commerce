@@ -10,7 +10,7 @@ import type { Notification } from '../lib/types';
 import { useInstallPrompt } from '../lib/useInstallPrompt';
 
 export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
-  const { theme, toggle } = useTheme();
+  const { theme, toggle, colorTheme, setColorTheme } = useTheme();
   const { canInstall, promptInstall } = useInstallPrompt();
   const { user } = useAuth();
   const { lang, setLang, t } = useI18n();
@@ -18,6 +18,11 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
   const [notifs, setNotifs] = useState<Notification[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
   const [query, setQuery] = useState('');
+  const themeOptions = [
+    { value: 'ocean', label: 'Ocean Blue' },
+    { value: 'coral', label: 'Coral' },
+    { value: 'default', label: 'Classic' },
+  ] as const;
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const navigate = useNavigate();
   const ref = useRef<HTMLDivElement>(null);
@@ -90,6 +95,16 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
           <span className="text-ink-300">/</span>
           {LANG_LABELS[lang === 'fr' ? 'en' : 'fr' as Lang]}
         </button>
+        <select
+          value={colorTheme}
+          onChange={(e) => setColorTheme(e.target.value as typeof themeOptions[number]['value'])}
+          className="inline-flex h-9 rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-medium text-ink-600 dark:text-ink-300 transition hover:border-brand-200"
+          aria-label="Select color theme"
+        >
+          {themeOptions.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
         {canInstall && (
           <button
             onClick={promptInstall}
