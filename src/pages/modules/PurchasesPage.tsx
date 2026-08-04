@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Plus, Receipt, Download, Trash2, Eye, Check, Package } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
+import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
 import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components/ui';
@@ -17,6 +18,7 @@ const STATUS_LABELS: Record<string, { label: string; tone: any }> = {
 
 export function PurchasesPage() {
   const { tenant, can } = useAuth();
+  const { formatDate } = useI18n();
   const toast = useToast();
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -218,7 +220,7 @@ export function PurchasesPage() {
           <DataTable loading={loading} columns={[
             { key: 'reference', label: 'Référence', render: (p) => <span className="font-medium text-ink-900 dark:text-ink-50">{p.reference}</span> },
             { key: 'supplier', label: 'Fournisseur', render: (p) => <span className="text-ink-600 dark:text-ink-300">{(p as any).supplier?.name ?? '—'}</span> },
-            { key: 'date', label: 'Date', render: (p) => <span className="text-ink-500 dark:text-ink-400">{new Date(p.purchase_date).toLocaleDateString('fr-FR')}</span> },
+            { key: 'date', label: 'Date', render: (p) => <span className="text-ink-500 dark:text-ink-400">{formatDate(p.purchase_date)}</span> },
             { key: 'status', label: 'Statut', render: (p) => <Badge tone={STATUS_LABELS[p.status]?.tone}>{STATUS_LABELS[p.status]?.label}</Badge> },
             { key: 'total', label: 'Total', className: 'text-right', render: (p) => <span className="font-medium text-ink-900 dark:text-ink-50">{canSeeCost ? formatMoney(p.total, currency) : '—'}</span> },
             { key: 'actions', label: '', className: 'text-right', render: (p) => (

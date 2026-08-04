@@ -19,7 +19,7 @@ function Counter({ to, suffix = '' }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: '-80px' });
   const count = useMotionValue(0);
-  const rounded = useTransform(count, (v) => Math.round(v).toLocaleString('fr-FR'));
+  const rounded = useTransform(count, (v) => formatNumber(Math.round(v)));
   const [display, setDisplay] = useState('0');
 
   useEffect(() => {
@@ -76,7 +76,7 @@ const TESTIMONIALS = [
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { prefs } = useCookies();
-  const { lang, setLang, t } = useI18n();
+  const { lang, setLang, t, formatNumber } = useI18n();
   const { theme, toggle: toggleTheme } = useTheme();
   const { canInstall, promptInstall } = useInstallPrompt();
   const [showBanner, setShowBanner] = useState(false);

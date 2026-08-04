@@ -17,6 +17,7 @@ const STATUS_LABELS: Record<string, { label: string; tone: any }> = {
 
 export function QuotesPage() {
   const { tenant } = useAuth();
+  const { formatDate } = useI18n();
   const toast = useToast();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -207,7 +208,7 @@ export function QuotesPage() {
             columns={[
               { key: 'number', label: 'Numéro', render: (q) => <span className="font-medium text-ink-900 dark:text-ink-50">{q.number}</span> },
               { key: 'customer', label: 'Client', render: (q) => <span className="text-ink-600 dark:text-ink-300">{(q as any).customer?.name ?? '—'}</span> },
-              { key: 'date', label: 'Date', render: (q) => <span className="text-ink-500 dark:text-ink-400">{new Date(q.issue_date).toLocaleDateString('fr-FR')}</span> },
+              { key: 'date', label: 'Date', render: (q) => <span className="text-ink-500 dark:text-ink-400">{formatDate(q.issue_date)}</span> },
               { key: 'status', label: 'Statut', render: (q) => <Badge tone={STATUS_LABELS[q.status]?.tone}>{STATUS_LABELS[q.status]?.label}</Badge> },
               { key: 'total', label: 'Total', className: 'text-right', render: (q) => <span className="font-medium text-ink-900 dark:text-ink-50">{formatMoney(q.total, currency)}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (q) => (

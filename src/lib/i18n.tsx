@@ -18,6 +18,7 @@ type I18nContextValue = {
   t: (key: string, vars?: Record<string, string | number>) => string;
   formatDate: (value: string | Date, options?: Intl.DateTimeFormatOptions) => string;
   formatDateTime: (value: string | Date, options?: Intl.DateTimeFormatOptions) => string;
+  formatNumber: (value: number | string, options?: Intl.NumberFormatOptions) => string;
 };
 
 const I18nContext = createContext<I18nContextValue | undefined>(undefined);
@@ -66,6 +67,14 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     [locale]
   );
 
+  const formatNumber = useCallback(
+    (value: number | string, options: Intl.NumberFormatOptions = {}) => {
+      const number = typeof value === 'string' ? Number(value) : value;
+      return new Intl.NumberFormat(locale, options).format(number);
+    },
+    [locale]
+  );
+
   const t = useCallback((key: string, vars?: Record<string, string | number>) => {
     const raw = dict[lang][key] ?? dict.fr[key] ?? key;
     if (!vars) return raw;
@@ -73,7 +82,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, [lang]);
 
   return (
-    <I18nContext.Provider value={{ lang, locale, setLang, t, formatDate, formatDateTime }}>
+    <I18nContext.Provider value={{ lang, locale, setLang, t, formatDate, formatDateTime, formatNumber }}>
       {children}
     </I18nContext.Provider>
   );

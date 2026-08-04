@@ -27,7 +27,7 @@ const STATUS_LABELS: Record<string, { label: string; tone: any }> = {
 
 export function InvoicesPage() {
   const { tenant } = useAuth();
-  const { t } = useI18n();
+  const { t, formatDate } = useI18n();
   const toast = useToast();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -200,7 +200,7 @@ export function InvoicesPage() {
             columns={[
               { key: 'number', label: 'Numéro', render: (i) => <span className="font-medium text-ink-900 dark:text-ink-50">{i.number}</span> },
               { key: 'customer', label: 'Client', render: (i) => <span className="text-ink-600 dark:text-ink-300">{(i as any).customer?.name ?? '—'}</span> },
-              { key: 'date', label: 'Date', render: (i) => <span className="text-ink-500 dark:text-ink-400">{new Date(i.issue_date).toLocaleDateString('fr-FR')}</span> },
+              { key: 'date', label: 'Date', render: (i) => <span className="text-ink-500 dark:text-ink-400">{formatDate(i.issue_date)}</span> },
               { key: 'status', label: 'Statut', render: (i) => { const sd = getStatusDisplay(i); return <Badge tone={sd.tone}>{sd.label}</Badge>; } },
               { key: 'total', label: 'Total', className: 'text-right', render: (i) => <span className="font-medium text-ink-900 dark:text-ink-50">{formatMoney(i.total, currency)}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (i) => (

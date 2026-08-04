@@ -8,44 +8,38 @@ import {
   ChevronDown, LogOut, X, Globe, Lock,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
+import { useI18n } from '../lib/i18n';
 import { Logo } from './Logo';
 import type { Role } from '../lib/types';
 
 type NavItem = {
   to: string;
-  label: string;
+  labelKey: string;
   icon: typeof LayoutDashboard;
   module?: string;
   superAdminOnly?: boolean;
 };
 
 const NAV: NavItem[] = [
-  { to: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard, module: 'dashboard' },
-  { to: '/pos', label: 'Point de Vente', icon: ShoppingCart, module: 'pos' },
-  { to: '/products', label: 'Produits', icon: Package, module: 'products' },
-  { to: '/stock', label: 'Stock', icon: Boxes, module: 'stock' },
-  { to: '/stores', label: 'Magasins', icon: Store, module: 'stores' },
-  { to: '/invoices', label: 'Factures', icon: FileText, module: 'invoices' },
-  { to: '/deliveries', label: 'Livraisons', icon: Truck, module: 'deliveries' },
-  { to: '/customers', label: 'Clients', icon: Users, module: 'customers' },
-  { to: '/suppliers', label: 'Fournisseurs', icon: Building2, module: 'suppliers' },
-  { to: '/expenses', label: 'Dépenses', icon: Wallet, module: 'expenses' },
-  { to: '/purchases', label: 'Achats', icon: Receipt, module: 'purchases' },
-  { to: '/quotes', label: 'Devis', icon: ClipboardList, module: 'quotes' },
-  { to: '/reports', label: 'Rapports', icon: FileBarChart, module: 'reports' },
-  { to: '/accounting', label: 'Comptabilité', icon: Calculator, module: 'accounting' },
-  { to: '/users', label: 'Utilisateurs', icon: UserCog, module: 'users' },
-  { to: '/administration', label: 'Administration', icon: Shield, module: 'administration' },
-  { to: '/settings', label: 'Paramètres', icon: Settings, module: 'settings' },
-  { to: '/superadmin', label: 'Super Admin', icon: Crown, module: 'administration', superAdminOnly: true },
+  { to: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, module: 'dashboard' },
+  { to: '/pos', labelKey: 'nav.pos', icon: ShoppingCart, module: 'pos' },
+  { to: '/products', labelKey: 'nav.products', icon: Package, module: 'products' },
+  { to: '/stock', labelKey: 'nav.stock', icon: Boxes, module: 'stock' },
+  { to: '/stores', labelKey: 'nav.stores', icon: Store, module: 'stores' },
+  { to: '/invoices', labelKey: 'nav.invoices', icon: FileText, module: 'invoices' },
+  { to: '/deliveries', labelKey: 'nav.deliveries', icon: Truck, module: 'deliveries' },
+  { to: '/customers', labelKey: 'nav.customers', icon: Users, module: 'customers' },
+  { to: '/suppliers', labelKey: 'nav.suppliers', icon: Building2, module: 'suppliers' },
+  { to: '/expenses', labelKey: 'nav.expenses', icon: Wallet, module: 'expenses' },
+  { to: '/purchases', labelKey: 'nav.purchases', icon: Receipt, module: 'purchases' },
+  { to: '/quotes', labelKey: 'nav.quotes', icon: ClipboardList, module: 'quotes' },
+  { to: '/reports', labelKey: 'nav.reports', icon: FileBarChart, module: 'reports' },
+  { to: '/accounting', labelKey: 'nav.accounting', icon: Calculator, module: 'accounting' },
+  { to: '/users', labelKey: 'nav.users', icon: UserCog, module: 'users' },
+  { to: '/administration', labelKey: 'nav.administration', icon: Shield, module: 'administration' },
+  { to: '/settings', labelKey: 'nav.settings', icon: Settings, module: 'settings' },
+  { to: '/superadmin', labelKey: 'nav.superadmin', icon: Crown, module: 'administration', superAdminOnly: true },
 ];
-
-const ROLE_LABELS: Record<Role, string> = {
-  super_admin: 'Super Admin',
-  admin: 'Propriétaire',
-  manager: 'Manager',
-  staff: 'Vendeur',
-};
 
 function getInitials(name: string) {
   const parts = (name || '').trim().split(/\s+/);
@@ -65,6 +59,7 @@ const AVATAR_COLORS: Record<string, string> = {
 
 export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => void }) {
   const { tenant, member, tenants, switchTenant, signOut, user, isSuperAdmin, planModules } = useAuth();
+  const { t } = useI18n();
   const [tenantMenuOpen, setTenantMenuOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -138,7 +133,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
                         <p className="truncate text-xs text-ink-500 dark:text-ink-400">{t.city}</p>
                       </div>
                       <span className="ml-2 shrink-0 rounded-full bg-ink-100 dark:bg-ink-800 px-2 py-0.5 text-[10px] uppercase text-ink-600 dark:text-ink-300">
-                        {ROLE_LABELS[(m.role as Role) ?? 'staff']}
+                        {t(`role.${(m.role as Role) ?? 'staff'}`)}
                       </span>
                     </button>
                   ))}
@@ -163,7 +158,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
                   title="Fonctionnalité non incluse dans votre forfait actuel"
                 >
                   <Icon size={18} strokeWidth={1.8} className="shrink-0 text-ink-400 dark:text-ink-500" />
-                  <span className="truncate">{item.label}</span>
+                  <span className="truncate">{t(item.labelKey)}</span>
                   <Lock size={13} className="ml-auto shrink-0" />
                 </NavLink>
               );
@@ -196,14 +191,14 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-ink-900 dark:text-ink-50">{member?.display_name ?? tenant?.name ?? user?.email}</p>
-              <p className="truncate text-xs text-ink-500 dark:text-ink-400">{member ? ROLE_LABELS[(member.role as Role) ?? 'staff'] : '—'}</p>
+              <p className="truncate text-xs text-ink-500 dark:text-ink-400">{member ? t(`role.${(member.role as Role) ?? 'staff'}`) : '—'}</p>
             </div>
           </div>
           <button
             onClick={handleSignOut}
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-medium text-ink-700 dark:text-ink-200 transition hover:border-error-200 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"
           >
-            <LogOut size={15} /> Se déconnecter
+            <LogOut size={15} /> {t('common.signOut')}
           </button>
         </div>
         <div className="px-4 pb-4 text-center text-[10px] text-ink-400 dark:text-ink-500">

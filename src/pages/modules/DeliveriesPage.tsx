@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Plus, Download, Truck, Eye, Package } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
+import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components/ui';
 import { DataTable, SearchInput, Select, Field, exportCSV } from '../../components/DataTable';
@@ -17,6 +18,7 @@ const STATUS_LABELS: Record<string, { label: string; tone: any }> = {
 
 export function DeliveriesPage() {
   const { tenant } = useAuth();
+  const { formatDate } = useI18n();
   const toast = useToast();
   const [params] = useSearchParams();
   const [deliveries, setDeliveries] = useState<(Delivery & { sale_items?: any[] })[]>([]);
@@ -135,7 +137,7 @@ export function DeliveriesPage() {
             columns={[
               { key: 'customer', label: 'Client', render: (d) => <div><span className="font-medium text-ink-900 dark:text-ink-50">{d.customer_name}</span>{d.sale_id && <p className="text-[10px] text-brand-600">Vente liée</p>}</div> },
               { key: 'city', label: 'Ville', render: (d) => <span className="text-ink-600 dark:text-ink-300">{d.city ?? '—'}</span> },
-              { key: 'date', label: 'Date prévue', render: (d) => <span className="text-ink-500 dark:text-ink-400">{d.scheduled_date ? new Date(d.scheduled_date).toLocaleDateString('fr-FR') : '—'}</span> },
+              { key: 'date', label: 'Date prévue', render: (d) => <span className="text-ink-500 dark:text-ink-400">{d.scheduled_date ? formatDate(d.scheduled_date) : '—'}</span> },
               { key: 'carrier', label: 'Transporteur', render: (d) => <span className="text-ink-600 dark:text-ink-300">{d.carrier ?? '—'}</span> },
               { key: 'status', label: 'Statut', render: (d) => <Badge tone={STATUS_LABELS[d.status]?.tone}>{STATUS_LABELS[d.status]?.label ?? d.status}</Badge> },
               { key: 'actions', label: '', className: 'text-right', render: (d) => (

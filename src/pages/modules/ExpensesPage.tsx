@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Plus, Wallet, Download, Trash2, Pencil } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
+import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
 import { PageHeader, Modal, EmptyState, StatCard, useToast } from '../../components/ui';
@@ -13,6 +14,7 @@ const EMPTY = { description: '', amount: 0, category: CATEGORIES[0], payment_met
 export function ExpensesPage() {
   const toast = useToast();
   const { tenant } = useAuth();
+  const { formatDate } = useI18n();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [stores, setStores] = useState<Store[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -96,7 +98,7 @@ export function ExpensesPage() {
           <DataTable
             loading={loading}
             columns={[
-              { key: 'date', label: 'Date', render: (e) => <span className="text-ink-500 dark:text-ink-400">{new Date(e.expense_date).toLocaleDateString('fr-FR')}</span> },
+              { key: 'date', label: 'Date', render: (e) => <span className="text-ink-500 dark:text-ink-400">{formatDate(e.expense_date)}</span> },
               { key: 'description', label: 'Description', render: (e) => <span className="font-medium text-ink-900 dark:text-ink-50">{e.description}</span> },
               { key: 'category', label: 'Catégorie', render: (e) => <span className="rounded-md bg-ink-100 dark:bg-ink-800 px-2 py-0.5 text-xs text-ink-700 dark:text-ink-200">{e.category ?? '—'}</span> },
               { key: 'method', label: 'Paiement', render: (e) => <span className="text-ink-500 dark:text-ink-400">{e.payment_method ?? '—'}</span> },

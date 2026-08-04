@@ -248,7 +248,7 @@ export function StockPage() {
             <DataTable
               loading={loading}
               columns={[
-                { key: 'date', label: 'Date', render: (t) => <span className="text-ink-500 dark:text-ink-400">{new Date(t.created_at).toLocaleDateString('fr-FR')}</span> },
+                { key: 'date', label: 'Date', render: (t) => <span className="text-ink-500 dark:text-ink-400">{formatDate(t.created_at)}</span> },
                 { key: 'product', label: 'Produit', render: (t) => <span className="font-medium text-ink-900 dark:text-ink-50">{t.product?.name ?? '—'}</span> },
                 { key: 'route', label: 'Itinéraire', render: (t) => <span className="text-ink-600 dark:text-ink-300">{t.source?.name} → {t.dest?.name}</span> },
                 { key: 'qty', label: 'Qté', className: 'text-right', render: (t) => <span className="font-medium text-ink-900 dark:text-ink-50">{t.quantity}</span> },
