@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useI18n } from '../lib/i18n';
 
 export function DataTable<T>({
   columns, rows, empty, loading,
@@ -12,8 +13,9 @@ export function DataTable<T>({
   if (loading) {
     return <div className="py-10 text-center text-sm text-ink-400 dark:text-ink-500">Chargement…</div>;
   }
+  const { t } = useI18n();
   if (rows.length === 0) {
-    return <div className="py-10 text-center text-sm text-ink-400 dark:text-ink-500">{empty ?? 'Aucune donnée'}</div>;
+    return <div className="py-10 text-center text-sm text-ink-400 dark:text-ink-500">{empty ?? t('datatable.empty')}</div>;
   }
   return (
     <div className="overflow-x-auto">
@@ -41,12 +43,13 @@ export function DataTable<T>({
   );
 }
 
-export function SearchInput({ value, onChange, placeholder = 'Rechercher…' }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+export function SearchInput({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  const { t } = useI18n();
   return (
     <input
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
+      placeholder={placeholder ?? t('datatable.searchPlaceholder')}
       className="input max-w-xs"
     />
   );

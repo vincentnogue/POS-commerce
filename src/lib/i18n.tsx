@@ -6,35 +6,65 @@ import { en } from './locales/en';
 export type Lang = 'fr' | 'en';
 
 const dict: Record<Lang, Record<string, string>> = { fr, en };
+const LOCALE_MAP: Record<Lang, string> = {
+  fr: 'fr-FR',
+  en: 'en-US',
+};
 
 type I18nContextValue = {
   lang: Lang;
+  locale: string;
   setLang: (l: Lang) => void;
   t: (key: string, vars?: Record<string, string | number>) => string;
+  formatDate: (value: string | Date, options?: Intl.DateTimeFormatOptions) => string;
+  formatDateTime: (value: string | Date, options?: Intl.DateTimeFormatOptions) => string;
 };
 
 const I18nContext = createContext<I18nContextValue | undefined>(undefined);
 
 const STORAGE_KEY = 'liafrik_lang';
 
+function getInitialLang(): Lang {
+  if (typeof window === 'undefined') return 'fr';
+  const stored = localStorage.getItem(STORAGE_KEY) as Lang | null;
+  if (stored === 'fr' || stored === 'en') return stored;
+  const browser = navigator.language.slice(0, 2).toLowerCase();
+  return browser === 'en' ? 'en' : 'fr';
+}
+
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>('fr');
+  const [lang, setLangState] = useState<Lang>(getInitialLang);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY) as Lang | null;
-    if (stored && (stored === 'fr' || stored === 'en')) {
-      setLangState(stored);
-    } else {
-      const browser = navigator.language.slice(0, 2).toLowerCase();
-      if (browser === 'en') setLangState('en');
-    }
-  }, []);
+    const root = document.documentElement;
+    root.lang = lang;
+    root.dir = 'ltr';
+    localStorage.setItem(STORAGE_KEY, lang);
+  }, [lang]);
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
     localStorage.setItem(STORAGE_KEY, l);
     document.documentElement.lang = l;
   }, []);
+
+  const locale = LOCALE_MAP[lang];
+
+  const formatDate = useCallback(
+    (value: string | Date, options: Intl.DateTimeFormatOptions = {}) => {
+      const date = typeof value === 'string' ? new Date(value) : value;
+      return date.toLocaleDateString(locale, options);
+    },
+    [locale]
+  );
+
+  const formatDateTime = useCallback(
+    (value: string | Date, options: Intl.DateTimeFormatOptions = {}) => {
+      const date = typeof value === 'string' ? new Date(value) : value;
+      return date.toLocaleString(locale, options);
+    },
+    [locale]
+  );
 
   const t = useCallback((key: string, vars?: Record<string, string | number>) => {
     const raw = dict[lang][key] ?? dict.fr[key] ?? key;
@@ -43,7 +73,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, [lang]);
 
   return (
-    <I18nContext.Provider value={{ lang, setLang, t }}>
+    <I18nContext.Provider value={{ lang, locale, setLang, t, formatDate, formatDateTime }}>
       {children}
     </I18nContext.Provider>
   );
