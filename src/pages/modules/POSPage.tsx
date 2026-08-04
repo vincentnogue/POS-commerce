@@ -26,9 +26,10 @@ export function POSPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [paidAmount, setPaidAmount] = useState('');
+  const [paymentReference, setPaymentReference] = useState('');
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
-  const [lastReceipt, setLastReceipt] = useState<{ items: CartItem[]; total: number } | null>(null);
+  const [lastReceipt, setLastReceipt] = useState<{ items: CartItem[]; total: number; paymentMethod: string; paymentReference: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [deliveryChoice, setDeliveryChoice] = useState<'delivered' | 'pending'>('delivered');
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -90,6 +91,10 @@ export function POSPage() {
 
   const checkout = async () => {
     if (!tenant || cart.length === 0) return;
+    if ((paymentMethod === 'card' || paymentMethod === 'mobile_money') && !paymentReference.trim()) {
+      toast('error', "Le code d'approbation / la référence de transaction est obligatoire pour ce mode de paiement.");
+      return;
+    }
     const ref = `VTE-${Date.now().toString().slice(-8)}`;
     const paid = paymentMethod === 'cash' ? (Number(paidAmount) || total) : total;
     const paymentStatus = paid >= total ? 'paid' : 'unpaid';
@@ -107,6 +112,7 @@ export function POSPage() {
         total,
         paid_amount: paid,
         payment_method: paymentMethod,
+        payment_reference: paymentMethod === 'cash' ? null : paymentReference.trim(),
         payment_status: paymentStatus,
         sale_status: 'completed',
         notes: deliveryChoice === 'pending' ? 'Livraison à organiser' : 'Livré',
@@ -171,8 +177,9 @@ export function POSPage() {
     }
 
     setSuccess(ref);
-    setLastReceipt({ items: cart, total });
+    setLastReceipt({ items: cart, total, paymentMethod, paymentReference: paymentReference.trim() });
     setCart([]);
+    setPaymentReference('');
     setPaidAmount('');
     setCheckoutOpen(false);
     setCustomer(null);
@@ -180,12 +187,52 @@ export function POSPage() {
     setDeliveryChoice('delivered');
   };
 
+  const paymentLabel = (m: string) => m === 'cash' ? 'Espèces' : m === 'card' ? 'Carte bancaire' : 'Mobile Money';
+
   const printReceipt = () => {
     if (!success || !lastReceipt) return;
     const w = window.open('', '_blank');
     if (!w) return;
-    const rows = lastReceipt.items.map((i) => `<tr><td>${i.product.name}</td><td style="text-align:right">${i.quantity}</td><td style="text-align:right">${formatMoney(i.unit_price, currency)}</td><td style="text-align:right;font-weight:bold">${formatMoney(i.quantity * i.unit_price, currency)}</td></tr>`).join('');
-    w.document.write(`<!DOCTYPE html><html><head><title>Reçu ${success}</title><style>body{font-family:monospace;padding:30px;max-width:400px;margin:auto;font-size:12px}h2{color:#1a365d;text-align:center}table{width:100%;border-collapse:collapse;margin-top:15px}th,td{padding:4px 6px;border-bottom:1px dashed #ccc;text-align:left}th{text-transform:uppercase;font-size:10px;color:#888}.total{margin-top:15px;text-align:right;font-size:16px;font-weight:bold}.info{text-align:center;color:#666;margin-top:10px}</style></head><body><h2>POS Flow</h2><p style="text-align:center">Reçu de vente ${success}</p><p style="text-align:center">${new Date().toLocaleString('fr-FR')}</p><table><thead><tr><th>Désignation</th><th style="text-align:right">Qté</th><th style="text-align:right">Prix</th><th style="text-align:right">Total</th></tr></thead><tbody>${rows}</tbody></table><div class="total">Total: ${formatMoney(lastReceipt.total, currency)}</div><div class="info">Merci de votre confiance !<br/>${tenant?.name ?? ''}</div></body></html>`);
+    const rows = lastReceipt.items.map((i) => `<tr><td>${i.product.name}</td><td style="text-align:right">${i.quantity}</td><td style="text-align:right">${formatMoney(i.unit_price, currency)}</td><td style="text-align:right;font-weight:600">${formatMoney(i.quantity * i.unit_price, currency)}</td></tr>`).join('');
+    const now = new Date();
+    w.document.write(`<!DOCTYPE html><html><head><title>Reçu ${success}</title><meta charset="utf-8"/><style>
+      * { box-sizing: border-box; }
+      body { font-family: 'Courier New', monospace; padding: 24px; max-width: 380px; margin: auto; font-size: 12px; color: #1a1a1a; }
+      .brand { text-align: center; font-size: 17px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px; }
+      .tagline { text-align: center; font-size: 10px; color: #888; margin-bottom: 12px; }
+      .divider { border-top: 1px dashed #999; margin: 10px 0; }
+      .divider.solid { border-top: 1.5px solid #333; }
+      .meta { display: flex; justify-content: space-between; font-size: 11px; color: #444; margin: 2px 0; }
+      table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+      th, td { padding: 5px 4px; text-align: left; }
+      th { text-transform: uppercase; font-size: 9px; color: #888; border-bottom: 1px solid #ccc; }
+      td { border-bottom: 1px dotted #ddd; }
+      .total-row { display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; margin-top: 10px; padding-top: 8px; border-top: 1.5px solid #333; }
+      .payment-block { margin-top: 14px; padding: 10px; background: #f7f7f7; border-radius: 6px; }
+      .payment-row { display: flex; justify-content: space-between; font-size: 11px; margin: 3px 0; }
+      .payment-row .label { color: #666; }
+      .payment-row .value { font-weight: 700; letter-spacing: 0.5px; }
+      .footer { text-align: center; margin-top: 18px; font-size: 10px; color: #777; }
+      .footer .thanks { font-size: 12px; font-weight: 600; color: #1a1a1a; margin-bottom: 3px; }
+    </style></head><body>
+      <div class="brand">POS Flow</div>
+      <div class="tagline">${tenant?.name ?? ''}</div>
+      <div class="divider solid"></div>
+      <div class="meta"><span>Reçu</span><strong>${success}</strong></div>
+      <div class="meta"><span>Date</span><span>${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span></div>
+      <div class="divider"></div>
+      <table><thead><tr><th>Désignation</th><th style="text-align:right">Qté</th><th style="text-align:right">Prix</th><th style="text-align:right">Total</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="total-row"><span>TOTAL</span><span>${formatMoney(lastReceipt.total, currency)}</span></div>
+      <div class="payment-block">
+        <div class="payment-row"><span class="label">Mode de paiement</span><span class="value">${paymentLabel(lastReceipt.paymentMethod)}</span></div>
+        ${lastReceipt.paymentReference ? `<div class="payment-row"><span class="label">Réf. / Code d'approbation</span><span class="value">${lastReceipt.paymentReference}</span></div>` : ''}
+        <div class="payment-row"><span class="label">Statut</span><span class="value">PAYÉ</span></div>
+      </div>
+      <div class="footer">
+        <div class="thanks">Merci de votre confiance !</div>
+        Conservez ce reçu comme preuve d'achat.
+      </div>
+    </body></html>`);
     w.document.close();
     w.print();
   };
@@ -193,7 +240,10 @@ export function POSPage() {
   const sendWhatsApp = () => {
     if (!success || !lastReceipt) return;
     const lines = lastReceipt.items.map((i) => `${i.product.name} x${i.quantity} = ${formatMoney(i.quantity * i.unit_price, currency)}`).join('%0a');
-    const msg = `*Reçu de vente ${success}*%0a%0a${lines}%0a%0a*Total: ${formatMoney(lastReceipt.total, currency)}*%0a%0aMerci de votre confiance !`;
+    const paymentLine = lastReceipt.paymentReference
+      ? `%0aPaiement : ${paymentLabel(lastReceipt.paymentMethod)} (Réf: ${lastReceipt.paymentReference})`
+      : `%0aPaiement : ${paymentLabel(lastReceipt.paymentMethod)}`;
+    const msg = `*Reçu de vente ${success}*%0a%0a${lines}%0a%0a*Total: ${formatMoney(lastReceipt.total, currency)}*${paymentLine}%0a%0aMerci de votre confiance !`;
     window.open(`https://wa.me/?text=${msg}`, '_blank');
   };
 
@@ -388,6 +438,22 @@ export function POSPage() {
               {paidAmount && Number(paidAmount) > total && (
                 <p className="mt-1 text-xs font-medium text-success-700">Rendu : {formatMoney(Number(paidAmount) - total, currency)}</p>
               )}
+            </div>
+          )}
+          {(paymentMethod === 'card' || paymentMethod === 'mobile_money') && (
+            <div>
+              <label className="label">
+                {paymentMethod === 'card' ? "Code d'approbation / référence transaction" : 'Référence de la transaction Mobile Money'}
+                <span className="ml-1 text-error-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={paymentReference}
+                onChange={(e) => setPaymentReference(e.target.value)}
+                className="input"
+                placeholder={paymentMethod === 'card' ? 'Ex: 483920 (indiqué sur le ticket du terminal)' : 'Ex: MP240815.1032.A12345'}
+              />
+              <p className="mt-1 text-xs text-ink-400 dark:text-ink-500">Indiquée sur le reçu du terminal ou le SMS de confirmation. Elle apparaîtra sur le reçu client.</p>
             </div>
           )}
           <button onClick={checkout} className="btn-primary w-full justify-center py-3">
