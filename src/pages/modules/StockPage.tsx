@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Plus, Download, Boxes, AlertTriangle, ArrowRightLeft, Check, X } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
+import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components/ui';
 import { DataTable, SearchInput, Select, Field, exportCSV } from '../../components/DataTable';
@@ -8,6 +9,7 @@ import type { Product, Store } from '../../lib/types';
 
 export function StockPage() {
   const { tenant, user, can } = useAuth();
+  const { formatDate } = useI18n();
   const toast = useToast();
   const [tab, setTab] = useState<'inventory' | 'transfers'>('inventory');
 

@@ -61,9 +61,15 @@ export function computeAccess(
 
   if (subscription) {
     const trialEnd = subscription.trial_ends_at ? new Date(subscription.trial_ends_at) : null;
-    const inTrial = subscription.status === 'trialing' || (trialEnd ? now < trialEnd : false);
+    // CRITICAL: trust the trial end DATE over the status label. The
+    // status field can go stale — nothing ever flips it from 'trialing'
+    // to 'expired' on its own once the date passes (only a successful
+    // payment webhook moves it to 'active'). Relying on
+    // status === 'trialing' alone let anyone who simply never paid keep
+    // indefinite access after their trial date had already passed.
+    const inTrial = trialEnd ? now < trialEnd : subscription.status === 'trialing';
     const trialDaysLeft = trialEnd ? Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / 86400000)) : 0;
-    const hasActive = ['active', 'trialing', 'past_due'].includes(subscription.status);
+    const hasActive = subscription.status === 'active' || subscription.status === 'past_due' || inTrial;
 
     return {
       isSuperAdmin: false,
@@ -72,7 +78,7 @@ export function computeAccess(
       trialEndsAt: trialEnd,
       hasActiveSubscription: hasActive,
       subscription,
-      blocked: !hasActive && !inTrial,
+      blocked: !hasActive,
     };
   }
 
