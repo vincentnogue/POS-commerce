@@ -12,6 +12,13 @@ import { useI18n } from '../lib/i18n';
 import { Logo } from './Logo';
 import type { Role } from '../lib/types';
 
+const ROLE_LABELS: Record<string, string> = {
+  super_admin: 'Super Admin',
+  admin: 'Propriétaire',
+  manager: 'Manager',
+  staff: 'Vendeur',
+};
+
 type NavItem = {
   to: string;
   labelKey: string;
@@ -120,20 +127,20 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
                   exit={{ opacity: 0, y: -4 }}
                   className="absolute left-0 right-0 top-full z-10 mt-1 max-h-64 overflow-auto rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 py-1 shadow-float scroll-thin"
                 >
-                  {tenants.map(({ tenant: t, member: m }) => (
+                  {tenants.map(({ tenant: tn, member: m }) => (
                     <button
-                      key={t.id}
-                      onClick={() => { switchTenant(t.id); setTenantMenuOpen(false); }}
+                      key={tn.id}
+                      onClick={() => { switchTenant(tn.id); setTenantMenuOpen(false); }}
                       className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-brand-50 dark:hover:bg-brand-900/25 ${
-                        t.id === tenant?.id ? 'bg-brand-50 dark:bg-brand-900/25 font-medium' : ''
+                        tn.id === tenant?.id ? 'bg-brand-50 dark:bg-brand-900/25 font-medium' : ''
                       }`}
                     >
                       <div className="min-w-0">
-                        <p className="truncate text-ink-900 dark:text-ink-50">{t.name}</p>
-                        <p className="truncate text-xs text-ink-500 dark:text-ink-400">{t.city}</p>
+                        <p className="truncate text-ink-900 dark:text-ink-50">{tn.name}</p>
+                        <p className="truncate text-xs text-ink-500 dark:text-ink-400">{tn.city}</p>
                       </div>
                       <span className="ml-2 shrink-0 rounded-full bg-ink-100 dark:bg-ink-800 px-2 py-0.5 text-[10px] uppercase text-ink-600 dark:text-ink-300">
-                        {t(`role.${(m.role as Role) ?? 'staff'}`)}
+                        {ROLE_LABELS[(m.role as Role) ?? 'staff']}
                       </span>
                     </button>
                   ))}
@@ -177,7 +184,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
                 }
               >
                 <Icon size={18} strokeWidth={1.8} className="shrink-0 text-ink-500 dark:text-ink-400 group-hover:text-brand-600" />
-                <span className="truncate">{item.label}</span>
+                <span className="truncate">{t(item.labelKey)}</span>
               </NavLink>
             );
           })}

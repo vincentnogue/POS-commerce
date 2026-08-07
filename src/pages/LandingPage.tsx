@@ -16,6 +16,7 @@ import { useTheme } from '../lib/theme';
 import { useInstallPrompt } from '../lib/useInstallPrompt';
 
 function Counter({ to, suffix = '' }: { to: number; suffix?: string }) {
+  const { formatNumber } = useI18n();
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: '-80px' });
   const count = useMotionValue(0);
@@ -76,7 +77,7 @@ const TESTIMONIALS = [
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { prefs } = useCookies();
-  const { lang, setLang, t, formatNumber } = useI18n();
+  const { lang, setLang, t } = useI18n();
   const { theme, toggle: toggleTheme } = useTheme();
   const { canInstall, promptInstall } = useInstallPrompt();
   const [showBanner, setShowBanner] = useState(false);
