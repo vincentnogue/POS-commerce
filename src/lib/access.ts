@@ -67,15 +67,20 @@ export function computeAccess(
     // payment webhook moves it to 'active'). Relying on
     // status === 'trialing' alone let anyone who simply never paid keep
     // indefinite access after their trial date had already passed.
-    const inTrial = trialEnd ? now < trialEnd : subscription.status === 'trialing';
-    const trialDaysLeft = trialEnd ? Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / 86400000)) : 0;
+    // When trial_ends_at is missing, fall back to the tenant creation
+    // date + TRIAL_DAYS — matching the server-side tenant_access_active()
+    // behavior, so a NULL trial date can never grant indefinite access.
+    const fallbackTrialEnd = new Date(new Date(tenantCreatedAt ?? tenant.created_at).getTime() + TRIAL_DAYS * 86400000);
+    const effectiveTrialEnd = trialEnd ?? fallbackTrialEnd;
+    const inTrial = now < effectiveTrialEnd;
+    const trialDaysLeft = Math.max(0, Math.ceil((effectiveTrialEnd.getTime() - now.getTime()) / 86400000));
     const hasActive = subscription.status === 'active' || subscription.status === 'past_due' || inTrial;
 
     return {
       isSuperAdmin: false,
       inTrial,
       trialDaysLeft,
-      trialEndsAt: trialEnd,
+      trialEndsAt: effectiveTrialEnd,
       hasActiveSubscription: hasActive,
       subscription,
       blocked: !hasActive,

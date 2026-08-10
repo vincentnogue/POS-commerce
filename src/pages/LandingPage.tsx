@@ -55,21 +55,21 @@ function Section({ children, delay = 0, className = '' }: { children: React.Reac
 }
 
 const FEATURES = [
-  { icon: ShoppingCart, title: 'Point de Vente (POS)', desc: 'Encaissement rapide, scan produits, tickets en direct. Fonctionne même avec une connexion instable.' },
-  { icon: Boxes, title: 'Gestion du stock', desc: 'Entrées/sorties, alertes stock bas, inventaire multi-magasins en temps réel.' },
-  { icon: FileText, title: 'Facturation', desc: 'Factures, devis, avoirs. Impayés suivis, relances automatiques, exports comptables.' },
-  { icon: Store, title: 'Multi-magasins', desc: 'Gérez plusieurs points de vente sous un même compte, avec isolation stricte par boutique.' },
-  { icon: Globe, title: 'Multi-devises', desc: 'XAF, XOF, NGN, KES, USD, EUR… La devise est verrouillée par compte pour rester cohérente.' },
-  { icon: FileBarChart, title: 'Rapports & analytics', desc: 'Filtres par magasin, période, catégorie. Graphiques clairs, exports CSV/PDF.' },
-  { icon: Wallet, title: 'Comptabilité', desc: 'Dépenses, achats, TVA, bilan simplifié. Vos chiffres prêts pour le comptable.' },
-  { icon: Smartphone, title: 'Mobile Money natif', desc: 'Orange Money, MTN, Wave, M-Pesa — proposés dynamiquement selon le pays du client.' },
+  { icon: ShoppingCart, titleKey: 'landing.feature.pos.title', descKey: 'landing.feature.pos.desc' },
+  { icon: Boxes, titleKey: 'landing.feature.stock.title', descKey: 'landing.feature.stock.desc' },
+  { icon: FileText, titleKey: 'landing.feature.invoicing.title', descKey: 'landing.feature.invoicing.desc' },
+  { icon: Store, titleKey: 'landing.feature.stores.title', descKey: 'landing.feature.stores.desc' },
+  { icon: Globe, titleKey: 'landing.feature.currencies.title', descKey: 'landing.feature.currencies.desc' },
+  { icon: FileBarChart, titleKey: 'landing.feature.reports.title', descKey: 'landing.feature.reports.desc' },
+  { icon: Wallet, titleKey: 'landing.feature.accounting.title', descKey: 'landing.feature.accounting.desc' },
+  { icon: Smartphone, titleKey: 'landing.feature.mobileMoney.title', descKey: 'landing.feature.mobileMoney.desc' },
 ];
 
 const TESTIMONIALS = [
-  { name: 'Aïssatou Diallo', company: 'Boutique Sahel, Bamako', quote: 'POS Flow a transformé ma gestion. Je vois enfin la rentabilité de chaque produit en temps réel.', initials: 'AD', tone: 'bg-action-500' },
-  { name: 'Emmanuel Okonkwo', company: 'Okonkwo Stores, Lagos', quote: 'Le multi-magasins est un game-changer. 3 boutiques, un seul tableau de bord, zéro confusion.', initials: 'EO', tone: 'bg-brand-500' },
-  { name: 'Fatou Ndiaye', company: 'Fatou Cosmetics, Dakar', quote: 'Encaissement avec Wave et Orange Money intégré, c\'est exactement ce qu\'il manquait au Sénégal.', initials: 'FN', tone: 'bg-flow-500' },
-  { name: 'Larissa Stella', company: 'Stella Distribution, Yaoundé', quote: 'La gestion de stock multi-magasins m\'a fait gagner un temps fou. Je sais exactement ce que j\'ai en boutique, sans inventaire manuel.', initials: 'LS', tone: 'bg-success-600' },
+  { name: 'Aïssatou Diallo', company: 'Boutique Sahel, Bamako', quoteKey: 'landing.testimonial.aissatou', initials: 'AD', tone: 'bg-action-500' },
+  { name: 'Emmanuel Okonkwo', company: 'Okonkwo Stores, Lagos', quoteKey: 'landing.testimonial.emmanuel', initials: 'EO', tone: 'bg-brand-500' },
+  { name: 'Fatou Ndiaye', company: 'Fatou Cosmetics, Dakar', quoteKey: 'landing.testimonial.fatou', initials: 'FN', tone: 'bg-flow-500' },
+  { name: 'Larissa Stella', company: 'Stella Distribution, Yaoundé', quoteKey: 'landing.testimonial.larissa', initials: 'LS', tone: 'bg-success-600' },
 ];
 
 
@@ -102,11 +102,11 @@ export function LandingPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 lg:px-8">
           <Logo />
           <nav className="hidden items-center gap-8 md:flex">
-            <button onClick={() => scrollTo('features')} className="text-sm font-medium text-ink-700 dark:text-ink-200 hover:text-brand-600">Fonctionnalités</button>
-            <button onClick={() => scrollTo('africa')} className="text-sm font-medium text-ink-700 dark:text-ink-200 hover:text-brand-600">L'Afrique</button>
-            <button onClick={() => scrollTo('pricing')} className="text-sm font-medium text-ink-700 dark:text-ink-200 hover:text-brand-600">Tarifs</button>
-            <Link to="/pricing" className="text-sm font-medium text-ink-700 dark:text-ink-200 hover:text-brand-600">Détails</Link>
-            <Link to="/about" className="text-sm font-medium text-ink-700 dark:text-ink-200 hover:text-brand-600">À propos</Link>
+            <button onClick={() => scrollTo('features')} className="text-sm font-medium text-ink-700 dark:text-ink-200 hover:text-brand-600">{t('nav.features')}</button>
+            <button onClick={() => scrollTo('africa')} className="text-sm font-medium text-ink-700 dark:text-ink-200 hover:text-brand-600">{t('nav.africa')}</button>
+            <button onClick={() => scrollTo('pricing')} className="text-sm font-medium text-ink-700 dark:text-ink-200 hover:text-brand-600">{t('nav.pricing')}</button>
+            <Link to="/pricing" className="text-sm font-medium text-ink-700 dark:text-ink-200 hover:text-brand-600">{t('nav.details')}</Link>
+            <Link to="/about" className="text-sm font-medium text-ink-700 dark:text-ink-200 hover:text-brand-600">{t('nav.about')}</Link>
           </nav>
           <div className="hidden items-center gap-3 md:flex">
             <button
@@ -136,10 +136,10 @@ export function LandingPage() {
             className="border-t border-ink-100 dark:border-ink-800 bg-white dark:bg-ink-800 px-4 py-4 md:hidden"
           >
             <nav className="flex flex-col gap-3">
-              <button onClick={() => scrollTo('features')} className="text-left text-sm font-medium text-ink-700 dark:text-ink-200">Fonctionnalités</button>
-              <button onClick={() => scrollTo('africa')} className="text-left text-sm font-medium text-ink-700 dark:text-ink-200">L'Afrique</button>
-              <button onClick={() => scrollTo('pricing')} className="text-left text-sm font-medium text-ink-700 dark:text-ink-200">Tarifs</button>
-              <Link to="/login" className="text-sm font-medium text-ink-700 dark:text-ink-200">Se connecter</Link>
+              <button onClick={() => scrollTo('features')} className="text-left text-sm font-medium text-ink-700 dark:text-ink-200">{t('nav.features')}</button>
+              <button onClick={() => scrollTo('africa')} className="text-left text-sm font-medium text-ink-700 dark:text-ink-200">{t('nav.africa')}</button>
+              <button onClick={() => scrollTo('pricing')} className="text-left text-sm font-medium text-ink-700 dark:text-ink-200">{t('nav.pricing')}</button>
+              <Link to="/login" className="text-sm font-medium text-ink-700 dark:text-ink-200">{t('nav.login')}</Link>
               <button
                 onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
                 className="flex items-center gap-2 text-left text-sm font-medium text-ink-700 dark:text-ink-200"
@@ -147,9 +147,9 @@ export function LandingPage() {
                 {LANG_LABELS[lang]}<span className="text-ink-300">/</span>{LANG_LABELS[lang === 'fr' ? 'en' : 'fr' as Lang]}
               </button>
               <button onClick={toggleTheme} className="flex items-center gap-2 text-left text-sm font-medium text-ink-700 dark:text-ink-200">
-                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />} {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />} {theme === 'dark' ? t('landing.theme.light') : t('landing.theme.dark')}
               </button>
-              <Link to="/signup" className="btn-primary mt-2">Essai gratuit</Link>
+              <Link to="/signup" className="btn-primary mt-2">{t('nav.freeTrial')}</Link>
             </nav>
           </motion.div>
         )}
@@ -186,7 +186,7 @@ export function LandingPage() {
               transition={{ duration: 0.6 }}
               className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 dark:bg-brand-900/25 px-3 py-1.5 text-xs font-medium text-brand-700"
             >
-              <Sparkles size={14} /> Né du terrain africain, conçu pour le monde entier
+              <Sparkles size={14} /> {t('landing.badge')}
             </motion.div>
             <motion.h1
               variants={fadeUp}
@@ -195,7 +195,7 @@ export function LandingPage() {
               transition={{ duration: 0.7, delay: 0.1 }}
               className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-ink-900 dark:text-ink-50 sm:text-5xl lg:text-6xl"
             >
-              La plateforme de gestion commerciale <span className="text-gradient-flow">qui s'adapte à votre marché</span>
+              {t('landing.hero.title')} <span className="text-gradient-flow">{t('landing.hero.titleAccent')}</span>
             </motion.h1>
             <motion.p
               variants={fadeUp}
@@ -204,7 +204,7 @@ export function LandingPage() {
               transition={{ duration: 0.7, delay: 0.2 }}
               className="mt-5 max-w-xl text-lg text-ink-600 dark:text-ink-300"
             >
-              POS, stock, facturation, multi-magasins, multi-devises et Mobile Money — tout réuni dans une seule application, conçue pour résister aux réalités du terrain et s'adapter à tous les marchés, en Afrique comme ailleurs.
+              {t('landing.hero.desc')}
             </motion.p>
             <motion.div
               variants={fadeUp}
@@ -215,15 +215,15 @@ export function LandingPage() {
             >
               <Link to="/signup" className="btn-primary relative px-6 py-3 text-base overflow-hidden">
                 <span className="absolute inset-0 -z-10 animate-pulse-glow rounded-full bg-brand-400/40 blur-md" />
-                Démarrer gratuitement <ArrowRight size={18} />
+                {t('landing.hero.cta')} <ArrowRight size={18} />
               </Link>
               <button onClick={() => scrollTo('features')} className="btn-ghost px-6 py-3 text-base">
-                <Play size={16} /> Voir la démo
+                <Play size={16} /> {t('landing.hero.demo')}
               </button>
             </motion.div>
             {canInstall && (
               <button onClick={promptInstall} className="mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-ink-500 dark:text-ink-400 transition hover:text-brand-600">
-                <Download size={13} /> Installer l'app sur cet appareil
+                <Download size={13} /> {t('landing.hero.install')}
               </button>
             )}
             <motion.div
@@ -233,8 +233,8 @@ export function LandingPage() {
               transition={{ duration: 0.7, delay: 0.4 }}
               className="mt-8 flex items-center gap-6 text-sm text-ink-500 dark:text-ink-400"
             >
-              <div className="flex items-center gap-2"><Check size={16} className="text-success-600" /> Sans carte bancaire</div>
-              <div className="flex items-center gap-2"><Check size={16} className="text-success-600" /> Configuration en 5 min</div>
+              <div className="flex items-center gap-2"><Check size={16} className="text-success-600" /> {t('landing.hero.noCard')}</div>
+              <div className="flex items-center gap-2"><Check size={16} className="text-success-600" /> {t('landing.hero.setup')}</div>
             </motion.div>
           </div>
 
@@ -254,22 +254,22 @@ export function LandingPage() {
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
-                  { label: 'CA DU MOIS', value: '$8,400', tone: 'bg-brand-100 dark:bg-brand-900/35 text-brand-700', icon: TrendingUp },
-                  { label: 'VENTES', value: '128', tone: 'bg-action-100 dark:bg-action-900/35 text-action-600', icon: ShoppingCart },
-                  { label: 'IMPAYÉS', value: '3', tone: 'bg-success-100 dark:bg-success-900/35 text-success-700', icon: FileText },
-                  { label: 'LIVRAISONS', value: '7', tone: 'bg-warning-100 dark:bg-warning-900/35 text-warning-600', icon: Store },
+                  { labelKey: 'landing.mock.monthRevenue', value: '$8,400', tone: 'bg-brand-100 dark:bg-brand-900/35 text-brand-700', icon: TrendingUp },
+                  { labelKey: 'landing.mock.sales', value: '128', tone: 'bg-action-100 dark:bg-action-900/35 text-action-600', icon: ShoppingCart },
+                  { labelKey: 'landing.mock.unpaid', value: '3', tone: 'bg-success-100 dark:bg-success-900/35 text-success-700', icon: FileText },
+                  { labelKey: 'landing.mock.deliveries', value: '7', tone: 'bg-warning-100 dark:bg-warning-900/35 text-warning-600', icon: Store },
                 ].map((s) => (
-                  <div key={s.label} className="rounded-2xl border border-ink-200 dark:border-ink-700 p-3">
+                  <div key={s.labelKey} className="rounded-2xl border border-ink-200 dark:border-ink-700 p-3">
                     <div className={`mb-2 inline-flex h-8 w-8 items-center justify-center rounded-full ${s.tone}`}>
                       <s.icon size={15} />
                     </div>
-                    <p className="text-[10px] font-medium uppercase text-ink-500 dark:text-ink-400">{s.label}</p>
+                    <p className="text-[10px] font-medium uppercase text-ink-500 dark:text-ink-400">{t(s.labelKey)}</p>
                     <p className="text-lg font-medium text-ink-900 dark:text-ink-50">{s.value}</p>
                   </div>
                 ))}
               </div>
               <div className="mt-3 rounded-2xl border border-ink-200 dark:border-ink-700 p-4">
-                <p className="mb-3 text-xs font-medium text-ink-700 dark:text-ink-200">Ventes des 7 derniers jours</p>
+                <p className="mb-3 text-xs font-medium text-ink-700 dark:text-ink-200">{t('landing.mock.weeklySales')}</p>
                 <div className="flex items-end justify-between gap-2 h-32">
                   {[42, 65, 38, 80, 55, 90, 72].map((h, i) => (
                     <div key={i} className="flex flex-1 flex-col items-center gap-1">
@@ -279,14 +279,14 @@ export function LandingPage() {
                         transition={{ duration: 0.8, delay: 0.6 + i * 0.08 }}
                         className="w-full rounded-t-md bg-gradient-to-t from-brand-300 to-flow-400"
                       />
-                      <span className="text-[9px] text-ink-400 dark:text-ink-500">{['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'][i]}</span>
+                      <span className="text-[9px] text-ink-400 dark:text-ink-500">{t(`landing.mock.day${i}`)}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
             <div className="absolute -right-3 -top-3 hidden rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-xs font-medium text-ink-700 dark:text-ink-200 shadow-soft sm:block">
-              <span className="text-success-600">+24%</span> vs semaine dernière
+              <span className="text-success-600">+24%</span> {t('landing.mock.vsLastWeek')}
             </div>
           </motion.div>
         </div>
@@ -296,16 +296,16 @@ export function LandingPage() {
       <section className="border-y border-ink-100 dark:border-ink-800 bg-brand-50/40 dark:bg-brand-900/25">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 py-10 lg:grid-cols-4 lg:px-8">
           {[
-            { label: 'Pays africains couverts', value: 54, suffix: '' },
-            { label: 'Entreprises actives', value: 3200, suffix: '+' },
-            { label: 'Transactions traitées', value: 1250000, suffix: '+' },
-            { label: 'Devises supportées', value: 16, suffix: '' },
+            { labelKey: 'landing.stats.countries', value: 54, suffix: '' },
+            { labelKey: 'landing.stats.companies', value: 3200, suffix: '+' },
+            { labelKey: 'landing.stats.transactions', value: 1250000, suffix: '+' },
+            { labelKey: 'landing.stats.currencies', value: 16, suffix: '' },
           ].map((s) => (
-            <div key={s.label} className="text-center">
+            <div key={s.labelKey} className="text-center">
               <p className="text-3xl font-medium text-gradient-flow sm:text-4xl">
                 <Counter to={s.value} suffix={s.suffix} />
               </p>
-              <p className="mt-1 text-xs font-medium uppercase tracking-wide text-ink-600 dark:text-ink-300">{s.label}</p>
+              <p className="mt-1 text-xs font-medium uppercase tracking-wide text-ink-600 dark:text-ink-300">{t(s.labelKey)}</p>
             </div>
           ))}
         </div>
@@ -314,19 +314,19 @@ export function LandingPage() {
       {/* Features */}
       <section id="features" className="mx-auto max-w-7xl px-4 py-20 lg:px-8">
         <Section className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-medium uppercase tracking-wide text-brand-600">Fonctionnalités</p>
-          <h2 className="mt-2 text-3xl font-medium tracking-tight text-ink-900 dark:text-ink-50 sm:text-4xl">Tout ce dont votre commerce a besoin</h2>
-          <p className="mt-3 text-ink-600 dark:text-ink-300">Une suite complète, modulaire et pensée pour le terrain africain.</p>
+          <p className="text-sm font-medium uppercase tracking-wide text-brand-600">{t('landing.features.eyebrow')}</p>
+          <h2 className="mt-2 text-3xl font-medium tracking-tight text-ink-900 dark:text-ink-50 sm:text-4xl">{t('landing.features.title')}</h2>
+          <p className="mt-3 text-ink-600 dark:text-ink-300">{t('landing.features.desc')}</p>
         </Section>
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((f, i) => (
-            <Section key={f.title} delay={(i % 4) * 0.08}>
+            <Section key={f.titleKey} delay={(i % 4) * 0.08}>
               <div className="group h-full rounded-2xl2 border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-6 transition-all hover:-translate-y-1 hover:border-brand-200 hover:shadow-float">
                 <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 dark:bg-brand-900/25 text-brand-600 transition group-hover:bg-brand-100 dark:group-hover:bg-brand-900/35">
                   <f.icon size={22} />
                 </div>
-                <h3 className="text-lg font-medium text-ink-900 dark:text-ink-50">{f.title}</h3>
-                <p className="mt-2 text-sm text-ink-600 dark:text-ink-300">{f.desc}</p>
+                <h3 className="text-lg font-medium text-ink-900 dark:text-ink-50">{t(f.titleKey)}</h3>
+                <p className="mt-2 text-sm text-ink-600 dark:text-ink-300">{t(f.descKey)}</p>
               </div>
             </Section>
           ))}
@@ -339,26 +339,26 @@ export function LandingPage() {
         <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 lg:grid-cols-2 lg:px-8">
           <div>
             <Section>
-              <p className="text-sm font-medium uppercase tracking-wide text-flow-400">Pensé pour l'Afrique</p>
-              <h2 className="mt-2 text-3xl font-medium sm:text-4xl">Couverture panafricaine, dès le premier jour</h2>
+              <p className="text-sm font-medium uppercase tracking-wide text-flow-400">{t('landing.africa.eyebrow')}</p>
+              <h2 className="mt-2 text-3xl font-medium sm:text-4xl">{t('landing.africa.title')}</h2>
               <p className="mt-4 text-ink-300">
-                Des pays d'Afrique de l'Ouest à l'Afrique de l'Est, du Nord au Sud, POS Flow s'adapte à votre marché : devise locale, Mobile Money, langues, formats de date et fuseaux horaires.
+                {t('landing.africa.desc')}
               </p>
             </Section>
             <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
               {[
-                { icon: Globe, title: '54 pays', desc: 'Tous les pays africains supportés' },
-                { icon: Smartphone, title: 'Mobile Money', desc: 'Orange, MTN, Wave, M-Pesa…' },
-                { icon: Globe, title: 'Multi-langues', desc: 'FR, EN, PT, AR' },
-                { icon: Shield, title: 'Données isolées', desc: 'Sécurité multi-tenant stricte' },
-                { icon: TrendingUp, title: 'Multi-devises', desc: 'XAF, XOF, NGN, KES…' },
-                { icon: MapPin, title: 'Fuseaux locaux', desc: 'Dates et heures adaptées' },
+                { icon: Globe, titleKey: 'landing.africa.countries.title', descKey: 'landing.africa.countries.desc' },
+                { icon: Smartphone, titleKey: 'landing.africa.mobileMoney.title', descKey: 'landing.africa.mobileMoney.desc' },
+                { icon: Globe, titleKey: 'landing.africa.languages.title', descKey: 'landing.africa.languages.desc' },
+                { icon: Shield, titleKey: 'landing.africa.data.title', descKey: 'landing.africa.data.desc' },
+                { icon: TrendingUp, titleKey: 'landing.africa.multiCurrency.title', descKey: 'landing.africa.multiCurrency.desc' },
+                { icon: MapPin, titleKey: 'landing.africa.timezones.title', descKey: 'landing.africa.timezones.desc' },
               ].map((f, i) => (
-                <Section key={f.title} delay={i * 0.05}>
+                <Section key={f.titleKey} delay={i * 0.05}>
                   <div className="rounded-xl border border-ink-700 bg-ink-800 p-4">
                     <f.icon size={20} className="mb-2 text-flow-400" />
-                    <p className="text-sm font-medium">{f.title}</p>
-                    <p className="mt-0.5 text-xs text-ink-400 dark:text-ink-500">{f.desc}</p>
+                    <p className="text-sm font-medium">{t(f.titleKey)}</p>
+                    <p className="mt-0.5 text-xs text-ink-400 dark:text-ink-500">{t(f.descKey)}</p>
                   </div>
                 </Section>
               ))}
@@ -405,7 +405,7 @@ export function LandingPage() {
                 </div>
               ))}
               <div className="absolute inset-x-0 bottom-0 text-center">
-                <p className="text-xs font-medium text-ink-400 dark:text-ink-500">{COUNTRIES.length} pays · {supportedCurrencies.length} devises · 4 langues</p>
+                <p className="text-xs font-medium text-ink-400 dark:text-ink-500">{t('landing.africa.mapFootnote', { countries: String(COUNTRIES.length), currencies: String(supportedCurrencies.length) })}</p>
               </div>
             </div>
           </Section>
@@ -422,9 +422,9 @@ export function LandingPage() {
       {/* Pricing preview */}
       <section id="pricing" className="mx-auto max-w-7xl px-4 py-20 lg:px-8">
         <Section className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-medium uppercase tracking-wide text-brand-600">Tarifs</p>
-          <h2 className="mt-2 text-3xl font-medium tracking-tight text-ink-900 dark:text-ink-50 sm:text-4xl">Un plan pour chaque étape</h2>
-          <p className="mt-3 text-ink-600 dark:text-ink-300">Commencez gratuitement, évoluez à votre rythme. Sans engagement.</p>
+          <p className="text-sm font-medium uppercase tracking-wide text-brand-600">{t('landing.pricing.eyebrow')}</p>
+          <h2 className="mt-2 text-3xl font-medium tracking-tight text-ink-900 dark:text-ink-50 sm:text-4xl">{t('landing.pricing.title')}</h2>
+          <p className="mt-3 text-ink-600 dark:text-ink-300">{t('landing.pricing.desc')}</p>
         </Section>
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {PLANS.map((p, i) => (
@@ -457,7 +457,7 @@ export function LandingPage() {
         </div>
         <div className="mt-8 text-center">
           <Link to="/pricing" className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:underline">
-            Voir les détails des plans <ArrowRight size={14} />
+            {t('landing.pricing.viewDetails')} <ArrowRight size={14} />
           </Link>
         </div>
       </section>
@@ -466,8 +466,8 @@ export function LandingPage() {
       <section className="bg-brand-50/50 dark:bg-brand-900/25 py-20">
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <Section className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-medium uppercase tracking-wide text-brand-600">Témoignages</p>
-            <h2 className="mt-2 text-3xl font-medium tracking-tight text-ink-900 dark:text-ink-50 sm:text-4xl">Ils gèrent leur commerce avec POS Flow</h2>
+            <p className="text-sm font-medium uppercase tracking-wide text-brand-600">{t('landing.testimonials.eyebrow')}</p>
+            <h2 className="mt-2 text-3xl font-medium tracking-tight text-ink-900 dark:text-ink-50 sm:text-4xl">{t('landing.testimonials.title')}</h2>
           </Section>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {TESTIMONIALS.map((tm, i) => (
@@ -478,7 +478,7 @@ export function LandingPage() {
                       <Star key={k} size={16} className="fill-action-400 text-action-400" />
                     ))}
                   </div>
-                  <p className="text-sm leading-relaxed text-ink-700 dark:text-ink-200">« {tm.quote} »</p>
+                  <p className="text-sm leading-relaxed text-ink-700 dark:text-ink-200">« {t(tm.quoteKey)} »</p>
                   <div className="mt-5 flex items-center gap-3">
                     <div className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium text-white ${tm.tone}`}>
                       {tm.initials}
@@ -500,10 +500,10 @@ export function LandingPage() {
         <div className="bg-gradient-to-br from-brand-600 via-brand-500 to-flow-500 py-20">
           <div className="mx-auto max-w-4xl px-4 text-center text-white lg:px-8">
             <Section>
-              <h2 className="text-3xl font-medium sm:text-5xl">Prêt à digitaliser votre commerce ?</h2>
-              <p className="mt-4 text-lg text-brand-50">Rejoignez les milliers de commerçants — en Afrique et au-delà — qui pilotent leur activité avec POS Flow.</p>
+              <h2 className="text-3xl font-medium sm:text-5xl">{t('landing.cta.title')}</h2>
+              <p className="mt-4 text-lg text-brand-50">{t('landing.cta.desc')}</p>
               <Link to="/signup" className="mt-8 inline-flex items-center gap-2 rounded-full bg-white dark:bg-ink-800 px-7 py-3.5 text-base font-medium text-brand-700 shadow-float transition hover:scale-105 active:scale-100">
-                Créer mon compte <ArrowRight size={18} />
+                {t('landing.cta.button')} <ArrowRight size={18} />
               </Link>
             </Section>
           </div>
@@ -516,7 +516,7 @@ export function LandingPage() {
           <div className="grid gap-8 md:grid-cols-4">
             <div>
               <Logo />
-              <p className="mt-3 text-sm text-ink-500 dark:text-ink-400">La plateforme de gestion commerciale conçue pour le terrain, pensée pour le monde. Par LiAfrik.</p>
+              <p className="mt-3 text-sm text-ink-500 dark:text-ink-400">{t('landing.footer.tagline')}</p>
               <div className="mt-4 flex items-center gap-3 text-ink-400 dark:text-ink-500">
                 <Twitter size={18} className="hover:text-brand-600" />
                 <Linkedin size={18} className="hover:text-brand-600" />
@@ -525,12 +525,12 @@ export function LandingPage() {
               </div>
             </div>
             <div>
-              <p className="text-sm font-medium text-ink-900 dark:text-ink-50">Produit</p>
+              <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{t('landing.footer.product')}</p>
               <ul className="mt-3 space-y-2 text-sm text-ink-500 dark:text-ink-400">
-                <li><button onClick={() => scrollTo('features')} className="hover:text-brand-600">Fonctionnalités</button></li>
-                <li><Link to="/pricing" className="hover:text-brand-600">Tarifs</Link></li>
-                <li><Link to="/login" className="hover:text-brand-600">Se connecter</Link></li>
-                <li><Link to="/signup" className="hover:text-brand-600">Créer un compte</Link></li>
+                <li><button onClick={() => scrollTo('features')} className="hover:text-brand-600">{t('nav.features')}</button></li>
+                <li><Link to="/pricing" className="hover:text-brand-600">{t('nav.pricing')}</Link></li>
+                <li><Link to="/login" className="hover:text-brand-600">{t('nav.login')}</Link></li>
+                <li><Link to="/signup" className="hover:text-brand-600">{t('landing.footer.createAccount')}</Link></li>
               </ul>
             </div>
             <div>
@@ -540,7 +540,7 @@ export function LandingPage() {
                 <li><Link to="/blog" className="hover:text-brand-600">{t('nav.blog')}</Link></li>
                 <li><Link to="/careers" className="hover:text-brand-600">{t('nav.careers')}</Link></li>
                 <li><Link to="/contact" className="hover:text-brand-600">{t('nav.contact')}</Link></li>
-                <li><Link to="/help" className="hover:text-brand-600">Centre d'aide</Link></li>
+                <li><Link to="/help" className="hover:text-brand-600">{t('nav.help')}</Link></li>
               </ul>
             </div>
             <div>
@@ -554,8 +554,8 @@ export function LandingPage() {
             </div>
           </div>
           <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-ink-100 dark:border-ink-800 pt-6 text-xs text-ink-400 dark:text-ink-500 sm:flex-row">
-            <p>© {new Date().getFullYear()} LiAfrik — Dubaï / Afrique. Tous droits réservés.</p>
-            <p>Né des réalités du terrain africain. Prêt pour le monde entier.</p>
+            <p>{t('landing.footer.rights', { year: String(new Date().getFullYear()) })}</p>
+            <p>{t('landing.footer.bornInAfrica')}</p>
           </div>
         </div>
       </footer>
@@ -567,6 +567,7 @@ export function LandingPage() {
 
 function CookieInlineBanner({ onClose }: { onClose: () => void }) {
   const { setPrefs } = useCookies();
+  const { t } = useI18n();
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
@@ -575,11 +576,11 @@ function CookieInlineBanner({ onClose }: { onClose: () => void }) {
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-ink-700 dark:text-ink-200">
-          Nous utilisons des cookies pour améliorer votre expérience. Voir notre <Link to="/privacy" className="font-medium text-brand-600 underline">politique de confidentialité</Link>.
+          {t('landing.cookie.text')} <Link to="/privacy" className="font-medium text-brand-600 underline">{t('landing.cookie.policy')}</Link>.
         </p>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => { setPrefs({ necessary: true, analytics: false, marketing: false }); onClose(); }} className="rounded-full border border-ink-200 dark:border-ink-700 px-3 py-1.5 text-xs font-medium text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-900">Refuser</button>
-          <button onClick={() => { setPrefs({ necessary: true, analytics: true, marketing: true }); onClose(); }} className="btn-primary px-3 py-1.5 text-xs">Accepter tout</button>
+          <button onClick={() => { setPrefs({ necessary: true, analytics: false, marketing: false }); onClose(); }} className="rounded-full border border-ink-200 dark:border-ink-700 px-3 py-1.5 text-xs font-medium text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-900">{t('landing.cookie.decline')}</button>
+          <button onClick={() => { setPrefs({ necessary: true, analytics: true, marketing: true }); onClose(); }} className="btn-primary px-3 py-1.5 text-xs">{t('landing.cookie.accept')}</button>
         </div>
       </div>
     </motion.div>
