@@ -10,10 +10,10 @@ export function DataTable<T>({
   empty?: ReactNode;
   loading?: boolean;
 }) {
-  if (loading) {
-    return <div className="py-10 text-center text-sm text-ink-400 dark:text-ink-500">Chargement…</div>;
-  }
   const { t } = useI18n();
+  if (loading) {
+    return <div className="py-10 text-center text-sm text-ink-400 dark:text-ink-500">{t('common.loading')}</div>;
+  }
   if (rows.length === 0) {
     return <div className="py-10 text-center text-sm text-ink-400 dark:text-ink-500">{empty ?? t('datatable.empty')}</div>;
   }

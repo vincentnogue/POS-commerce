@@ -21,7 +21,7 @@ export function PricingPage() {
             <button
               onClick={toggleTheme}
               className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
-              aria-label="Mode sombre/clair"
+              aria-label={t('header.toggleTheme')}
             >
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
@@ -39,7 +39,7 @@ export function PricingPage() {
           className="mx-auto max-w-2xl text-center"
         >
           <p className="text-sm font-medium uppercase tracking-wide text-brand-600">{t('nav.pricing')}</p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight text-ink-900 dark:text-ink-50 sm:text-5xl">Un plan pour chaque ambition</h1>
+          <h1 className="mt-2 text-4xl font-semibold tracking-tight text-ink-900 dark:text-ink-50 sm:text-5xl">{t('pricing.title')}</h1>
           <p className="mt-4 text-lg text-ink-600 dark:text-ink-300">{t('pricing.subtitle')}</p>
 
           {/* Monthly / Annual toggle */}
@@ -109,13 +109,13 @@ export function PricingPage() {
 
         <div className="mt-16 grid gap-6 sm:grid-cols-3">
           {[
-            { title: 'Paiement flexible', desc: 'Carte bancaire via Stripe, Mobile Money via Flutterwave.' },
-            { title: 'Sans engagement', desc: 'Annulez à tout moment, vos données restent exportables.' },
-            { title: 'Support inclus', desc: 'Tous les plans incluent un support. Entreprise dispose du 24/7.' },
+            { titleKey: 'pricing.feature.flexible.title', descKey: 'pricing.feature.flexible.desc' },
+            { titleKey: 'pricing.feature.commitment.title', descKey: 'pricing.feature.commitment.desc' },
+            { titleKey: 'pricing.feature.support.title', descKey: 'pricing.feature.support.desc' },
           ].map((f) => (
-            <div key={f.title} className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 dark:bg-brand-900/25 p-5">
-              <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{f.title}</p>
-              <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">{f.desc}</p>
+            <div key={f.titleKey} className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 dark:bg-brand-900/25 p-5">
+              <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{t(f.titleKey)}</p>
+              <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">{t(f.descKey)}</p>
             </div>
           ))}
         </div>

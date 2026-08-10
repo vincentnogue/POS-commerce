@@ -107,6 +107,12 @@ export const en: Record<string, string> = {
   "pricing.annualSave": "2 months free",
   "pricing.viewDetails": "View plan details",
   "pricing.backHome": "Back to home",
+  "pricing.feature.flexible.title": "Flexible payment",
+  "pricing.feature.flexible.desc": "Bank card via Stripe, Mobile Money via Flutterwave.",
+  "pricing.feature.commitment.title": "No commitment",
+  "pricing.feature.commitment.desc": "Cancel anytime, your data stays exportable.",
+  "pricing.feature.support.title": "Support included",
+  "pricing.feature.support.desc": "All plans include support. Enterprise gets 24/7.",
 
   // Invoice filters
   "invoices.all": "All",

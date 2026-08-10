@@ -107,6 +107,12 @@ export const fr: Record<string, string> = {
   "pricing.annualSave": "2 mois offerts",
   "pricing.viewDetails": "Voir les détails des plans",
   "pricing.backHome": "Retour à l'accueil",
+  "pricing.feature.flexible.title": "Paiement flexible",
+  "pricing.feature.flexible.desc": "Carte bancaire via Stripe, Mobile Money via Flutterwave.",
+  "pricing.feature.commitment.title": "Sans engagement",
+  "pricing.feature.commitment.desc": "Annulez à tout moment, vos données restent exportables.",
+  "pricing.feature.support.title": "Support inclus",
+  "pricing.feature.support.desc": "Tous les plans incluent un support. Entreprise dispose du 24/7.",
 
   // Invoice filters
   "invoices.all": "Toutes",

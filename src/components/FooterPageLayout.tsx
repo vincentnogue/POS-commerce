@@ -20,7 +20,7 @@ export function FooterPageLayout({ title, children }: { title: string; children:
             <button
               onClick={toggle}
               className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
-              aria-label="Mode sombre/clair"
+              aria-label={t('header.toggleTheme')}
             >
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>

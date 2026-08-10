@@ -118,7 +118,7 @@ export function LandingPage() {
             <button
               onClick={toggleTheme}
               className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
-              aria-label="Mode sombre/clair"
+              aria-label={t('header.toggleTheme')}
             >
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
@@ -555,6 +555,13 @@ export function LandingPage() {
           </div>
           <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-ink-100 dark:border-ink-800 pt-6 text-xs text-ink-400 dark:text-ink-500 sm:flex-row">
             <p>{t('landing.footer.rights', { year: String(new Date().getFullYear()) })}</p>
+            <button
+              onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
+              className="inline-flex h-8 items-center gap-1 rounded-full border border-ink-200 dark:border-ink-700 px-3 text-xs font-medium text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
+              aria-label={t('header.switchLanguage')}
+            >
+              {LANG_LABELS[lang]}<span className="text-ink-300">/</span>{LANG_LABELS[lang === 'fr' ? 'en' : 'fr' as Lang]}
+            </button>
             <p>{t('landing.footer.bornInAfrica')}</p>
           </div>
         </div>

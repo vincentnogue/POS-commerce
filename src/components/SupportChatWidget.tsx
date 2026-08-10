@@ -119,7 +119,7 @@ export function SupportChatWidget() {
       <button
         onClick={() => setOpen((v) => !v)}
         className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-brand-500 text-white shadow-lg transition hover:bg-brand-600 hover:scale-105"
-        aria-label="Support"
+        aria-label={t('support.title')}
       >
         {open ? <X size={22} /> : <MessageCircle size={22} />}
         {!open && unread > 0 && (
