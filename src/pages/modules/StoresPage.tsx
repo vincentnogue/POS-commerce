@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, Store as StoreIcon, MapPin, Phone, Navigation, Users } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
+import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components/ui';
 import { Field } from '../../components/DataTable';
@@ -10,6 +11,7 @@ const EMPTY = { name: '', city: '', address: '', phone: '', latitude: '', longit
 
 export function StoresPage() {
   const { tenant, can } = useAuth();
+  const { t } = useI18n();
   const toast = useToast();
   const [stores, setStores] = useState<Store[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -82,7 +84,7 @@ export function StoresPage() {
 
   const remove = async (s: Store) => {
     if (!canDelete) return;
-    if (!confirm(`Supprimer "${s.name}" ?`)) return;
+    if (!confirm(t('stores.confirmDelete', { name: s.name }))) return;
     await supabase.from('stores').delete().eq('id', s.id);
     await reload();
   };
@@ -111,19 +113,19 @@ export function StoresPage() {
 
   const memberName = (id: string) => {
     const m = members.find((x) => x.id === id);
-    return m?.display_name ?? 'Membre';
+    return m?.display_name ?? t('stores.member');
   };
 
   return (
     <div>
       <PageHeader
-        title="Magasins"
-        subtitle={`${stores.length} point(s) de vente`}
-        action={canCreate ? <button onClick={openNew} className="btn-primary"><Plus size={16} /> Nouveau magasin</button> : undefined}
+        title={t('stores.title')}
+        subtitle={t('stores.subtitle', { count: stores.length })}
+        action={canCreate ? <button onClick={openNew} className="btn-primary"><Plus size={16} /> {t('stores.new')}</button> : undefined}
       />
 
       {stores.length === 0 && !loading ? (
-        <EmptyState icon={StoreIcon} title="Aucun magasin" description="Créez votre premier point de vente." action={canCreate ? <button onClick={openNew} className="btn-primary"><Plus size={15} /> Ajouter</button> : undefined} />
+        <EmptyState icon={StoreIcon} title={t('stores.empty.title')} description={t('stores.empty.desc')} action={canCreate ? <button onClick={openNew} className="btn-primary"><Plus size={15} /> {t('common.add')}</button> : undefined} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {stores.map((s) => {
@@ -134,7 +136,7 @@ export function StoresPage() {
                   <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 dark:bg-brand-900/25 text-brand-600">
                     <StoreIcon size={20} />
                   </div>
-                  <Badge tone={s.is_active ? 'success' : 'neutral'}>{s.is_active ? 'Actif' : 'Inactif'}</Badge>
+                  <Badge tone={s.is_active ? 'success' : 'neutral'}>{s.is_active ? t('stores.active') : t('stores.inactive')}</Badge>
                 </div>
                 <h3 className="mt-3 text-lg font-medium text-ink-900 dark:text-ink-50">{s.name}</h3>
                 <div className="mt-2 space-y-1 text-sm text-ink-500 dark:text-ink-400">
@@ -154,10 +156,10 @@ export function StoresPage() {
                 </div>
                 {storeAssigns.length > 0 && (
                   <div className="mt-3 border-t border-ink-100 dark:border-ink-800 pt-3">
-                    <p className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-ink-600 dark:text-ink-300"><Users size={12} /> Assignés ({storeAssigns.length})</p>
+                    <p className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-ink-600 dark:text-ink-300"><Users size={12} /> {t('stores.assigned', { count: storeAssigns.length })}</p>
                     <div className="flex flex-wrap gap-1">
                       {storeAssigns.map((a) => (
-                        <span key={a.id} className={`rounded-md px-2 py-0.5 text-[10px] ${a.can_transfer ? 'bg-brand-50 dark:bg-brand-900/25 text-brand-700' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`} title={a.can_transfer ? 'Peut transférer' : 'Lecture seule'}>
+                        <span key={a.id} className={`rounded-md px-2 py-0.5 text-[10px] ${a.can_transfer ? 'bg-brand-50 dark:bg-brand-900/25 text-brand-700' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`} title={a.can_transfer ? t('stores.canTransfer') : t('stores.readOnly')}>
                           {memberName(a.member_id)}{a.can_transfer ? ' ⌀' : ''}
                         </span>
                       ))}
@@ -165,8 +167,8 @@ export function StoresPage() {
                   </div>
                 )}
                 <div className="mt-4 flex gap-2">
-                  {canUpdate && <button onClick={() => openEdit(s)} className="btn-ghost flex-1 justify-center text-xs"><Pencil size={13} /> Modifier</button>}
-                  {canUpdate && <button onClick={() => openAssignments(s)} className="btn-ghost flex-1 justify-center text-xs border-brand-200 text-brand-700"><Users size={13} /> Assigner</button>}
+                  {canUpdate && <button onClick={() => openEdit(s)} className="btn-ghost flex-1 justify-center text-xs"><Pencil size={13} /> {t('common.edit')}</button>}
+                  {canUpdate && <button onClick={() => openAssignments(s)} className="btn-ghost flex-1 justify-center text-xs border-brand-200 text-brand-700"><Users size={13} /> {t('stores.assign')}</button>}
                   {canDelete && <button onClick={() => remove(s)} className="rounded-full border border-ink-200 dark:border-ink-700 p-2 text-ink-500 dark:text-ink-400 hover:border-error-200 hover:text-error-600"><Trash2 size={14} /></button>}
                 </div>
               </div>
@@ -175,32 +177,32 @@ export function StoresPage() {
         </div>
       )}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Modifier le magasin' : 'Nouveau magasin'}>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? t('stores.editTitle') : t('stores.newTitle')}>
         <div className="space-y-4">
-          <Field label="Nom du magasin"><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" placeholder="Ex: Boutique Centre-Ville" /></Field>
-          <Field label="Adresse"><input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="input" /></Field>
+          <Field label={t('stores.field.name')}><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" placeholder={t('stores.field.namePlaceholder')} /></Field>
+          <Field label={t('common.address')}><input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="input" /></Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Ville"><input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="input" /></Field>
-            <Field label="Téléphone"><input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="input" /></Field>
+            <Field label={t('common.city')}><input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="input" /></Field>
+            <Field label={t('common.phone')}><input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="input" /></Field>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Latitude (GPS)"><input type="number" step="any" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} className="input" placeholder="Ex: 3.8677" /></Field>
-            <Field label="Longitude (GPS)"><input type="number" step="any" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} className="input" placeholder="Ex: 11.5184" /></Field>
+            <Field label={t('stores.field.latitude')}><input type="number" step="any" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} className="input" placeholder="Ex: 3.8677" /></Field>
+            <Field label={t('stores.field.longitude')}><input type="number" step="any" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} className="input" placeholder="Ex: 11.5184" /></Field>
           </div>
-          <p className="text-xs text-ink-400 dark:text-ink-500">Astuce : récupérez les coordonnées depuis Google Maps (clic droit) ou OpenStreetMap.</p>
+          <p className="text-xs text-ink-400 dark:text-ink-500">{t('stores.gpsHint')}</p>
         </div>
         <div className="mt-6 flex justify-end gap-2">
-          <button onClick={() => setModalOpen(false)} className="btn-ghost">Annuler</button>
-          <button onClick={save} className="btn-primary">{editing ? 'Enregistrer' : 'Créer'}</button>
+          <button onClick={() => setModalOpen(false)} className="btn-ghost">{t('common.cancel')}</button>
+          <button onClick={save} className="btn-primary">{editing ? t('common.save') : t('common.create')}</button>
         </div>
       </Modal>
 
       {/* Assignment modal */}
-      <Modal open={!!assignModalStore} onClose={() => setAssignModalStore(null)} title={`Assigner — ${assignModalStore?.name ?? ''}`} maxWidth="max-w-lg">
+      <Modal open={!!assignModalStore} onClose={() => setAssignModalStore(null)} title={t('stores.assignTitle', { name: assignModalStore?.name ?? '' })} maxWidth="max-w-lg">
         <div className="space-y-2">
-          <p className="mb-2 text-sm text-ink-600 dark:text-ink-300">Assignez des membres à ce magasin. Seuls les membres assignés avec « Transfert » peuvent initier ou recevoir des transferts de stock pour ce magasin.</p>
+          <p className="mb-2 text-sm text-ink-600 dark:text-ink-300">{t('stores.assignDesc')}</p>
           {members.filter((m) => m.role !== 'super_admin' && m.role !== 'admin').length === 0 ? (
-            <p className="py-4 text-center text-sm text-ink-400 dark:text-ink-500">Aucun membre staff à assigner. Invitez d'abord des vendeurs.</p>
+            <p className="py-4 text-center text-sm text-ink-400 dark:text-ink-500">{t('stores.noStaff')}</p>
           ) : (
             members.filter((m) => m.role !== 'super_admin' && m.role !== 'admin').map((m) => {
               const sel = assignSelections[m.id] ?? { assigned: false, canTransfer: false };
@@ -208,15 +210,15 @@ export function StoresPage() {
                 <div key={m.id} className="flex items-center justify-between rounded-xl border border-ink-100 dark:border-ink-800 p-3">
                   <div className="flex items-center gap-2">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-action-500 text-xs font-medium text-white">{(m.display_name ?? '?').slice(0, 2).toUpperCase()}</div>
-                    <span className="text-sm font-medium text-ink-900 dark:text-ink-50">{m.display_name ?? 'Membre'}</span>
+                    <span className="text-sm font-medium text-ink-900 dark:text-ink-50">{m.display_name ?? t('stores.member')}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <label className="flex items-center gap-1.5 text-xs text-ink-600 dark:text-ink-300">
-                      <input type="checkbox" checked={sel.assigned} onChange={(e) => setAssignSelections({ ...assignSelections, [m.id]: { ...sel, assigned: e.target.checked }})} className="rounded border-ink-300 dark:border-ink-600" /> Assigné
+                      <input type="checkbox" checked={sel.assigned} onChange={(e) => setAssignSelections({ ...assignSelections, [m.id]: { ...sel, assigned: e.target.checked }})} className="rounded border-ink-300 dark:border-ink-600" /> {t('stores.assignedLabel')}
                     </label>
                     {sel.assigned && (
                       <label className="flex items-center gap-1.5 text-xs text-brand-700">
-                        <input type="checkbox" checked={sel.canTransfer} onChange={(e) => setAssignSelections({ ...assignSelections, [m.id]: { ...sel, canTransfer: e.target.checked }})} className="rounded border-ink-300 dark:border-ink-600" /> Transfert
+                        <input type="checkbox" checked={sel.canTransfer} onChange={(e) => setAssignSelections({ ...assignSelections, [m.id]: { ...sel, canTransfer: e.target.checked }})} className="rounded border-ink-300 dark:border-ink-600" /> {t('stores.transfer')}
                       </label>
                     )}
                   </div>
@@ -226,8 +228,8 @@ export function StoresPage() {
           )}
         </div>
         <div className="mt-6 flex justify-end gap-2">
-          <button onClick={() => setAssignModalStore(null)} className="btn-ghost">Annuler</button>
-          <button onClick={saveAssignments} className="btn-primary">Enregistrer</button>
+          <button onClick={() => setAssignModalStore(null)} className="btn-ghost">{t('common.cancel')}</button>
+          <button onClick={saveAssignments} className="btn-primary">{t('common.save')}</button>
         </div>
       </Modal>
     </div>

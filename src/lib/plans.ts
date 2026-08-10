@@ -18,7 +18,7 @@ export const PLANS: Plan[] = [
     maxUsers: 2,
     maxStores: 1,
     maxProducts: 50,
-    features: ['1 magasin', '2 utilisateurs', '50 produits', 'Point de Vente', 'Gestion du stock', 'Fichier clients', 'Support communautaire'],
+    features: ['plan.feat.1store', 'plan.feat.2users', 'plan.feat.50products', 'plan.feat.pos', 'plan.feat.stock', 'plan.feat.customers', 'plan.feat.communitySupport'],
     highlight: false,
   },
   {
@@ -28,7 +28,7 @@ export const PLANS: Plan[] = [
     maxUsers: 5,
     maxStores: 2,
     maxProducts: 500,
-    features: ['2 magasins', '5 utilisateurs', '500 produits', 'Tout Starter +', 'Factures & devis', 'Livraisons', 'Fournisseurs & achats', 'Rapports avancés', 'Support email'],
+    features: ['plan.feat.2stores', 'plan.feat.5users', 'plan.feat.500products', 'plan.feat.allStarter', 'plan.feat.invoices', 'plan.feat.deliveries', 'plan.feat.suppliers', 'plan.feat.advancedReports', 'plan.feat.emailSupport'],
     highlight: true,
     popular: true,
   },
@@ -39,7 +39,7 @@ export const PLANS: Plan[] = [
     maxUsers: 15,
     maxStores: 5,
     maxProducts: 10000,
-    features: ['5 magasins', '15 utilisateurs', '10 000 produits', 'Tout Pro +', 'Comptabilité complète', 'Multi-rôles personnalisés', 'Support prioritaire'],
+    features: ['plan.feat.5stores', 'plan.feat.15users', 'plan.feat.10000products', 'plan.feat.allPro', 'plan.feat.fullAccounting', 'plan.feat.customRoles', 'plan.feat.prioritySupport'],
     highlight: false,
   },
   {
@@ -49,7 +49,7 @@ export const PLANS: Plan[] = [
     maxUsers: 50,
     maxStores: 20,
     maxProducts: 100000,
-    features: ['20 magasins', '50 utilisateurs', 'Produits illimités', 'Tout Premium +', 'Automatisations avancées', 'API & intégrations', 'Gestionnaire de compte dédié', 'Support 24/7', 'SLA garanti'],
+    features: ['plan.feat.20stores', 'plan.feat.50users', 'plan.feat.unlimitedProducts', 'plan.feat.allPremium', 'plan.feat.advancedAutomation', 'plan.feat.api', 'plan.feat.dedicatedManager', 'plan.feat.support247', 'plan.feat.sla'],
     highlight: false,
   },
 ];

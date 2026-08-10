@@ -4,8 +4,10 @@ import { motion } from 'framer-motion';
 import { Lock, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { supabase } from '../lib/supabase';
+import { useI18n } from '../lib/i18n';
 
 export function ResetPasswordPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -33,8 +35,8 @@ export function ResetPasswordPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (password.length < 6) { setError('Le mot de passe doit contenir au moins 6 caractères.'); return; }
-    if (password !== confirm) { setError('Les mots de passe ne correspondent pas.'); return; }
+    if (password.length < 6) { setError(t('reset.error.passwordTooShort')); return; }
+    if (password !== confirm) { setError(t('reset.error.passwordMismatch')); return; }
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password });
     setLoading(false);
@@ -50,9 +52,9 @@ export function ResetPasswordPage() {
         <div className="relative flex h-full flex-col justify-between p-12 text-white">
           <Logo size="lg" clickable />
           <div>
-            <h2 className="text-4xl font-medium leading-tight">Choisissez un<br />nouveau mot de passe.</h2>
+            <h2 className="text-4xl font-medium leading-tight">{t('reset.hero.titleLine1')}<br />{t('reset.hero.titleLine2')}</h2>
           </div>
-          <p className="text-sm text-brand-50">© {new Date().getFullYear()} LiAfrik — Dubaï / Afrique</p>
+          <p className="text-sm text-brand-50">© {new Date().getFullYear()} {t('reset.copyright')}</p>
         </div>
       </div>
 
@@ -68,31 +70,31 @@ export function ResetPasswordPage() {
           {linkInvalid ? (
             <div className="rounded-2xl border border-error-100 dark:border-error-900/40 bg-error-50 dark:bg-error-900/25 p-5">
               <AlertCircle size={22} className="mb-2 text-error-600" />
-              <h1 className="text-lg font-semibold text-ink-900 dark:text-ink-50">Lien invalide ou expiré</h1>
-              <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">Demandez un nouveau lien de réinitialisation.</p>
-              <Link to="/forgot-password" className="btn-primary mt-4 inline-flex justify-center py-2.5">Redemander un lien</Link>
+              <h1 className="text-lg font-semibold text-ink-900 dark:text-ink-50">{t('reset.invalid.title')}</h1>
+              <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">{t('reset.invalid.text')}</p>
+              <Link to="/forgot-password" className="btn-primary mt-4 inline-flex justify-center py-2.5">{t('reset.invalid.requestNew')}</Link>
             </div>
           ) : done ? (
             <div className="rounded-2xl border border-success-100 dark:border-success-900/40 bg-success-50 dark:bg-success-900/25 p-5">
               <CheckCircle2 size={22} className="mb-2 text-success-600" />
-              <h1 className="text-lg font-semibold text-ink-900 dark:text-ink-50">Mot de passe mis à jour</h1>
-              <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">Redirection vers votre tableau de bord…</p>
+              <h1 className="text-lg font-semibold text-ink-900 dark:text-ink-50">{t('reset.done.title')}</h1>
+              <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">{t('reset.done.text')}</p>
             </div>
           ) : (
             <>
-              <h1 className="text-2xl font-semibold text-ink-900 dark:text-ink-50">Nouveau mot de passe</h1>
-              <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">Choisissez un mot de passe d'au moins 6 caractères.</p>
+              <h1 className="text-2xl font-semibold text-ink-900 dark:text-ink-50">{t('reset.title')}</h1>
+              <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{t('reset.subtitle')}</p>
 
               <form onSubmit={submit} className="mt-6 space-y-4">
                 <div>
-                  <label className="label">Nouveau mot de passe</label>
+                  <label className="label">{t('reset.newPassword')}</label>
                   <div className="relative">
                     <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 dark:text-ink-500" />
                     <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="input pl-10" placeholder="••••••••" />
                   </div>
                 </div>
                 <div>
-                  <label className="label">Confirmer le mot de passe</label>
+                  <label className="label">{t('reset.confirmPassword')}</label>
                   <div className="relative">
                     <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 dark:text-ink-500" />
                     <input type="password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} className="input pl-10" placeholder="••••••••" />
@@ -104,7 +106,7 @@ export function ResetPasswordPage() {
                   </div>
                 )}
                 <button type="submit" disabled={loading || !ready} className="btn-primary w-full justify-center py-3">
-                  {loading ? 'Enregistrement…' : 'Mettre à jour le mot de passe'}
+                  {loading ? t('reset.submitting') : t('reset.submit')}
                 </button>
               </form>
             </>

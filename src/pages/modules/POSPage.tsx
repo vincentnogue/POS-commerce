@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
+import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
 import { PageHeader, Modal, EmptyState, useToast } from '../../components/ui';
@@ -14,13 +15,15 @@ type CartItem = {
 };
 
 const PAYMENT_METHODS = [
-  { id: 'cash', label: 'Espèces', icon: Banknote },
-  { id: 'card', label: 'Carte', icon: CreditCard },
-  { id: 'mobile_money', label: 'Mobile Money', icon: Smartphone },
+  { id: 'cash', labelKey: 'pos.pay.cash', icon: Banknote },
+  { id: 'card', labelKey: 'pos.pay.card', icon: CreditCard },
+  { id: 'mobile_money', labelKey: 'pos.pay.mobileMoney', icon: Smartphone },
 ];
 
 export function POSPage() {
   const { tenant, user } = useAuth();
+  const { t, lang, locale } = useI18n();
+  const toast = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -37,7 +40,6 @@ export function POSPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [stores, setStores] = useState<{ id: string; name: string }[]>([]);
   const [storeId, setStoreId] = useState<string | null>(null);
-  const toast = useToast();
 
   const currency = tenant?.currency ?? 'XOF';
 
@@ -92,7 +94,7 @@ export function POSPage() {
   const checkout = async () => {
     if (!tenant || cart.length === 0) return;
     if ((paymentMethod === 'card' || paymentMethod === 'mobile_money') && !paymentReference.trim()) {
-      toast('error', "Le code d'approbation / la référence de transaction est obligatoire pour ce mode de paiement.");
+      toast('error', t('pos.err.paymentRefRequired'));
       return;
     }
     const ref = `VTE-${Date.now().toString().slice(-8)}`;
@@ -115,14 +117,14 @@ export function POSPage() {
         payment_reference: paymentMethod === 'cash' ? null : paymentReference.trim(),
         payment_status: paymentStatus,
         sale_status: 'completed',
-        notes: deliveryChoice === 'pending' ? 'Livraison à organiser' : 'Livré',
+        notes: deliveryChoice === 'pending' ? t('pos.notes.deliveryPending') : t('pos.notes.delivered'),
         user_id: user?.id,
       })
       .select()
       .single();
 
     if (error || !sale) {
-      toast('error', error?.message ?? "Échec de l'enregistrement de la vente. Rien n'a été débité.");
+      toast('error', error?.message ?? t('pos.err.saleFailed'));
       return;
     }
 
@@ -143,7 +145,7 @@ export function POSPage() {
       }))
     );
     if (itemsErr) {
-      toast('error', `Vente ${ref} créée mais articles non enregistrés : ${itemsErr.message}. Contactez le support.`);
+      toast('error', t('pos.err.itemsFailed', { ref, msg: itemsErr.message }));
       return;
     }
 
@@ -152,7 +154,7 @@ export function POSPage() {
       const { data: delivery, error: delErr } = await supabase.from('deliveries').insert({
         tenant_id: tenant.id,
         sale_id: sale.id,
-        customer_name: customer?.name ?? 'Client comptant',
+        customer_name: customer?.name ?? t('pos.walkInCustomer'),
         address: customer?.address ?? null,
         city: customer?.city ?? null,
         phone: customer?.phone ?? null,
@@ -161,7 +163,7 @@ export function POSPage() {
       }).select().single();
 
       if (delErr) {
-        toast('error', `Vente enregistrée, mais la livraison n'a pas pu être créée : ${delErr.message}`);
+        toast('error', t('pos.err.deliveryFailed', { msg: delErr.message }));
       } else if (delivery) {
         const { error: diErr } = await supabase.from('delivery_items').insert(
           cart.map((i) => ({
@@ -172,7 +174,7 @@ export function POSPage() {
             quantity_delivered: 0,
           }))
         );
-        if (diErr) toast('error', `Livraison créée mais détails non enregistrés : ${diErr.message}`);
+        if (diErr) toast('error', t('pos.err.deliveryItemsFailed', { msg: diErr.message }));
       }
     }
 
@@ -187,7 +189,7 @@ export function POSPage() {
     setDeliveryChoice('delivered');
   };
 
-  const paymentLabel = (m: string) => m === 'cash' ? 'Espèces' : m === 'card' ? 'Carte bancaire' : 'Mobile Money';
+  const paymentLabel = (m: string) => m === 'cash' ? t('pos.pay.cash') : m === 'card' ? t('pos.pay.cardLabel') : t('pos.pay.mobileMoney');
 
   const printReceipt = () => {
     if (!success || !lastReceipt) return;
@@ -195,7 +197,7 @@ export function POSPage() {
     if (!w) return;
     const rows = lastReceipt.items.map((i) => `<tr><td>${i.product.name}</td><td style="text-align:right">${i.quantity}</td><td style="text-align:right">${formatMoney(i.unit_price, currency)}</td><td style="text-align:right;font-weight:600">${formatMoney(i.quantity * i.unit_price, currency)}</td></tr>`).join('');
     const now = new Date();
-    w.document.write(`<!DOCTYPE html><html><head><title>Reçu ${success}</title><meta charset="utf-8"/><style>
+    w.document.write(`<!DOCTYPE html><html lang="${lang}"><head><title>${t('pos.receipt.title')} ${success}</title><meta charset="utf-8"/><style>
       * { box-sizing: border-box; }
       body { font-family: 'Courier New', monospace; padding: 24px; max-width: 380px; margin: auto; font-size: 12px; color: #1a1a1a; }
       .brand { text-align: center; font-size: 17px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px; }
@@ -218,19 +220,19 @@ export function POSPage() {
       <div class="brand">POS Flow</div>
       <div class="tagline">${tenant?.name ?? ''}</div>
       <div class="divider solid"></div>
-      <div class="meta"><span>Reçu</span><strong>${success}</strong></div>
-      <div class="meta"><span>Date</span><span>${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span></div>
+      <div class="meta"><span>${t('pos.receipt.receipt')}</span><strong>${success}</strong></div>
+      <div class="meta"><span>${t('pos.receipt.date')}</span><span>${now.toLocaleDateString(locale)} ${now.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</span></div>
       <div class="divider"></div>
-      <table><thead><tr><th>Désignation</th><th style="text-align:right">Qté</th><th style="text-align:right">Prix</th><th style="text-align:right">Total</th></tr></thead><tbody>${rows}</tbody></table>
-      <div class="total-row"><span>TOTAL</span><span>${formatMoney(lastReceipt.total, currency)}</span></div>
+      <table><thead><tr><th>${t('pos.receipt.designation')}</th><th style="text-align:right">${t('pos.receipt.qty')}</th><th style="text-align:right">${t('pos.receipt.price')}</th><th style="text-align:right">${t('pos.receipt.total')}</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="total-row"><span>${t('pos.receipt.total')}</span><span>${formatMoney(lastReceipt.total, currency)}</span></div>
       <div class="payment-block">
-        <div class="payment-row"><span class="label">Mode de paiement</span><span class="value">${paymentLabel(lastReceipt.paymentMethod)}</span></div>
-        ${lastReceipt.paymentReference ? `<div class="payment-row"><span class="label">Réf. / Code d'approbation</span><span class="value">${lastReceipt.paymentReference}</span></div>` : ''}
-        <div class="payment-row"><span class="label">Statut</span><span class="value">PAYÉ</span></div>
+        <div class="payment-row"><span class="label">${t('pos.receipt.paymentMode')}</span><span class="value">${paymentLabel(lastReceipt.paymentMethod)}</span></div>
+        ${lastReceipt.paymentReference ? `<div class="payment-row"><span class="label">${t('pos.receipt.refLabel')}</span><span class="value">${lastReceipt.paymentReference}</span></div>` : ''}
+        <div class="payment-row"><span class="label">${t('pos.receipt.status')}</span><span class="value">${t('pos.receipt.statusPaid')}</span></div>
       </div>
       <div class="footer">
-        <div class="thanks">Merci de votre confiance !</div>
-        Conservez ce reçu comme preuve d'achat.
+        <div class="thanks">${t('pos.receipt.thanks')}</div>
+        ${t('pos.receipt.keepProof')}
       </div>
     </body></html>`);
     w.document.close();
@@ -241,22 +243,22 @@ export function POSPage() {
     if (!success || !lastReceipt) return;
     const lines = lastReceipt.items.map((i) => `${i.product.name} x${i.quantity} = ${formatMoney(i.quantity * i.unit_price, currency)}`).join('%0a');
     const paymentLine = lastReceipt.paymentReference
-      ? `%0aPaiement : ${paymentLabel(lastReceipt.paymentMethod)} (Réf: ${lastReceipt.paymentReference})`
-      : `%0aPaiement : ${paymentLabel(lastReceipt.paymentMethod)}`;
-    const msg = `*Reçu de vente ${success}*%0a%0a${lines}%0a%0a*Total: ${formatMoney(lastReceipt.total, currency)}*${paymentLine}%0a%0aMerci de votre confiance !`;
+      ? `%0a${t('pos.whatsapp.payment')} : ${paymentLabel(lastReceipt.paymentMethod)} (${t('pos.whatsapp.ref')}: ${lastReceipt.paymentReference})`
+      : `%0a${t('pos.whatsapp.payment')} : ${paymentLabel(lastReceipt.paymentMethod)}`;
+    const msg = `*${t('pos.whatsapp.saleReceipt')} ${success}*%0a%0a${lines}%0a%0a*${t('pos.receipt.total')}: ${formatMoney(lastReceipt.total, currency)}*${paymentLine}%0a%0a${t('pos.receipt.thanks')}`;
     window.open(`https://wa.me/?text=${msg}`, '_blank');
   };
 
   return (
     <div>
       <PageHeader
-        title="Point de Vente"
-        subtitle="Encaissez vos ventes en quelques secondes."
+        title={t('pos.title')}
+        subtitle={t('pos.subtitle')}
       />
 
       {stores.length > 1 && (
         <div className="mb-4 flex items-center gap-2">
-          <label className="text-sm font-medium text-ink-600 dark:text-ink-300">Magasin :</label>
+          <label className="text-sm font-medium text-ink-600 dark:text-ink-300">{t('pos.storeLabel')}</label>
           <select value={storeId ?? ''} onChange={(e) => setStoreId(e.target.value)} className="input w-auto">
             {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
@@ -272,14 +274,14 @@ export function POSPage() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher par nom, SKU ou code-barres…"
+                placeholder={t('pos.searchPlaceholder')}
                 className="input pl-10"
               />
             </div>
             {loading ? (
-              <p className="py-10 text-center text-sm text-ink-400 dark:text-ink-500">Chargement…</p>
+              <p className="py-10 text-center text-sm text-ink-400 dark:text-ink-500">{t('common.loading')}</p>
             ) : filtered.length === 0 ? (
-              <EmptyState icon={ShoppingCart} title="Aucun produit" description="Ajoutez des produits depuis le catalogue pour commencer à vendre." />
+              <EmptyState icon={ShoppingCart} title={t('pos.noProducts.title')} description={t('pos.noProducts.desc')} />
             ) : (
               <div className="grid max-h-[60vh] gap-3 overflow-y-auto scroll-thin sm:grid-cols-2 xl:grid-cols-3">
                 {filtered.map((p) => (
@@ -304,12 +306,12 @@ export function POSPage() {
         {/* Cart */}
         <div className="card flex flex-col p-5">
           <h3 className="mb-3 flex items-center gap-2 font-medium text-ink-900 dark:text-ink-50">
-            <Receipt size={18} /> Panier ({cart.length})
+            <Receipt size={18} /> {t('pos.cart')} ({cart.length})
           </h3>
           {cart.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
               <ShoppingCart size={28} className="mb-2 text-ink-300" />
-              <p className="text-sm text-ink-400 dark:text-ink-500">Panier vide</p>
+              <p className="text-sm text-ink-400 dark:text-ink-500">{t('pos.cartEmpty')}</p>
             </div>
           ) : (
             <div className="flex-1 space-y-3 overflow-y-auto scroll-thin">
@@ -354,12 +356,12 @@ export function POSPage() {
           {cart.length > 0 && (
             <div className="mt-4 border-t border-ink-100 dark:border-ink-800 pt-4">
               <div className="space-y-1.5 text-sm">
-                <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>Sous-total</span><span>{formatMoney(subtotal, currency)}</span></div>
-                <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>Taxes</span><span>{formatMoney(taxTotal, currency)}</span></div>
-                <div className="flex justify-between text-base font-medium text-ink-900 dark:text-ink-50"><span>Total</span><span>{formatMoney(total, currency)}</span></div>
+                <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>{t('pos.subtotal')}</span><span>{formatMoney(subtotal, currency)}</span></div>
+                <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>{t('pos.taxes')}</span><span>{formatMoney(taxTotal, currency)}</span></div>
+                <div className="flex justify-between text-base font-medium text-ink-900 dark:text-ink-50"><span>{t('pos.totalLabel')}</span><span>{formatMoney(total, currency)}</span></div>
               </div>
               <button onClick={() => setCheckoutOpen(true)} className="btn-primary mt-4 w-full justify-center py-3">
-                Encaisser · {formatMoney(total, currency)}
+                {t('pos.checkout')} · {formatMoney(total, currency)}
               </button>
             </div>
           )}
@@ -367,10 +369,10 @@ export function POSPage() {
       </div>
 
       {/* Checkout modal */}
-      <Modal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} title="Encaisser la vente">
+      <Modal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} title={t('pos.checkoutTitle')}>
         <div className="space-y-4">
           <div>
-            <p className="label">Client (optionnel)</p>
+            <p className="label">{t('pos.customerOptional')}</p>
             <input
               value={customerSearch}
               onChange={(e) => {
@@ -379,12 +381,12 @@ export function POSPage() {
                 setCustomer(match ?? null);
               }}
               className="input"
-              placeholder="Rechercher un client…"
+              placeholder={t('pos.searchCustomer')}
             />
-            {customer && <p className="mt-1 text-xs text-success-700">Client: {customer.name}</p>}
+            {customer && <p className="mt-1 text-xs text-success-700">{t('pos.customerPrefix')}: {customer.name}</p>}
           </div>
           <div>
-            <p className="label">Moyen de paiement</p>
+            <p className="label">{t('pos.paymentMethod')}</p>
             <div className="grid grid-cols-3 gap-2">
               {PAYMENT_METHODS.map((m) => (
                 <button
@@ -394,13 +396,13 @@ export function POSPage() {
                     paymentMethod === m.id ? 'border-brand-400 bg-brand-50 dark:bg-brand-900/25 text-brand-700' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-200'
                   }`}
                 >
-                  <m.icon size={18} /> {m.label}
+                  <m.icon size={18} /> {t(m.labelKey)}
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <p className="label">Livraison</p>
+            <p className="label">{t('pos.delivery')}</p>
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setDeliveryChoice('delivered')}
@@ -408,7 +410,7 @@ export function POSPage() {
                   deliveryChoice === 'delivered' ? 'border-success-400 bg-success-50 dark:bg-success-900/25 text-success-700' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-success-200'
                 }`}
               >
-                <Package size={16} /> Livré
+                <Package size={16} /> {t('pos.delivered')}
               </button>
               <button
                 onClick={() => setDeliveryChoice('pending')}
@@ -416,18 +418,18 @@ export function POSPage() {
                     deliveryChoice === 'pending' ? 'border-warning-400 bg-warning-50 dark:bg-warning-900/25 text-warning-700' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-warning-200'
                 }`}
               >
-                <Truck size={16} /> Non livré
+                <Truck size={16} /> {t('pos.notDelivered')}
               </button>
             </div>
-            {deliveryChoice === 'pending' && <p className="mt-1 text-xs text-warning-700">Une livraison "en attente" sera créée automatiquement dans le module Livraisons.</p>}
+            {deliveryChoice === 'pending' && <p className="mt-1 text-xs text-warning-700">{t('pos.pendingDeliveryNote')}</p>}
           </div>
           <div className="rounded-xl bg-brand-50 dark:bg-brand-900/25 p-4 text-center">
-            <p className="text-xs uppercase text-ink-500 dark:text-ink-400">Total à payer</p>
+            <p className="text-xs uppercase text-ink-500 dark:text-ink-400">{t('pos.totalToPay')}</p>
             <p className="text-2xl font-medium text-brand-700">{formatMoney(total, currency)}</p>
           </div>
           {paymentMethod === 'cash' && (
             <div>
-              <label className="label">Montant reçu</label>
+              <label className="label">{t('pos.amountReceived')}</label>
               <input
                 type="number"
                 value={paidAmount}
@@ -436,14 +438,14 @@ export function POSPage() {
                 placeholder={String(total)}
               />
               {paidAmount && Number(paidAmount) > total && (
-                <p className="mt-1 text-xs font-medium text-success-700">Rendu : {formatMoney(Number(paidAmount) - total, currency)}</p>
+                <p className="mt-1 text-xs font-medium text-success-700">{t('pos.change')}: {formatMoney(Number(paidAmount) - total, currency)}</p>
               )}
             </div>
           )}
           {(paymentMethod === 'card' || paymentMethod === 'mobile_money') && (
             <div>
               <label className="label">
-                {paymentMethod === 'card' ? "Code d'approbation / référence transaction" : 'Référence de la transaction Mobile Money'}
+                {paymentMethod === 'card' ? t('pos.cardRefLabel') : t('pos.mobileRefLabel')}
                 <span className="ml-1 text-error-500">*</span>
               </label>
               <input
@@ -451,32 +453,32 @@ export function POSPage() {
                 value={paymentReference}
                 onChange={(e) => setPaymentReference(e.target.value)}
                 className="input"
-                placeholder={paymentMethod === 'card' ? 'Ex: 483920 (indiqué sur le ticket du terminal)' : 'Ex: MP240815.1032.A12345'}
+                placeholder={paymentMethod === 'card' ? t('pos.cardRefPlaceholder') : t('pos.mobileRefPlaceholder')}
               />
-              <p className="mt-1 text-xs text-ink-400 dark:text-ink-500">Indiquée sur le reçu du terminal ou le SMS de confirmation. Elle apparaîtra sur le reçu client.</p>
+              <p className="mt-1 text-xs text-ink-400 dark:text-ink-500">{t('pos.refHelp')}</p>
             </div>
           )}
           <button onClick={checkout} className="btn-primary w-full justify-center py-3">
-            <Check size={16} /> Confirmer l'encaissement
+            <Check size={16} /> {t('pos.confirmCheckout')}
           </button>
         </div>
       </Modal>
 
       {/* Success modal */}
-      <Modal open={!!success} onClose={() => setSuccess(null)} title="Vente enregistrée" maxWidth="max-w-sm">
+      <Modal open={!!success} onClose={() => setSuccess(null)} title={t('pos.saleRecorded')} maxWidth="max-w-sm">
         <div className="flex flex-col items-center text-center">
           <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-success-100 dark:bg-success-900/35 text-success-700">
             <Check size={28} />
           </div>
-          <p className="text-sm text-ink-600 dark:text-ink-300">Vente <strong>{success}</strong> enregistrée avec succès.</p>
+          <p className="text-sm text-ink-600 dark:text-ink-300">{t('pos.saleSuccessPrefix')} <strong>{success}</strong> {t('pos.saleSuccessSuffix')}</p>
           {deliveryChoice === 'pending' && (
-            <p className="mt-1 text-xs text-warning-700">Livraison "en attente" créée.</p>
+            <p className="mt-1 text-xs text-warning-700">{t('pos.pendingDeliveryCreated')}</p>
           )}
           <div className="mt-4 flex w-full gap-2">
-            <button onClick={printReceipt} className="btn-ghost flex-1 justify-center text-sm"><Printer size={15} /> Imprimer</button>
-            <button onClick={sendWhatsApp} className="btn-ghost flex-1 justify-center text-sm border-success-200 text-success-700"><MessageCircle size={15} /> WhatsApp</button>
+            <button onClick={printReceipt} className="btn-ghost flex-1 justify-center text-sm"><Printer size={15} /> {t('pos.print')}</button>
+            <button onClick={sendWhatsApp} className="btn-ghost flex-1 justify-center text-sm border-success-200 text-success-700"><MessageCircle size={15} /> {t('pos.whatsapp')}</button>
           </div>
-          <button onClick={() => setSuccess(null)} className="btn-primary mt-3 w-full justify-center">Nouvelle vente</button>
+          <button onClick={() => setSuccess(null)} className="btn-primary mt-3 w-full justify-center">{t('pos.newSale')}</button>
         </div>
       </Modal>
     </div>

@@ -8,7 +8,7 @@ import { useTheme } from '../lib/theme';
 import { PLANS, annualPrice, annualSavings, TRIAL_DAYS } from '../lib/plans';
 
 export function PricingPage() {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const { theme, toggle: toggleTheme } = useTheme();
   const [annual, setAnnual] = useState(false);
 
@@ -76,26 +76,26 @@ export function PricingPage() {
                     {t('pricing.popular')}
                   </span>
                 )}
-                <h3 className="text-lg font-medium text-ink-900 dark:text-ink-50">{p.name}</h3>
+                <h3 className="text-lg font-medium text-ink-900 dark:text-ink-50">{t('plan.name.' + p.code)}</h3>
                 <div className="mt-4 flex items-end gap-1">
                   <span className="text-4xl font-medium text-ink-900 dark:text-ink-50">${displayPrice}</span>
-                  <span className="mb-1 text-sm text-ink-500 dark:text-ink-400">{annual ? '/an' : t('pricing.perMonth')} {t('pricing.usd')}</span>
+                  <span className="mb-1 text-sm text-ink-500 dark:text-ink-400">{annual ? t('pricing.perYear') : t('pricing.perMonth')} {t('pricing.usd')}</span>
                 </div>
                 {annual && (
                   <p className="mt-1 text-xs font-medium text-success-600">
                     {t('pricing.annualSave')} · ${(annualSavings(p.priceMonthly))} {t('pricing.usd')}
                   </p>
                 )}
-                <p className="mt-2 text-xs text-ink-500 dark:text-ink-400">{p.maxUsers} utilisateurs · {p.maxStores} magasin{p.maxStores > 1 ? 's' : ''}</p>
+                <p className="mt-2 text-xs text-ink-500 dark:text-ink-400">{t('plan.usersStores', { users: p.maxUsers, stores: p.maxStores, plural: p.maxStores > 1 ? 's' : '' })}</p>
 
                 <div className="mt-3 flex items-center gap-1.5 rounded-lg bg-brand-50 dark:bg-brand-900/25 px-2.5 py-1.5 text-xs font-medium text-brand-700">
-                  <Sparkles size={12} /> {TRIAL_DAYS}{lang === 'fr' ? 'j' : 'd'} {lang === 'fr' ? 'essai gratuit' : 'free trial'}
+                  <Sparkles size={12} /> {t('pricing.trialShort', { days: TRIAL_DAYS })}
                 </div>
 
                 <ul className="mt-5 flex-1 space-y-2.5">
                   {p.features.map((f) => (
                     <li key={f} className="flex items-start gap-2 text-sm text-ink-700 dark:text-ink-200">
-                      <Check size={16} className="mt-0.5 shrink-0 text-brand-500" /> {f}
+                      <Check size={16} className="mt-0.5 shrink-0 text-brand-500" /> {t(f)}
                     </li>
                   ))}
                 </ul>

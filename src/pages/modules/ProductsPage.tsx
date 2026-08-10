@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Plus, Pencil, Trash2, Package, Download } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
+import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
 import { PageHeader, Modal, EmptyState, useToast } from '../../components/ui';
@@ -12,6 +13,7 @@ const EMPTY = { name: '', sku: '', barcode: '', description: '', cost_price: 0, 
 
 export function ProductsPage() {
   const { tenant, can } = useAuth();
+  const { t } = useI18n();
   const toast = useToast();
   const [params, setParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
@@ -97,7 +99,7 @@ export function ProductsPage() {
   };
 
   const remove = async (p: Product) => {
-    if (!confirm(`Supprimer "${p.name}" ?`)) return;
+    if (!confirm(t('products.confirmDelete', { name: p.name }))) return;
     await supabase.from('products').delete().eq('id', p.id);
     await reload();
   };
@@ -114,14 +116,14 @@ export function ProductsPage() {
   return (
     <div>
       <PageHeader
-        title="Produits"
-        subtitle={`${products.length} produit(s) au catalogue`}
+        title={t('products.title')}
+        subtitle={t('products.subtitle', { count: products.length })}
         action={
           <div className="flex gap-2">
             {canSeeCost && <button onClick={() => exportCSV('produits.csv', filtered.map((p) => ({ name: p.name, sku: p.sku, prix_achat: p.cost_price, prix_vente: p.sale_price, categorie: catName(p.category_id) })))} className="btn-ghost">
-              <Download size={16} /> Export
+              <Download size={16} /> {t('common.export')}
             </button>}
-            {canCreate && <button onClick={openNew} className="btn-primary"><Plus size={16} /> Nouveau produit</button>}
+            {canCreate && <button onClick={openNew} className="btn-primary"><Plus size={16} /> {t('products.new')}</button>}
           </div>
         }
       />
@@ -130,27 +132,27 @@ export function ProductsPage() {
         <div className="mb-4 flex flex-wrap gap-3">
           <SearchInput value={search} onChange={setSearch} />
           <select value={catFilter} onChange={(e) => setCatFilter(e.target.value)} className="input max-w-xs">
-            <option value="">Toutes catégories</option>
+            <option value="">{t('products.allCategories')}</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
 
         {filtered.length === 0 && !loading ? (
-          <EmptyState icon={Package} title="Aucun produit" description="Ajoutez votre premier produit au catalogue." action={<button onClick={openNew} className="btn-primary"><Plus size={15} /> Ajouter</button>} />
+          <EmptyState icon={Package} title={t('products.empty.title')} description={t('products.empty.desc')} action={<button onClick={openNew} className="btn-primary"><Plus size={15} /> {t('common.add')}</button>} />
         ) : (
           <DataTable
             loading={loading}
             columns={[
-              { key: 'name', label: 'Nom', render: (p: Product) => (
+              { key: 'name', label: t('products.col.name'), render: (p: Product) => (
                 <div>
                   <p className="font-medium text-ink-900 dark:text-ink-50">{p.name}</p>
                   {p.sku && <p className="text-xs text-ink-500 dark:text-ink-400">SKU: {p.sku}</p>}
                 </div>
               )},
-              { key: 'category', label: 'Catégorie', render: (p: Product) => <span className="text-ink-600 dark:text-ink-300">{catName(p.category_id)}</span> },
-              { key: 'cost', label: 'Prix achat', className: 'text-right', render: (p: Product) => canSeeCost ? <span className="text-ink-600 dark:text-ink-300">{formatMoney(p.cost_price, currency)}</span> : <span className="text-ink-300">—</span> },
-              { key: 'sale', label: 'Prix vente', className: 'text-right', render: (p: Product) => <span className="font-medium text-ink-900 dark:text-ink-50">{formatMoney(p.sale_price, currency)}</span> },
-              { key: 'stock', label: 'Stock min', className: 'text-right', render: (p: Product) => <span className="text-ink-600 dark:text-ink-300">{p.low_stock_threshold}</span> },
+              { key: 'category', label: t('products.col.category'), render: (p: Product) => <span className="text-ink-600 dark:text-ink-300">{catName(p.category_id)}</span> },
+              { key: 'cost', label: t('products.col.cost'), className: 'text-right', render: (p: Product) => canSeeCost ? <span className="text-ink-600 dark:text-ink-300">{formatMoney(p.cost_price, currency)}</span> : <span className="text-ink-300">—</span> },
+              { key: 'sale', label: t('products.col.sale'), className: 'text-right', render: (p: Product) => <span className="font-medium text-ink-900 dark:text-ink-50">{formatMoney(p.sale_price, currency)}</span> },
+              { key: 'stock', label: t('products.col.minStock'), className: 'text-right', render: (p: Product) => <span className="text-ink-600 dark:text-ink-300">{p.low_stock_threshold}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (p: Product) => (
                 <div className="flex justify-end gap-2">
                   {canUpdate && <button onClick={() => openEdit(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>}
@@ -163,27 +165,27 @@ export function ProductsPage() {
         )}
       </div>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Modifier le produit' : 'Nouveau produit'} maxWidth="max-w-xl">
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? t('products.editTitle') : t('products.newTitle')} maxWidth="max-w-xl">
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="sm:col-span-2"><Field label="Nom du produit"><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" /></Field></div>
+          <div className="sm:col-span-2"><Field label={t('products.field.name')}><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" /></Field></div>
           <Field label="SKU"><input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className="input" /></Field>
-          <Field label="Code-barres"><input value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} className="input" /></Field>
-          <Field label="Catégorie">
+          <Field label={t('products.field.barcode')}><input value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} className="input" /></Field>
+          <Field label={t('products.col.category')}>
             <select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })} className="input">
               <option value="">—</option>
               {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </Field>
-          <Field label="Unité"><input value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} className="input" /></Field>
-          <Field label="Prix d'achat">{canSeeCost ? <input type="number" value={form.cost_price} onChange={(e) => setForm({ ...form, cost_price: e.target.value })} className="input" /> : <p className="text-xs text-ink-400 dark:text-ink-500">Non disponible pour votre rôle.</p>}</Field>
-          <Field label="Prix de vente"><input type="number" value={form.sale_price} onChange={(e) => setForm({ ...form, sale_price: e.target.value })} className="input" /></Field>
-          <Field label="TVA (%)"><input type="number" value={form.tax_rate} onChange={(e) => setForm({ ...form, tax_rate: e.target.value })} className="input" /></Field>
-          <Field label="Seuil stock bas"><input type="number" value={form.low_stock_threshold} onChange={(e) => setForm({ ...form, low_stock_threshold: e.target.value })} className="input" /></Field>
-          <div className="sm:col-span-2"><Field label="Description"><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input min-h-[70px]" /></Field></div>
+          <Field label={t('products.field.unit')}><input value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} className="input" /></Field>
+          <Field label={t('products.field.cost')}>{canSeeCost ? <input type="number" value={form.cost_price} onChange={(e) => setForm({ ...form, cost_price: e.target.value })} className="input" /> : <p className="text-xs text-ink-400 dark:text-ink-500">{t('products.costUnavailable')}</p>}</Field>
+          <Field label={t('products.field.sale')}><input type="number" value={form.sale_price} onChange={(e) => setForm({ ...form, sale_price: e.target.value })} className="input" /></Field>
+          <Field label={t('products.field.tax')}><input type="number" value={form.tax_rate} onChange={(e) => setForm({ ...form, tax_rate: e.target.value })} className="input" /></Field>
+          <Field label={t('products.field.lowStock')}><input type="number" value={form.low_stock_threshold} onChange={(e) => setForm({ ...form, low_stock_threshold: e.target.value })} className="input" /></Field>
+          <div className="sm:col-span-2"><Field label={t('products.field.description')}><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input min-h-[70px]" /></Field></div>
         </div>
         <div className="mt-6 flex justify-end gap-2">
-          <button onClick={() => setModalOpen(false)} className="btn-ghost">Annuler</button>
-          <button onClick={save} className="btn-primary">{editing ? 'Enregistrer' : 'Créer'}</button>
+          <button onClick={() => setModalOpen(false)} className="btn-ghost">{t('common.cancel')}</button>
+          <button onClick={save} className="btn-primary">{editing ? t('common.save') : t('common.create')}</button>
         </div>
       </Modal>
     </div>

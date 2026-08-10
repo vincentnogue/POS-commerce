@@ -89,7 +89,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
         <button
           onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
           className="inline-flex h-9 items-center gap-1 rounded-full border border-ink-200 dark:border-ink-700 px-3 text-xs font-medium text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
-          aria-label="Switch language"
+          aria-label={t('header.switchLanguage')}
         >
           {LANG_LABELS[lang]}
           <span className="text-ink-300">/</span>
@@ -99,7 +99,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
           value={colorTheme}
           onChange={(e) => setColorTheme(e.target.value as typeof themeOptions[number]['value'])}
           className="inline-flex h-9 rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-medium text-ink-600 dark:text-ink-300 transition hover:border-brand-200"
-          aria-label="Select color theme"
+          aria-label={t('header.selectTheme')}
         >
           {themeOptions.map((option) => (
             <option key={option.value} value={option.value}>{option.label}</option>
@@ -108,7 +108,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
         {canInstall && (
           <button
             onClick={promptInstall}
-            title="Installer l'application"
+            title={t('header.installApp')}
             className="hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
           >
             <Download size={16} />
@@ -117,7 +117,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
         <button
           onClick={toggle}
           className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
-          aria-label="Mode sombre/clair"
+          aria-label={t('header.toggleTheme')}
         >
           {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
         </button>
@@ -136,18 +136,18 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
           {notifOpen && (
             <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl2 border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 py-2 shadow-float">
               <div className="flex items-center justify-between px-4 py-2">
-                <p className="text-sm font-medium text-ink-900 dark:text-ink-50">Notifications</p>
+                <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{t('header.notifications')}</p>
                 {unread > 0 && (
                   <button onClick={markAllRead} className="text-xs font-medium text-brand-600 hover:underline">
-                    Tout marquer lu
+                    {t('header.markAllRead')}
                   </button>
                 )}
               </div>
               <div className="max-h-80 overflow-y-auto scroll-thin">
                 {loadingNotifs ? (
-                  <p className="px-4 py-6 text-center text-sm text-ink-400 dark:text-ink-500">Chargement…</p>
+                  <p className="px-4 py-6 text-center text-sm text-ink-400 dark:text-ink-500">{t('header.loading')}</p>
                 ) : notifs.length === 0 ? (
-                  <p className="px-4 py-6 text-center text-sm text-ink-400 dark:text-ink-500">Aucune notification</p>
+                  <p className="px-4 py-6 text-center text-sm text-ink-400 dark:text-ink-500">{t('header.noNotifs')}</p>
                 ) : (
                   notifs.map((n) => (
                     <div key={n.id} className={`border-t border-ink-100 dark:border-ink-800 px-4 py-3 ${n.read ? '' : 'bg-brand-50/50 dark:bg-brand-900/25'}`}>

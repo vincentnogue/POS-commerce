@@ -4,8 +4,10 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { supabase } from '../lib/supabase';
+import { useI18n } from '../lib/i18n';
 
 export function ForgotPasswordPage() {
+  const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -23,7 +25,7 @@ export function ForgotPasswordPage() {
     // confirming/denying account existence here would leak which emails
     // are registered.
     if (error && error.message.toLowerCase().includes('rate limit')) {
-      setError('Trop de tentatives. Réessayez dans quelques minutes.');
+      setError(t('forgot.error.rateLimit'));
       return;
     }
     setSent(true);
@@ -36,10 +38,10 @@ export function ForgotPasswordPage() {
         <div className="relative flex h-full flex-col justify-between p-12 text-white">
           <Logo size="lg" clickable />
           <div>
-            <h2 className="text-4xl font-medium leading-tight">Ça arrive à tout<br />le monde.</h2>
-            <p className="mt-4 max-w-md text-brand-50">Entrez votre email et on vous envoie un lien pour choisir un nouveau mot de passe.</p>
+            <h2 className="text-4xl font-medium leading-tight">{t('forgot.hero.titleLine1')}<br />{t('forgot.hero.titleLine2')}</h2>
+            <p className="mt-4 max-w-md text-brand-50">{t('forgot.hero.subtitle')}</p>
           </div>
-          <p className="text-sm text-brand-50">© {new Date().getFullYear()} LiAfrik — Dubaï / Afrique</p>
+          <p className="text-sm text-brand-50">© {new Date().getFullYear()} {t('forgot.copyright')}</p>
         </div>
       </div>
 
@@ -51,31 +53,31 @@ export function ForgotPasswordPage() {
           className="w-full max-w-sm"
         >
           <Link to="/login" className="mb-6 inline-flex items-center gap-1 text-sm text-ink-500 dark:text-ink-400 hover:text-brand-600">
-            <ArrowLeft size={15} /> Retour à la connexion
+            <ArrowLeft size={15} /> {t('forgot.backToLogin')}
           </Link>
           <div className="lg:hidden mb-6"><Link to="/"><Logo size="lg" /></Link></div>
 
           {sent ? (
             <div className="rounded-2xl border border-success-100 dark:border-success-900/40 bg-success-50 dark:bg-success-900/25 p-5">
               <CheckCircle2 size={22} className="mb-2 text-success-600" />
-              <h1 className="text-lg font-semibold text-ink-900 dark:text-ink-50">Vérifiez votre boîte mail</h1>
+              <h1 className="text-lg font-semibold text-ink-900 dark:text-ink-50">{t('forgot.sent.title')}</h1>
               <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">
-                Si un compte existe pour <strong>{email}</strong>, un email avec un lien de réinitialisation vient d'être envoyé. Pensez à vérifier vos spams.
+                {t('forgot.sent.text', { email })}
               </p>
             </div>
           ) : (
             <>
-              <h1 className="text-2xl font-semibold text-ink-900 dark:text-ink-50">Mot de passe oublié</h1>
-              <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">On vous envoie un lien de réinitialisation par email.</p>
+              <h1 className="text-2xl font-semibold text-ink-900 dark:text-ink-50">{t('forgot.title')}</h1>
+              <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{t('forgot.subtitle')}</p>
 
               <form onSubmit={submit} className="mt-6 space-y-4">
                 <div>
-                  <label className="label">Email</label>
+                  <label className="label">{t('forgot.email')}</label>
                   <div className="relative">
                     <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 dark:text-ink-500" />
                     <input
                       type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                      className="input pl-10" placeholder="vous@exemple.com"
+                      className="input pl-10" placeholder={t('forgot.emailPlaceholder')}
                     />
                   </div>
                 </div>
@@ -85,7 +87,7 @@ export function ForgotPasswordPage() {
                   </div>
                 )}
                 <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3">
-                  {loading ? 'Envoi…' : 'Envoyer le lien'}
+                  {loading ? t('forgot.submitting') : t('forgot.submit')}
                 </button>
               </form>
             </>

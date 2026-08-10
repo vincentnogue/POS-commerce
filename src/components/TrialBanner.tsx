@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Clock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../lib/auth';
+import { useI18n } from '../lib/i18n';
 
 export function TrialBanner() {
   const { access } = useAuth();
+  const { t } = useI18n();
 
   if (access.isSuperAdmin) return null;
   if (access.hasActiveSubscription && !access.inTrial) return null;
@@ -17,11 +19,11 @@ export function TrialBanner() {
       <div className="sticky top-16 z-10 flex items-center justify-between gap-3 border-b border-error-200 bg-error-50 dark:bg-error-900/25 px-4 py-2.5 text-sm lg:px-8">
         <div className="flex items-center gap-2 text-error-700">
           <AlertCircle size={16} className="shrink-0" />
-          <span className="font-medium">Votre essai gratuit est terminé.</span>
-          <span className="hidden sm:inline">Choisissez un forfait pour retrouver l'accès à vos modules.</span>
+          <span className="font-medium">{t('trial.expired.title')}</span>
+          <span className="hidden sm:inline">{t('trial.expired.text')}</span>
         </div>
         <Link to="/subscribe" className="shrink-0 rounded-lg bg-error-600 px-4 py-1.5 text-xs font-medium text-white transition hover:bg-error-700">
-          Choisir un forfait
+          {t('trial.choosePlan')}
         </Link>
       </div>
     );
@@ -33,11 +35,11 @@ export function TrialBanner() {
     <div className={`sticky top-16 z-10 flex items-center justify-between gap-3 border-b px-4 py-2.5 text-sm lg:px-8 ${tone}`}>
       <div className="flex items-center gap-2">
         <Clock size={16} className="shrink-0" />
-        <span className="font-medium">Il vous reste {daysLeft} jour{daysLeft > 1 ? 's' : ''} d'essai gratuit.</span>
-        <span className="hidden sm:inline">Choisissez un forfait pour éviter toute interruption.</span>
+        <span className="font-medium">{t(daysLeft > 1 ? 'trial.daysLeft_plural' : 'trial.daysLeft', { count: daysLeft })}</span>
+        <span className="hidden sm:inline">{t('trial.choosePlanHint')}</span>
       </div>
       <Link to="/subscribe" className="shrink-0 rounded-lg bg-white/80 dark:bg-ink-800/80 px-4 py-1.5 text-xs font-medium text-ink-800 dark:text-ink-100 transition hover:bg-white dark:hover:bg-ink-800">
-        Choisir un forfait
+        {t('trial.choosePlan')}
       </Link>
     </div>
   );

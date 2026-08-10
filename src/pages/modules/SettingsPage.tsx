@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Settings as SettingsIcon, Building2, Globe, Shield, CreditCard, Bell, Palette, Upload, Image as ImageIcon } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
+import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { CURRENCIES, getCountry } from '../../lib/localization';
 import { PageHeader, Badge, Modal, useToast } from '../../components/ui';
@@ -12,17 +13,18 @@ type Tab = 'company' | 'localization' | 'security' | 'billing' | 'notifications'
 
 const NOTIF_KEYS = ['sales', 'low_stock', 'unpaid_invoices', 'deliveries', 'weekly_summary'] as const;
 const NOTIF_LABELS: Record<string, string> = {
-  sales: 'Ventes enregistrées',
-  low_stock: 'Stock bas',
-  unpaid_invoices: 'Factures impayées',
-  deliveries: 'Livraisons planifiées',
-  weekly_summary: 'Résumé hebdomadaire',
+  sales: 'settings.notif.sales',
+  low_stock: 'settings.notif.low_stock',
+  unpaid_invoices: 'settings.notif.unpaid_invoices',
+  deliveries: 'settings.notif.deliveries',
+  weekly_summary: 'settings.notif.weekly_summary',
 };
 
 type NotifPrefs = Record<string, boolean>;
 
 export function SettingsPage() {
   const { tenant, member, refreshProfile, subscription } = useAuth();
+  const { t, formatDate } = useI18n();
   const navigate = useNavigate();
   const toast = useToast();
   const [tab, setTab] = useState<Tab>('company');
@@ -47,13 +49,13 @@ export function SettingsPage() {
     email: '',
   });
 
-  const tabs: { id: Tab; label: string; icon: typeof SettingsIcon }[] = [
-    { id: 'company', label: 'Entreprise', icon: Building2 },
-    { id: 'localization', label: 'Localisation', icon: Globe },
-    { id: 'security', label: 'Sécurité', icon: Shield },
-    { id: 'billing', label: 'Facturation', icon: CreditCard },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'appearance', label: 'Apparence', icon: Palette },
+  const tabs: { id: Tab; labelKey: string; icon: typeof SettingsIcon }[] = [
+    { id: 'company', labelKey: 'settings.tab.company', icon: Building2 },
+    { id: 'localization', labelKey: 'settings.tab.localization', icon: Globe },
+    { id: 'security', labelKey: 'settings.tab.security', icon: Shield },
+    { id: 'billing', labelKey: 'settings.tab.billing', icon: CreditCard },
+    { id: 'notifications', labelKey: 'settings.tab.notifications', icon: Bell },
+    { id: 'appearance', labelKey: 'settings.tab.appearance', icon: Palette },
   ];
 
   const saveCompany = async () => {
@@ -118,7 +120,7 @@ export function SettingsPage() {
     if (saveErr) { toast('error', saveErr.message); setUploading(false); return; }
     if (type === 'logo') setLogoUrl(url); else setStampUrl(url);
     setUploading(false);
-    toast('success', type === 'logo' ? 'Logo mis à jour.' : 'Cachet mis à jour.');
+    toast('success', type === 'logo' ? t('settings.toast.logoUpdated') : t('settings.toast.stampUpdated'));
   };
 
   useEffect(() => {
@@ -145,7 +147,7 @@ export function SettingsPage() {
 
   const changePassword = async () => {
     setPwdError(null);
-    if (pwdForm.next.length < 6) { setPwdError('Le mot de passe doit contenir au moins 6 caractères.'); return; }
+    if (pwdForm.next.length < 6) { setPwdError(t('settings.err.passwordMinLength')); return; }
     const { error } = await supabase.auth.updateUser({ password: pwdForm.next });
     if (error) { setPwdError(error.message); return; }
     setShowPwdModal(false); setPwdForm({ next: '' });
@@ -157,19 +159,19 @@ export function SettingsPage() {
 
   return (
     <div>
-      <PageHeader title="Paramètres" subtitle="Configurez votre commerce et votre compte." />
+      <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle')} />
 
       <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
         <div className="flex flex-wrap gap-2 lg:flex-col">
-          {tabs.map((t) => (
+          {tabs.map((tabItem) => (
             <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
+              key={tabItem.id}
+              onClick={() => setTab(tabItem.id)}
               className={`inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                tab === t.id ? 'bg-white dark:bg-ink-800 text-brand-700 shadow-soft' : 'text-ink-600 dark:text-ink-300 hover:bg-white/60 dark:bg-ink-800/60'
+                tab === tabItem.id ? 'bg-white dark:bg-ink-800 text-brand-700 shadow-soft' : 'text-ink-600 dark:text-ink-300 hover:bg-white/60 dark:bg-ink-800/60'
               }`}
             >
-              <t.icon size={16} /> {t.label}
+              <tabItem.icon size={16} /> {t(tabItem.labelKey)}
             </button>
           ))}
         </div>
@@ -178,86 +180,86 @@ export function SettingsPage() {
           {tab === 'company' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">Informations entreprise</h3>
+                <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t('settings.company.info')}</h3>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <Field label="Nom du commerce"><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" /></Field>
-                  <Field label="Type de commerce"><input value={form.business_type} onChange={(e) => setForm({ ...form, business_type: e.target.value })} className="input" /></Field>
-                  <Field label="Région"><input value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })} className="input" /></Field>
-                  <Field label="Ville"><input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="input" /></Field>
+                  <Field label={t('settings.company.businessName')}><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" /></Field>
+                  <Field label={t('settings.company.businessType')}><input value={form.business_type} onChange={(e) => setForm({ ...form, business_type: e.target.value })} className="input" /></Field>
+                  <Field label={t('settings.company.region')}><input value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })} className="input" /></Field>
+                  <Field label={t('settings.company.city')}><input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="input" /></Field>
                 </div>
                 <div className="mt-4 flex items-center gap-3">
-                  <button onClick={saveCompany} className="btn-primary">Enregistrer</button>
-                  {saved && <span className="text-sm font-medium text-success-700">✓ Enregistré</span>}
+                  <button onClick={saveCompany} className="btn-primary">{t('common.save')}</button>
+                  {saved && <span className="text-sm font-medium text-success-700">✓ {t('settings.saved')}</span>}
                 </div>
               </div>
 
               <div className="border-t border-ink-100 dark:border-ink-800 pt-5">
-                <h4 className="text-sm font-medium text-ink-900 dark:text-ink-50">Coordonnées de facturation</h4>
-                <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">Utilisées sur les factures, devis et reçus.</p>
+                <h4 className="text-sm font-medium text-ink-900 dark:text-ink-50">{t('settings.billingContact.title')}</h4>
+                <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">{t('settings.billingContact.desc')}</p>
                 <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                  <Field label="Téléphone"><input value={contactForm.phone} onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })} className="input" placeholder="+237 …" /></Field>
-                  <Field label="Email"><input value={contactForm.email} onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })} className="input" placeholder="contact@…" /></Field>
-                  <div className="sm:col-span-2"><Field label="Adresse"><input value={contactForm.address} onChange={(e) => setContactForm({ ...contactForm, address: e.target.value })} className="input" /></Field></div>
+                  <Field label={t('settings.billingContact.phone')}><input value={contactForm.phone} onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })} className="input" placeholder="+237 …" /></Field>
+                  <Field label={t('settings.billingContact.email')}><input value={contactForm.email} onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })} className="input" placeholder="contact@…" /></Field>
+                  <div className="sm:col-span-2"><Field label={t('settings.billingContact.address')}><input value={contactForm.address} onChange={(e) => setContactForm({ ...contactForm, address: e.target.value })} className="input" /></Field></div>
                 </div>
-                <button onClick={saveContact} className="btn-primary mt-4">Enregistrer les coordonnées</button>
+                <button onClick={saveContact} className="btn-primary mt-4">{t('settings.billingContact.save')}</button>
               </div>
 
               <div className="border-t border-ink-100 dark:border-ink-800 pt-5">
-                <h4 className="text-sm font-medium text-ink-900 dark:text-ink-50">Logo & cachet</h4>
-                <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">Apparaissent sur vos factures et devis (Partie 3).</p>
+                <h4 className="text-sm font-medium text-ink-900 dark:text-ink-50">{t('settings.assets.title')}</h4>
+                <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">{t('settings.assets.desc')}</p>
                 <div className="mt-3 grid gap-4 sm:grid-cols-2">
                   <div>
-                    <p className="label mb-1">Logo</p>
+                    <p className="label mb-1">{t('settings.assets.logo')}</p>
                     <div className="flex items-center gap-3">
-                      {logoUrl ? <img src={logoUrl} alt="Logo" className="h-12 w-12 rounded-lg border border-ink-200 dark:border-ink-700 object-cover" /> : <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-ink-200 dark:border-ink-700 text-ink-300"><ImageIcon size={18} /></div>}
+                      {logoUrl ? <img src={logoUrl} alt={t('settings.assets.logo')} className="h-12 w-12 rounded-lg border border-ink-200 dark:border-ink-700 object-cover" /> : <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-ink-200 dark:border-ink-700 text-ink-300"><ImageIcon size={18} /></div>}
                       <label className="btn-ghost cursor-pointer text-xs">
-                        <Upload size={13} /> Changer
+                        <Upload size={13} /> {t('settings.assets.change')}
                         <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAsset(f, 'logo'); }} />
                       </label>
                     </div>
                   </div>
                   <div>
-                    <p className="label mb-1">Cachet</p>
+                    <p className="label mb-1">{t('settings.assets.stamp')}</p>
                     <div className="flex items-center gap-3">
-                      {stampUrl ? <img src={stampUrl} alt="Cachet" className="h-12 w-12 rounded-lg border border-ink-200 dark:border-ink-700 object-cover" /> : <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-ink-200 dark:border-ink-700 text-ink-300"><ImageIcon size={18} /></div>}
+                      {stampUrl ? <img src={stampUrl} alt={t('settings.assets.stamp')} className="h-12 w-12 rounded-lg border border-ink-200 dark:border-ink-700 object-cover" /> : <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-ink-200 dark:border-ink-700 text-ink-300"><ImageIcon size={18} /></div>}
                       <label className="btn-ghost cursor-pointer text-xs">
-                        <Upload size={13} /> Changer
+                        <Upload size={13} /> {t('settings.assets.change')}
                         <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAsset(f, 'stamp'); }} />
                       </label>
                     </div>
                   </div>
                 </div>
-                {uploading && <p className="mt-2 text-xs text-brand-600">Téléversement…</p>}
+                {uploading && <p className="mt-2 text-xs text-brand-600">{t('settings.assets.uploading')}</p>}
               </div>
             </div>
           )}
 
           {tab === 'localization' && (
             <div>
-              <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">Localisation</h3>
+              <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t('settings.localization.title')}</h3>
               <div className="mt-4 space-y-4">
                 <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-4">
-                  <p className="text-xs uppercase text-ink-500 dark:text-ink-400">Pays</p>
+                  <p className="text-xs uppercase text-ink-500 dark:text-ink-400">{t('settings.localization.country')}</p>
                   <p className="mt-1 font-medium text-ink-900 dark:text-ink-50">{country?.name ?? tenant?.country_name}</p>
-                  <p className="text-xs text-ink-500 dark:text-ink-400">Indicatif : {country?.dialCode}</p>
+                  <p className="text-xs text-ink-500 dark:text-ink-400">{t('settings.localization.dialCode')}: {country?.dialCode}</p>
                 </div>
                 <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs uppercase text-ink-500 dark:text-ink-400">Devise</p>
+                      <p className="text-xs uppercase text-ink-500 dark:text-ink-400">{t('settings.localization.currency')}</p>
                       <p className="mt-1 font-medium text-ink-900 dark:text-ink-50">{tenant?.currency} · {currencyInfo?.label}</p>
-                      <p className="text-xs text-ink-500 dark:text-ink-400">Symbole : {currencyInfo?.symbol}</p>
+                      <p className="text-xs text-ink-500 dark:text-ink-400">{t('settings.localization.symbol')}: {currencyInfo?.symbol}</p>
                     </div>
-                    <Badge tone="warning">Verrouillée</Badge>
+                    <Badge tone="warning">{t('settings.localization.locked')}</Badge>
                   </div>
                   <div className="mt-3 rounded-lg bg-brand-50 dark:bg-brand-900/25 p-3 text-xs text-ink-600 dark:text-ink-300">
-                    <p className="font-medium text-ink-700 dark:text-ink-200">Pourquoi la devise est-elle verrouillée ?</p>
-                    <p className="mt-1">La devise est fixée à l'onboarding pour garantir la cohérence de tous vos rapports, factures et écritures comptables. La changer invalidated les montants historiques. Pour un changement exceptionnel (ex: migration EUR → XOF), contactez le support LiAfrik qui pourra procéder via une opération supervisée.</p>
+                    <p className="font-medium text-ink-700 dark:text-ink-200">{t('settings.localization.whyLocked')}</p>
+                    <p className="mt-1">{t('settings.localization.lockedExplanation')}</p>
                   </div>
                 </div>
                 {country && country.mobileMoney.length > 0 && (
                   <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-4">
-                    <p className="text-xs uppercase text-ink-500 dark:text-ink-400">Mobile Money disponible</p>
+                    <p className="text-xs uppercase text-ink-500 dark:text-ink-400">{t('settings.localization.mobileMoneyAvailable')}</p>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {country.mobileMoney.map((m) => <span key={m} className="rounded-full bg-brand-50 dark:bg-brand-900/25 px-3 py-1 text-xs font-medium text-brand-700">{m}</span>)}
                     </div>
@@ -269,17 +271,17 @@ export function SettingsPage() {
 
           {tab === 'security' && (
             <div>
-              <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">Sécurité</h3>
+              <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t('settings.security.title')}</h3>
               <div className="mt-4 space-y-4">
                 <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-4">
-                  <p className="font-medium text-ink-900 dark:text-ink-50">Mot de passe</p>
-                  <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">Modifiez votre mot de passe pour sécuriser votre compte.</p>
-                  <button onClick={() => setShowPwdModal(true)} className="btn-ghost mt-3">Changer le mot de passe</button>
+                  <p className="font-medium text-ink-900 dark:text-ink-50">{t('settings.security.password')}</p>
+                  <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{t('settings.security.passwordDesc')}</p>
+                  <button onClick={() => setShowPwdModal(true)} className="btn-ghost mt-3">{t('settings.security.changePassword')}</button>
                 </div>
                 <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-4">
-                  <p className="font-medium text-ink-900 dark:text-ink-50">Sessions actives</p>
-                  <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">Pour des raisons de sécurité, vous pouvez vous déconnecter des autres appareils.</p>
-                  <button onClick={async () => { await supabase.auth.signOut({ scope: 'others' }); setSaved(true); setTimeout(() => setSaved(false), 2000); }} className="btn-ghost mt-3">Déconnecter les autres sessions</button>
+                  <p className="font-medium text-ink-900 dark:text-ink-50">{t('settings.security.activeSessions')}</p>
+                  <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{t('settings.security.activeSessionsDesc')}</p>
+                  <button onClick={async () => { await supabase.auth.signOut({ scope: 'others' }); setSaved(true); setTimeout(() => setSaved(false), 2000); }} className="btn-ghost mt-3">{t('settings.security.signOutOthers')}</button>
                 </div>
               </div>
             </div>
@@ -287,23 +289,23 @@ export function SettingsPage() {
 
           {tab === 'billing' && (
             <div>
-              <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">Facturation & abonnement</h3>
+              <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t('settings.billing.title')}</h3>
               <div className="mt-4 rounded-xl border border-brand-200 bg-brand-50/40 dark:bg-brand-900/25 p-4">
-                <p className="text-xs uppercase text-ink-500 dark:text-ink-400">Forfait actuel</p>
-                <p className="mt-1 text-lg font-medium text-ink-900 dark:text-ink-50">{planInfo?.name ?? 'Aucun forfait'}</p>
+                <p className="text-xs uppercase text-ink-500 dark:text-ink-400">{t('settings.billing.currentPlan')}</p>
+                <p className="mt-1 text-lg font-medium text-ink-900 dark:text-ink-50">{planInfo?.name ?? t('settings.billing.noPlan')}</p>
                 <div className="mt-2 flex flex-wrap gap-3 text-sm text-ink-600 dark:text-ink-300">
-                  {planInfo && <span>Prix: <strong>${planInfo.price_usd}/mois</strong></span>}
-                  {planInfo && <span>Utilisateurs: <strong>{planInfo.max_users}</strong></span>}
-                  {planInfo && <span>Magasins: <strong>{planInfo.max_stores}</strong></span>}
+                  {planInfo && <span>{t('settings.billing.price')}: <strong>${planInfo.price_usd}/{t('settings.billing.month')}</strong></span>}
+                  {planInfo && <span>{t('settings.billing.users')}: <strong>{planInfo.max_users}</strong></span>}
+                  {planInfo && <span>{t('settings.billing.stores')}: <strong>{planInfo.max_stores}</strong></span>}
                 </div>
-                <button onClick={() => navigate('/subscribe')} className="btn-primary mt-4">Changer de forfait</button>
+                <button onClick={() => navigate('/subscribe')} className="btn-primary mt-4">{t('settings.billing.changePlan')}</button>
               </div>
               {subscription && (
                 <div className="mt-3 rounded-xl border border-ink-200 dark:border-ink-700 p-4">
-                  <p className="text-xs uppercase text-ink-500 dark:text-ink-400">Statut abonnement</p>
+                  <p className="text-xs uppercase text-ink-500 dark:text-ink-400">{t('settings.billing.subscriptionStatus')}</p>
                   <div className="mt-1 flex items-center gap-2">
                     <Badge tone={subscription.status === 'active' ? 'success' : subscription.status === 'trialing' ? 'warning' : 'error'}>{subscription.status}</Badge>
-                    {subscription.current_period_end && <span className="text-sm text-ink-500 dark:text-ink-400">jusqu'au {new Date(subscription.current_period_end).toLocaleDateString('fr-FR')}</span>}
+                    {subscription.current_period_end && <span className="text-sm text-ink-500 dark:text-ink-400">{t('settings.billing.until')} {formatDate(subscription.current_period_end)}</span>}
                   </div>
                 </div>
               )}
@@ -312,42 +314,42 @@ export function SettingsPage() {
 
           {tab === 'notifications' && (
             <div>
-              <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">Notifications</h3>
-              <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">Choisissez les alertes que vous souhaitez recevoir.</p>
+              <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t('settings.notifications.title')}</h3>
+              <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{t('settings.notifications.desc')}</p>
               <div className="mt-4 space-y-3">
                 {NOTIF_KEYS.map((key) => (
                   <label key={key} className="flex items-center justify-between rounded-xl border border-ink-200 dark:border-ink-700 p-3">
-                    <span className="text-sm text-ink-700 dark:text-ink-200">{NOTIF_LABELS[key]}</span>
+                    <span className="text-sm text-ink-700 dark:text-ink-200">{t(NOTIF_LABELS[key])}</span>
                     <input type="checkbox" checked={notifPrefs[key]} onChange={(e) => setNotifPrefs({ ...notifPrefs, [key]: e.target.checked })} className="h-4 w-4 accent-brand-500" />
                   </label>
                 ))}
               </div>
-              <button onClick={saveNotifs} className="btn-primary mt-4">Enregistrer les préférences</button>
-              {saved && <span className="ml-3 text-sm font-medium text-success-700">✓ Enregistré</span>}
+              <button onClick={saveNotifs} className="btn-primary mt-4">{t('settings.notifications.save')}</button>
+              {saved && <span className="ml-3 text-sm font-medium text-success-700">✓ {t('settings.saved')}</span>}
             </div>
           )}
 
           {tab === 'appearance' && (
             <div>
-              <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">Apparence</h3>
-              <p className="mt-2 text-sm text-ink-500 dark:text-ink-400">Le mode sombre/clair se bascule depuis l'icône lune dans le header. La langue se change depuis le sélecteur du header.</p>
+              <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t('settings.appearance.title')}</h3>
+              <p className="mt-2 text-sm text-ink-500 dark:text-ink-400">{t('settings.appearance.desc')}</p>
               <div className="mt-4 flex items-center gap-3">
                 <Badge tone="brand">{member?.role}</Badge>
-                <p className="text-xs text-ink-500 dark:text-ink-400">Votre rôle détermine les modules visibles et les permissions.</p>
+                <p className="text-xs text-ink-500 dark:text-ink-400">{t('settings.appearance.roleDesc')}</p>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      <Modal open={showPwdModal} onClose={() => setShowPwdModal(false)} title="Changer le mot de passe">
+      <Modal open={showPwdModal} onClose={() => setShowPwdModal(false)} title={t('settings.security.changePassword')}>
         <div className="space-y-4">
-          <Field label="Nouveau mot de passe"><input type="password" value={pwdForm.next} onChange={(e) => setPwdForm({ ...pwdForm, next: e.target.value })} className="input" placeholder="Minimum 6 caractères" /></Field>
+          <Field label={t('settings.security.newPassword')}><input type="password" value={pwdForm.next} onChange={(e) => setPwdForm({ ...pwdForm, next: e.target.value })} className="input" placeholder={t('settings.security.passwordPlaceholder')} /></Field>
           {pwdError && <p className="text-sm text-error-600">{pwdError}</p>}
         </div>
         <div className="mt-6 flex justify-end gap-2">
-          <button onClick={() => setShowPwdModal(false)} className="btn-ghost">Annuler</button>
-          <button onClick={changePassword} className="btn-primary">Enregistrer</button>
+          <button onClick={() => setShowPwdModal(false)} className="btn-ghost">{t('common.cancel')}</button>
+          <button onClick={changePassword} className="btn-primary">{t('common.save')}</button>
         </div>
       </Modal>
     </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Download, TrendingUp, TrendingDown, Wallet, FileBarChart, FileDown } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
+import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
 import { PageHeader, StatCard } from '../../components/ui';
@@ -9,8 +10,12 @@ import type { Sale, Expense, Purchase } from '../../lib/types';
 
 type Period = 'month' | 'quarter' | 'year';
 
+const MONTH_KEYS = ['month.jan', 'month.feb', 'month.mar', 'month.apr', 'month.may', 'month.jun', 'month.jul', 'month.aug', 'month.sep', 'month.oct', 'month.nov', 'month.dec'];
+const FULL_MONTH_KEYS = ['month.january', 'month.february', 'month.march', 'month.april', 'month.may', 'month.june', 'month.july', 'month.august', 'month.september', 'month.october', 'month.november', 'month.december'];
+
 export function AccountingPage() {
   const { tenant } = useAuth();
+  const { t } = useI18n();
   const [sales, setSales] = useState<Sale[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
@@ -28,16 +33,16 @@ export function AccountingPage() {
       const m = Number(month);
       const s = new Date(y, m, 1);
       const e = new Date(y, m + 1, 0);
-      return { start: s.toISOString().slice(0, 10), end: e.toISOString().slice(0, 10), label: `${['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'][m]} ${y}` };
+      return { start: s.toISOString().slice(0, 10), end: e.toISOString().slice(0, 10), label: `${t(MONTH_KEYS[m])} ${y}` };
     }
     if (period === 'quarter') {
       const q = Number(quarter);
       const s = new Date(y, q * 3, 1);
       const e = new Date(y, q * 3 + 3, 0);
-      return { start: s.toISOString().slice(0, 10), end: e.toISOString().slice(0, 10), label: `T${q + 1} ${y}` };
+      return { start: s.toISOString().slice(0, 10), end: e.toISOString().slice(0, 10), label: `Q${q + 1} ${y}` };
     }
-    return { start: `${y}-01-01`, end: `${y}-12-31`, label: `Exercice ${y}` };
-  }, [period, year, month, quarter]);
+    return { start: `${y}-01-01`, end: `${y}-12-31`, label: `${t('accounting.fiscalYear')} ${y}` };
+  }, [period, year, month, quarter, t]);
 
   useEffect(() => { (async () => {
     if (!tenant) return;
@@ -72,7 +77,7 @@ export function AccountingPage() {
         const me = expenses.filter((e) => new Date(e.expense_date).getMonth() === m && new Date(e.expense_date).getFullYear() === Number(year));
         const mp = purchases.filter((p) => new Date(p.purchase_date).getMonth() === m && new Date(p.purchase_date).getFullYear() === Number(year));
         return {
-          month: ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'][m],
+          month: t(MONTH_KEYS[m]),
           revenu: ms.reduce((s, x) => s + Number(x.total), 0),
           depenses: me.reduce((s, x) => s + Number(x.amount), 0),
           achats: mp.reduce((s, x) => s + Number(x.total), 0),
@@ -85,68 +90,67 @@ export function AccountingPage() {
       const monthExp = expenses.filter((e) => new Date(e.expense_date).getMonth() === m);
       const monthPurch = purchases.filter((p) => new Date(p.purchase_date).getMonth() === m);
       return {
-        month: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'][m],
+        month: t(MONTH_KEYS[m]),
         revenu: monthSales.reduce((s, x) => s + Number(x.total), 0),
         depenses: monthExp.reduce((s, x) => s + Number(x.amount), 0),
         achats: monthPurch.reduce((s, x) => s + Number(x.total), 0),
         resultat: monthSales.reduce((s, x) => s + Number(x.total), 0) - monthExp.reduce((s, x) => s + Number(x.amount), 0) - monthPurch.reduce((s, x) => s + Number(x.total), 0),
       };
     });
-  }, [sales, expenses, purchases, period, quarter, year, label, revenue, expensesTotal, purchasesTotal, netProfit]);
+  }, [sales, expenses, purchases, period, quarter, year, label, revenue, expensesTotal, purchasesTotal, netProfit, t]);
 
   const years = [String(new Date().getFullYear()), String(new Date().getFullYear() - 1), String(new Date().getFullYear() - 2)];
-  const months = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 
   return (
     <div>
       <PageHeader
-        title="Comptabilité"
+        title={t('accounting.title')}
         subtitle={label}
         action={
           <div className="flex flex-wrap gap-2">
-            <Select value={period} onChange={(v) => setPeriod(v as Period)} options={[{ value: 'month', label: 'Mois' }, { value: 'quarter', label: 'Trimestre' }, { value: 'year', label: 'Année' }]} />
-            {period === 'month' && <Select value={month} onChange={setMonth} options={months.map((m, i) => ({ value: String(i), label: m }))} />}
-            {period === 'quarter' && <Select value={quarter} onChange={setQuarter} options={[{ value: '0', label: 'T1' }, { value: '1', label: 'T2' }, { value: '2', label: 'T3' }, { value: '3', label: 'T4' }]} />}
+            <Select value={period} onChange={(v) => setPeriod(v as Period)} options={[{ value: 'month', label: t('accounting.month') }, { value: 'quarter', label: t('accounting.quarter') }, { value: 'year', label: t('accounting.year') }]} />
+            {period === 'month' && <Select value={month} onChange={setMonth} options={FULL_MONTH_KEYS.map((mk, i) => ({ value: String(i), label: t(mk) }))} />}
+            {period === 'quarter' && <Select value={quarter} onChange={setQuarter} options={[{ value: '0', label: 'Q1' }, { value: '1', label: 'Q2' }, { value: '2', label: 'Q3' }, { value: '3', label: 'Q4' }]} />}
             <Select value={year} onChange={setYear} options={years.map((y) => ({ value: y, label: y }))} />
-            <button onClick={() => exportCSV(`comptabilite-${label.replace(/\s/g, '-')}.csv`, monthly.map((m) => ({ mois: m.month, revenu: m.revenu, depenses: m.depenses, achats: m.achats, resultat: m.resultat })))} className="btn-ghost"><Download size={16} /> Export CSV</button>
+            <button onClick={() => exportCSV(`comptabilite-${label.replace(/\s/g, '-')}.csv`, monthly.map((m) => ({ mois: m.month, revenu: m.revenu, depenses: m.depenses, achats: m.achats, resultat: m.resultat })))} className="btn-ghost"><Download size={16} /> {t('accounting.exportCSV')}</button>
             <button onClick={() => {
-              const content = `Compte de résultat — ${label}\n\nChiffre d'affaires: ${formatMoney(revenue, currency)}\nCoût des achats: ${formatMoney(cogs, currency)}\nMarge brute: ${formatMoney(grossProfit, currency)}\nDépenses: ${formatMoney(expensesTotal, currency)}\nRésultat net: ${formatMoney(netProfit, currency)}\n\nDétail mensuel:\n${monthly.map((m) => `${m.month}: Rev=${formatMoney(m.revenu, currency)} Dép=${formatMoney(m.depenses, currency)} Ach=${formatMoney(m.achats, currency)} Rés=${formatMoney(m.resultat, currency)}`).join('\n')}`;
+              const content = `${t('accounting.incomeStatement')} — ${label}\n\n${t('accounting.revenue')}: ${formatMoney(revenue, currency)}\n${t('accounting.cogs')}: ${formatMoney(cogs, currency)}\n${t('accounting.grossProfit')}: ${formatMoney(grossProfit, currency)}\n${t('accounting.expenses')}: ${formatMoney(expensesTotal, currency)}\n${t('accounting.netProfit')}: ${formatMoney(netProfit, currency)}\n\n${t('accounting.monthlyDetail')}:\n${monthly.map((m) => `${m.month}: ${t('accounting.revenueShort')}=${formatMoney(m.revenu, currency)} ${t('accounting.expensesShort')}=${formatMoney(m.depenses, currency)} ${t('accounting.purchasesShort')}=${formatMoney(m.achats, currency)} ${t('accounting.resultShort')}=${formatMoney(m.resultat, currency)}`).join('\n')}`;
               const blob = new Blob([content], { type: 'text/plain' });
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a'); a.href = url; a.download = `comptabilite-${label.replace(/\s/g, '-')}.txt`; a.click(); URL.revokeObjectURL(url);
-            }} className="btn-ghost"><FileDown size={16} /> Export TXT</button>
+            }} className="btn-ghost"><FileDown size={16} /> {t('accounting.exportTXT')}</button>
           </div>
         }
       />
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Chiffre d'affaires" value={formatMoney(revenue, currency)} icon={TrendingUp} tone="brand" />
-        <StatCard label="Coût des achats" value={formatMoney(cogs, currency)} icon={TrendingDown} tone="action" />
-        <StatCard label="Dépenses" value={formatMoney(expensesTotal, currency)} icon={Wallet} tone="warning" />
-        <StatCard label="Résultat net" value={formatMoney(netProfit, currency)} icon={FileBarChart} tone={netProfit >= 0 ? 'success' : 'error'} />
+        <StatCard label={t('accounting.revenue')} value={formatMoney(revenue, currency)} icon={TrendingUp} tone="brand" />
+        <StatCard label={t('accounting.cogs')} value={formatMoney(cogs, currency)} icon={TrendingDown} tone="action" />
+        <StatCard label={t('accounting.expenses')} value={formatMoney(expensesTotal, currency)} icon={Wallet} tone="warning" />
+        <StatCard label={t('accounting.netProfit')} value={formatMoney(netProfit, currency)} icon={FileBarChart} tone={netProfit >= 0 ? 'success' : 'error'} />
       </div>
 
       <div className="card mb-6 p-6">
-        <h3 className="mb-2 text-base font-medium text-ink-900 dark:text-ink-50">Compte de résultat simplifié</h3>
+        <h3 className="mb-2 text-base font-medium text-ink-900 dark:text-ink-50">{t('accounting.simplifiedIncomeStatement')}</h3>
         <div className="space-y-2 text-sm">
-          <div className="flex justify-between border-b border-ink-100 dark:border-ink-800 pb-2"><span className="text-ink-600 dark:text-ink-300">Chiffre d'affaires</span><span className="font-medium text-ink-900 dark:text-ink-50">{formatMoney(revenue, currency)}</span></div>
-          <div className="flex justify-between border-b border-ink-100 dark:border-ink-800 pb-2"><span className="text-ink-600 dark:text-ink-300">- Coût des marchandises (achats)</span><span className="text-ink-900 dark:text-ink-50">{formatMoney(cogs, currency)}</span></div>
-          <div className="flex justify-between border-b border-ink-100 dark:border-ink-800 pb-2"><span className="font-medium text-ink-700 dark:text-ink-200">Marge brute</span><span className="font-medium text-ink-900 dark:text-ink-50">{formatMoney(grossProfit, currency)}</span></div>
-          <div className="flex justify-between border-b border-ink-100 dark:border-ink-800 pb-2"><span className="text-ink-600 dark:text-ink-300">- Dépenses opérationnelles</span><span className="text-ink-900 dark:text-ink-50">{formatMoney(expensesTotal, currency)}</span></div>
-          <div className="flex justify-between pt-1"><span className="font-medium text-ink-900 dark:text-ink-50">Résultat net</span><span className={`font-medium ${netProfit >= 0 ? 'text-success-700' : 'text-error-600'}`}>{formatMoney(netProfit, currency)}</span></div>
+          <div className="flex justify-between border-b border-ink-100 dark:border-ink-800 pb-2"><span className="text-ink-600 dark:text-ink-300">{t('accounting.revenue')}</span><span className="font-medium text-ink-900 dark:text-ink-50">{formatMoney(revenue, currency)}</span></div>
+          <div className="flex justify-between border-b border-ink-100 dark:border-ink-800 pb-2"><span className="text-ink-600 dark:text-ink-300">- {t('accounting.cogsGoods')}</span><span className="text-ink-900 dark:text-ink-50">{formatMoney(cogs, currency)}</span></div>
+          <div className="flex justify-between border-b border-ink-100 dark:border-ink-800 pb-2"><span className="font-medium text-ink-700 dark:text-ink-200">{t('accounting.grossProfit')}</span><span className="font-medium text-ink-900 dark:text-ink-50">{formatMoney(grossProfit, currency)}</span></div>
+          <div className="flex justify-between border-b border-ink-100 dark:border-ink-800 pb-2"><span className="text-ink-600 dark:text-ink-300">- {t('accounting.operatingExpenses')}</span><span className="text-ink-900 dark:text-ink-50">{formatMoney(expensesTotal, currency)}</span></div>
+          <div className="flex justify-between pt-1"><span className="font-medium text-ink-900 dark:text-ink-50">{t('accounting.netProfit')}</span><span className={`font-medium ${netProfit >= 0 ? 'text-success-700' : 'text-error-600'}`}>{formatMoney(netProfit, currency)}</span></div>
         </div>
       </div>
 
       <div className="card p-5">
-        <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">Détail mensuel</h3>
+        <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">{t('accounting.monthlyDetail')}</h3>
         <DataTable
           loading={loading}
           columns={[
-            { key: 'month', label: 'Mois', render: (m) => <span className="font-medium text-ink-900 dark:text-ink-50">{m.month}</span> },
-            { key: 'revenu', label: 'Revenu', className: 'text-right', render: (m) => <span className="text-ink-900 dark:text-ink-50">{formatMoney(m.revenu, currency)}</span> },
-            { key: 'depenses', label: 'Dépenses', className: 'text-right', render: (m) => <span className="text-ink-900 dark:text-ink-50">{formatMoney(m.depenses, currency)}</span> },
-            { key: 'achats', label: 'Achats', className: 'text-right', render: (m) => <span className="text-ink-900 dark:text-ink-50">{formatMoney(m.achats, currency)}</span> },
-            { key: 'resultat', label: 'Résultat', className: 'text-right', render: (m) => <span className={m.resultat >= 0 ? 'font-medium text-success-700' : 'font-medium text-error-600'}>{formatMoney(m.resultat, currency)}</span> },
+            { key: 'month', label: t('accounting.month'), render: (m) => <span className="font-medium text-ink-900 dark:text-ink-50">{m.month}</span> },
+            { key: 'revenu', label: t('accounting.revenueShort'), className: 'text-right', render: (m) => <span className="text-ink-900 dark:text-ink-50">{formatMoney(m.revenu, currency)}</span> },
+            { key: 'depenses', label: t('accounting.expensesShort'), className: 'text-right', render: (m) => <span className="text-ink-900 dark:text-ink-50">{formatMoney(m.depenses, currency)}</span> },
+            { key: 'achats', label: t('accounting.purchasesShort'), className: 'text-right', render: (m) => <span className="text-ink-900 dark:text-ink-50">{formatMoney(m.achats, currency)}</span> },
+            { key: 'resultat', label: t('accounting.resultShort'), className: 'text-right', render: (m) => <span className={m.resultat >= 0 ? 'font-medium text-success-700' : 'font-medium text-error-600'}>{formatMoney(m.resultat, currency)}</span> },
           ]}
           rows={monthly}
         />

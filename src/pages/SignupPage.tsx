@@ -4,10 +4,12 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Mail, Lock, AlertCircle, Check } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { useAuth } from '../lib/auth';
+import { useI18n } from '../lib/i18n';
 import { supabase } from '../lib/supabase';
 
 export function SignupPage() {
   const { signUp } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,8 +20,8 @@ export function SignupPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (password.length < 6) { setError('Le mot de passe doit contenir au moins 6 caractères.'); return; }
-    if (password !== confirm) { setError('Les mots de passe ne correspondent pas.'); return; }
+    if (password.length < 6) { setError(t('signup.error.passwordTooShort')); return; }
+    if (password !== confirm) { setError(t('signup.error.passwordMismatch')); return; }
     setLoading(true);
     const { error } = await signUp(email, password);
     setLoading(false);
@@ -28,7 +30,7 @@ export function SignupPage() {
       // Wait for session to be established before navigating
       const { data: { session } } = await supabase.auth.getSession();
       if (session) navigate('/onboarding');
-      else setError('Compte créé. Veuillez vous connecter pour continuer.');
+      else setError(t('signup.error.createdMustLogin'));
     }
   };
 
@@ -39,14 +41,14 @@ export function SignupPage() {
         <div className="relative flex h-full flex-col justify-between p-12 text-white">
           <Logo size="lg" clickable />
           <div>
-            <h2 className="text-4xl font-medium leading-tight">Démarrez gratuitement,<br />en 5 minutes.</h2>
+            <h2 className="text-4xl font-medium leading-tight">{t('signup.hero.titleLine1')}<br />{t('signup.hero.titleLine2')}</h2>
             <ul className="mt-6 space-y-3 text-brand-50">
-              {['Aucune carte bancaire requise', 'POS, stock, facturation inclus', 'Multi-magasins, multi-devises', 'Mobile Money intégré'].map((f) => (
-                <li key={f} className="flex items-center gap-2"><Check size={16} /> {f}</li>
+              {['signup.hero.feat1', 'signup.hero.feat2', 'signup.hero.feat3', 'signup.hero.feat4'].map((k) => (
+                <li key={k} className="flex items-center gap-2"><Check size={16} /> {t(k)}</li>
               ))}
             </ul>
           </div>
-          <p className="text-sm text-brand-50">© {new Date().getFullYear()} LiAfrik — Dubaï / Afrique</p>
+          <p className="text-sm text-brand-50">© {new Date().getFullYear()} {t('signup.copyright')}</p>
         </div>
       </div>
 
@@ -58,29 +60,29 @@ export function SignupPage() {
           className="w-full max-w-sm"
         >
           <Link to="/" className="mb-6 inline-flex items-center gap-1 text-sm text-ink-500 dark:text-ink-400 hover:text-brand-600">
-            <ArrowLeft size={15} /> Retour
+            <ArrowLeft size={15} /> {t('common.back')}
           </Link>
           <div className="lg:hidden mb-6"><Link to="/"><Logo size="lg" /></Link></div>
-          <h1 className="text-2xl font-semibold text-ink-900 dark:text-ink-50">Créer votre compte</h1>
-          <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">L'onboarding vous guidera ensuite pour configurer votre commerce.</p>
+          <h1 className="text-2xl font-semibold text-ink-900 dark:text-ink-50">{t('signup.title')}</h1>
+          <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{t('signup.subtitle')}</p>
 
           <form onSubmit={submit} className="mt-6 space-y-4">
             <div>
-              <label className="label">Email</label>
+              <label className="label">{t('signup.email')}</label>
               <div className="relative">
                 <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 dark:text-ink-500" />
-                <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="input pl-10" placeholder="vous@exemple.com" />
+                <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="input pl-10" placeholder={t('signup.emailPlaceholder')} />
               </div>
             </div>
             <div>
-              <label className="label">Mot de passe</label>
+              <label className="label">{t('signup.password')}</label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 dark:text-ink-500" />
-                <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="input pl-10" placeholder="6 caractères min." />
+                <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="input pl-10" placeholder={t('signup.passwordPlaceholder')} />
               </div>
             </div>
             <div>
-              <label className="label">Confirmer le mot de passe</label>
+              <label className="label">{t('signup.confirmPassword')}</label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 dark:text-ink-500" />
                 <input type="password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} className="input pl-10" placeholder="••••••••" />
@@ -92,13 +94,13 @@ export function SignupPage() {
               </div>
             )}
             <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3">
-              {loading ? 'Création…' : 'Créer mon compte'}
+              {loading ? t('signup.submitting') : t('signup.submit')}
             </button>
           </form>
 
           <p className="mt-6 text-center text-sm text-ink-500 dark:text-ink-400">
-            Déjà un compte ?{' '}
-            <Link to="/login" className="font-medium text-brand-600 hover:underline">Se connecter</Link>
+            {t('signup.haveAccount')}{' '}
+            <Link to="/login" className="font-medium text-brand-600 hover:underline">{t('signup.signIn')}</Link>
           </p>
         </motion.div>
       </div>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { MessageCircle, X, Send, Headset, Sparkles } from 'lucide-react';
 import { useAuth } from '../lib/auth';
+import { useI18n } from '../lib/i18n';
 
 type ChatMessage = { id: string; sender: 'visitor' | 'ai' | 'agent'; content: string; created_at: string };
 
@@ -26,6 +27,7 @@ async function callSupportChat(body: Record<string, unknown>) {
 
 export function SupportChatWidget() {
   const { user, tenant } = useAuth();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -53,7 +55,7 @@ export function SupportChatWidget() {
       setStatus(result.conversation.status);
       const msgs = result.messages ?? [];
       if (msgs.length === 0) {
-        setMessages([{ id: 'welcome', sender: 'ai', content: "Bonjour 👋 Je suis l'assistant POS Flow. Posez-moi vos questions sur la plateforme, ou demandez à parler à un membre de l'équipe à tout moment.", created_at: new Date().toISOString() }]);
+        setMessages([{ id: 'welcome', sender: 'ai', content: t('support.welcome'), created_at: new Date().toISOString() }]);
       } else {
         setMessages(msgs);
         lastMsgTimeRef.current = msgs[msgs.length - 1].created_at;
@@ -130,12 +132,12 @@ export function SupportChatWidget() {
           <div className="flex items-center gap-2 border-b border-ink-100 dark:border-ink-800 bg-brand-500 px-4 py-3 text-white">
             {status === 'ai' ? <Sparkles size={18} /> : <Headset size={18} />}
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium">Support POS Flow</p>
+              <p className="text-sm font-medium">{t('support.title')}</p>
               <p className="text-[11px] text-brand-50">
-                {status === 'ai' && "Assistant IA — en ligne"}
-                {status === 'pending_human' && "En attente d'un agent…"}
-                {status === 'active' && 'Un agent vous répond'}
-                {status === 'closed' && 'Conversation clôturée'}
+                {status === 'ai' && t('support.status.ai')}
+                {status === 'pending_human' && t('support.status.pending')}
+                {status === 'active' && t('support.status.active')}
+                {status === 'closed' && t('support.status.closed')}
               </p>
             </div>
           </div>
@@ -166,7 +168,7 @@ export function SupportChatWidget() {
             <div className="border-t border-ink-100 dark:border-ink-800 p-3">
               {status === 'ai' && (
                 <button onClick={requestHuman} className="mb-2 w-full rounded-lg border border-ink-200 dark:border-ink-700 py-1.5 text-xs font-medium text-ink-600 dark:text-ink-300 transition hover:border-brand-300 hover:text-brand-600">
-                  <Headset size={12} className="mr-1 inline" /> Parler à un membre de l'équipe
+                  <Headset size={12} className="mr-1 inline" /> {t('support.requestHuman')}
                 </button>
               )}
               <div className="flex items-center gap-2">
@@ -174,7 +176,7 @@ export function SupportChatWidget() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') send(); }}
-                  placeholder="Écrivez votre message…"
+                  placeholder={t('support.inputPlaceholder')}
                   className="input flex-1 py-2 text-sm"
                 />
                 <button onClick={send} disabled={sending || !input.trim()} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white transition hover:bg-brand-600 disabled:opacity-40">

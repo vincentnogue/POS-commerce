@@ -5,6 +5,7 @@ import {
   TrendingUp, Globe, Plus, Trash2, Pencil,
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
+import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { convertToUSD } from '../../lib/localization';
 import { PageHeader, Modal, Badge, EmptyState, StatCard, useToast } from '../../components/ui';
@@ -15,6 +16,7 @@ type Tab = 'overview' | 'tenants' | 'plans' | 'codes' | 'audit' | 'team';
 
 export function AdministrationPage() {
   const { member, tenant } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const isSuperAdmin = member?.role === 'super_admin';
   const isAdmin = member?.role === 'admin' || isSuperAdmin;
@@ -27,39 +29,39 @@ export function AdministrationPage() {
         <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-error-50 dark:bg-error-900/25 text-error-600">
           <AlertTriangle size={26} />
         </div>
-        <h2 className="text-lg font-medium text-ink-900 dark:text-ink-50">Accès refusé</h2>
-        <p className="mt-1 max-w-sm text-sm text-ink-500 dark:text-ink-400">Vous n'avez pas les permissions nécessaires pour accéder à l'administration. Cette restriction est vérifiée côté serveur.</p>
-        <button onClick={() => navigate('/dashboard')} className="btn-primary mt-5">Retour au tableau de bord</button>
+        <h2 className="text-lg font-medium text-ink-900 dark:text-ink-50">{t('admin.accessDenied')}</h2>
+        <p className="mt-1 max-w-sm text-sm text-ink-500 dark:text-ink-400">{t('admin.accessDeniedDesc')}</p>
+        <button onClick={() => navigate('/dashboard')} className="btn-primary mt-5">{t('admin.backToDashboard')}</button>
       </div>
     );
   }
 
-  const tabs: { id: Tab; label: string; icon: typeof Shield; superOnly?: boolean }[] = [
-    ...(isSuperAdmin ? [{ id: 'overview' as Tab, label: 'Vue plateforme', icon: TrendingUp }] : []),
-    ...(isSuperAdmin ? [{ id: 'tenants' as Tab, label: 'Entreprises', icon: Building2 }] : []),
-    ...(isSuperAdmin ? [{ id: 'plans' as Tab, label: 'Forfaits', icon: DollarSign }] : []),
-    ...(isSuperAdmin ? [{ id: 'codes' as Tab, label: 'Codes commerciaux', icon: Code2 }] : []),
-    ...(isSuperAdmin ? [{ id: 'audit' as Tab, label: "Journal d'audit", icon: ScrollText }] : []),
-    { id: 'team' as Tab, label: 'Équipe & rôles', icon: Users },
+  const tabs: { id: Tab; labelKey: string; icon: typeof Shield; superOnly?: boolean }[] = [
+    ...(isSuperAdmin ? [{ id: 'overview' as Tab, labelKey: 'admin.tab.overview', icon: TrendingUp }] : []),
+    ...(isSuperAdmin ? [{ id: 'tenants' as Tab, labelKey: 'admin.tab.tenants', icon: Building2 }] : []),
+    ...(isSuperAdmin ? [{ id: 'plans' as Tab, labelKey: 'admin.tab.plans', icon: DollarSign }] : []),
+    ...(isSuperAdmin ? [{ id: 'codes' as Tab, labelKey: 'admin.tab.codes', icon: Code2 }] : []),
+    ...(isSuperAdmin ? [{ id: 'audit' as Tab, labelKey: 'admin.tab.audit', icon: ScrollText }] : []),
+    { id: 'team' as Tab, labelKey: 'admin.tab.team', icon: Users },
   ];
 
   return (
     <div>
       <PageHeader
-        title="Administration"
-        subtitle={isSuperAdmin ? 'Espace Super Admin — vue plateforme LiAfrik' : 'Gérez votre équipe et vos rôles'}
+        title={t('admin.title')}
+        subtitle={isSuperAdmin ? t('admin.subtitleSuper') : t('admin.subtitleAdmin')}
       />
 
       <div className="mb-6 flex flex-wrap gap-2">
-        {tabs.map((t) => (
+        {tabs.map((tabItem) => (
           <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
+            key={tabItem.id}
+            onClick={() => setTab(tabItem.id)}
             className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
-              tab === t.id ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'
+              tab === tabItem.id ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'
             }`}
           >
-            <t.icon size={15} /> {t.label}
+            <tabItem.icon size={15} /> {t(tabItem.labelKey)}
           </button>
         ))}
       </div>
@@ -75,44 +77,45 @@ export function AdministrationPage() {
 }
 
 function SuperOverview() {
+  const { t } = useI18n();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
 
   useEffect(() => { (async () => {
-    const [t, p] = await Promise.all([
+    const [ten, p] = await Promise.all([
       supabase.from('tenants').select('*'),
       supabase.from('plans').select('*'),
     ]);
-    setTenants((t.data as Tenant[]) ?? []);
+    setTenants((ten.data as Tenant[]) ?? []);
     setPlans((p.data as Plan[]) ?? []);
   })(); }, []);
 
-  const mrrUSD = tenants.reduce((s, t) => {
-    const plan = plans.find((p) => p.id === t.plan_id);
+  const mrrUSD = tenants.reduce((s, ten) => {
+    const plan = plans.find((p) => p.id === ten.plan_id);
     return s + (plan?.price_usd ?? 0);
   }, 0);
 
   const byCountry: Record<string, number> = {};
-  tenants.forEach((t) => { byCountry[t.country_name] = (byCountry[t.country_name] ?? 0) + 1; });
+  tenants.forEach((ten) => { byCountry[ten.country_name] = (byCountry[ten.country_name] ?? 0) + 1; });
   const byPlan: Record<string, number> = {};
-  tenants.forEach((t) => {
-    const plan = plans.find((p) => p.id === t.plan_id);
-    const name = plan?.name ?? 'Aucun';
+  tenants.forEach((ten) => {
+    const plan = plans.find((p) => p.id === ten.plan_id);
+    const name = plan?.name ?? t('admin.noPlan');
     byPlan[name] = (byPlan[name] ?? 0) + 1;
   });
 
   return (
     <div>
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Entreprises" value={tenants.length} icon={Building2} tone="brand" />
-        <StatCard label="MRR (USD)" value={`$${mrrUSD.toFixed(0)}`} icon={DollarSign} tone="success" />
-        <StatCard label="Plans actifs" value={plans.length} icon={Shield} tone="flow" />
-        <StatCard label="Pays couverts" value={Object.keys(byCountry).length} icon={Globe} tone="action" />
+        <StatCard label={t('admin.overview.tenants')} value={tenants.length} icon={Building2} tone="brand" />
+        <StatCard label={t('admin.overview.mrr')} value={`$${mrrUSD.toFixed(0)}`} icon={DollarSign} tone="success" />
+        <StatCard label={t('admin.overview.activePlans')} value={plans.length} icon={Shield} tone="flow" />
+        <StatCard label={t('admin.overview.countries')} value={Object.keys(byCountry).length} icon={Globe} tone="action" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="card p-6">
-          <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">Répartition par forfait</h3>
+          <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">{t('admin.overview.byPlan')}</h3>
           <div className="space-y-2">
             {Object.entries(byPlan).map(([name, count]) => (
               <div key={name} className="flex items-center justify-between text-sm">
@@ -128,7 +131,7 @@ function SuperOverview() {
           </div>
         </div>
         <div className="card p-6">
-          <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">Répartition par pays</h3>
+          <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">{t('admin.overview.byCountry')}</h3>
           <div className="space-y-2">
             {Object.entries(byCountry).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([name, count]) => (
               <div key={name} className="flex items-center justify-between text-sm">
@@ -144,14 +147,15 @@ function SuperOverview() {
 }
 
 function SuperTenants() {
+  const { t } = useI18n();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   useEffect(() => { (async () => {
-    const [t, p] = await Promise.all([
+    const [ten, p] = await Promise.all([
       supabase.from('tenants').select('*').order('created_at', { ascending: false }),
       supabase.from('plans').select('*'),
     ]);
-    setTenants((t.data as Tenant[]) ?? []);
+    setTenants((ten.data as Tenant[]) ?? []);
     setPlans((p.data as Plan[]) ?? []);
   })(); }, []);
 
@@ -161,16 +165,16 @@ function SuperTenants() {
     <div className="card p-5">
       <table className="w-full text-sm">
         <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
-          <th className="pb-2 font-medium">Entreprise</th><th className="pb-2 font-medium">Pays</th><th className="pb-2 font-medium">Devise</th><th className="pb-2 font-medium">Forfait</th><th className="pb-2 font-medium">Statut</th>
+          <th className="pb-2 font-medium">{t('admin.tenants.company')}</th><th className="pb-2 font-medium">{t('admin.tenants.country')}</th><th className="pb-2 font-medium">{t('admin.tenants.currency')}</th><th className="pb-2 font-medium">{t('admin.tenants.plan')}</th><th className="pb-2 font-medium">{t('admin.tenants.status')}</th>
         </tr></thead>
         <tbody>
-          {tenants.map((t) => (
-            <tr key={t.id} className="border-b border-ink-50 dark:border-ink-800">
-              <td className="py-3"><p className="font-medium text-ink-900 dark:text-ink-50">{t.name}</p><p className="text-xs text-ink-500 dark:text-ink-400">{t.city}</p></td>
-              <td className="py-3 text-ink-600 dark:text-ink-300">{t.country_name}</td>
-              <td className="py-3 text-ink-600 dark:text-ink-300">{t.currency}</td>
-              <td className="py-3"><Badge tone="brand">{planName(t.plan_id)}</Badge></td>
-              <td className="py-3"><Badge tone={t.status === 'active' ? 'success' : 'neutral'}>{t.status}</Badge></td>
+          {tenants.map((ten) => (
+            <tr key={ten.id} className="border-b border-ink-50 dark:border-ink-800">
+              <td className="py-3"><p className="font-medium text-ink-900 dark:text-ink-50">{ten.name}</p><p className="text-xs text-ink-500 dark:text-ink-400">{ten.city}</p></td>
+              <td className="py-3 text-ink-600 dark:text-ink-300">{ten.country_name}</td>
+              <td className="py-3 text-ink-600 dark:text-ink-300">{ten.currency}</td>
+              <td className="py-3"><Badge tone="brand">{planName(ten.plan_id)}</Badge></td>
+              <td className="py-3"><Badge tone={ten.status === 'active' ? 'success' : 'neutral'}>{ten.status}</Badge></td>
             </tr>
           ))}
         </tbody>
@@ -180,6 +184,7 @@ function SuperTenants() {
 }
 
 function SuperPlans() {
+  const { t } = useI18n();
   const toast = useToast();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -199,11 +204,11 @@ function SuperPlans() {
     if (error) { toast('error', error.message); return; }
     setModalOpen(false);
     await reload();
-    toast('success', 'Forfait enregistré.');
+    toast('success', t('admin.plans.saved'));
   };
 
   const remove = async (p: Plan) => {
-    if (!confirm(`Supprimer le forfait ${p.name} ?`)) return;
+    if (!confirm(t('admin.plans.confirmDelete', { name: p.name }))) return;
     const { error } = await supabase.from('plans').delete().eq('id', p.id);
     if (error) { toast('error', error.message); return; }
     await reload();
@@ -211,10 +216,10 @@ function SuperPlans() {
 
   return (
     <div className="card p-5">
-      <div className="mb-4 flex justify-end"><button onClick={() => { setEditing(null); setForm({ name: '', code: '', price_usd: 0, max_users: 1, max_stores: 1, max_products: 50 }); setModalOpen(true); }} className="btn-primary"><Plus size={16} /> Nouveau forfait</button></div>
+      <div className="mb-4 flex justify-end"><button onClick={() => { setEditing(null); setForm({ name: '', code: '', price_usd: 0, max_users: 1, max_stores: 1, max_products: 50 }); setModalOpen(true); }} className="btn-primary"><Plus size={16} /> {t('admin.plans.new')}</button></div>
       <table className="w-full text-sm">
         <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
-          <th className="pb-2 font-medium">Nom</th><th className="pb-2 font-medium">Code</th><th className="pb-2 font-medium">Prix (USD)</th><th className="pb-2 font-medium">Utilisateurs</th><th className="pb-2 font-medium">Magasins</th><th className="pb-2 font-medium">Produits</th><th></th>
+          <th className="pb-2 font-medium">{t('admin.plans.name')}</th><th className="pb-2 font-medium">{t('admin.plans.code')}</th><th className="pb-2 font-medium">{t('admin.plans.priceUsd')}</th><th className="pb-2 font-medium">{t('admin.plans.users')}</th><th className="pb-2 font-medium">{t('admin.plans.stores')}</th><th className="pb-2 font-medium">{t('admin.plans.products')}</th><th></th>
         </tr></thead>
         <tbody>
           {plans.map((p) => (
@@ -233,18 +238,18 @@ function SuperPlans() {
           ))}
         </tbody>
       </table>
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Modifier le forfait' : 'Nouveau forfait'}>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? t('admin.plans.edit') : t('admin.plans.new')}>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Nom"><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" /></Field>
-          <Field label="Code"><input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="input" /></Field>
-          <Field label="Prix USD"><input type="number" value={form.price_usd} onChange={(e) => setForm({ ...form, price_usd: Number(e.target.value) })} className="input" /></Field>
-          <Field label="Utilisateurs max"><input type="number" value={form.max_users} onChange={(e) => setForm({ ...form, max_users: Number(e.target.value) })} className="input" /></Field>
-          <Field label="Magasins max"><input type="number" value={form.max_stores} onChange={(e) => setForm({ ...form, max_stores: Number(e.target.value) })} className="input" /></Field>
-          <Field label="Produits max"><input type="number" value={form.max_products} onChange={(e) => setForm({ ...form, max_products: Number(e.target.value) })} className="input" /></Field>
+          <Field label={t('admin.plans.name')}><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" /></Field>
+          <Field label={t('admin.plans.code')}><input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="input" /></Field>
+          <Field label={t('admin.plans.priceUsd')}><input type="number" value={form.price_usd} onChange={(e) => setForm({ ...form, price_usd: Number(e.target.value) })} className="input" /></Field>
+          <Field label={t('admin.plans.maxUsers')}><input type="number" value={form.max_users} onChange={(e) => setForm({ ...form, max_users: Number(e.target.value) })} className="input" /></Field>
+          <Field label={t('admin.plans.maxStores')}><input type="number" value={form.max_stores} onChange={(e) => setForm({ ...form, max_stores: Number(e.target.value) })} className="input" /></Field>
+          <Field label={t('admin.plans.maxProducts')}><input type="number" value={form.max_products} onChange={(e) => setForm({ ...form, max_products: Number(e.target.value) })} className="input" /></Field>
         </div>
         <div className="mt-6 flex justify-end gap-2">
-          <button onClick={() => setModalOpen(false)} className="btn-ghost">Annuler</button>
-          <button onClick={save} className="btn-primary">{editing ? 'Enregistrer' : 'Créer'}</button>
+          <button onClick={() => setModalOpen(false)} className="btn-ghost">{t('common.cancel')}</button>
+          <button onClick={save} className="btn-primary">{editing ? t('common.save') : t('admin.plans.create')}</button>
         </div>
       </Modal>
     </div>
@@ -252,6 +257,7 @@ function SuperPlans() {
 }
 
 function SuperCodes() {
+  const { t } = useI18n();
   const toast = useToast();
   const [codes, setCodes] = useState<CommercialCode[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -269,7 +275,7 @@ function SuperCodes() {
     setModalOpen(false);
     setForm({ code: '', rep_name: '', rep_email: '', region: '' });
     await reload();
-    toast('success', 'Code commercial créé.');
+    toast('success', t('admin.codes.created'));
   };
 
   const toggle = async (c: CommercialCode) => {
@@ -280,13 +286,13 @@ function SuperCodes() {
 
   return (
     <div className="card p-5">
-      <div className="mb-4 flex justify-end"><button onClick={() => setModalOpen(true)} className="btn-primary"><Plus size={16} /> Nouveau code</button></div>
+      <div className="mb-4 flex justify-end"><button onClick={() => setModalOpen(true)} className="btn-primary"><Plus size={16} /> {t('admin.codes.new')}</button></div>
       {codes.length === 0 ? (
-        <EmptyState icon={Code2} title="Aucun code commercial" description="Créez des codes pour tracer vos commerciaux." />
+        <EmptyState icon={Code2} title={t('admin.codes.empty.title')} description={t('admin.codes.empty.desc')} />
       ) : (
         <table className="w-full text-sm">
           <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
-            <th className="pb-2 font-medium">Code</th><th className="pb-2 font-medium">Commercial</th><th className="pb-2 font-medium">Région</th><th className="pb-2 font-medium">Ventes</th><th className="pb-2 font-medium">Revenu généré</th><th className="pb-2 font-medium">Statut</th><th></th>
+            <th className="pb-2 font-medium">{t('admin.codes.code')}</th><th className="pb-2 font-medium">{t('admin.codes.rep')}</th><th className="pb-2 font-medium">{t('admin.codes.region')}</th><th className="pb-2 font-medium">{t('admin.codes.sales')}</th><th className="pb-2 font-medium">{t('admin.codes.revenue')}</th><th className="pb-2 font-medium">{t('admin.codes.status')}</th><th></th>
           </tr></thead>
           <tbody>
             {codes.map((c) => (
@@ -296,23 +302,23 @@ function SuperCodes() {
                 <td className="py-3 text-ink-600 dark:text-ink-300">{c.region ?? '—'}</td>
                 <td className="py-3 text-ink-600 dark:text-ink-300">{c.total_sales}</td>
                 <td className="py-3 font-medium text-ink-900 dark:text-ink-50">${convertToUSD(c.total_revenue, 'USD').toFixed(0)}</td>
-                <td className="py-3"><Badge tone={c.is_active ? 'success' : 'neutral'}>{c.is_active ? 'Actif' : 'Inactif'}</Badge></td>
-                <td className="py-3"><button onClick={() => toggle(c)} className="text-xs font-medium text-brand-600 hover:underline">{c.is_active ? 'Désactiver' : 'Activer'}</button></td>
+                <td className="py-3"><Badge tone={c.is_active ? 'success' : 'neutral'}>{c.is_active ? t('admin.codes.active') : t('admin.codes.inactive')}</Badge></td>
+                <td className="py-3"><button onClick={() => toggle(c)} className="text-xs font-medium text-brand-600 hover:underline">{c.is_active ? t('admin.codes.deactivate') : t('admin.codes.activate')}</button></td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Nouveau code commercial">
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t('admin.codes.newTitle')}>
         <div className="space-y-4">
-          <Field label="Code"><input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="input" placeholder="Ex: LIAFRIK-001" /></Field>
-          <Field label="Nom du commercial"><input value={form.rep_name} onChange={(e) => setForm({ ...form, rep_name: e.target.value })} className="input" /></Field>
-          <Field label="Email"><input value={form.rep_email} onChange={(e) => setForm({ ...form, rep_email: e.target.value })} className="input" /></Field>
-          <Field label="Région"><input value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })} className="input" /></Field>
+          <Field label={t('admin.codes.code')}><input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="input" placeholder="Ex: LIAFRIK-001" /></Field>
+          <Field label={t('admin.codes.repName')}><input value={form.rep_name} onChange={(e) => setForm({ ...form, rep_name: e.target.value })} className="input" /></Field>
+          <Field label={t('admin.codes.email')}><input value={form.rep_email} onChange={(e) => setForm({ ...form, rep_email: e.target.value })} className="input" /></Field>
+          <Field label={t('admin.codes.region')}><input value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })} className="input" /></Field>
         </div>
         <div className="mt-6 flex justify-end gap-2">
-          <button onClick={() => setModalOpen(false)} className="btn-ghost">Annuler</button>
-          <button onClick={save} className="btn-primary">Créer</button>
+          <button onClick={() => setModalOpen(false)} className="btn-ghost">{t('common.cancel')}</button>
+          <button onClick={save} className="btn-primary">{t('admin.codes.create')}</button>
         </div>
       </Modal>
     </div>
@@ -320,6 +326,7 @@ function SuperCodes() {
 }
 
 function SuperAudit() {
+  const { t, formatDateTime } = useI18n();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   useEffect(() => { (async () => {
     const { data } = await supabase.from('audit_log').select('*').order('created_at', { ascending: false }).limit(100);
@@ -329,16 +336,16 @@ function SuperAudit() {
   return (
     <div className="card p-5">
       {logs.length === 0 ? (
-        <EmptyState icon={ScrollText} title="Journal vide" description="Les actions sensibles apparaîtront ici." />
+        <EmptyState icon={ScrollText} title={t('admin.audit.empty.title')} description={t('admin.audit.empty.desc')} />
       ) : (
         <div className="space-y-2">
           {logs.map((l) => (
             <div key={l.id} className="rounded-xl border border-ink-100 dark:border-ink-800 p-3 text-sm">
               <div className="flex items-center justify-between">
                 <p className="font-medium text-ink-900 dark:text-ink-50">{l.action}</p>
-                <span className="text-xs text-ink-500 dark:text-ink-400">{new Date(l.created_at).toLocaleString('fr-FR')}</span>
+                <span className="text-xs text-ink-500 dark:text-ink-400">{formatDateTime(l.created_at)}</span>
               </div>
-              {l.actor_email && <p className="text-xs text-ink-500 dark:text-ink-400">par {l.actor_email}</p>}
+              {l.actor_email && <p className="text-xs text-ink-500 dark:text-ink-400">{t('admin.audit.by')} {l.actor_email}</p>}
               {l.entity && <p className="text-xs text-ink-500 dark:text-ink-400">{l.entity}</p>}
             </div>
           ))}
@@ -349,6 +356,7 @@ function SuperAudit() {
 }
 
 function TeamRoles({ tenantId }: { tenantId: string }) {
+  const { t, formatDate } = useI18n();
   const [members, setMembers] = useState<any[]>([]);
   const [salesByUser, setSalesByUser] = useState<Record<string, number>>({});
   const [roleLabels, setRoleLabels] = useState<Record<string, string>>({});
@@ -377,17 +385,17 @@ function TeamRoles({ tenantId }: { tenantId: string }) {
 
   const lastSale = (userId: string) => {
     const sales = (salesByUser[userId] ?? 0);
-    return sales > 0 ? `${sales} vente(s)` : 'Aucune vente';
+    return sales > 0 ? t('admin.team.salesCount', { count: sales }) : t('admin.team.noSales');
   };
 
   return (
     <div className="card p-6">
       <div className="mb-4">
-        <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">Activité de l'équipe</h3>
-        <p className="text-sm text-ink-500 dark:text-ink-400">Rôles, permissions et activité par membre du staff.</p>
+        <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t('admin.team.title')}</h3>
+        <p className="text-sm text-ink-500 dark:text-ink-400">{t('admin.team.desc')}</p>
       </div>
       {members.length === 0 ? (
-        <p className="py-6 text-center text-sm text-ink-400 dark:text-ink-500">Aucun membre.</p>
+        <p className="py-6 text-center text-sm text-ink-400 dark:text-ink-500">{t('admin.team.noMembers')}</p>
       ) : (
         <div className="space-y-2">
           {members.map((m) => (
@@ -397,22 +405,22 @@ function TeamRoles({ tenantId }: { tenantId: string }) {
                   {(m.display_name ?? '?').slice(0, 2).toUpperCase()}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{m.display_name ?? 'Invité'}</p>
+                  <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{m.display_name ?? t('users.invited')}</p>
                   <p className="text-xs text-ink-500 dark:text-ink-400">
-                    {m.role === 'super_admin' ? 'Super Admin' : m.role === 'admin' ? 'Propriétaire' : m.role === 'manager' ? 'Manager' : 'Vendeur'}
+                    {t(`users.role.${m.role}`)}
                     {m.custom_role_id && roleLabels[m.custom_role_id] ? ` · ${roleLabels[m.custom_role_id]}` : ''}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3 text-xs text-ink-500 dark:text-ink-400">
                 <span className="rounded-md bg-ink-100 dark:bg-ink-800 px-2 py-1">{lastSale(m.user_id)}</span>
-                <span className="text-ink-400 dark:text-ink-500">Membre depuis {new Date(m.accepted_at ?? m.created_at).toLocaleDateString('fr-FR')}</span>
+                <span className="text-ink-400 dark:text-ink-500">{t('admin.team.memberSince')} {formatDate(m.accepted_at ?? m.created_at)}</span>
               </div>
             </div>
           ))}
         </div>
       )}
-      <p className="mt-4 text-xs text-ink-500 dark:text-ink-400">La création de rôles personnalisés avec matrice de permissions fine par module est disponible dans Utilisateurs & Rôles.</p>
+      <p className="mt-4 text-xs text-ink-500 dark:text-ink-400">{t('admin.team.customRolesHint')}</p>
     </div>
   );
 }

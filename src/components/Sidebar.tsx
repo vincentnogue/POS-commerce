@@ -12,13 +12,6 @@ import { useI18n } from '../lib/i18n';
 import { Logo } from './Logo';
 import type { Role } from '../lib/types';
 
-const ROLE_LABELS: Record<string, string> = {
-  super_admin: 'Super Admin',
-  admin: 'Propriétaire',
-  manager: 'Manager',
-  staff: 'Vendeur',
-};
-
 type NavItem = {
   to: string;
   labelKey: string;
@@ -112,7 +105,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
               className="flex w-full items-center justify-between rounded-xl border border-brand-100 bg-white dark:bg-ink-800 px-3 py-2.5 text-left transition hover:border-brand-200"
             >
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-ink-900 dark:text-ink-50">{tenant?.name ?? 'Aucun magasin'}</p>
+                <p className="truncate text-sm font-medium text-ink-900 dark:text-ink-50">{tenant?.name ?? t('sidebar.noStore')}</p>
                 <p className="truncate text-xs text-ink-500 dark:text-ink-400">
                   {tenant?.city ?? '—'} · {tenant?.country_name}
                 </p>
@@ -140,7 +133,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
                         <p className="truncate text-xs text-ink-500 dark:text-ink-400">{tn.city}</p>
                       </div>
                       <span className="ml-2 shrink-0 rounded-full bg-ink-100 dark:bg-ink-800 px-2 py-0.5 text-[10px] uppercase text-ink-600 dark:text-ink-300">
-                        {ROLE_LABELS[(m.role as Role) ?? 'staff']}
+                        {t(`role.${(m.role as Role) ?? 'staff'}`)}
                       </span>
                     </button>
                   ))}
@@ -162,7 +155,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
                   to="/subscribe"
                   onClick={() => onClose()}
                   className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-400 dark:text-ink-500 opacity-70 transition-colors hover:bg-white/60 dark:hover:bg-ink-800/60"
-                  title="Fonctionnalité non incluse dans votre forfait actuel"
+                  title={t('sidebar.lockedFeature')}
                 >
                   <Icon size={18} strokeWidth={1.8} className="shrink-0 text-ink-400 dark:text-ink-500" />
                   <span className="truncate">{t(item.labelKey)}</span>

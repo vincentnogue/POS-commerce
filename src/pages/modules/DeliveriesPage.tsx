@@ -8,17 +8,17 @@ import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components
 import { DataTable, SearchInput, Select, Field, exportCSV } from '../../components/DataTable';
 import type { Delivery } from '../../lib/types';
 
-const STATUS_LABELS: Record<string, { label: string; tone: any }> = {
-  pending: { label: 'En attente', tone: 'warning' },
-  partially_delivered: { label: 'Partielle', tone: 'brand' },
-  shipped: { label: 'Expédiée', tone: 'brand' },
-  delivered: { label: 'Livrée', tone: 'success' },
-  cancelled: { label: 'Annulée', tone: 'error' },
+const STATUS_LABELS: Record<string, { key: string; tone: any }> = {
+  pending: { key: 'delivery.status.pending', tone: 'warning' },
+  partially_delivered: { key: 'delivery.status.partial', tone: 'brand' },
+  shipped: { key: 'delivery.status.shipped', tone: 'brand' },
+  delivered: { key: 'delivery.status.delivered', tone: 'success' },
+  cancelled: { key: 'delivery.status.cancelled', tone: 'error' },
 };
 
 export function DeliveriesPage() {
   const { tenant } = useAuth();
-  const { formatDate } = useI18n();
+  const { t, formatDate } = useI18n();
   const toast = useToast();
   const [params] = useSearchParams();
   const [deliveries, setDeliveries] = useState<(Delivery & { sale_items?: any[] })[]>([]);
@@ -63,7 +63,7 @@ export function DeliveriesPage() {
     setModalOpen(false);
     setForm({ customer_name: '', address: '', city: '', phone: '', carrier: '', scheduled_date: new Date().toISOString().slice(0, 10) });
     await reload();
-    toast('success', 'Livraison créée.');
+    toast('success', t('delivery.toast.created'));
   };
 
   const updateStatus = async (d: Delivery, status: string) => {
@@ -114,12 +114,12 @@ export function DeliveriesPage() {
   return (
     <div>
       <PageHeader
-        title="Livraisons"
-        subtitle={`${deliveries.length} livraison(s)`}
+        title={t('delivery.title')}
+        subtitle={t('delivery.subtitle', { count: deliveries.length })}
         action={
           <div className="flex gap-2">
-            <button onClick={() => exportCSV('livraisons.csv', filtered.map((d) => ({ client: d.customer_name, ville: d.city, statut: d.status, date: d.scheduled_date, transporteur: d.carrier })))} className="btn-ghost"><Download size={16} /> Export</button>
-            <button onClick={() => setModalOpen(true)} className="btn-primary"><Plus size={16} /> Nouvelle livraison</button>
+            <button onClick={() => exportCSV('livraisons.csv', filtered.map((d) => ({ client: d.customer_name, ville: d.city, statut: d.status, date: d.scheduled_date, transporteur: d.carrier })))} className="btn-ghost"><Download size={16} /> {t('common.export')}</button>
+            <button onClick={() => setModalOpen(true)} className="btn-primary"><Plus size={16} /> {t('delivery.new')}</button>
           </div>
         }
       />
@@ -127,24 +127,24 @@ export function DeliveriesPage() {
       <div className="card p-5">
         <div className="mb-4 flex flex-wrap gap-3">
           <SearchInput value={search} onChange={setSearch} />
-          <Select value={statusFilter} onChange={setStatusFilter} placeholder="Tous statuts" options={Object.entries(STATUS_LABELS).map(([v, s]) => ({ value: v, label: s.label }))} />
+          <Select value={statusFilter} onChange={setStatusFilter} placeholder={t('delivery.allStatuses')} options={Object.entries(STATUS_LABELS).map(([v, s]) => ({ value: v, label: t(s.key) }))} />
         </div>
         {filtered.length === 0 && !loading ? (
-          <EmptyState icon={Truck} title="Aucune livraison" description="Planifiez votre première livraison." action={<button onClick={() => setModalOpen(true)} className="btn-primary"><Plus size={15} /> Créer</button>} />
+          <EmptyState icon={Truck} title={t('delivery.empty.title')} description={t('delivery.empty.desc')} action={<button onClick={() => setModalOpen(true)} className="btn-primary"><Plus size={15} /> {t('common.create')}</button>} />
         ) : (
           <DataTable
             loading={loading}
             columns={[
-              { key: 'customer', label: 'Client', render: (d) => <div><span className="font-medium text-ink-900 dark:text-ink-50">{d.customer_name}</span>{d.sale_id && <p className="text-[10px] text-brand-600">Vente liée</p>}</div> },
-              { key: 'city', label: 'Ville', render: (d) => <span className="text-ink-600 dark:text-ink-300">{d.city ?? '—'}</span> },
-              { key: 'date', label: 'Date prévue', render: (d) => <span className="text-ink-500 dark:text-ink-400">{d.scheduled_date ? formatDate(d.scheduled_date) : '—'}</span> },
-              { key: 'carrier', label: 'Transporteur', render: (d) => <span className="text-ink-600 dark:text-ink-300">{d.carrier ?? '—'}</span> },
-              { key: 'status', label: 'Statut', render: (d) => <Badge tone={STATUS_LABELS[d.status]?.tone}>{STATUS_LABELS[d.status]?.label ?? d.status}</Badge> },
+              { key: 'customer', label: t('delivery.col.customer'), render: (d) => <div><span className="font-medium text-ink-900 dark:text-ink-50">{d.customer_name}</span>{d.sale_id && <p className="text-[10px] text-brand-600">{t('delivery.linkedSale')}</p>}</div> },
+              { key: 'city', label: t('common.city'), render: (d) => <span className="text-ink-600 dark:text-ink-300">{d.city ?? '—'}</span> },
+              { key: 'date', label: t('delivery.col.scheduledDate'), render: (d) => <span className="text-ink-500 dark:text-ink-400">{d.scheduled_date ? formatDate(d.scheduled_date) : '—'}</span> },
+              { key: 'carrier', label: t('delivery.col.carrier'), render: (d) => <span className="text-ink-600 dark:text-ink-300">{d.carrier ?? '—'}</span> },
+              { key: 'status', label: t('common.status'), render: (d) => <Badge tone={STATUS_LABELS[d.status]?.tone}>{t(STATUS_LABELS[d.status]?.key ?? 'delivery.status.pending')}</Badge> },
               { key: 'actions', label: '', className: 'text-right', render: (d) => (
                 <div className="flex justify-end gap-2">
                   <button onClick={() => openDetail(d)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Eye size={15} /></button>
                   <select value={d.status} onChange={(e) => updateStatus(d, e.target.value)} className="input max-w-[140px]">
-                    {Object.entries(STATUS_LABELS).map(([v, s]) => <option key={v} value={v}>{s.label}</option>)}
+                    {Object.entries(STATUS_LABELS).map(([v, s]) => <option key={v} value={v}>{t(s.key)}</option>)}
                   </select>
                 </div>
               )},
@@ -154,40 +154,40 @@ export function DeliveriesPage() {
         )}
       </div>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Nouvelle livraison">
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t('delivery.newTitle')}>
         <div className="space-y-4">
-          <Field label="Client"><input value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} className="input" /></Field>
-          <Field label="Adresse"><input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="input" /></Field>
+          <Field label={t('delivery.col.customer')}><input value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} className="input" /></Field>
+          <Field label={t('common.address')}><input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="input" /></Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Ville"><input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="input" /></Field>
-            <Field label="Téléphone"><input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="input" /></Field>
+            <Field label={t('common.city')}><input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="input" /></Field>
+            <Field label={t('common.phone')}><input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="input" /></Field>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Transporteur"><input value={form.carrier} onChange={(e) => setForm({ ...form, carrier: e.target.value })} className="input" placeholder="Ex: DHL, GSP…" /></Field>
-            <Field label="Date prévue"><input type="date" value={form.scheduled_date} onChange={(e) => setForm({ ...form, scheduled_date: e.target.value })} className="input" /></Field>
+            <Field label={t('delivery.col.carrier')}><input value={form.carrier} onChange={(e) => setForm({ ...form, carrier: e.target.value })} className="input" placeholder={t('delivery.col.carrierPlaceholder')} /></Field>
+            <Field label={t('delivery.col.scheduledDate')}><input type="date" value={form.scheduled_date} onChange={(e) => setForm({ ...form, scheduled_date: e.target.value })} className="input" /></Field>
           </div>
         </div>
         <div className="mt-6 flex justify-end gap-2">
-          <button onClick={() => setModalOpen(false)} className="btn-ghost">Annuler</button>
-          <button onClick={save} className="btn-primary">Créer</button>
+          <button onClick={() => setModalOpen(false)} className="btn-ghost">{t('common.cancel')}</button>
+          <button onClick={save} className="btn-primary">{t('common.create')}</button>
         </div>
       </Modal>
 
       {/* Detail modal — partial delivery tracking */}
-      <Modal open={!!detailOpen} onClose={() => setDetailOpen(null)} title={`Livraison — ${detailOpen?.customer_name ?? ''}`} maxWidth="max-w-2xl">
+      <Modal open={!!detailOpen} onClose={() => setDetailOpen(null)} title={t('delivery.detailTitle', { name: detailOpen?.customer_name ?? '' })} maxWidth="max-w-2xl">
         {detailOpen && (
           <div>
             {detailItems.length === 0 ? (
               <div className="py-6 text-center">
                 <Package className="mx-auto mb-2 text-ink-300" size={32} />
-                <p className="text-sm text-ink-500 dark:text-ink-400">Livraison sans détails produit (saisie manuelle).</p>
-                <p className="mt-1 text-xs text-ink-400 dark:text-ink-500">Statut actuel : <Badge tone={STATUS_LABELS[detailOpen.status]?.tone}>{STATUS_LABELS[detailOpen.status]?.label}</Badge></p>
+                <p className="text-sm text-ink-500 dark:text-ink-400">{t('delivery.noDetails')}</p>
+                <p className="mt-1 text-xs text-ink-400 dark:text-ink-500">{t('delivery.currentStatus')} <Badge tone={STATUS_LABELS[detailOpen.status]?.tone}>{t(STATUS_LABELS[detailOpen.status]?.key ?? 'delivery.status.pending')}</Badge></p>
               </div>
             ) : (
               <>
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
-                    <th className="pb-2">Produit</th><th className="pb-2 text-right">Commandé</th><th className="pb-2 text-right">Livré</th><th className="pb-2 text-right">Reste</th>
+                    <th className="pb-2">{t('delivery.col.product')}</th><th className="pb-2 text-right">{t('delivery.col.ordered')}</th><th className="pb-2 text-right">{t('delivery.col.delivered')}</th><th className="pb-2 text-right">{t('delivery.col.remaining')}</th>
                   </tr></thead>
                   <tbody>
                     {detailItems.map((it) => {
@@ -213,9 +213,9 @@ export function DeliveriesPage() {
                   </tbody>
                 </table>
                 <div className="mt-4 flex items-center justify-between">
-                  <Badge tone={STATUS_LABELS[detailOpen.status]?.tone}>{STATUS_LABELS[detailOpen.status]?.label ?? detailOpen.status}</Badge>
+                  <Badge tone={STATUS_LABELS[detailOpen.status]?.tone}>{t(STATUS_LABELS[detailOpen.status]?.key ?? 'delivery.status.pending')}</Badge>
                   {detailOpen.status !== 'delivered' && detailOpen.status !== 'cancelled' && (
-                    <button onClick={completeDelivery} className="btn-primary text-sm"><Package size={15} /> Tout livrer</button>
+                    <button onClick={completeDelivery} className="btn-primary text-sm"><Package size={15} /> {t('delivery.deliverAll')}</button>
                   )}
                 </div>
               </>

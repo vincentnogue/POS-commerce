@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Download, TrendingUp, TrendingDown, ShoppingCart, Wallet } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from 'recharts';
 import { useAuth } from '../../lib/auth';
+import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
 import { PageHeader, StatCard } from '../../components/ui';
@@ -9,16 +10,17 @@ import { Select, exportCSV } from '../../components/DataTable';
 import type { Sale, Expense, Store, Product, Category } from '../../lib/types';
 
 const PERIODS = [
-  { value: '7', label: '7 derniers jours' },
-  { value: '30', label: '30 derniers jours' },
-  { value: '90', label: '90 derniers jours' },
-  { value: '365', label: 'Année' },
+  { value: '7', labelKey: 'reports.period.last7' },
+  { value: '30', labelKey: 'reports.period.last30' },
+  { value: '90', labelKey: 'reports.period.last90' },
+  { value: '365', labelKey: 'reports.period.year' },
 ];
 
 const PIE_COLORS = ['#2E8C66', '#14B594', '#F96F22', '#FFC7A0', '#4FA480', '#7CBBA0', '#F5A623', '#E5484D'];
 
 export function ReportsPage() {
   const { tenant } = useAuth();
+  const { t, lang } = useI18n();
   const [sales, setSales] = useState<Sale[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -68,7 +70,7 @@ export function ReportsPage() {
     const d = new Date(Date.now() - (Math.min(days, 30) - 1 - i) * 86400000);
     const dayRev = filteredSales.filter((s) => { const sd = new Date(s.sale_date); return sd.toDateString() === d.toDateString(); }).reduce((s, x) => s + Number(x.total), 0);
     const dayExp = filteredExpenses.filter((e) => new Date(e.expense_date).toDateString() === d.toDateString()).reduce((s, x) => s + Number(x.amount), 0);
-    return { date: d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }), revenu: dayRev, depenses: dayExp };
+    return { date: d.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { day: '2-digit', month: '2-digit' }), revenu: dayRev, depenses: dayExp };
   });
 
   const [topProducts, setTopProducts] = useState<{ name: string; revenue: number }[]>([]);
@@ -84,7 +86,7 @@ export function ReportsPage() {
       if (!items) { setTopProducts([]); return; }
       const byProduct: Record<string, number> = {};
       (items as any[]).forEach((item) => {
-        const name = item.product?.name ?? 'Inconnu';
+        const name = item.product?.name ?? t('reports.unknownProduct');
         byProduct[name] = (byProduct[name] ?? 0) + Number(item.quantity) * Number(item.unit_price);
       });
       setTopProducts(
@@ -105,26 +107,26 @@ export function ReportsPage() {
   return (
     <div>
       <PageHeader
-        title="Rapports"
-        subtitle={`Période : ${PERIODS.find((p) => p.value === period)?.label}`}
+        title={t('reports.title')}
+        subtitle={t('reports.periodLabel', { label: t(PERIODS.find((p) => p.value === period)?.labelKey ?? '') })}
         action={
           <div className="flex gap-2">
-            <Select value={period} onChange={setPeriod} options={PERIODS} />
-            <Select value={storeFilter} onChange={setStoreFilter} placeholder="Tous magasins" options={stores.map((s) => ({ value: s.id, label: s.name }))} />
-            <button onClick={() => exportCSV('rapport.csv', filteredSales.map((s) => ({ reference: s.reference, date: s.sale_date, total: s.total, paiement: s.payment_method })))} className="btn-ghost"><Download size={16} /> Export</button>
+            <Select value={period} onChange={setPeriod} options={PERIODS.map((p) => ({ value: p.value, label: t(p.labelKey) }))} />
+            <Select value={storeFilter} onChange={setStoreFilter} placeholder={t('reports.allStores')} options={stores.map((s) => ({ value: s.id, label: s.name }))} />
+            <button onClick={() => exportCSV('rapport.csv', filteredSales.map((s) => ({ reference: s.reference, date: s.sale_date, total: s.total, paiement: s.payment_method })))} className="btn-ghost"><Download size={16} /> {t('common.export')}</button>
           </div>
         }
       />
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Revenu" value={formatMoney(revenue, currency)} icon={TrendingUp} tone="brand" />
-        <StatCard label="Dépenses" value={formatMoney(expensesTotal, currency)} icon={TrendingDown} tone="action" />
-        <StatCard label="Bénéfice" value={formatMoney(profit, currency)} icon={Wallet} tone={profit >= 0 ? 'success' : 'error'} />
-        <StatCard label="Marge" value={`${margin.toFixed(1)}%`} icon={ShoppingCart} tone="flow" />
+        <StatCard label={t('reports.revenue')} value={formatMoney(revenue, currency)} icon={TrendingUp} tone="brand" />
+        <StatCard label={t('accounting.expenses')} value={formatMoney(expensesTotal, currency)} icon={TrendingDown} tone="action" />
+        <StatCard label={t('reports.profit')} value={formatMoney(profit, currency)} icon={Wallet} tone={profit >= 0 ? 'success' : 'error'} />
+        <StatCard label={t('reports.margin')} value={`${margin.toFixed(1)}%`} icon={ShoppingCart} tone="flow" />
       </div>
 
       <div className="card mb-6 p-6">
-        <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">Revenu vs Dépenses</h3>
+        <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">{t('reports.revenueVsExpenses')}</h3>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 5, right: 5, left: -10, bottom: 0 }}>
@@ -133,8 +135,8 @@ export function ReportsPage() {
               <YAxis tick={{ fontSize: 11, fill: '#748478' }} axisLine={false} tickLine={false} width={60} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
               <Tooltip formatter={(v: any) => formatMoney(Number(v), currency)} contentStyle={{ borderRadius: 12, border: '1px solid #DCE2DD', fontSize: 12 }} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="revenu" fill="#2E8C66" radius={[6, 6, 0, 0]} name="Revenu" />
-              <Bar dataKey="depenses" fill="#F96F22" radius={[6, 6, 0, 0]} name="Dépenses" />
+              <Bar dataKey="revenu" fill="#2E8C66" radius={[6, 6, 0, 0]} name={t('reports.revenue')} />
+              <Bar dataKey="depenses" fill="#F96F22" radius={[6, 6, 0, 0]} name={t('accounting.expenses')} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -142,9 +144,9 @@ export function ReportsPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="card p-6">
-          <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">Produits par catégorie</h3>
+          <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">{t('reports.productsByCategory')}</h3>
           {catData.length === 0 ? (
-            <p className="py-12 text-center text-sm text-ink-400 dark:text-ink-500">Aucune donnée</p>
+            <p className="py-12 text-center text-sm text-ink-400 dark:text-ink-500">{t('common.empty')}</p>
           ) : (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -160,9 +162,9 @@ export function ReportsPage() {
         </div>
 
         <div className="card p-6">
-          <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">Top produits</h3>
+          <h3 className="mb-4 text-base font-medium text-ink-900 dark:text-ink-50">{t('reports.topProducts')}</h3>
           {topProducts.length === 0 ? (
-            <p className="py-12 text-center text-sm text-ink-400 dark:text-ink-500">Aucune donnée</p>
+            <p className="py-12 text-center text-sm text-ink-400 dark:text-ink-500">{t('common.empty')}</p>
           ) : (
             <div className="space-y-3">
               {topProducts.map((p, i) => (

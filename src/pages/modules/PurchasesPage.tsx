@@ -8,17 +8,17 @@ import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components
 import { DataTable, SearchInput, Select, Field, exportCSV } from '../../components/DataTable';
 import type { Purchase, Supplier, Product, PurchaseItem } from '../../lib/types';
 
-const STATUS_LABELS: Record<string, { label: string; tone: any }> = {
-  draft: { label: 'Brouillon', tone: 'neutral' },
-  ordered: { label: 'Commandé', tone: 'brand' },
-  partially_received: { label: 'Partiellement reçu', tone: 'warning' },
-  received: { label: 'Reçu', tone: 'success' },
-  cancelled: { label: 'Annulé', tone: 'error' },
+const STATUS_LABELS: Record<string, { key: string; tone: any }> = {
+  draft: { key: 'purchases.status.draft', tone: 'neutral' },
+  ordered: { key: 'purchases.status.ordered', tone: 'brand' },
+  partially_received: { key: 'purchases.status.partially_received', tone: 'warning' },
+  received: { key: 'purchases.status.received', tone: 'success' },
+  cancelled: { key: 'purchases.status.cancelled', tone: 'error' },
 };
 
 export function PurchasesPage() {
   const { tenant, can } = useAuth();
-  const { formatDate } = useI18n();
+  const { t, formatDate } = useI18n();
   const toast = useToast();
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -110,12 +110,12 @@ export function PurchasesPage() {
     setForm({ supplier_id: '', purchase_date: new Date().toISOString().slice(0, 10), store_id: '', items: [] });
     const { data } = await supabase.from('purchases').select('*, supplier:suppliers(name)').eq('tenant_id', tenant.id).order('created_at', { ascending: false });
     setPurchases((data as any[]) ?? []);
-    toast('success', 'Achat créé.');
+    toast('success', t('purchases.toast.created'));
   };
 
   const view = async (p: Purchase) => { setViewOpen(p); const { data } = await supabase.from('purchase_items').select('*').eq('purchase_id', p.id); setViewItems((data as PurchaseItem[]) ?? []); };
   const remove = async (p: Purchase) => {
-    if (!confirm(`Supprimer l'achat ${p.reference} ?`)) return;
+    if (!confirm(t('purchases.confirmDelete', { reference: p.reference }))) return;
     const { error } = await supabase.from('purchases').delete().eq('id', p.id);
     if (error) { toast('error', error.message); return; }
     setPurchases((list) => list.filter((x) => x.id !== p.id));
@@ -143,7 +143,7 @@ export function PurchasesPage() {
     for (const it of allItems) {
       const rejectQty = rejectQtys[it.id] ?? 0;
       if (rejectQty > 0 && !(rejectReasons[it.id] ?? '').trim()) {
-        toast('error', `Indiquez un motif de rejet pour "${it.name}".`);
+        toast('error', t('purchases.err.rejectReason', { name: it.name }));
         return;
       }
     }
@@ -163,7 +163,7 @@ export function PurchasesPage() {
           const { error: movErr } = await supabase.from('stock_movements').insert({
             tenant_id: tenant.id, product_id: it.product_id, store_id: (receiveOpen as any).store_id ?? null,
             movement_type: 'purchase_rejected', quantity: rejectQty,
-            reason: `Rejet réception ${receiveOpen.reference} — ${rejectReasons[it.id]}`,
+            reason: t('purchases.movement.rejectReason', { reference: receiveOpen.reference, reason: rejectReasons[it.id] }),
           });
           if (movErr) { toast('error', movErr.message); return; }
         }
@@ -179,7 +179,7 @@ export function PurchasesPage() {
           const { error } = await supabase.from('inventory').insert({ tenant_id: tenant.id, product_id: it.product_id, store_id: (receiveOpen as any).store_id ?? null, quantity: receiveQty });
           if (error) { toast('error', error.message); return; }
         }
-        const { error: movErr } = await supabase.from('stock_movements').insert({ tenant_id: tenant.id, product_id: it.product_id, store_id: (receiveOpen as any).store_id ?? null, movement_type: 'purchase', quantity: receiveQty, reason: `Réception achat ${receiveOpen.reference}` });
+        const { error: movErr } = await supabase.from('stock_movements').insert({ tenant_id: tenant.id, product_id: it.product_id, store_id: (receiveOpen as any).store_id ?? null, movement_type: 'purchase', quantity: receiveQty, reason: t('purchases.movement.receiveReason', { reference: receiveOpen.reference }) });
         if (movErr) { toast('error', movErr.message); return; }
         // Update product cost_price if different
         if (Number(it.unit_cost) > 0) {
@@ -197,110 +197,110 @@ export function PurchasesPage() {
     setPurchases((data as any[]) ?? []);
     const { data: inv } = await supabase.from('inventory').select('*').eq('tenant_id', tenant.id);
     setInventory(inv ?? []);
-    toast('success', 'Réception enregistrée, stock mis à jour.');
+    toast('success', t('purchases.toast.received'));
   };
 
   return (
     <div>
-      <PageHeader title="Achats" subtitle={`${purchases.length} achat(s)`} action={
+      <PageHeader title={t('purchases.title')} subtitle={t('purchases.subtitle', { count: purchases.length })} action={
         <div className="flex gap-2">
-          <button onClick={() => exportCSV('achats.csv', filtered.map((p) => ({ reference: p.reference, fournisseur: (p as any).supplier?.name, statut: p.status, total: p.total, date: p.purchase_date })))} className="btn-ghost"><Download size={16} /> Export</button>
-          <button onClick={() => { setForm({ supplier_id: '', purchase_date: new Date().toISOString().slice(0, 10), store_id: '', items: [] }); setModalOpen(true); }} className="btn-primary"><Plus size={16} /> Nouvel achat</button>
+          <button onClick={() => exportCSV('achats.csv', filtered.map((p) => ({ reference: p.reference, fournisseur: (p as any).supplier?.name, statut: p.status, total: p.total, date: p.purchase_date })))} className="btn-ghost"><Download size={16} /> {t('common.export')}</button>
+          <button onClick={() => { setForm({ supplier_id: '', purchase_date: new Date().toISOString().slice(0, 10), store_id: '', items: [] }); setModalOpen(true); }} className="btn-primary"><Plus size={16} /> {t('purchases.new')}</button>
         </div>
       } />
       <div className="card p-5">
         <div className="mb-4 flex flex-wrap gap-3">
           <SearchInput value={search} onChange={setSearch} />
-          <Select value={supplierFilter} onChange={setSupplierFilter} placeholder="Tous fournisseurs" options={suppliers.map((s) => ({ value: s.id, label: s.name }))} />
-          <Select value={statusFilter} onChange={setStatusFilter} placeholder="Tous statuts" options={Object.entries(STATUS_LABELS).map(([v, s]) => ({ value: v, label: s.label }))} />
+          <Select value={supplierFilter} onChange={setSupplierFilter} placeholder={t('purchases.allSuppliers')} options={suppliers.map((s) => ({ value: s.id, label: s.name }))} />
+          <Select value={statusFilter} onChange={setStatusFilter} placeholder={t('purchases.allStatuses')} options={Object.entries(STATUS_LABELS).map(([v, s]) => ({ value: v, label: t(s.key) }))} />
         </div>
         {filtered.length === 0 && !loading ? (
-          <EmptyState icon={Receipt} title="Aucun achat" description="Enregistrez vos commandes fournisseurs." action={<button onClick={() => setModalOpen(true)} className="btn-primary"><Plus size={15} /> Créer</button>} />
+          <EmptyState icon={Receipt} title={t('purchases.empty.title')} description={t('purchases.empty.desc')} action={<button onClick={() => setModalOpen(true)} className="btn-primary"><Plus size={15} /> {t('common.create')}</button>} />
         ) : (
           <DataTable loading={loading} columns={[
-            { key: 'reference', label: 'Référence', render: (p) => <span className="font-medium text-ink-900 dark:text-ink-50">{p.reference}</span> },
-            { key: 'supplier', label: 'Fournisseur', render: (p) => <span className="text-ink-600 dark:text-ink-300">{(p as any).supplier?.name ?? '—'}</span> },
-            { key: 'date', label: 'Date', render: (p) => <span className="text-ink-500 dark:text-ink-400">{formatDate(p.purchase_date)}</span> },
-            { key: 'status', label: 'Statut', render: (p) => <Badge tone={STATUS_LABELS[p.status]?.tone}>{STATUS_LABELS[p.status]?.label}</Badge> },
-            { key: 'total', label: 'Total', className: 'text-right', render: (p) => <span className="font-medium text-ink-900 dark:text-ink-50">{canSeeCost ? formatMoney(p.total, currency) : '—'}</span> },
+            { key: 'reference', label: t('purchases.col.reference'), render: (p) => <span className="font-medium text-ink-900 dark:text-ink-50">{p.reference}</span> },
+            { key: 'supplier', label: t('purchases.col.supplier'), render: (p) => <span className="text-ink-600 dark:text-ink-300">{(p as any).supplier?.name ?? '—'}</span> },
+            { key: 'date', label: t('common.date'), render: (p) => <span className="text-ink-500 dark:text-ink-400">{formatDate(p.purchase_date)}</span> },
+            { key: 'status', label: t('common.status'), render: (p) => <Badge tone={STATUS_LABELS[p.status]?.tone}>{t(STATUS_LABELS[p.status]?.key ?? 'purchases.status.draft')}</Badge> },
+            { key: 'total', label: t('purchases.col.total'), className: 'text-right', render: (p) => <span className="font-medium text-ink-900 dark:text-ink-50">{canSeeCost ? formatMoney(p.total, currency) : '—'}</span> },
             { key: 'actions', label: '', className: 'text-right', render: (p) => (
               <div className="flex justify-end gap-2">
                 <button onClick={() => view(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Eye size={15} /></button>
-                {(p.status === 'ordered' || p.status === 'partially_received') && <button onClick={() => openReceive(p)} className="rounded-lg p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25" title="Réceptionner"><Package size={15} /></button>}
+                {(p.status === 'ordered' || p.status === 'partially_received') && <button onClick={() => openReceive(p)} className="rounded-lg p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25" title={t('purchases.receive')}><Package size={15} /></button>}
                 <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
               </div>
             )},
           ]} rows={filtered} />
         )}
       </div>
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Nouvel achat" maxWidth="max-w-2xl">
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t('purchases.newTitle')} maxWidth="max-w-2xl">
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2"><Field label="Fournisseur">
+            <div className="col-span-2"><Field label={t('purchases.col.supplier')}>
               <select value={form.supplier_id} onChange={(e) => setForm({ ...form, supplier_id: e.target.value })} className="input">
                 <option value="">—</option>
-                {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}{suggestedSupplierIds?.includes(s.id) ? ' (recommandé)' : ''}</option>)}
+                {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}{suggestedSupplierIds?.includes(s.id) ? ` (${t('purchases.recommended')})` : ''}</option>)}
               </select>
             </Field></div>
-            <Field label="Magasin">
+            <Field label={t('purchases.col.store')}>
               <select value={form.store_id} onChange={(e) => setForm({ ...form, store_id: e.target.value })} className="input">
-                <option value="">Principal</option>
+                <option value="">{t('purchases.mainStore')}</option>
                 {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </Field>
           </div>
           {suggestedSupplierIds && form.supplier_id && !suggestedSupplierIds.includes(form.supplier_id) && (
-            <p className="text-xs text-brand-600">Ce fournisseur ne livre habituellement aucun des produits sélectionnés.</p>
+            <p className="text-xs text-brand-600">{t('purchases.supplierMismatch')}</p>
           )}
           {suggestedSupplierIds && !form.supplier_id && (
-            <p className="text-xs text-brand-600">Fournisseurs recommandés pour ces produits : {suggestedSupplierIds.map((id) => suppliers.find((s) => s.id === id)?.name).filter(Boolean).join(', ')}</p>
+            <p className="text-xs text-brand-600">{t('purchases.recommendedSuppliers', { names: suggestedSupplierIds.map((id) => suppliers.find((s) => s.id === id)?.name).filter(Boolean).join(', ') })}</p>
           )}
-          <Field label="Date"><input type="date" value={form.purchase_date} onChange={(e) => setForm({ ...form, purchase_date: e.target.value })} className="input" /></Field>
+          <Field label={t('common.date')}><input type="date" value={form.purchase_date} onChange={(e) => setForm({ ...form, purchase_date: e.target.value })} className="input" /></Field>
           <div>
-            <div className="mb-2 flex items-center justify-between"><p className="label mb-0">Lignes</p><button onClick={addItem} className="text-xs font-medium text-brand-600 hover:underline">+ Ajouter</button></div>
+            <div className="mb-2 flex items-center justify-between"><p className="label mb-0">{t('purchases.col.lines')}</p><button onClick={addItem} className="text-xs font-medium text-brand-600 hover:underline">+ {t('purchases.add')}</button></div>
             <div className="space-y-2">
               {form.items.map((it: any, i: number) => (
                 <div key={i} className="grid grid-cols-12 gap-2 rounded-xl border border-ink-200 dark:border-ink-700 p-2">
                   <select value={it.product_id} onChange={(e) => updateItem(i, 'product_id', e.target.value)} className="input col-span-5">
-                    <option value="">Produit libre</option>
+                    <option value="">{t('purchases.freeProduct')}</option>
                     {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
-                  <input value={it.name} onChange={(e) => updateItem(i, 'name', e.target.value)} placeholder="Désignation" className="input col-span-3" />
+                  <input value={it.name} onChange={(e) => updateItem(i, 'name', e.target.value)} placeholder={t('purchases.col.designation')} className="input col-span-3" />
                   <input type="number" value={it.quantity} onChange={(e) => updateItem(i, 'quantity', Number(e.target.value))} className="input col-span-1" />
-                  {canSeeCost ? <input type="number" value={it.unit_cost} onChange={(e) => updateItem(i, 'unit_cost', Number(e.target.value))} className="input col-span-2" /> : <span className="col-span-2 self-center text-center text-xs text-ink-400 dark:text-ink-500">Coût masqué</span>}
+                  {canSeeCost ? <input type="number" value={it.unit_cost} onChange={(e) => updateItem(i, 'unit_cost', Number(e.target.value))} className="input col-span-2" /> : <span className="col-span-2 self-center text-center text-xs text-ink-400 dark:text-ink-500">{t('purchases.costHidden')}</span>}
                   <button onClick={() => removeItem(i)} className="col-span-1 rounded-lg text-ink-400 dark:text-ink-500 hover:text-error-500"><Trash2 size={14} /></button>
                 </div>
               ))}
-              {form.items.length === 0 && <p className="py-4 text-center text-xs text-ink-400 dark:text-ink-500">Ajoutez au moins une ligne.</p>}
+              {form.items.length === 0 && <p className="py-4 text-center text-xs text-ink-400 dark:text-ink-500">{t('purchases.addAtLeastOneLine')}</p>}
             </div>
           </div>
-          {canSeeCost && <div className="rounded-xl bg-brand-50 dark:bg-brand-900/25 p-3 text-right text-base font-medium text-ink-900 dark:text-ink-50">Total : {formatMoney(total, currency)}</div>}
+          {canSeeCost && <div className="rounded-xl bg-brand-50 dark:bg-brand-900/25 p-3 text-right text-base font-medium text-ink-900 dark:text-ink-50">{t('purchases.col.total')} : {formatMoney(total, currency)}</div>}
         </div>
         <div className="mt-6 flex justify-end gap-2">
-          <button onClick={() => setModalOpen(false)} className="btn-ghost">Annuler</button>
-          <button onClick={save} className="btn-primary">Créer la commande</button>
+          <button onClick={() => setModalOpen(false)} className="btn-ghost">{t('common.cancel')}</button>
+          <button onClick={save} className="btn-primary">{t('purchases.createOrder')}</button>
         </div>
       </Modal>
-      <Modal open={!!viewOpen} onClose={() => setViewOpen(null)} title={`Achat ${viewOpen?.reference ?? ''}`}>
+      <Modal open={!!viewOpen} onClose={() => setViewOpen(null)} title={t('purchases.viewTitle', { reference: viewOpen?.reference ?? '' })}>
         {viewOpen && (
           <div>
             <table className="w-full text-sm">
-              <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400"><th className="pb-2">Désignation</th><th className="pb-2 text-right">Qté</th><th className="pb-2 text-right">Coût</th><th className="pb-2 text-right">Total</th></tr></thead>
+              <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400"><th className="pb-2">{t('purchases.col.designation')}</th><th className="pb-2 text-right">{t('purchases.col.qty')}</th><th className="pb-2 text-right">{t('purchases.col.cost')}</th><th className="pb-2 text-right">{t('purchases.col.total')}</th></tr></thead>
               <tbody>
                 {viewItems.map((it) => <tr key={it.id} className="border-b border-ink-50 dark:border-ink-800"><td className="py-2">{it.name}</td><td className="py-2 text-right">{it.quantity}</td><td className="py-2 text-right">{canSeeCost ? formatMoney(it.unit_cost, currency) : '—'}</td><td className="py-2 text-right font-medium">{canSeeCost ? formatMoney(it.total, currency) : '—'}</td></tr>)}
               </tbody>
             </table>
-            {canSeeCost && <div className="mt-4 flex justify-between border-t border-ink-100 dark:border-ink-800 pt-3 font-medium"><span>Total</span><span>{formatMoney(viewOpen.total, currency)}</span></div>}
+            {canSeeCost && <div className="mt-4 flex justify-between border-t border-ink-100 dark:border-ink-800 pt-3 font-medium"><span>{t('purchases.col.total')}</span><span>{formatMoney(viewOpen.total, currency)}</span></div>}
           </div>
         )}
       </Modal>
       {/* Receive modal */}
-      <Modal open={!!receiveOpen} onClose={() => setReceiveOpen(null)} title={`Réceptionner — ${receiveOpen?.reference ?? ''}`} maxWidth="max-w-2xl">
+      <Modal open={!!receiveOpen} onClose={() => setReceiveOpen(null)} title={t('purchases.receiveTitle', { reference: receiveOpen?.reference ?? '' })} maxWidth="max-w-2xl">
         {receiveOpen && (
           <div>
-            <p className="mb-3 text-sm text-ink-600 dark:text-ink-300">Indiquez la quantité reçue et, si besoin, rejetée (avec motif) pour chaque ligne. Le stock n'est mis à jour que pour les quantités acceptées.</p>
+            <p className="mb-3 text-sm text-ink-600 dark:text-ink-300">{t('purchases.receiveDesc')}</p>
             <table className="w-full text-sm">
-              <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400"><th className="pb-2">Produit</th><th className="pb-2 text-right">Commandé</th><th className="pb-2 text-right">Reçu</th><th className="pb-2 text-right">Rejeté</th><th className="pb-2">Motif du rejet</th></tr></thead>
+              <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400"><th className="pb-2">{t('purchases.col.product')}</th><th className="pb-2 text-right">{t('purchases.col.ordered')}</th><th className="pb-2 text-right">{t('purchases.col.received')}</th><th className="pb-2 text-right">{t('purchases.col.rejected')}</th><th className="pb-2">{t('purchases.col.rejectReason')}</th></tr></thead>
               <tbody>
                 {receiveItems.map((it) => {
                   const qty = receiveQtys[it.id] ?? 0;
@@ -316,7 +316,7 @@ export function PurchasesPage() {
                           <input
                             value={rejectReasons[it.id] ?? ''}
                             onChange={(e) => setRejectReasons({ ...rejectReasons, [it.id]: e.target.value })}
-                            placeholder="Ex: endommagé, mauvaise référence…"
+                            placeholder={t('purchases.rejectReasonPlaceholder')}
                             className="input py-1 text-xs"
                           />
                         )}
@@ -327,8 +327,8 @@ export function PurchasesPage() {
               </tbody>
             </table>
             <div className="mt-6 flex justify-end gap-2">
-              <button onClick={() => setReceiveOpen(null)} className="btn-ghost">Annuler</button>
-              <button onClick={confirmReceive} className="btn-primary"><Check size={15} /> Confirmer la réception</button>
+              <button onClick={() => setReceiveOpen(null)} className="btn-ghost">{t('common.cancel')}</button>
+              <button onClick={confirmReceive} className="btn-primary"><Check size={15} /> {t('purchases.confirmReceive')}</button>
             </div>
           </div>
         )}

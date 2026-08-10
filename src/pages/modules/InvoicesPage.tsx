@@ -10,19 +10,19 @@ import { useI18n } from '../../lib/i18n';
 import { downloadInvoicePdf, printInvoicePdf, type BrandSettings } from '../../lib/invoicePdf';
 
 const STATUS_FILTERS = [
-  { value: '', label: 'Toutes' },
-  { value: 'draft', label: 'Brouillon' },
-  { value: 'sent', label: 'Envoyée' },
-  { value: 'paid', label: 'Payée' },
-  { value: 'overdue', label: 'En retard' },
+  { value: '', labelKey: 'invoices.status.all' },
+  { value: 'draft', labelKey: 'invoices.status.draft' },
+  { value: 'sent', labelKey: 'invoices.status.sent' },
+  { value: 'paid', labelKey: 'invoices.status.paid' },
+  { value: 'overdue', labelKey: 'invoices.status.overdue' },
 ];
 
-const STATUS_LABELS: Record<string, { label: string; tone: any }> = {
-  draft: { label: 'Brouillon', tone: 'neutral' },
-  sent: { label: 'Envoyée', tone: 'brand' },
-  paid: { label: 'Payée', tone: 'success' },
-  overdue: { label: 'En retard', tone: 'error' },
-  cancelled: { label: 'Annulée', tone: 'neutral' },
+const STATUS_LABELS: Record<string, { key: string; tone: any }> = {
+  draft: { key: 'invoices.status.draft', tone: 'neutral' },
+  sent: { key: 'invoices.status.sent', tone: 'brand' },
+  paid: { key: 'invoices.status.paid', tone: 'success' },
+  overdue: { key: 'invoices.status.overdue', tone: 'error' },
+  cancelled: { key: 'invoices.status.cancelled', tone: 'neutral' },
 };
 
 export function InvoicesPage() {
@@ -69,7 +69,7 @@ export function InvoicesPage() {
     if (i.status === 'sent' && i.due_date && new Date(i.due_date) < new Date()) {
       return STATUS_LABELS['overdue'];
     }
-    return STATUS_LABELS[i.status] ?? { label: i.status, tone: 'neutral' };
+    return STATUS_LABELS[i.status] ?? { key: '', tone: 'neutral' };
   };
 
   const addItem = () => setForm((f: any) => ({ ...f, items: [...f.items, { product_id: '', name: '', quantity: 1, unit_price: 0, tax_rate: 0, total: 0 }] }));
@@ -112,7 +112,7 @@ export function InvoicesPage() {
     setForm({ customer_id: '', issue_date: new Date().toISOString().slice(0, 10), due_date: '', items: [] });
     const { data } = await supabase.from('invoices').select('*, customer:customers(name)').eq('tenant_id', tenant.id).order('created_at', { ascending: false });
     setInvoices((data as any[]) ?? []);
-    toast('success', 'Facture créée.');
+    toast('success', t('invoices.toast.created'));
   };
 
   const view = async (inv: Invoice) => {
@@ -122,7 +122,7 @@ export function InvoicesPage() {
   };
 
   const remove = async (inv: Invoice) => {
-    if (!confirm(`Supprimer la facture ${inv.number} ?`)) return;
+    if (!confirm(t('invoices.confirmDelete', { number: inv.number }))) return;
     const { error } = await supabase.from('invoices').delete().eq('id', inv.id);
     if (error) { toast('error', error.message); return; }
     setInvoices((list) => list.filter((x) => x.id !== inv.id));
@@ -165,7 +165,7 @@ export function InvoicesPage() {
       const customer = customers.find((c) => c.id === inv.customer_id);
       const phone = customer?.phone || '';
       const msg = encodeURIComponent(
-        `Bonjour${customer?.name ? ' ' + customer.name : ''}, voici votre facture ${inv.number} d'un montant de ${formatMoney(inv.total, currency)}. Le PDF vient d'être téléchargé sur votre appareil — merci de le joindre à ce message. 🙏`
+        t('invoices.whatsappMsg', { name: customer?.name ?? '', number: inv.number, total: formatMoney(inv.total, currency) })
       );
       window.open(phone ? `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${msg}` : `https://wa.me/?text=${msg}`, '_blank');
     } finally {
@@ -176,12 +176,12 @@ export function InvoicesPage() {
   return (
     <div>
       <PageHeader
-        title="Factures"
-        subtitle={`${invoices.length} facture(s)`}
+        title={t('invoices.title')}
+        subtitle={t('invoices.subtitle', { count: invoices.length })}
         action={
           <div className="flex gap-2">
-            <button onClick={() => exportCSV('factures.csv', filtered.map((i) => ({ numero: i.number, client: (i as any).customer?.name, statut: i.status, total: i.total, date: i.issue_date })))} className="btn-ghost"><Download size={16} /> Export</button>
-            <button onClick={() => { setForm({ customer_id: '', issue_date: new Date().toISOString().slice(0, 10), due_date: '', items: [] }); setModalOpen(true); }} className="btn-primary"><Plus size={16} /> Nouvelle facture</button>
+            <button onClick={() => exportCSV('factures.csv', filtered.map((i) => ({ numero: i.number, client: (i as any).customer?.name, statut: i.status, total: i.total, date: i.issue_date })))} className="btn-ghost"><Download size={16} /> {t('common.export')}</button>
+            <button onClick={() => { setForm({ customer_id: '', issue_date: new Date().toISOString().slice(0, 10), due_date: '', items: [] }); setModalOpen(true); }} className="btn-primary"><Plus size={16} /> {t('invoices.new')}</button>
           </div>
         }
       />
@@ -189,20 +189,20 @@ export function InvoicesPage() {
       <div className="card p-5">
         <div className="mb-4 flex flex-wrap gap-3">
           <SearchInput value={search} onChange={setSearch} placeholder={t('invoices.search')} />
-          <Select value={statusFilter} onChange={setStatusFilter} placeholder={t('invoices.all')} options={STATUS_FILTERS.map((s) => ({ value: s.value, label: s.label }))} />
+          <Select value={statusFilter} onChange={setStatusFilter} placeholder={t('invoices.all')} options={STATUS_FILTERS.map((s) => ({ value: s.value, label: t(s.labelKey) }))} />
         </div>
 
         {filtered.length === 0 && !loading ? (
-          <EmptyState icon={FileText} title="Aucune facture" description="Créez votre première facture." action={<button onClick={() => setModalOpen(true)} className="btn-primary"><Plus size={15} /> Créer</button>} />
+          <EmptyState icon={FileText} title={t('invoices.empty.title')} description={t('invoices.empty.desc')} action={<button onClick={() => setModalOpen(true)} className="btn-primary"><Plus size={15} /> {t('common.create')}</button>} />
         ) : (
           <DataTable
             loading={loading}
             columns={[
-              { key: 'number', label: 'Numéro', render: (i) => <span className="font-medium text-ink-900 dark:text-ink-50">{i.number}</span> },
-              { key: 'customer', label: 'Client', render: (i) => <span className="text-ink-600 dark:text-ink-300">{(i as any).customer?.name ?? '—'}</span> },
-              { key: 'date', label: 'Date', render: (i) => <span className="text-ink-500 dark:text-ink-400">{formatDate(i.issue_date)}</span> },
-              { key: 'status', label: 'Statut', render: (i) => { const sd = getStatusDisplay(i); return <Badge tone={sd.tone}>{sd.label}</Badge>; } },
-              { key: 'total', label: 'Total', className: 'text-right', render: (i) => <span className="font-medium text-ink-900 dark:text-ink-50">{formatMoney(i.total, currency)}</span> },
+              { key: 'number', label: t('invoices.col.number'), render: (i) => <span className="font-medium text-ink-900 dark:text-ink-50">{i.number}</span> },
+              { key: 'customer', label: t('invoices.col.customer'), render: (i) => <span className="text-ink-600 dark:text-ink-300">{(i as any).customer?.name ?? '—'}</span> },
+              { key: 'date', label: t('common.date'), render: (i) => <span className="text-ink-500 dark:text-ink-400">{formatDate(i.issue_date)}</span> },
+              { key: 'status', label: t('common.status'), render: (i) => { const sd = getStatusDisplay(i); return <Badge tone={sd.tone}>{t(sd.key)}</Badge>; } },
+              { key: 'total', label: t('invoices.col.total'), className: 'text-right', render: (i) => <span className="font-medium text-ink-900 dark:text-ink-50">{formatMoney(i.total, currency)}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (i) => (
                 <div className="flex justify-end gap-1.5">
                   <button onClick={() => view(i)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Eye size={15} /></button>
@@ -216,69 +216,69 @@ export function InvoicesPage() {
         )}
       </div>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Nouvelle facture" maxWidth="max-w-2xl">
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t('invoices.newTitle')} maxWidth="max-w-2xl">
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Client">
+            <Field label={t('invoices.col.customer')}>
               <select value={form.customer_id} onChange={(e) => setForm({ ...form, customer_id: e.target.value })} className="input">
                 <option value="">—</option>
                 {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </Field>
-            <Field label="Échéance"><input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="input" /></Field>
+            <Field label={t('invoices.col.dueDate')}><input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="input" /></Field>
           </div>
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <p className="label mb-0">Lignes</p>
-              <button onClick={addItem} className="text-xs font-medium text-brand-600 hover:underline">+ Ajouter une ligne</button>
+              <p className="label mb-0">{t('invoices.col.lines')}</p>
+              <button onClick={addItem} className="text-xs font-medium text-brand-600 hover:underline">+ {t('invoices.addLine')}</button>
             </div>
             <div className="space-y-2">
               {form.items.map((it: any, i: number) => (
                 <div key={i} className="grid grid-cols-12 gap-2 rounded-xl border border-ink-200 dark:border-ink-700 p-2">
                   <select value={it.product_id} onChange={(e) => updateItem(i, 'product_id', e.target.value)} className="input col-span-5">
-                    <option value="">Produit libre</option>
+                    <option value="">{t('invoices.freeProduct')}</option>
                     {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
-                  <input value={it.name} onChange={(e) => updateItem(i, 'name', e.target.value)} placeholder="Désignation" className="input col-span-3" />
+                  <input value={it.name} onChange={(e) => updateItem(i, 'name', e.target.value)} placeholder={t('invoices.col.designation')} className="input col-span-3" />
                   <input type="number" value={it.quantity} onChange={(e) => updateItem(i, 'quantity', Number(e.target.value))} className="input col-span-1" />
                   <input type="number" value={it.unit_price} onChange={(e) => updateItem(i, 'unit_price', Number(e.target.value))} className="input col-span-2" />
                   <button onClick={() => removeItem(i)} className="col-span-1 rounded-lg text-ink-400 dark:text-ink-500 hover:text-error-500"><Trash2 size={14} /></button>
                 </div>
               ))}
-              {form.items.length === 0 && <p className="py-4 text-center text-xs text-ink-400 dark:text-ink-500">Ajoutez au moins une ligne.</p>}
+              {form.items.length === 0 && <p className="py-4 text-center text-xs text-ink-400 dark:text-ink-500">{t('invoices.addAtLeastOneLine')}</p>}
             </div>
           </div>
           <div className="rounded-xl bg-brand-50 dark:bg-brand-900/25 p-4 text-sm">
-            <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>Sous-total</span><span>{formatMoney(subtotal, currency)}</span></div>
-            <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>Taxes</span><span>{formatMoney(taxTotal, currency)}</span></div>
-            <div className="mt-1 flex justify-between font-medium text-ink-900 dark:text-ink-50"><span>Total</span><span>{formatMoney(total, currency)}</span></div>
+            <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>{t('invoices.subtotal')}</span><span>{formatMoney(subtotal, currency)}</span></div>
+            <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>{t('invoices.taxes')}</span><span>{formatMoney(taxTotal, currency)}</span></div>
+            <div className="mt-1 flex justify-between font-medium text-ink-900 dark:text-ink-50"><span>{t('invoices.col.total')}</span><span>{formatMoney(total, currency)}</span></div>
           </div>
         </div>
         <div className="mt-6 flex justify-end gap-2">
-          <button onClick={() => setModalOpen(false)} className="btn-ghost">Annuler</button>
-          <button onClick={save} className="btn-primary">Créer la facture</button>
+          <button onClick={() => setModalOpen(false)} className="btn-ghost">{t('common.cancel')}</button>
+          <button onClick={save} className="btn-primary">{t('invoices.createInvoice')}</button>
         </div>
       </Modal>
 
-      <Modal open={!!viewOpen} onClose={() => setViewOpen(null)} title={`Facture ${viewOpen?.number ?? ''}`} maxWidth="max-w-lg">
+      <Modal open={!!viewOpen} onClose={() => setViewOpen(null)} title={t('invoices.invoiceTitle', { number: viewOpen?.number ?? '' })} maxWidth="max-w-lg">
         {viewOpen && (
           <div>
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <p className="text-sm text-ink-500 dark:text-ink-400">Client</p>
+                <p className="text-sm text-ink-500 dark:text-ink-400">{t('invoices.col.customer')}</p>
                 <p className="font-medium text-ink-900 dark:text-ink-50">{(viewOpen as any).customer?.name ?? '—'}</p>
               </div>
-              {(() => { const sd = getStatusDisplay(viewOpen); return <Badge tone={sd.tone}>{sd.label}</Badge>; })()}
+              {(() => { const sd = getStatusDisplay(viewOpen); return <Badge tone={sd.tone}>{t(sd.key)}</Badge>; })()}
             </div>
             <table className="w-full text-sm">
-              <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400"><th className="pb-2">Désignation</th><th className="pb-2 text-right">Qté</th><th className="pb-2 text-right">Prix</th><th className="pb-2 text-right">Total</th></tr></thead>
+              <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400"><th className="pb-2">{t('invoices.col.designation')}</th><th className="pb-2 text-right">{t('invoices.col.qty')}</th><th className="pb-2 text-right">{t('invoices.col.price')}</th><th className="pb-2 text-right">{t('invoices.col.total')}</th></tr></thead>
               <tbody>
                 {viewItems.map((it) => (
                   <tr key={it.id} className="border-b border-ink-50 dark:border-ink-800"><td className="py-2">{it.name}</td><td className="py-2 text-right">{it.quantity}</td><td className="py-2 text-right">{formatMoney(it.unit_price, currency)}</td><td className="py-2 text-right font-medium">{formatMoney(it.total, currency)}</td></tr>
                 ))}
               </tbody>
             </table>
-            <div className="mt-4 flex justify-between border-t border-ink-100 dark:border-ink-800 pt-3 text-base font-medium"><span>Total</span><span>{formatMoney(viewOpen.total, currency)}</span></div>
+            <div className="mt-4 flex justify-between border-t border-ink-100 dark:border-ink-800 pt-3 text-base font-medium"><span>{t('invoices.col.total')}</span><span>{formatMoney(viewOpen.total, currency)}</span></div>
 
             {/* Action buttons */}
             <div className="mt-5 flex flex-wrap gap-2 border-t border-ink-100 dark:border-ink-800 pt-4">
@@ -292,7 +292,7 @@ export function InvoicesPage() {
               <button
                 onClick={() => {
                   const email = customers.find((c) => c.id === viewOpen.customer_id)?.email || '';
-                  if (email) window.location.href = `mailto:${email}?subject=${encodeURIComponent('Facture ' + viewOpen.number)}&body=${encodeURIComponent(`Veuillez trouver ci-joint la facture ${viewOpen.number} d'un montant de ${formatMoney(viewOpen.total, currency)}.`)}`;
+                  if (email) window.location.href = `mailto:${email}?subject=${encodeURIComponent(t('invoices.emailSubject', { number: viewOpen.number }))}&body=${encodeURIComponent(t('invoices.emailBody', { number: viewOpen.number, total: formatMoney(viewOpen.total, currency) }))}`;
                 }}
                 className="btn-ghost text-sm"
               ><Mail size={15} /> {t('invoices.sendEmail')}</button>
