@@ -123,7 +123,7 @@ export default function App() {
                       <Route path="/users" element={<UsersPage />} />
                       <Route path="/administration" element={<AdministrationPage />} />
                       <Route path="/settings" element={<SettingsPage />} />
-                      <Route path="/superadmin" element={<SuperAdminPage />} />
+                      <Route path="/superadmin" element={<RequireAuth><SuperAdminPage /></RequireAuth>} />
                     </Route>
 
                     <Route path="*" element={<Navigate to="/" replace />} />
