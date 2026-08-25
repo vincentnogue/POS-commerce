@@ -15,7 +15,7 @@ import { RequireAuth, RequireActiveSubscription } from './components/RouteGuards
 // the current URL, instead of all ~30 pages (and their dependencies, like
 // jsPDF for invoices) loading eagerly on every visit regardless of what
 // the person actually opened.
-const LandingPage = lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
+const LandingPage = lazy(() => import('./pages/PremiumLandingPage').then((m) => ({ default: m.PremiumLandingPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
 const SignupPage = lazy(() => import('./pages/SignupPage').then((m) => ({ default: m.SignupPage })));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage })));
@@ -49,6 +49,7 @@ const UsersPage = lazy(() => import('./pages/modules/UsersPage').then((m) => ({ 
 const AdministrationPage = lazy(() => import('./pages/modules/AdministrationPage').then((m) => ({ default: m.AdministrationPage })));
 const SettingsPage = lazy(() => import('./pages/modules/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const SuperAdminPage = lazy(() => import('./pages/modules/SuperAdminPage').then((m) => ({ default: m.SuperAdminPage })));
+const MarketplacePage = lazy(() => import('./pages/modules/MarketplacePage').then((m) => ({ default: m.MarketplacePage })));
 
 function RouteFallback() {
   return (
@@ -122,6 +123,7 @@ export default function App() {
                       <Route path="/accounting" element={<AccountingPage />} />
                       <Route path="/users" element={<UsersPage />} />
                       <Route path="/administration" element={<AdministrationPage />} />
+                      <Route path="/marketplace" element={<MarketplacePage />} />
                       <Route path="/settings" element={<SettingsPage />} />
                       <Route path="/superadmin" element={<RequireAuth><SuperAdminPage /></RequireAuth>} />
                     </Route>

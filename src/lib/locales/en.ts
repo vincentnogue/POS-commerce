@@ -72,6 +72,7 @@ export const en: Record<string, string> = {
   "nav.accounting": "Accounting",
   "nav.users": "Users",
   "nav.administration": "Administration",
+  "nav.marketplace": "Marketplace",
   "nav.settings": "Settings",
   "nav.superadmin": "Super Admin",
 
