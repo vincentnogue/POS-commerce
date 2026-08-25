@@ -31,14 +31,21 @@ export function SignupPage() {
       return;
     }
 
-    // Wait for session to be established (with timeout)
+    // Wait for auth state to be established
     let retries = 0;
-    const maxRetries = 5;
+    const maxRetries = 20; // 10 seconds max
     while (retries < maxRetries) {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/onboarding', { replace: true });
-        return;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          // Session established, navigate to onboarding
+          // Small delay to ensure auth context is updated
+          await new Promise(resolve => setTimeout(resolve, 100));
+          navigate('/onboarding', { replace: true });
+          return;
+        }
+      } catch (err) {
+        // Continue retrying
       }
       retries++;
       // Wait 500ms before retrying

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../lib/i18n';
+import { ROLE_LABELS } from '../lib/constants';
 import { Logo } from './Logo';
 import type { Role } from '../lib/types';
 
@@ -192,7 +193,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-ink-900 dark:text-ink-50">{member?.display_name ?? tenant?.name ?? user?.email}</p>
-              <p className="truncate text-xs text-ink-500 dark:text-ink-400">{member ? ROLE_LABELS[(member.role as Role) ?? 'staff'] : '—'}</p>
+              <p className="truncate text-xs text-ink-500 dark:text-ink-400">{member ? t(ROLE_LABELS[(member.role as Role) ?? 'staff']?.key ?? 'users.role.staff') : '—'}</p>
             </div>
           </div>
           <button
