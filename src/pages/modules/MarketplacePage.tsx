@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../lib/auth';
 import { useTenant } from '../../lib/tenant';
-import { Search, Grid, List, Filter, Plus, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
+import { Search, Grid, List, Filter, Plus, CheckCircle, AlertCircle, ExternalLink, Trash2 } from 'lucide-react';
+import { IntegrationCredentialForm } from '../../components/IntegrationCredentialForm';
 
 interface IntegrationProvider {
   id: string;
@@ -389,63 +390,120 @@ interface ConnectionModalProps {
 }
 
 function IntegrationConnectionModal({ provider, connection, onClose, onSuccess }: ConnectionModalProps) {
+  const { tenant } = useTenant();
+  const [showForm, setShowForm] = useState(!connection || connection.status === 'disconnected' || connection.status === 'error');
+  const [disconnecting, setDisconnecting] = useState(false);
+
+  const handleDisconnect = async () => {
+    if (!connection || !tenant?.id) return;
+
+    setDisconnecting(true);
+    try {
+      const { error } = await supabase
+        .from('integration_connections')
+        .update({ status: 'disconnected', disconnected_at: new Date().toISOString() })
+        .eq('id', connection.id)
+        .eq('tenant_id', tenant.id);
+
+      if (error) throw error;
+
+      onSuccess();
+    } catch (err) {
+      console.error('Failed to disconnect:', err);
+    } finally {
+      setDisconnecting(false);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 dark:bg-slate-800">
-        <h2 className="mb-4 text-xl font-bold text-slate-900 dark:text-white">
-          {connection?.status === 'connected' ? 'Manage' : 'Connect'} {provider.provider_name}
-        </h2>
-
-        <div className="mb-6 space-y-4">
-          <p className="text-sm text-slate-600 dark:text-slate-400">{provider.description}</p>
-
-          {connection?.status === 'connected' && (
-            <div className="rounded-lg bg-green-50 p-4 dark:bg-green-900 dark:bg-opacity-30">
-              <p className="text-sm text-green-700 dark:text-green-400">
-                ✓ Connected to <strong>{connection.account_name || 'account'}</strong>
-              </p>
-            </div>
-          )}
-
-          {connection?.status === 'error' && (
-            <div className="rounded-lg bg-red-50 p-4 dark:bg-red-900 dark:bg-opacity-30">
-              <p className="text-sm text-red-700 dark:text-red-400">{connection.error_message}</p>
-            </div>
-          )}
-
-          <div className="space-y-3">
-            {/* Placeholder: Credential form will go here */}
-            <div className="rounded-lg bg-slate-50 p-4 dark:bg-slate-700">
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Credential form for {provider.auth_type} will render here
-              </p>
-            </div>
-
-            <a
-              href={provider.documentation_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400"
-            >
-              <ExternalLink className="h-4 w-4" />
-              View Documentation
-            </a>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 p-4 z-50">
+      <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-lg shadow-xl">
+        {/* Header */}
+        <div className="border-b border-slate-200 dark:border-slate-700 p-6">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+            {connection?.status === 'connected' ? 'Manage' : 'Connect'} {provider.provider_name}
+          </h2>
           <button
             onClick={onClose}
-            className="flex-1 rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-900 hover:bg-slate-100 dark:border-slate-600 dark:text-white dark:hover:bg-slate-700"
+            className="absolute top-4 right-4 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
           >
-            Cancel
+            ✕
           </button>
-          <button
-            disabled
-            className="flex-1 cursor-not-allowed rounded-lg bg-blue-600 px-4 py-2 font-medium text-white opacity-50"
-          >
-            (Coming Soon)
-          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-6">
+          {connection?.status === 'connected' && !showForm ? (
+            // Connected state
+            <div className="space-y-6">
+              <div className="rounded-lg bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <span className="font-semibold text-green-700 dark:text-green-400">Connected</span>
+                </div>
+                <p className="text-sm text-green-700 dark:text-green-400">
+                  Account: <strong>{connection.account_name || 'Connected account'}</strong>
+                </p>
+                {connection.last_tested_at && (
+                  <p className="text-xs text-green-600 dark:text-green-500 mt-2">
+                    Last tested: {new Date(connection.last_tested_at).toLocaleString()}
+                  </p>
+                )}
+              </div>
+
+              {/* Webhook status */}
+              {provider.capabilities.includes('webhooks') && (
+                <div className="p-4 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                  <p className="text-sm font-medium text-slate-900 dark:text-white mb-2">Webhook Status</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                    Webhooks are configured and ready to receive events.
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                >
+                  Update Credentials
+                </button>
+                <button
+                  onClick={handleDisconnect}
+                  disabled={disconnecting}
+                  className="w-full px-4 py-2 border border-red-300 dark:border-red-600 rounded-lg text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {disconnecting ? 'Disconnecting...' : 'Disconnect'}
+                </button>
+              </div>
+
+              <a
+                href={provider.documentation_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 mt-4"
+              >
+                <ExternalLink className="w-4 h-4" />
+                View Documentation
+              </a>
+            </div>
+          ) : (
+            // Form state
+            <>
+              <IntegrationCredentialForm
+                providerKey={provider.provider_key}
+                providerName={provider.provider_name}
+                authSchema={provider.auth_schema}
+                tenantId={tenant?.id || ''}
+                onSuccess={() => {
+                  setShowForm(false);
+                  onSuccess();
+                }}
+                onCancel={onClose}
+              />
+            </>
+          )}
         </div>
       </div>
     </div>
