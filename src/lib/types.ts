@@ -1,6 +1,6 @@
 // Shared domain types
 
-export type Role = 'super_admin' | 'admin' | 'manager' | 'staff';
+export type Role = 'super_admin' | 'admin' | 'manager' | 'staff' | 'viewer';
 
 export type Tenant = {
   id: string;
@@ -15,6 +15,7 @@ export type Tenant = {
   plan_id: string | null;
   commercial_code_id: string | null;
   status: string;
+  trial_ends_at: string | null; // 14 days free trial
   created_at: string;
 };
 
@@ -346,7 +347,7 @@ export type JobPosting = {
 export const MODULES = [
   'dashboard', 'pos', 'products', 'stock', 'stores', 'invoices',
   'deliveries', 'customers', 'suppliers', 'expenses', 'purchases',
-  'quotes', 'reports', 'accounting', 'users', 'administration', 'settings',
+  'quotes', 'reports', 'accounting', 'users', 'administration', 'marketplace', 'settings',
 ] as const;
 export type ModuleCode = (typeof MODULES)[number];
 
@@ -371,7 +372,7 @@ export const DEFAULT_PERMISSIONS: Record<Role, Permissions> = {
     suppliers: { view: true }, expenses: { view: true, create: true, update: true },
     purchases: { view: true, create: true }, quotes: { view: true, create: true, update: true },
     reports: { view: true }, accounting: { view: true }, users: { view: true },
-    administration: {}, settings: { view: true, update: true },
+    marketplace: { view: true }, administration: {}, settings: { view: true, update: true },
   } as Permissions,
   staff: {
     dashboard: { view: true }, pos: { view: true, create: true },
@@ -381,6 +382,16 @@ export const DEFAULT_PERMISSIONS: Record<Role, Permissions> = {
     suppliers: { view: true }, expenses: { view: true },
     purchases: {}, quotes: { view: true, create: true },
     reports: {}, accounting: {}, users: {},
-    administration: {}, settings: { view: true },
+    marketplace: { view: true }, administration: {}, settings: { view: true },
+  } as Permissions,
+  viewer: {
+    dashboard: { view: true }, pos: { view: true },
+    products: { view: true }, stock: { view: true },
+    stores: { view: true }, invoices: { view: true },
+    deliveries: { view: true }, customers: { view: true },
+    suppliers: { view: true }, expenses: { view: true },
+    purchases: {}, quotes: { view: true },
+    reports: { view: true }, accounting: {},
+    users: {}, marketplace: { view: true }, administration: {}, settings: { view: true },
   } as Permissions,
 };
