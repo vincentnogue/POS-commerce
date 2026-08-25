@@ -15,7 +15,7 @@ import { RequireAuth, RequireActiveSubscription } from './components/RouteGuards
 // the current URL, instead of all ~30 pages (and their dependencies, like
 // jsPDF for invoices) loading eagerly on every visit regardless of what
 // the person actually opened.
-const LandingPage = lazy(() => import('./pages/PremiumLandingPage').then((m) => ({ default: m.PremiumLandingPage })));
+const LandingPage = lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
 const SignupPage = lazy(() => import('./pages/SignupPage').then((m) => ({ default: m.SignupPage })));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage })));
