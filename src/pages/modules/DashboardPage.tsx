@@ -104,6 +104,17 @@ export function DashboardPage() {
     return t('dashboard.greeting.evening');
   })();
 
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand-200 dark:border-brand-900 border-t-brand-500 dark:border-t-brand-400" />
+          <p className="text-sm font-medium text-ink-600 dark:text-ink-400">{t('common.loading')}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <PageHeader

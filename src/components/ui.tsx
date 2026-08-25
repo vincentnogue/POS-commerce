@@ -122,8 +122,11 @@ export function Modal({
 
 export function Spinner() {
   return (
-    <div className="flex items-center justify-center py-12">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-200 border-t-brand-500" />
+    <div className="flex min-h-screen items-center justify-center bg-ink-50 dark:bg-ink-900">
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand-200 dark:border-brand-900 border-t-brand-500 dark:border-t-brand-400" />
+        <p className="text-sm font-medium text-ink-600 dark:text-ink-300">Loading...</p>
+      </div>
     </div>
   );
 }

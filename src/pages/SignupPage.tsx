@@ -24,14 +24,29 @@ export function SignupPage() {
     if (password !== confirm) { setError(t('signup.error.passwordMismatch')); return; }
     setLoading(true);
     const { error } = await signUp(email, password);
-    setLoading(false);
-    if (error) setError(error);
-    else {
-      // Wait for session to be established before navigating
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) navigate('/onboarding');
-      else setError(t('signup.error.createdMustLogin'));
+    
+    if (error) {
+      setLoading(false);
+      setError(error);
+      return;
     }
+
+    // Wait for session to be established (with timeout)
+    let retries = 0;
+    const maxRetries = 5;
+    while (retries < maxRetries) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/onboarding', { replace: true });
+        return;
+      }
+      retries++;
+      // Wait 500ms before retrying
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    setLoading(false);
+    setError(t('signup.error.createdMustLogin'));
   };
 
   return (
