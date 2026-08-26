@@ -3,7 +3,7 @@ import { ArrowRight, Globe, Shield, Zap, Layers, Smartphone, BarChart3, Lock, Tr
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui';
 
-export function PremiumLandingPage() {
+export function PremiumInternationalLanding() {
   const navigate = useNavigate();
   const [showMockupSection, setShowMockupSection] = useState(false);
 
