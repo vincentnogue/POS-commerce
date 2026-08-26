@@ -48,6 +48,9 @@ export function MarketplacePage() {
   const [providers, setProviders] = useState<IntegrationProvider[]>([]);
   const [connections, setConnections] = useState<IntegrationConnection[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [userCanConnect, setUserCanConnect] = useState(false);
+  const [integrationLimit, setIntegrationLimit] = useState<number | null>(null);
+  const [activeIntegrations, setActiveIntegrations] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [loading, setLoading] = useState(true);
@@ -57,6 +60,44 @@ export function MarketplacePage() {
   useEffect(() => {
     loadData();
   }, [tenant?.id]);
+
+  // Check marketplace access and plan limits
+  useEffect(() => {
+    if (!user?.id || !tenant?.id) return;
+    checkMarketplaceAccess();
+  }, [user?.id, tenant?.id, plan]);
+
+  async function checkMarketplaceAccess() {
+    if (!user?.id || !tenant?.id) return;
+
+    try {
+      // Call marketplace-access-check function
+      const response = await fetch(`${process.env.VITE_SUPABASE_URL}/functions/v1/marketplace-access-check`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`,
+        },
+        body: JSON.stringify({
+          tenant_id: tenant.id,
+          user_id: user.id,
+          action: 'connect',
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setUserCanConnect(result.allowed && result.reason === 'access_granted');
+        if (result.plan_limits) {
+          setIntegrationLimit(result.plan_limits.max_integrations);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check marketplace access:', error);
+      // Super admin can always connect
+      setUserCanConnect(user?.user_metadata?.role === 'super_admin' || user?.user_metadata?.role === 'admin');
+    }
+  }
 
   async function loadData() {
     if (!tenant?.id) return;
@@ -83,6 +124,7 @@ export function MarketplacePage() {
 
       if (connectionsError) throw connectionsError;
       setConnections(connectionsData || []);
+      setActiveIntegrations(connectionsData?.length || 0);
     } catch (error) {
       console.error('Failed to load marketplace data:', error);
     } finally {
