@@ -8,7 +8,7 @@ import { CookieBanner } from './components/CookieBanner';
 import { SupportChatWidget } from './components/SupportChatWidget';
 import { ToastProvider } from './components/ui';
 import { AppLayout } from './components/AppLayout';
-import { RequireAuth, RequireActiveSubscription } from './components/RouteGuards';
+import { RequireAuth, RequireActiveSubscription, RequireSuperAdmin } from './components/RouteGuards';
 
 // Every route is code-split: the initial bundle only ships the app shell
 // (providers, router, layout chrome) plus whichever single page matches
@@ -102,6 +102,16 @@ export default function App() {
                       }
                     />
 
+                    {/* Super Admin Route - Bypasses subscription requirements */}
+                    <Route
+                      path="/superadmin"
+                      element={
+                        <RequireSuperAdmin>
+                          <SuperAdminPage />
+                        </RequireSuperAdmin>
+                      }
+                    />
+
                     <Route
                       element={
                         <RequireActiveSubscription>
@@ -127,7 +137,6 @@ export default function App() {
                       <Route path="/administration" element={<AdministrationPage />} />
                       <Route path="/marketplace" element={<MarketplacePage />} />
                       <Route path="/settings" element={<SettingsPage />} />
-                      <Route path="/superadmin" element={<RequireAuth><SuperAdminPage /></RequireAuth>} />
                     </Route>
 
                     <Route path="*" element={<Navigate to="/" replace />} />

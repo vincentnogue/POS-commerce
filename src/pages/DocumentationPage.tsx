@@ -27,7 +27,7 @@ Get your API key from Settings → API Keys.
 Example:
 \`\`\`bash
 curl -H "Authorization: Bearer YOUR_API_KEY" \\
-  https://api.posflow.io/v1/sales
+  https://api.pos.liafrik.com/v1/sales
 \`\`\`
 
 The token is valid for 30 days. Rotate keys regularly for security.`,
@@ -35,13 +35,13 @@ The token is valid for 30 days. Rotate keys regularly for security.`,
         {
           id: 'base-url',
           title: 'Base URL',
-          content: `All API requests go to: https://api.posflow.io/v1
+          content: `All API requests go to: https://api.pos.liafrik.com/v1
 
 Example endpoints:
-- https://api.posflow.io/v1/sales
-- https://api.posflow.io/v1/products
-- https://api.posflow.io/v1/integrations
-- https://api.posflow.io/v1/webhooks`,
+- https://api.pos.liafrik.com/v1/sales
+- https://api.pos.liafrik.com/v1/products
+- https://api.pos.liafrik.com/v1/integrations
+- https://api.pos.liafrik.com/v1/webhooks`,
         },
       ],
     },
@@ -66,7 +66,7 @@ Query Parameters:
 
 Example:
 \`\`\`bash
-curl -X GET https://api.posflow.io/v1/sales?limit=50&status=completed \\
+curl -X GET https://api.pos.liafrik.com/v1/sales?limit=50&status=completed \\
   -H "Authorization: Bearer YOUR_API_KEY"
 \`\`\`
 
@@ -249,7 +249,7 @@ Event Types:
 
 Example Setup:
 \`\`\`bash
-curl -X POST https://api.posflow.io/v1/webhooks \\
+curl -X POST https://api.pos.liafrik.com/v1/webhooks \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -427,7 +427,7 @@ Example Error Response:
       {/* Footer */}
       <div className="border-t border-ink-800/50 bg-ink-950/50 mt-12">
         <div className="max-w-7xl mx-auto px-6 py-8 text-center text-ink-400">
-          <p>Need help? <a href="/help" className="text-flow-400 hover:text-flow-300">Visit Help Center</a> or <a href="mailto:support@posflow.io" className="text-flow-400 hover:text-flow-300">contact support</a></p>
+          <p>Need help? <a href="/help" className="text-flow-400 hover:text-flow-300">Visit Help Center</a> or <a href="mailto:support@pos.liafrik.com" className="text-flow-400 hover:text-flow-300">contact support</a></p>
         </div>
       </div>
     </div>

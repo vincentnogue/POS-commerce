@@ -82,7 +82,7 @@ export function HelpCenterPage() {
       id: 'uptime',
       category: 'Infrastructure',
       question: 'What is your uptime guarantee?',
-      answer: 'We offer 99.9% uptime SLA for Enterprise plans. Professional plans get 99.5%. We monitor 24/7 and maintain automatic failover. Check our status page at status.posflow.io anytime.',
+      answer: 'We offer 99.9% uptime SLA for Enterprise plans. Professional plans get 99.5%. We monitor 24/7 and maintain automatic failover. Check our status page at status.pos.liafrik.com anytime.',
     },
     {
       id: 'support-hours',
@@ -104,7 +104,7 @@ export function HelpCenterPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-ink-950 via-brand-950 to-ink-900">
       {/* Header */}
-      <div className="sticky top-0 z-50 border-b border-ink-800/50 bg-ink-950/50 backdrop-blur-xl">
+      <div className="sticky top-0 z-50 border-b border-ink-800/50 bg-ink-950/80 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-6 py-8">
           <div className="flex items-center gap-3 mb-6">
             <HelpCircle className="w-8 h-8 text-flow-400" />
@@ -117,7 +117,7 @@ export function HelpCenterPage() {
             placeholder="Search help articles..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg bg-ink-900/50 border border-ink-800 text-white placeholder-ink-500 focus:outline-none focus:border-flow-500"
+            className="w-full px-4 py-2.5 rounded-lg bg-ink-900/80 border border-ink-700 text-white placeholder-ink-400 focus:outline-none focus:border-flow-400 focus:ring-1 focus:ring-flow-400/50"
           />
         </div>
       </div>
@@ -135,12 +135,15 @@ export function HelpCenterPage() {
 
                 return (
                   <div key={category}>
-                    <h2 className="text-2xl font-bold text-white mb-4">{category}</h2>
+                    <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                      <div className="w-1 h-6 bg-flow-400 rounded" />
+                      {category}
+                    </h2>
                     <div className="space-y-3">
                       {categoryFaqs.map((faq) => (
                         <div
                           key={faq.id}
-                          className="rounded-lg bg-ink-900/50 border border-ink-800 overflow-hidden"
+                          className="rounded-lg bg-ink-900/50 border border-ink-700 hover:border-flow-500/50 transition overflow-hidden"
                         >
                           <button
                             onClick={() => setExpandedFaq(expandedFaq === faq.id ? null : faq.id)}
@@ -148,13 +151,13 @@ export function HelpCenterPage() {
                           >
                             <h3 className="font-semibold text-white flex-1">{faq.question}</h3>
                             <ChevronDown
-                              className={`w-5 h-5 text-flow-400 transition-transform ${expandedFaq === faq.id ? 'rotate-180' : ''}`}
+                              className={`w-5 h-5 text-flow-400 transition-transform flex-shrink-0 ml-2 ${expandedFaq === faq.id ? 'rotate-180' : ''}`}
                             />
                           </button>
 
                           {expandedFaq === faq.id && (
-                            <div className="px-6 py-4 border-t border-ink-800 bg-ink-900/30">
-                              <p className="text-ink-300 leading-relaxed">{faq.answer}</p>
+                            <div className="px-6 py-4 border-t border-ink-700 bg-ink-950/40">
+                              <p className="text-ink-100 leading-relaxed font-normal">{faq.answer}</p>
                             </div>
                           )}
                         </div>
@@ -168,7 +171,7 @@ export function HelpCenterPage() {
             {filteredFaqs.length === 0 && (
               <div className="text-center py-12">
                 <AlertCircle className="w-12 h-12 text-ink-600 mx-auto mb-4" />
-                <p className="text-ink-400">No help articles found. Try a different search.</p>
+                <p className="text-ink-200">No help articles found. Try a different search.</p>
               </div>
             )}
           </div>
@@ -177,80 +180,80 @@ export function HelpCenterPage() {
           <div className="lg:col-span-1">
             <div className="sticky top-24 space-y-4">
               {/* Quick Links */}
-              <div className="rounded-lg bg-gradient-to-br from-flow-500/20 to-brand-500/20 border border-flow-500/30 p-6">
+              <div className="rounded-lg bg-gradient-to-br from-flow-500/10 to-brand-500/10 border border-flow-500/30 p-6">
                 <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-                  <BookOpen className="w-5 h-5" />
+                  <BookOpen className="w-5 h-5 text-flow-400" />
                   Documentation
                 </h3>
                 <div className="space-y-2">
-                  <a href="/documentation" className="block text-flow-400 hover:text-flow-300 transition text-sm">
-                    API Reference
+                  <a href="/documentation" className="block text-flow-300 hover:text-flow-200 transition text-sm font-medium">
+                    → API Reference
                   </a>
-                  <a href="/documentation" className="block text-flow-400 hover:text-flow-300 transition text-sm">
-                    Integration Guides
+                  <a href="/documentation" className="block text-flow-300 hover:text-flow-200 transition text-sm font-medium">
+                    → Integration Guides
                   </a>
-                  <a href="https://docs.posflow.io" target="_blank" rel="noopener noreferrer" className="block text-flow-400 hover:text-flow-300 transition text-sm">
-                    Full Docs
+                  <a href="https://docs.pos.liafrik.com" target="_blank" rel="noopener noreferrer" className="block text-flow-300 hover:text-flow-200 transition text-sm font-medium">
+                    → Full Docs
                   </a>
                 </div>
               </div>
 
               {/* Contact Support */}
-              <div className="rounded-lg bg-gradient-to-br from-brand-500/20 to-flow-500/20 border border-brand-500/30 p-6">
+              <div className="rounded-lg bg-gradient-to-br from-brand-500/10 to-flow-500/10 border border-brand-500/30 p-6">
                 <h3 className="font-bold text-white mb-4">Contact Support</h3>
                 <div className="space-y-4">
-                  <a href="mailto:support@posflow.io" className="flex items-center gap-3 text-ink-300 hover:text-white transition">
-                    <Mail className="w-5 h-5 text-brand-400" />
+                  <a href="mailto:support@pos.liafrik.com" className="flex items-start gap-3 text-ink-100 hover:text-white transition group">
+                    <Mail className="w-5 h-5 text-brand-400 flex-shrink-0 mt-0.5 group-hover:scale-110 transition" />
                     <div className="text-sm">
                       <div className="font-semibold">Email</div>
-                      <div className="text-xs text-ink-400">support@posflow.io</div>
+                      <div className="text-xs text-ink-300">support@pos.liafrik.com</div>
                     </div>
                   </a>
 
-                  <a href="#" className="flex items-center gap-3 text-ink-300 hover:text-white transition">
-                    <MessageSquare className="w-5 h-5 text-brand-400" />
+                  <a href="#" className="flex items-start gap-3 text-ink-100 hover:text-white transition group">
+                    <MessageSquare className="w-5 h-5 text-brand-400 flex-shrink-0 mt-0.5 group-hover:scale-110 transition" />
                     <div className="text-sm">
                       <div className="font-semibold">Live Chat</div>
-                      <div className="text-xs text-ink-400">Mon-Fri 9am-6pm UTC</div>
+                      <div className="text-xs text-ink-300">Mon-Fri 9am-6pm UTC</div>
                     </div>
                   </a>
 
-                  <a href="tel:+18447675356" className="flex items-center gap-3 text-ink-300 hover:text-white transition">
-                    <Phone className="w-5 h-5 text-brand-400" />
+                  <a href="tel:+18447675356" className="flex items-start gap-3 text-ink-100 hover:text-white transition group">
+                    <Phone className="w-5 h-5 text-brand-400 flex-shrink-0 mt-0.5 group-hover:scale-110 transition" />
                     <div className="text-sm">
                       <div className="font-semibold">Phone</div>
-                      <div className="text-xs text-ink-400">+1-844-POS-FLOW</div>
+                      <div className="text-xs text-ink-300">+1-844-POS-FLOW</div>
                     </div>
                   </a>
                 </div>
               </div>
 
               {/* Status */}
-              <div className="rounded-lg bg-ink-900/50 border border-ink-800 p-6">
+              <div className="rounded-lg bg-ink-900/50 border border-ink-700 p-6">
                 <h3 className="font-bold text-white mb-3 flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-400" />
                   System Status
                 </h3>
-                <a href="https://status.posflow.io" target="_blank" rel="noopener noreferrer" className="text-flow-400 hover:text-flow-300 text-sm transition">
+                <a href="https://status.pos.liafrik.com" target="_blank" rel="noopener noreferrer" className="text-flow-300 hover:text-flow-200 text-sm transition font-medium">
                   View status page →
                 </a>
               </div>
 
               {/* Response Times */}
-              <div className="rounded-lg bg-ink-900/50 border border-ink-800 p-6">
+              <div className="rounded-lg bg-ink-900/50 border border-ink-700 p-6">
                 <h3 className="font-bold text-white mb-3">Response Times</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-ink-400">Email:</span>
-                    <span className="text-white">24 hours</span>
+                    <span className="text-ink-300">Email:</span>
+                    <span className="text-white font-medium">24 hours</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-ink-400">Chat:</span>
-                    <span className="text-white">2 hours</span>
+                    <span className="text-ink-300">Chat:</span>
+                    <span className="text-white font-medium">2 hours</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-ink-400">Phone:</span>
-                    <span className="text-white">30 minutes</span>
+                    <span className="text-ink-300">Phone:</span>
+                    <span className="text-white font-medium">30 minutes</span>
                   </div>
                 </div>
               </div>

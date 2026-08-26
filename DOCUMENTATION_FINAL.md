@@ -249,7 +249,7 @@ f43a12a docs: Marketplace access control documentation
 
 ## 📞 Support Channels
 
-**Email:** support@posflow.io
+**Email:** support@pos.liafrik.com
 - Available: 24/7
 - Response: 24 hours
 - Tracking: Ticket numbers
@@ -264,7 +264,7 @@ f43a12a docs: Marketplace access control documentation
 - Response: 30 minutes
 - Available: 24/7
 
-**Status:** status.posflow.io
+**Status:** status.pos.liafrik.com
 - Real-time system status
 - Incident tracking
 - Maintenance windows
