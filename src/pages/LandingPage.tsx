@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView, useMotionValue, useTransform, animate } from 'framer-motion';
 import {
-  ShoppingCart, Boxes, FileText, Store, Globe, FileBarChart, Wallet,
-  ArrowRight, Check, Star, Menu, X, Play, TrendingUp, Shield, Smartphone,
-  Twitter, Linkedin, Facebook, Instagram, MapPin, Sparkles, Moon, Sun, Download,
+  ShoppingCart, Boxes, FileText, Store, Globe, FileBarChart, Wallet, Users,
+  ArrowRight, ArrowUpRight, Check, Star, Menu, X, Play, TrendingUp, Shield, Smartphone,
+  Twitter, Linkedin, Facebook, Instagram, MapPin, Sparkles, Moon, Sun, Download, Zap, Gauge, Layers,
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { COUNTRIES, CURRENCIES } from '../lib/localization';
@@ -63,6 +63,17 @@ const FEATURES = [
   { icon: FileBarChart, titleKey: 'landing.feature.reports.title', descKey: 'landing.feature.reports.desc' },
   { icon: Wallet, titleKey: 'landing.feature.accounting.title', descKey: 'landing.feature.accounting.desc' },
   { icon: Smartphone, titleKey: 'landing.feature.mobileMoney.title', descKey: 'landing.feature.mobileMoney.desc' },
+  { icon: Users, titleKey: 'landing.feature.customers.title', descKey: 'landing.feature.customers.desc' },
+  { icon: Users, titleKey: 'landing.feature.employees.title', descKey: 'landing.feature.employees.desc' },
+];
+
+const BENEFITS = [
+  { icon: Zap, titleKey: 'landing.benefit.speed.title', descKey: 'landing.benefit.speed.desc' },
+  { icon: Layers, titleKey: 'landing.benefit.simplicity.title', descKey: 'landing.benefit.simplicity.desc' },
+  { icon: Shield, titleKey: 'landing.benefit.control.title', descKey: 'landing.benefit.control.desc' },
+  { icon: TrendingUp, titleKey: 'landing.benefit.visibility.title', descKey: 'landing.benefit.visibility.desc' },
+  { icon: Store, titleKey: 'landing.benefit.centralized.title', descKey: 'landing.benefit.centralized.desc' },
+  { icon: Gauge, titleKey: 'landing.benefit.efficiency.title', descKey: 'landing.benefit.efficiency.desc' },
 ];
 
 const TESTIMONIALS = [
@@ -193,7 +204,7 @@ export function LandingPage() {
               initial="hidden"
               animate="show"
               transition={{ duration: 0.7, delay: 0.1 }}
-              className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-ink-900 dark:text-ink-50 sm:text-5xl lg:text-6xl"
+              className="mt-5 text-5xl font-semibold leading-[0.98] tracking-tight text-ink-900 dark:text-ink-50 sm:text-6xl lg:text-7xl"
             >
               {t('landing.hero.title')} <span className="text-gradient-flow">{t('landing.hero.titleAccent')}</span>
             </motion.h1>
@@ -202,7 +213,7 @@ export function LandingPage() {
               initial="hidden"
               animate="show"
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="mt-5 max-w-xl text-lg text-ink-600 dark:text-ink-300"
+              className="mt-6 max-w-lg text-lg text-ink-600 dark:text-ink-300"
             >
               {t('landing.hero.desc')}
             </motion.p>
@@ -321,15 +332,49 @@ export function LandingPage() {
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((f, i) => (
             <Section key={f.titleKey} delay={(i % 4) * 0.08}>
-              <div className="group h-full rounded-2xl2 border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-6 transition-all hover:-translate-y-1 hover:border-brand-200 hover:shadow-float">
+              <div className="group relative h-full rounded-2xl2 border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-6 transition-all hover:-translate-y-1 hover:border-brand-200 hover:shadow-float">
+                {i === 0 && (
+                  <span className="absolute right-5 top-5 rounded-full bg-brand-50 dark:bg-brand-900/35 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-brand-600">
+                    {t('landing.features.posBadge')}
+                  </span>
+                )}
                 <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 dark:bg-brand-900/25 text-brand-600 transition group-hover:bg-brand-100 dark:group-hover:bg-brand-900/35">
                   <f.icon size={22} />
                 </div>
-                <h3 className="text-lg font-medium text-ink-900 dark:text-ink-50">{t(f.titleKey)}</h3>
+                <h3 className="flex items-center gap-1.5 text-lg font-medium text-ink-900 dark:text-ink-50">
+                  {t(f.titleKey)}
+                  <ArrowUpRight size={15} className="text-ink-300 opacity-0 transition-all -translate-x-1 translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:text-brand-500 group-hover:opacity-100" />
+                </h3>
                 <p className="mt-2 text-sm text-ink-600 dark:text-ink-300">{t(f.descKey)}</p>
               </div>
             </Section>
           ))}
+        </div>
+      </section>
+
+      {/* Benefits */}
+      <section className="bg-ink-50/60 dark:bg-ink-900/40 py-20">
+        <div className="mx-auto max-w-7xl px-4 lg:px-8">
+          <Section className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-medium uppercase tracking-wide text-brand-600">{t('landing.benefits.eyebrow')}</p>
+            <h2 className="mt-2 text-3xl font-medium tracking-tight text-ink-900 dark:text-ink-50 sm:text-4xl">{t('landing.benefits.title')}</h2>
+            <p className="mt-3 text-ink-600 dark:text-ink-300">{t('landing.benefits.desc')}</p>
+          </Section>
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {BENEFITS.map((b, i) => (
+              <Section key={b.titleKey} delay={(i % 3) * 0.08}>
+                <div className="flex h-full items-start gap-4 rounded-2xl2 border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-5">
+                  <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-flow-50 dark:bg-flow-900/25 text-flow-600">
+                    <b.icon size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t(b.titleKey)}</h3>
+                    <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">{t(b.descKey)}</p>
+                  </div>
+                </div>
+              </Section>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -500,11 +545,16 @@ export function LandingPage() {
         <div className="bg-gradient-to-br from-brand-600 via-brand-500 to-flow-500 py-20">
           <div className="mx-auto max-w-4xl px-4 text-center text-white lg:px-8">
             <Section>
-              <h2 className="text-3xl font-medium sm:text-5xl">{t('landing.cta.title')}</h2>
+              <h2 className="text-4xl font-semibold tracking-tight sm:text-6xl">{t('landing.cta.title')}</h2>
               <p className="mt-4 text-lg text-brand-50">{t('landing.cta.desc')}</p>
-              <Link to="/signup" className="mt-8 inline-flex items-center gap-2 rounded-full bg-white dark:bg-ink-800 px-7 py-3.5 text-base font-medium text-brand-700 shadow-float transition hover:scale-105 active:scale-100">
-                {t('landing.cta.button')} <ArrowRight size={18} />
-              </Link>
+              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Link to="/signup" className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-ink-800 px-7 py-3.5 text-base font-medium text-brand-700 shadow-float transition hover:scale-105 active:scale-100">
+                  {t('landing.cta.button')} <ArrowRight size={18} />
+                </Link>
+                <Link to="/pricing" className="inline-flex items-center gap-2 rounded-full border border-white/40 px-7 py-3.5 text-base font-medium text-white transition hover:bg-white/10">
+                  {t('landing.cta.secondary')}
+                </Link>
+              </div>
             </Section>
           </div>
         </div>
