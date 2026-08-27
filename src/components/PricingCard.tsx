@@ -54,10 +54,10 @@ export function PricingCard({ plan, convertedPrice, onSelect }: PricingCardProps
             <span className="text-4xl font-bold text-white">
               {convertedPrice.formatted}
             </span>
-            <span className="text-ink-400">/month</span>
+            <span className="text-ink-400">/mois</span>
           </div>
           <p className="text-xs text-ink-500 mt-2">
-            USD ${plan.basePrice}/month, converted to {convertedPrice.currency}
+            {plan.basePrice} USD/mois, converti en {convertedPrice.currency}
           </p>
         </div>
 
@@ -76,7 +76,7 @@ export function PricingCard({ plan, convertedPrice, onSelect }: PricingCardProps
         {/* Features List */}
         <div className="space-y-4">
           <p className="text-xs font-semibold text-ink-400 uppercase tracking-wider">
-            What's Included
+            Inclus
           </p>
 
           {plan.features.map((feature, idx) => (

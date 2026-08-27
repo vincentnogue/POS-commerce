@@ -6,7 +6,7 @@ import { Logo } from '../components/Logo';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../lib/i18n';
 import { supabase } from '../lib/supabase';
-import { COUNTRIES, CURRENCIES, getCountry } from '../lib/localization';
+import { CURRENCIES, getCountry, groupCountriesByContinent } from '../lib/localization';
 
 const STEPS = ['onboarding.step.business', 'onboarding.step.country', 'onboarding.step.region', 'onboarding.step.currency', 'onboarding.step.plan', 'onboarding.step.brand', 'onboarding.step.commercial'];
 
@@ -239,16 +239,13 @@ export function OnboardingPage() {
                   <label className="label">{t('onboarding.country')}</label>
                   <select value={countryCode} onChange={(e) => onCountryChange(e.target.value)} className="input">
                     <option value="">{t('onboarding.selectOption')}</option>
-                    <optgroup label={t('onboarding.africa')}>
-                      {COUNTRIES.filter((c) => !['AE', 'US', 'FR', 'GB'].includes(c.code)).map((c) => (
-                        <option key={c.code} value={c.code}>{c.name}</option>
-                      ))}
-                    </optgroup>
-                    <optgroup label={t('onboarding.international')}>
-                      {COUNTRIES.filter((c) => ['AE', 'US', 'FR', 'GB'].includes(c.code)).map((c) => (
-                        <option key={c.code} value={c.code}>{c.name}</option>
-                      ))}
-                    </optgroup>
+                    {groupCountriesByContinent().map((group) => (
+                      <optgroup key={group.continent} label={group.label}>
+                        {group.countries.map((c) => (
+                          <option key={c.code} value={c.code}>{c.name}</option>
+                        ))}
+                      </optgroup>
+                    ))}
                   </select>
                   {country && (
                     <div className="mt-3 rounded-xl bg-brand-50 dark:bg-brand-900/25 p-3 text-sm text-brand-700">

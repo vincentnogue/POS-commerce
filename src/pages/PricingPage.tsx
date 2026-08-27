@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Globe, ArrowRight } from 'lucide-react';
 import { PricingCard, type PricingPlan } from '../components/PricingCard';
+import { PLANS as REAL_PLANS } from '../lib/plans';
 import {
   getExchangeRates,
   getUserCurrency,
@@ -10,65 +11,30 @@ import {
   type ConvertedPrice,
 } from '../lib/currency';
 
-// Pricing plans (USD base)
-const PLANS: PricingPlan[] = [
-  {
-    id: 'starter',
-    name: 'Starter',
-    description: 'Perfect for small businesses',
-    basePrice: 29,
-    features: [
-      { name: 'Up to 5 integrations', included: true },
-      { name: '100 requests per minute', included: true },
-      { name: 'Up to 3 team members', included: true },
-      { name: 'Email support', included: true },
-      { name: 'API access', included: false },
-      { name: 'Webhooks', included: false },
-    ],
-    cta: {
-      text: 'Get Started',
-      href: '/subscribe?plan=starter',
-    },
-  },
-  {
-    id: 'professional',
-    name: 'Professional',
-    description: 'For growing businesses',
-    basePrice: 99,
-    features: [
-      { name: 'Up to 10 integrations', included: true },
-      { name: '500 requests per minute', included: true },
-      { name: 'Up to 10 team members', included: true },
-      { name: 'Priority email & chat support', included: true },
-      { name: 'API access', included: true },
-      { name: 'Webhooks', included: true },
-    ],
-    cta: {
-      text: 'Choose Plan',
-      href: '/subscribe?plan=professional',
-    },
-    popular: true,
-    badge: 'MOST POPULAR',
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    description: 'For large organizations',
-    basePrice: 299,
-    features: [
-      { name: 'Unlimited integrations', included: true },
-      { name: '1000 requests per minute', included: true },
-      { name: 'Unlimited team members', included: true },
-      { name: '24/7 phone & dedicated manager', included: true },
-      { name: 'API access', included: true },
-      { name: 'Webhooks & custom integrations', included: true },
-    ],
-    cta: {
-      text: 'Contact Sales',
-      href: '/contact-sales?plan=enterprise',
-    },
-  },
-];
+// BUG FIX: this page used to define its own disconnected, placeholder plan
+// list (Starter/Professional/Enterprise at $29/$99/$299, English SaaS-API
+// copy). The real, only prices in the app are $9 / $19 / $49 / $119 — see
+// src/lib/plans.ts. We now derive this page's plans from that single
+// source of truth so the two pages can never drift apart again.
+const PLAN_DESCRIPTIONS: Record<string, string> = {
+  starter: 'Idéal pour démarrer votre commerce',
+  pro: 'Pour les commerces en croissance',
+  premium: 'Fonctionnalités avancées et support prioritaire',
+  entreprise: 'Pour les grandes organisations multi-boutiques',
+};
+
+const PLANS: PricingPlan[] = REAL_PLANS.map((p) => ({
+  id: p.code,
+  name: p.name,
+  description: PLAN_DESCRIPTIONS[p.code] ?? '',
+  basePrice: p.priceMonthly,
+  features: p.features.map((f) => ({ name: f, included: true })),
+  cta: p.code === 'entreprise'
+    ? { text: 'Contacter les ventes', href: '/contact' }
+    : { text: 'Essayer gratuitement', href: '/signup' },
+  popular: p.popular,
+  badge: p.popular ? 'LE PLUS POPULAIRE' : undefined,
+}));
 
 export function PricingPage() {
   const [currency, setCurrency] = useState<string>('USD');
@@ -127,7 +93,7 @@ export function PricingPage() {
       <div className="min-h-screen bg-gradient-to-br from-ink-950 via-brand-950 to-ink-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 rounded-full border-4 border-flow-500/30 border-t-flow-500 animate-spin mx-auto mb-4" />
-          <p className="text-ink-300">Loading pricing...</p>
+          <p className="text-ink-300">Chargement des tarifs...</p>
         </div>
       </div>
     );
@@ -140,21 +106,21 @@ export function PricingPage() {
       {/* Header */}
       <div className="max-w-6xl mx-auto px-6 py-20 text-center">
         <div className="inline-block px-4 py-2 rounded-full bg-flow-500/10 border border-flow-500/30 text-flow-300 text-sm font-semibold mb-6">
-          Simple, Transparent Pricing
+          Tarification simple et transparente
         </div>
 
         <h1 className="text-5xl font-bold text-white mb-4">
-          Choose Your Plan
+          Choisissez votre plan
         </h1>
         <p className="text-xl text-ink-300 mb-8 max-w-2xl mx-auto">
-          All plans include access to our full platform. Scale from startup to enterprise.
+          Tous les plans incluent l'accès à notre plateforme complète. Évoluez de la petite boutique à l'entreprise.
         </p>
 
         {/* Currency Selector */}
         <div className="flex items-center justify-center gap-3 mb-12">
           <Globe className="w-5 h-5 text-flow-400" />
           <label htmlFor="currency" className="text-ink-300 font-medium">
-            Currency:
+            Devise :
           </label>
           <select
             id="currency"
@@ -169,14 +135,14 @@ export function PricingPage() {
             ))}
           </select>
           <span className="text-ink-400 text-sm ml-2">
-            Rates updated hourly
+            Taux mis à jour chaque heure
           </span>
         </div>
       </div>
 
       {/* Pricing Cards */}
       <div className="max-w-6xl mx-auto px-6 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {PLANS.map((plan) => (
             <PricingCard
               key={plan.id}
@@ -203,54 +169,54 @@ export function PricingPage() {
       {/* FAQ Section */}
       <div className="max-w-4xl mx-auto px-6 py-20 border-t border-ink-800/50">
         <h2 className="text-3xl font-bold text-white text-center mb-12">
-          Frequently Asked Questions
+          Questions fréquentes
         </h2>
 
         <div className="space-y-8">
           <div>
             <h3 className="text-lg font-semibold text-white mb-2">
-              Can I change plans anytime?
+              Puis-je changer de plan à tout moment ?
             </h3>
             <p className="text-ink-300">
-              Yes! You can upgrade or downgrade your plan anytime. Changes take effect on your next billing cycle.
+              Oui ! Vous pouvez changer de plan à tout moment. Les changements prennent effet à votre prochain cycle de facturation.
             </p>
           </div>
 
           <div>
             <h3 className="text-lg font-semibold text-white mb-2">
-              Is there a free trial?
+              Y a-t-il un essai gratuit ?
             </h3>
             <p className="text-ink-300">
-              Yes! All plans include a 7-day free trial. No credit card required to start.
+              Oui ! Tous les plans incluent un essai gratuit de 7 jours. Aucune carte bancaire requise pour démarrer.
             </p>
           </div>
 
           <div>
             <h3 className="text-lg font-semibold text-white mb-2">
-              What payment methods do you accept?
+              Quels moyens de paiement acceptez-vous ?
             </h3>
             <p className="text-ink-300">
-              We accept all major credit cards (Visa, Mastercard, American Express), PayPal, and local payment methods
-              in 50+ countries through our integrations.
+              Nous acceptons les principales cartes bancaires (Visa, Mastercard, American Express), PayPal, ainsi que les moyens de paiement locaux
+              dans le monde entier grâce à nos intégrations.
             </p>
           </div>
 
           <div>
             <h3 className="text-lg font-semibold text-white mb-2">
-              Do you offer refunds?
+              Proposez-vous des remboursements ?
             </h3>
             <p className="text-ink-300">
-              During the 7-day trial, you can cancel for a full refund. After that, subscriptions are non-refundable,
+              Pendant l'essai de 7 jours, vous pouvez annuler et être intégralement remboursé. Passé ce délai, les abonnements ne sont pas remboursables,
               but you can cancel anytime without penalties.
             </p>
           </div>
 
           <div>
             <h3 className="text-lg font-semibold text-white mb-2">
-              Can I use multiple payment methods?
+              Puis-je utiliser plusieurs moyens de paiement ?
             </h3>
             <p className="text-ink-300">
-              Yes! Our Enterprise plan supports multiple payment methods and custom billing arrangements.
+              Oui ! Notre plan Entreprise prend en charge plusieurs moyens de paiement et des modalités de facturation personnalisées.
             </p>
           </div>
         </div>
@@ -259,13 +225,13 @@ export function PricingPage() {
       {/* CTA Section */}
       <div className="max-w-4xl mx-auto px-6 py-20 text-center">
         <h2 className="text-3xl font-bold text-white mb-4">
-          Ready to get started?
+          Prêt à commencer ?
         </h2>
         <p className="text-xl text-ink-300 mb-8">
-          Start your 7-day free trial today. No credit card required.
+          Démarrez votre essai gratuit de 7 jours dès aujourd'hui. Aucune carte bancaire requise.
         </p>
         <button className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/30">
-          Start Free Trial
+          Démarrer l'essai gratuit
           <ArrowRight className="w-5 h-5" />
         </button>
       </div>
