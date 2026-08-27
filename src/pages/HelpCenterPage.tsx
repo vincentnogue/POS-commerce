@@ -1,266 +1,287 @@
 import { useState } from 'react';
-import { HelpCircle, ChevronDown, Mail, MessageSquare, Phone, BookOpen, AlertCircle, CheckCircle } from 'lucide-react';
+import { Search, ChevronDown, BookOpen, Zap, Shield, Users, CreditCard, Globe } from 'lucide-react';
+
+interface FAQItem {
+  id: string;
+  category: string;
+  question: string;
+  answer: string;
+  icon?: typeof BookOpen;
+}
+
+const FAQ_ITEMS: FAQItem[] = [
+  {
+    id: 'getting-started',
+    category: 'Getting Started',
+    question: 'How do I set up my workspace?',
+    answer: 'Simply sign up with your email, confirm your account, and follow our onboarding wizard. You\'ll be able to create your workspace, invite team members, and connect your first integration in minutes.',
+    icon: Zap,
+  },
+  {
+    id: 'integrations',
+    category: 'Integrations',
+    question: 'How many integrations can I connect?',
+    answer: 'It depends on your plan. Starter includes 5 integrations, Professional includes 10, Enterprise includes unlimited. You can upgrade your plan anytime to add more integrations.',
+    icon: Globe,
+  },
+  {
+    id: 'payment-methods',
+    category: 'Payments & Billing',
+    question: 'What payment methods do you accept?',
+    answer: 'We accept all major credit cards (Visa, Mastercard, American Express), PayPal, and local payment methods in 50+ countries through our payment processor integrations.',
+    icon: CreditCard,
+  },
+  {
+    id: 'trial',
+    category: 'Trial & Subscription',
+    question: 'How long is the trial period?',
+    answer: 'Our trial period is 7 days. You don\'t need to enter credit card details to start your trial. After 7 days, you can upgrade to a paid plan or your account will remain in limited mode.',
+    icon: Zap,
+  },
+  {
+    id: 'security',
+    category: 'Security & Compliance',
+    question: 'How secure is my data?',
+    answer: 'We use enterprise-grade security with AES-256 encryption, SOC 2 Type II compliance, and row-level database encryption. All credentials are encrypted at rest and never exposed to our frontend.',
+    icon: Shield,
+  },
+  {
+    id: 'team',
+    category: 'Team Management',
+    question: 'How many team members can I add?',
+    answer: 'Starter allows 3 members, Professional allows 10 members, and Enterprise allows unlimited members. Each team member can be assigned specific roles and permissions.',
+    icon: Users,
+  },
+  {
+    id: 'api',
+    category: 'API & Developers',
+    question: 'Is there an API I can use?',
+    answer: 'Yes! Professional and Enterprise plans include full REST API access with comprehensive documentation. You can integrate POS Flow into your own applications.',
+    icon: Zap,
+  },
+  {
+    id: 'billing',
+    category: 'Billing',
+    question: 'Can I change or cancel my plan?',
+    answer: 'Yes, you can upgrade or downgrade your plan anytime. Changes take effect on your next billing cycle. You can also cancel your subscription without penalties, though you won\'t receive refunds for partial months.',
+    icon: CreditCard,
+  },
+];
+
+interface Contact {
+  type: string;
+  label: string;
+  value: string;
+  icon: typeof Globe;
+}
+
+const CONTACTS: Contact[] = [
+  {
+    type: 'email',
+    label: 'Email Support',
+    value: 'support@pos.liafrik.com',
+    icon: Globe,
+  },
+  {
+    type: 'phone',
+    label: 'Phone Support',
+    value: '+971 4 XXX XXXX (Dubai)',
+    icon: Globe,
+  },
+  {
+    type: 'documentation',
+    label: 'Documentation',
+    value: 'Visit our API docs',
+    icon: BookOpen,
+  },
+];
 
 export function HelpCenterPage() {
-  const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const faqs = [
-    {
-      id: 'trial',
-      category: 'Trial & Billing',
-      question: 'How long is the free trial?',
-      answer: 'All new accounts get 14 days of free access to all platform features. No credit card required. You can cancel anytime or upgrade to a paid plan when ready.',
-    },
-    {
-      id: 'payment-methods',
-      category: 'Payments',
-      question: 'What payment methods do you support?',
-      answer: 'We support 7 payment processors: Stripe, PayPal, Flutterwave, Paystack, M-Pesa, Orange Money, and PayUnit.net. This covers 200+ countries and 50+ currencies. Each processor supports multiple payment methods (cards, wallets, local methods).',
-    },
-    {
-      id: 'integration-limit',
-      category: 'Integrations',
-      question: 'How many integrations can I connect?',
-      answer: 'Limits depend on your plan: Starter (5), Professional (10), Enterprise (unlimited), Custom (unlimited). You can always upgrade your plan to connect more integrations.',
-    },
-    {
-      id: 'api-access',
-      category: 'API & Developers',
-      question: 'Do I have API access?',
-      answer: 'API access is available on Professional, Enterprise, and Custom plans. Starter plan does not include API access. All APIs use standard REST with JWT authentication. Full documentation available in our API Documentation.',
-    },
-    {
-      id: 'data-security',
-      category: 'Security',
-      question: 'How is my data secured?',
-      answer: 'We use enterprise-grade security: end-to-end encryption (TLS 1.3), encryption at rest (AES-256), multi-tenant isolation with row-level security, PCI DSS Level 1 compliance, and GDPR/CCPA compliance. All data is encrypted and isolated by tenant.',
-    },
-    {
-      id: 'export-data',
-      category: 'Data Management',
-      question: 'Can I export my data?',
-      answer: 'Yes! You can export all your data in multiple formats: CSV, Excel, PDF, or JSON. Use Settings → Data Export. For GDPR requests, we provide complete data exports within 30 days.',
-    },
-    {
-      id: 'multi-store',
-      category: 'Operations',
-      question: 'Can I manage multiple stores?',
-      answer: 'Yes. The number of stores depends on your plan: Starter (1), Professional (5), Enterprise (unlimited). Each store has its own inventory, staff, and settings, but shares the same account and billing.',
-    },
-    {
-      id: 'offline-mode',
-      category: 'Technology',
-      question: 'Does the POS work offline?',
-      answer: 'Yes! The POS module is fully offline-first. It works without internet and syncs automatically when connected. No data is lost. Perfect for areas with unreliable connectivity.',
-    },
-    {
-      id: 'team-access',
-      category: 'Users',
-      question: 'How do I add team members?',
-      answer: 'Go to Users → Add User. Assign roles: super_admin (full access), admin (full access), manager (operational access), staff (basic POS access), or viewer (read-only). Each role has specific permissions.',
-    },
-    {
-      id: 'cancel',
-      category: 'Billing',
-      question: 'How do I cancel my subscription?',
-      answer: 'Go to Settings → Billing → Subscriptions. Click "Cancel Subscription". Your data remains accessible until the end of your billing period. You can reactivate anytime without losing data.',
-    },
-    {
-      id: 'accounting-sync',
-      category: 'Integrations',
-      question: 'How does accounting sync work?',
-      answer: 'Professional and Enterprise plans can sync with Libooks automatically. Transactions sync daily at midnight UTC. You can also manually sync anytime. Sync includes: sales, expenses, invoices, and inventory movements.',
-    },
-    {
-      id: 'webhook-test',
-      category: 'API & Developers',
-      question: 'Can I test webhooks before going live?',
-      answer: 'Yes! Professional and higher plans include webhook testing. Use the API Documentation section to set up and test webhook endpoints. We provide webhook event simulator and delivery logs.',
-    },
-    {
-      id: 'uptime',
-      category: 'Infrastructure',
-      question: 'What is your uptime guarantee?',
-      answer: 'We offer 99.9% uptime SLA for Enterprise plans. Professional plans get 99.5%. We monitor 24/7 and maintain automatic failover. Check our status page at status.pos.liafrik.com anytime.',
-    },
-    {
-      id: 'support-hours',
-      category: 'Support',
-      question: 'What are your support hours?',
-      answer: 'Email support: 24/7. Live chat: Mon-Fri 9am-6pm UTC. Phone: Enterprise only, 24/7. Response time: Email (24h), Chat (2h), Phone (30min). All support requests are tracked with ticket numbers.',
-    },
-  ];
+  // Filter FAQs based on search and category
+  const filteredFAQs = FAQ_ITEMS.filter((item) => {
+    const matchesSearch =
+      item.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.answer.toLowerCase().includes(searchTerm.toLowerCase());
 
-  const filteredFaqs = faqs.filter(
-    (faq) =>
-      faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      faq.answer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      faq.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    const matchesCategory = !selectedCategory || item.category === selectedCategory;
 
-  const categories = [...new Set(faqs.map((f) => f.category))];
+    return matchesSearch && matchesCategory;
+  });
+
+  // Get unique categories
+  const categories = Array.from(new Set(FAQ_ITEMS.map((item) => item.category)));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-ink-950 via-brand-950 to-ink-900">
-      {/* Header */}
-      <div className="sticky top-0 z-50 border-b border-ink-800/50 bg-ink-950/80 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <div className="flex items-center gap-3 mb-6">
-            <HelpCircle className="w-8 h-8 text-flow-400" />
-            <h1 className="text-3xl font-bold text-white">Help Center</h1>
-          </div>
-
-          {/* Search */}
-          <input
-            type="text"
-            placeholder="Search help articles..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg bg-ink-900/80 border border-ink-700 text-white placeholder-ink-400 focus:outline-none focus:border-flow-400 focus:ring-1 focus:ring-flow-400/50"
-          />
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-brand-600 to-flow-600 py-16">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h1 className="text-4xl font-bold text-white mb-4">Help Center</h1>
+          <p className="text-xl text-white/90">
+            Find answers to common questions and get support
+          </p>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            {/* FAQ by Category */}
-            <div className="space-y-8">
-              {categories.map((category) => {
-                const categoryFaqs = filteredFaqs.filter((f) => f.category === category);
-                if (categoryFaqs.length === 0) return null;
-
-                return (
-                  <div key={category}>
-                    <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                      <div className="w-1 h-6 bg-flow-400 rounded" />
-                      {category}
-                    </h2>
-                    <div className="space-y-3">
-                      {categoryFaqs.map((faq) => (
-                        <div
-                          key={faq.id}
-                          className="rounded-lg bg-ink-900/50 border border-ink-700 hover:border-flow-500/50 transition overflow-hidden"
-                        >
-                          <button
-                            onClick={() => setExpandedFaq(expandedFaq === faq.id ? null : faq.id)}
-                            className="w-full px-6 py-4 flex items-center justify-between hover:bg-ink-900/70 transition text-left"
-                          >
-                            <h3 className="font-semibold text-white flex-1">{faq.question}</h3>
-                            <ChevronDown
-                              className={`w-5 h-5 text-flow-400 transition-transform flex-shrink-0 ml-2 ${expandedFaq === faq.id ? 'rotate-180' : ''}`}
-                            />
-                          </button>
-
-                          {expandedFaq === faq.id && (
-                            <div className="px-6 py-4 border-t border-ink-700 bg-ink-950/40">
-                              <p className="text-ink-100 leading-relaxed font-normal">{faq.answer}</p>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {filteredFaqs.length === 0 && (
-              <div className="text-center py-12">
-                <AlertCircle className="w-12 h-12 text-ink-600 mx-auto mb-4" />
-                <p className="text-ink-200">No help articles found. Try a different search.</p>
-              </div>
-            )}
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-6 py-12">
+        {/* Search Box */}
+        <div className="mb-12">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-400" />
+            <input
+              type="text"
+              placeholder="Search help articles..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 rounded-lg bg-ink-900/50 border border-ink-700 text-white placeholder-ink-400 focus:border-flow-500 focus:outline-none transition"
+            />
           </div>
+        </div>
 
-          {/* Sidebar - Support Options */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-24 space-y-4">
-              {/* Quick Links */}
-              <div className="rounded-lg bg-gradient-to-br from-flow-500/10 to-brand-500/10 border border-flow-500/30 p-6">
-                <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-flow-400" />
-                  Documentation
-                </h3>
-                <div className="space-y-2">
-                  <a href="/documentation" className="block text-flow-300 hover:text-flow-200 transition text-sm font-medium">
-                    → API Reference
-                  </a>
-                  <a href="/documentation" className="block text-flow-300 hover:text-flow-200 transition text-sm font-medium">
-                    → Integration Guides
-                  </a>
-                  <a href="https://docs.pos.liafrik.com" target="_blank" rel="noopener noreferrer" className="block text-flow-300 hover:text-flow-200 transition text-sm font-medium">
-                    → Full Docs
-                  </a>
-                </div>
-              </div>
+        {/* Category Filter */}
+        <div className="mb-8 flex flex-wrap gap-2">
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={`px-4 py-2 rounded-lg font-medium transition ${
+              !selectedCategory
+                ? 'bg-flow-500 text-white'
+                : 'bg-ink-800/50 text-ink-300 hover:bg-ink-700/50'
+            }`}
+          >
+            All Categories
+          </button>
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-4 py-2 rounded-lg font-medium transition ${
+                selectedCategory === category
+                  ? 'bg-flow-500 text-white'
+                  : 'bg-ink-800/50 text-ink-300 hover:bg-ink-700/50'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
 
-              {/* Contact Support */}
-              <div className="rounded-lg bg-gradient-to-br from-brand-500/10 to-flow-500/10 border border-brand-500/30 p-6">
-                <h3 className="font-bold text-white mb-4">Contact Support</h3>
-                <div className="space-y-4">
-                  <a href="mailto:support@pos.liafrik.com" className="flex items-start gap-3 text-ink-100 hover:text-white transition group">
-                    <Mail className="w-5 h-5 text-brand-400 flex-shrink-0 mt-0.5 group-hover:scale-110 transition" />
-                    <div className="text-sm">
-                      <div className="font-semibold">Email</div>
-                      <div className="text-xs text-ink-300">support@pos.liafrik.com</div>
+        {/* FAQ Items */}
+        <div className="space-y-3 mb-16">
+          {filteredFAQs.length > 0 ? (
+            filteredFAQs.map((item) => {
+              const Icon = item.icon || BookOpen;
+              const isExpanded = expandedId === item.id;
+
+              return (
+                <div
+                  key={item.id}
+                  className="rounded-lg border border-ink-700 bg-ink-900/50 overflow-hidden transition"
+                >
+                  <button
+                    onClick={() => setExpandedId(isExpanded ? null : item.id)}
+                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-ink-800/50 transition text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className="w-5 h-5 text-flow-400 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold text-white">{item.question}</p>
+                        <p className="text-xs text-ink-400 mt-1">{item.category}</p>
+                      </div>
                     </div>
-                  </a>
+                    <ChevronDown
+                      className={`w-5 h-5 text-ink-400 transition transform ${
+                        isExpanded ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
 
-                  <a href="#" className="flex items-start gap-3 text-ink-100 hover:text-white transition group">
-                    <MessageSquare className="w-5 h-5 text-brand-400 flex-shrink-0 mt-0.5 group-hover:scale-110 transition" />
-                    <div className="text-sm">
-                      <div className="font-semibold">Live Chat</div>
-                      <div className="text-xs text-ink-300">Mon-Fri 9am-6pm UTC</div>
+                  {isExpanded && (
+                    <div className="px-6 py-4 bg-ink-800/30 border-t border-ink-700/50">
+                      <p className="text-ink-200 leading-relaxed">{item.answer}</p>
                     </div>
-                  </a>
-
-                  <a href="tel:+18447675356" className="flex items-start gap-3 text-ink-100 hover:text-white transition group">
-                    <Phone className="w-5 h-5 text-brand-400 flex-shrink-0 mt-0.5 group-hover:scale-110 transition" />
-                    <div className="text-sm">
-                      <div className="font-semibold">Phone</div>
-                      <div className="text-xs text-ink-300">+1-844-POS-FLOW</div>
-                    </div>
-                  </a>
+                  )}
                 </div>
-              </div>
-
-              {/* Status */}
-              <div className="rounded-lg bg-ink-900/50 border border-ink-700 p-6">
-                <h3 className="font-bold text-white mb-3 flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-400" />
-                  System Status
-                </h3>
-                <a href="https://status.pos.liafrik.com" target="_blank" rel="noopener noreferrer" className="text-flow-300 hover:text-flow-200 text-sm transition font-medium">
-                  View status page →
-                </a>
-              </div>
-
-              {/* Response Times */}
-              <div className="rounded-lg bg-ink-900/50 border border-ink-700 p-6">
-                <h3 className="font-bold text-white mb-3">Response Times</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-ink-300">Email:</span>
-                    <span className="text-white font-medium">24 hours</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-ink-300">Chat:</span>
-                    <span className="text-white font-medium">2 hours</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-ink-300">Phone:</span>
-                    <span className="text-white font-medium">30 minutes</span>
-                  </div>
-                </div>
-              </div>
+              );
+            })
+          ) : (
+            <div className="text-center py-12">
+              <SearchIcon className="w-12 h-12 text-ink-600 mx-auto mb-4" />
+              <p className="text-ink-300">No results found. Try a different search term.</p>
             </div>
+          )}
+        </div>
+
+        {/* Contact Section */}
+        <div className="rounded-lg bg-gradient-to-r from-brand-500/10 to-flow-500/10 border border-brand-500/30 p-8">
+          <h2 className="text-2xl font-bold text-white mb-6">Didn't find what you're looking for?</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <a
+              href="mailto:support@pos.liafrik.com"
+              className="p-4 rounded-lg bg-ink-900/50 border border-ink-700 hover:border-flow-500/50 transition"
+            >
+              <p className="font-semibold text-white mb-2">Email Support</p>
+              <p className="text-sm text-ink-300">support@pos.liafrik.com</p>
+              <p className="text-xs text-ink-400 mt-2">Response time: 24 hours</p>
+            </a>
+
+            <a
+              href="tel:+97143221234"
+              className="p-4 rounded-lg bg-ink-900/50 border border-ink-700 hover:border-flow-500/50 transition"
+            >
+              <p className="font-semibold text-white mb-2">Phone Support</p>
+              <p className="text-sm text-ink-300">+971 4 XXX XXXX</p>
+              <p className="text-xs text-ink-400 mt-2">Available: 9AM-6PM GST</p>
+            </a>
+
+            <a
+              href="/api-documentation"
+              className="p-4 rounded-lg bg-ink-900/50 border border-ink-700 hover:border-flow-500/50 transition"
+            >
+              <p className="font-semibold text-white mb-2">API Documentation</p>
+              <p className="text-sm text-ink-300">View technical docs</p>
+              <p className="text-xs text-ink-400 mt-2">Complete API reference</p>
+            </a>
+          </div>
+        </div>
+
+        {/* Quick Links */}
+        <div className="mt-12 rounded-lg bg-ink-900/50 border border-ink-700 p-8">
+          <h2 className="text-xl font-bold text-white mb-6">Quick Links</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {[
+              { label: 'Getting Started Guide', href: '#' },
+              { label: 'API Documentation', href: '#' },
+              { label: 'Security Policy', href: '#' },
+              { label: 'Terms of Service', href: '#' },
+              { label: 'Privacy Policy', href: '#' },
+              { label: 'Contact Sales', href: '#' },
+            ].map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                className="text-flow-300 hover:text-flow-200 transition text-sm font-medium"
+              >
+                → {link.label}
+              </a>
+            ))}
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function SearchIcon(props: any) {
+  return (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.35-4.35" />
+    </svg>
   );
 }
