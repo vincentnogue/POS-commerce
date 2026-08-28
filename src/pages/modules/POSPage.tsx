@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
 import { PageHeader, Modal, EmptyState, useToast } from '../../components/ui';
+import { printSaleReceipt } from '../../lib/receipt';
+import { SaleHistoryTab } from './SaleHistoryTab';
 import type { Product, Customer } from '../../lib/types';
 
 type CartItem = {
@@ -40,6 +42,7 @@ export function POSPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [stores, setStores] = useState<{ id: string; name: string }[]>([]);
   const [storeId, setStoreId] = useState<string | null>(null);
+  const [pageTab, setPageTab] = useState<'sale' | 'history'>('sale');
 
   const currency = tenant?.currency ?? 'XOF';
 
@@ -209,50 +212,33 @@ export function POSPage() {
 
   const printReceipt = () => {
     if (!success || !lastReceipt) return;
-    const w = window.open('', '_blank');
-    if (!w) return;
-    const rows = lastReceipt.items.map((i) => `<tr><td>${i.product.name}</td><td style="text-align:right">${i.quantity}</td><td style="text-align:right">${formatMoney(i.unit_price, currency)}</td><td style="text-align:right;font-weight:600">${formatMoney(i.quantity * i.unit_price, currency)}</td></tr>`).join('');
-    const now = new Date();
-    w.document.write(`<!DOCTYPE html><html lang="${lang}"><head><title>${t('pos.receipt.title')} ${success}</title><meta charset="utf-8"/><style>
-      * { box-sizing: border-box; }
-      body { font-family: 'Courier New', monospace; padding: 24px; max-width: 380px; margin: auto; font-size: 12px; color: #1a1a1a; }
-      .brand { text-align: center; font-size: 17px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px; }
-      .tagline { text-align: center; font-size: 10px; color: #888; margin-bottom: 12px; }
-      .divider { border-top: 1px dashed #999; margin: 10px 0; }
-      .divider.solid { border-top: 1.5px solid #333; }
-      .meta { display: flex; justify-content: space-between; font-size: 11px; color: #444; margin: 2px 0; }
-      table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-      th, td { padding: 5px 4px; text-align: left; }
-      th { text-transform: uppercase; font-size: 9px; color: #888; border-bottom: 1px solid #ccc; }
-      td { border-bottom: 1px dotted #ddd; }
-      .total-row { display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; margin-top: 10px; padding-top: 8px; border-top: 1.5px solid #333; }
-      .payment-block { margin-top: 14px; padding: 10px; background: #f7f7f7; border-radius: 6px; }
-      .payment-row { display: flex; justify-content: space-between; font-size: 11px; margin: 3px 0; }
-      .payment-row .label { color: #666; }
-      .payment-row .value { font-weight: 700; letter-spacing: 0.5px; }
-      .footer { text-align: center; margin-top: 18px; font-size: 10px; color: #777; }
-      .footer .thanks { font-size: 12px; font-weight: 600; color: #1a1a1a; margin-bottom: 3px; }
-    </style></head><body>
-      <div class="brand">POS Flow</div>
-      <div class="tagline">${tenant?.name ?? ''}</div>
-      <div class="divider solid"></div>
-      <div class="meta"><span>${t('pos.receipt.receipt')}</span><strong>${success}</strong></div>
-      <div class="meta"><span>${t('pos.receipt.date')}</span><span>${now.toLocaleDateString(locale)} ${now.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</span></div>
-      <div class="divider"></div>
-      <table><thead><tr><th>${t('pos.receipt.designation')}</th><th style="text-align:right">${t('pos.receipt.qty')}</th><th style="text-align:right">${t('pos.receipt.price')}</th><th style="text-align:right">${t('pos.receipt.total')}</th></tr></thead><tbody>${rows}</tbody></table>
-      <div class="total-row"><span>${t('pos.receipt.total')}</span><span>${formatMoney(lastReceipt.total, currency)}</span></div>
-      <div class="payment-block">
-        <div class="payment-row"><span class="label">${t('pos.receipt.paymentMode')}</span><span class="value">${paymentLabel(lastReceipt.paymentMethod)}</span></div>
-        ${lastReceipt.paymentReference ? `<div class="payment-row"><span class="label">${t('pos.receipt.refLabel')}</span><span class="value">${lastReceipt.paymentReference}</span></div>` : ''}
-        <div class="payment-row"><span class="label">${t('pos.receipt.status')}</span><span class="value">${t('pos.receipt.statusPaid')}</span></div>
-      </div>
-      <div class="footer">
-        <div class="thanks">${t('pos.receipt.thanks')}</div>
-        ${t('pos.receipt.keepProof')}
-      </div>
-    </body></html>`);
-    w.document.close();
-    w.print();
+    printSaleReceipt(
+      {
+        reference: success,
+        date: new Date(),
+        items: lastReceipt.items.map((i) => ({ name: i.product.name, quantity: i.quantity, unit_price: i.unit_price })),
+        total: lastReceipt.total,
+        paymentMethod: lastReceipt.paymentMethod,
+        paymentReference: lastReceipt.paymentReference || null,
+      },
+      {
+        title: t('pos.receipt.title'),
+        receipt: t('pos.receipt.receipt'),
+        date: t('pos.receipt.date'),
+        designation: t('pos.receipt.designation'),
+        qty: t('pos.receipt.qty'),
+        price: t('pos.receipt.price'),
+        total: t('pos.receipt.total'),
+        paymentMode: t('pos.receipt.paymentMode'),
+        refLabel: t('pos.receipt.refLabel'),
+        status: t('pos.receipt.status'),
+        statusPaid: t('pos.receipt.statusPaid'),
+        thanks: t('pos.receipt.thanks'),
+        keepProof: t('pos.receipt.keepProof'),
+        paymentMethodLabel: paymentLabel,
+      },
+      { businessName: tenant?.name ?? '', currency, lang, locale, formatMoney },
+    );
   };
 
   const sendWhatsApp = () => {
@@ -272,7 +258,7 @@ export function POSPage() {
         subtitle={t('pos.subtitle')}
       />
 
-      {stores.length > 1 && (
+      {stores.length > 1 && pageTab === 'sale' && (
         <div className="mb-4 flex items-center gap-2">
           <label className="text-sm font-medium text-ink-600 dark:text-ink-300">{t('pos.storeLabel')}</label>
           <select value={storeId ?? ''} onChange={(e) => setStoreId(e.target.value)} className="input w-auto">
@@ -281,6 +267,18 @@ export function POSPage() {
         </div>
       )}
 
+      <div className="mb-4 inline-flex rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
+        <button onClick={() => setPageTab('sale')} className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition ${pageTab === 'sale' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
+          <ShoppingCart size={14} /> {t('pos.tab.sale')}
+        </button>
+        <button onClick={() => setPageTab('history')} className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition ${pageTab === 'history' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
+          <History size={14} /> {t('pos.tab.history')}
+        </button>
+      </div>
+
+      {pageTab === 'history' ? (
+        <SaleHistoryTab />
+      ) : (
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Products */}
         <div className="lg:col-span-2">
@@ -384,6 +382,7 @@ export function POSPage() {
           )}
         </div>
       </div>
+      )}
 
       {/* Checkout modal */}
       <Modal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} title={t('pos.checkoutTitle')}>
