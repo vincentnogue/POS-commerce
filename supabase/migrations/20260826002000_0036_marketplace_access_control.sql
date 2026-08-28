@@ -32,10 +32,13 @@ CREATE TABLE IF NOT EXISTS marketplace_role_permissions (
 );
 
 -- Create user-specific marketplace access tracking
+-- BUG FIX: user_id used to reference a nonexistent public.users table.
+-- This app's users live in Supabase's built-in auth.users (see
+-- tenant_members.user_id in 0001_initial_schema.sql for the same pattern).
 CREATE TABLE IF NOT EXISTS user_marketplace_access (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   plan_id text NOT NULL,
   role text NOT NULL,
   active_integrations integer DEFAULT 0,
@@ -57,14 +60,16 @@ CREATE POLICY marketplace_plan_limits_public ON marketplace_plan_limits
 CREATE POLICY marketplace_role_permissions_public ON marketplace_role_permissions
   FOR SELECT USING (true); -- Everyone can read role permissions
 
+-- BUG FIX: this policy used to reference a nonexistent public.users table
+-- and compared a tenant's id directly to auth.uid() (nonsensical — a
+-- tenant id is never a user id). Rewritten to use tenant_members, the
+-- table this whole codebase actually uses for tenant/user/role lookups.
 CREATE POLICY user_marketplace_access_owner ON user_marketplace_access
   FOR ALL USING (
     user_id = auth.uid()
     OR tenant_id IN (
-      SELECT id FROM tenants WHERE id = auth.uid()::uuid
-    )
-    OR user_id IN (
-      SELECT id FROM users WHERE id = auth.uid() AND tenant_id = user_marketplace_access.tenant_id
+      SELECT tenant_id FROM tenant_members
+      WHERE user_id = auth.uid() AND role IN ('super_admin', 'admin', 'owner')
     )
   );
 
@@ -120,6 +125,10 @@ AS $$
 $$;
 
 -- Function to check integration limit
+-- BUG FIX: tenants.plan_id is a uuid FK into public.plans; it was being
+-- compared directly to marketplace_plan_limits.plan_id, which is a text
+-- code ('starter', 'professional', ...). Joined through public.plans.code
+-- to bridge the two.
 CREATE OR REPLACE FUNCTION check_integration_limit(p_tenant_id uuid)
 RETURNS BOOLEAN
 LANGUAGE SQL
@@ -129,7 +138,8 @@ AS $$
   SELECT (
     SELECT mpl.max_integrations
     FROM marketplace_plan_limits mpl
-    JOIN tenants t ON t.plan_id = mpl.plan_id
+    JOIN plans p ON p.code = mpl.plan_id
+    JOIN tenants t ON t.plan_id = p.id
     WHERE t.id = p_tenant_id
   ) > (
     SELECT COUNT(*)
@@ -139,6 +149,8 @@ AS $$
 $$;
 
 -- Function to allow access by super_admin to all marketplace features
+-- BUG FIX: referenced a nonexistent public.users table with a tenant_id
+-- column; role/tenant lookups in this app go through tenant_members.
 CREATE OR REPLACE FUNCTION allow_super_admin_marketplace(p_tenant_id uuid)
 RETURNS BOOLEAN
 LANGUAGE SQL
@@ -147,8 +159,8 @@ SET search_path = public
 AS $$
   SELECT EXISTS(
     SELECT 1
-    FROM users
-    WHERE id = auth.uid()
+    FROM tenant_members
+    WHERE user_id = auth.uid()
       AND tenant_id = p_tenant_id
       AND role = 'super_admin'
   );
