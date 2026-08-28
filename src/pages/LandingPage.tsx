@@ -59,7 +59,7 @@ const LANDING_PLANS: PricingPlan[] = REAL_PLANS.map((p) => ({
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [email, setEmail] = useState('');
-  const { lang, setLang } = useI18n();
+  const { lang, setLang, t } = useI18n();
   const navigate = useNavigate();
 
   const [convertedPrices, setConvertedPrices] = useState<Record<string, ConvertedPrice>>({});
@@ -119,23 +119,23 @@ export function LandingPage() {
                   Produits <ChevronDown size={16} />
                 </button>
                 <div className="absolute left-0 mt-0 w-64 bg-white dark:bg-ink-900 border border-gray-200 dark:border-ink-700 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition">
-                  <a href="#features" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">Caisse, stock & facturation</a>
-                  <Link to="/marketplace" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">Marketplace & intégrations</Link>
+                  <a href="#features" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">{t('pLanding.nav.productsFeatures')}</a>
+                  <Link to="/marketplace" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">{t('pLanding.nav.productsMarketplace')}</Link>
                 </div>
               </div>
 
-              <a href="#pricing" onClick={scrollToPricing} className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600">Tarifs</a>
+              <a href="#pricing" onClick={scrollToPricing} className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600">{t('pLanding.nav.pricing')}</a>
 
-              <Link to="/about" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600">À propos</Link>
+              <Link to="/about" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600">{t('pLanding.nav.about')}</Link>
 
               <div className="relative group">
                 <button className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600 flex items-center gap-1">
-                  Ressources <ChevronDown size={16} />
+                  {t('pLanding.nav.resources')} <ChevronDown size={16} />
                 </button>
                 <div className="absolute left-0 mt-0 w-48 bg-white dark:bg-ink-900 border border-gray-200 dark:border-ink-700 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition">
-                  <Link to="/documentation" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">Documentation</Link>
-                  <Link to="/help" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">Centre d'aide</Link>
-                  <Link to="/blog" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">Blog</Link>
+                  <Link to="/documentation" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">{t('pLanding.nav.docs')}</Link>
+                  <Link to="/help" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">{t('pLanding.nav.help')}</Link>
+                  <Link to="/blog" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">{t('pLanding.nav.blog')}</Link>
                 </div>
               </div>
             </nav>
@@ -147,9 +147,9 @@ export function LandingPage() {
               >
                 <Globe size={18} /> {lang.toUpperCase()}
               </button>
-              <Link to="/login" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600">Connexion</Link>
+              <Link to="/login" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600">{t('pLanding.nav.login')}</Link>
               <Link to="/signup" className="px-6 py-2 bg-brand-600 text-white rounded-full font-medium hover:bg-brand-700 transition">
-                Essai gratuit
+                {t('pLanding.nav.cta')}
               </Link>
             </div>
 
@@ -168,13 +168,13 @@ export function LandingPage() {
               exit={{ opacity: 0, height: 0 }}
               className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-ink-700 space-y-3"
             >
-              <a href="#features" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">Fonctionnalités</a>
-              <a href="#pricing" onClick={scrollToPricing} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">Tarifs</a>
-              <Link to="/about" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">À propos</Link>
-              <Link to="/documentation" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">Documentation</Link>
-              <Link to="/help" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">Aide</Link>
-              <Link to="/login" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">Connexion</Link>
-              <Link to="/signup" className="block w-full px-6 py-2 bg-brand-600 text-white rounded-full font-medium text-center">Essai gratuit</Link>
+              <a href="#features" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.footer.features')}</a>
+              <a href="#pricing" onClick={scrollToPricing} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.pricing')}</a>
+              <Link to="/about" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.about')}</Link>
+              <Link to="/documentation" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.docs')}</Link>
+              <Link to="/help" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.help')}</Link>
+              <Link to="/login" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.login')}</Link>
+              <Link to="/signup" className="block w-full px-6 py-2 bg-brand-600 text-white rounded-full font-medium text-center">{t('pLanding.nav.cta')}</Link>
             </motion.div>
           )}
         </div>
@@ -200,7 +200,7 @@ export function LandingPage() {
               className="mb-8 inline-flex items-center gap-2 bg-gray-800/50 border border-gray-700 rounded-full px-4 py-2 backdrop-blur"
             >
               <MapPin size={16} className="text-action-500" />
-              <span className="text-sm font-medium text-gray-300">Développé par LiAfrik — Dubaï & Afrique</span>
+              <span className="text-sm font-medium text-gray-300">{t('pLanding.hero.badge')}</span>
             </motion.div>
 
             <motion.h1
@@ -209,9 +209,9 @@ export function LandingPage() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight"
             >
-              Le point de vente qui{' '}
+              {t('pLanding.hero.titleStart')}{' '}
               <span className="relative inline-block">
-                <span className="text-white">relie</span>
+                <span className="text-white">{t('pLanding.hero.titleAccent')}</span>
                 <svg
                   className="absolute left-0 right-0 bottom-1 w-full h-3"
                   viewBox="0 0 300 50"
@@ -221,7 +221,7 @@ export function LandingPage() {
                   <path d="M 0 30 Q 75 5 150 30 T 300 30" stroke="#F96F22" strokeWidth="4" fill="none" strokeLinecap="round" />
                 </svg>
               </span>{' '}
-              Dubaï et l'Afrique
+              {t('pLanding.hero.titleEnd')}
             </motion.h1>
 
             <motion.p
@@ -230,8 +230,7 @@ export function LandingPage() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-xl text-gray-300 mb-8 max-w-lg leading-relaxed"
             >
-              Caisse, stock, facturation et paiements multi-devises dans une seule plateforme,
-              pensée pour les commerçants qui opèrent entre le Golfe et l'Afrique.
+              {t('pLanding.hero.desc')}
             </motion.p>
 
             <motion.form
@@ -243,7 +242,7 @@ export function LandingPage() {
             >
               <input
                 type="email"
-                placeholder="Votre email professionnel"
+                placeholder={t('pLanding.hero.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="flex-1 px-6 py-3 rounded-full bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-600"
@@ -253,21 +252,21 @@ export function LandingPage() {
                 type="submit"
                 className="px-8 py-3 bg-brand-600 text-white rounded-full font-semibold hover:bg-brand-700 transition whitespace-nowrap"
               >
-                Démarrer
+                {t('pLanding.hero.start')}
               </button>
             </motion.form>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }} className="flex flex-wrap items-center gap-6">
               <a href="#features" className="inline-flex items-center gap-2 text-sm font-semibold text-white border border-gray-600 hover:border-gray-400 rounded-full px-5 py-2.5 transition">
-                Explorer les fonctionnalités
+                {t('pLanding.hero.exploreFeatures')}
               </a>
               <a href="#pricing" onClick={scrollToPricing} className="inline-flex items-center gap-2 text-gray-300 hover:text-white transition font-medium text-sm">
-                Voir la tarification <ArrowRight size={16} />
+                {t('pLanding.hero.viewPricing')} <ArrowRight size={16} />
               </a>
             </motion.div>
 
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.5 }} className="text-xs text-gray-500 mt-6">
-              Essai gratuit de 7 jours, sans carte bancaire.
+              {t('pLanding.hero.noCard')}
             </motion.p>
           </div>
         </div>
@@ -398,38 +397,38 @@ export function LandingPage() {
               <p className="font-semibold text-gray-900 dark:text-white mb-4">Produit</p>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <li><a href="#features" className="hover:text-brand-600">Fonctionnalités</a></li>
-                <li><a href="#pricing" onClick={scrollToPricing} className="hover:text-brand-600">Tarifs</a></li>
-                <li><Link to="/marketplace" className="hover:text-brand-600">Marketplace</Link></li>
+                <li><a href="#pricing" onClick={scrollToPricing} className="hover:text-brand-600">{t('pLanding.nav.pricing')}</a></li>
+                <li><Link to="/marketplace" className="hover:text-brand-600">{t('pLanding.footer.marketplace')}</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">Entreprise</p>
+              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.company')}</p>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><Link to="/about" className="hover:text-brand-600">À propos</Link></li>
-                <li><Link to="/careers" className="hover:text-brand-600">Carrières</Link></li>
-                <li><Link to="/blog" className="hover:text-brand-600">Blog</Link></li>
-                <li><Link to="/contact" className="hover:text-brand-600">Contact</Link></li>
+                <li><Link to="/about" className="hover:text-brand-600">{t('pLanding.footer.about')}</Link></li>
+                <li><Link to="/careers" className="hover:text-brand-600">{t('pLanding.footer.careers')}</Link></li>
+                <li><Link to="/blog" className="hover:text-brand-600">{t('pLanding.footer.blog')}</Link></li>
+                <li><Link to="/contact" className="hover:text-brand-600">{t('pLanding.footer.contact')}</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">Ressources</p>
+              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.resources')}</p>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><Link to="/help" className="hover:text-brand-600">Centre d'aide</Link></li>
-                <li><Link to="/documentation" className="hover:text-brand-600">Documentation</Link></li>
+                <li><Link to="/help" className="hover:text-brand-600">{t('pLanding.footer.help')}</Link></li>
+                <li><Link to="/documentation" className="hover:text-brand-600">{t('pLanding.footer.docs')}</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">Légal</p>
+              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.legal')}</p>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><Link to="/privacy" className="hover:text-brand-600">Confidentialité</Link></li>
-                <li><Link to="/terms" className="hover:text-brand-600">Conditions d'utilisation</Link></li>
-                <li><Link to="/legal" className="hover:text-brand-600">Mentions légales</Link></li>
+                <li><Link to="/privacy" className="hover:text-brand-600">{t('pLanding.footer.privacy')}</Link></li>
+                <li><Link to="/terms" className="hover:text-brand-600">{t('pLanding.footer.terms')}</Link></li>
+                <li><Link to="/legal" className="hover:text-brand-600">{t('pLanding.footer.legalNotice')}</Link></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-gray-200 dark:border-ink-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              © 2026 POS Flow — développé par LiAfrik, Dubaï & Afrique. Tous droits réservés.
+              {t('pLanding.footer.rights', { year: new Date().getFullYear() })}
             </p>
             <button onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')} className="text-sm text-gray-600 dark:text-gray-400 hover:text-brand-600">
               {lang.toUpperCase()}
