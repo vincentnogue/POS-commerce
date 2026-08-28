@@ -17,6 +17,7 @@ export default {
           700: 'var(--color-brand-700, #1B5C40)',
           800: 'var(--color-brand-800, #144430)',
           900: 'var(--color-brand-900, #0D2C20)',
+          950: 'var(--color-brand-950, #081F16)',
         },
         // Turquoise accent (logo "Flow")
         flow: {
@@ -58,6 +59,7 @@ export default {
           700: '#465047',
           800: '#2F372F',
           900: '#1A201A',
+          950: '#0E120E',
         },
       },
       fontFamily: {
