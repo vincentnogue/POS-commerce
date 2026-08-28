@@ -257,13 +257,16 @@ export function LandingPage() {
               </button>
             </motion.form>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}>
-              <a href="#pricing" onClick={scrollToPricing} className="inline-flex items-center gap-2 text-gray-300 hover:text-white transition font-medium">
-                Voir la tarification <ArrowRight size={18} />
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }} className="flex flex-wrap items-center gap-6">
+              <a href="#features" className="inline-flex items-center gap-2 text-sm font-semibold text-white border border-gray-600 hover:border-gray-400 rounded-full px-5 py-2.5 transition">
+                Explorer les fonctionnalités
+              </a>
+              <a href="#pricing" onClick={scrollToPricing} className="inline-flex items-center gap-2 text-gray-300 hover:text-white transition font-medium text-sm">
+                Voir la tarification <ArrowRight size={16} />
               </a>
             </motion.div>
 
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.5 }} className="text-xs text-gray-500 mt-4">
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.5 }} className="text-xs text-gray-500 mt-6">
               Essai gratuit de 7 jours, sans carte bancaire.
             </motion.p>
           </div>
