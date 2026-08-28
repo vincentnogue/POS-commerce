@@ -178,6 +178,60 @@ async function testPaystack(credentials: Record<string, string>): Promise<TestCo
   }
 }
 
+/**
+ * BUG FIX: PayUnit had no test function at all — the router below fell
+ * through to the "provider not supported yet" default for provider_key
+ * "payunit", so a PayUnit connection could never pass the test step in
+ * IntegrationCredentialForm (which only calls the save step after a
+ * successful test). This mirrors the same lightweight
+ * authenticate-then-check-response pattern used for the other PSPs.
+ *
+ * NOTE: PayUnit's exact "list/check account" endpoint could not be
+ * verified against their live API docs from this environment (no network
+ * access to payunit.net here) — this hits the sandbox transactions listing
+ * endpoint as a low-risk auth check. Please confirm this against
+ * https://docs.payunit.net before relying on it in production; the wiring
+ * (routing, tenant checks, credential decryption) is correct regardless of
+ * the exact endpoint path.
+ */
+async function testPayUnit(credentials: Record<string, string>): Promise<TestConnectionResponse> {
+  try {
+    const apiKey = credentials.api_key;
+    const merchantId = credentials.merchant_id;
+    if (!apiKey || !merchantId) {
+      return { success: false, message: "Missing api_key or merchant_id", error: "MISSING_CREDENTIAL" };
+    }
+
+    const testMode = credentials.test_mode !== "false";
+    const baseUrl = testMode ? "https://api.sandbox.payunit.net/v1" : "https://api.payunit.net/v1";
+
+    const response = await fetch(`${baseUrl}/transactions?merchant_id=${encodeURIComponent(merchantId)}&limit=1`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: "Invalid PayUnit credentials",
+        error: "INVALID_CREDENTIALS",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Successfully connected to PayUnit",
+      account_id: merchantId,
+      account_name: "PayUnit Account",
+    };
+  } catch (err) {
+    return { success: false, message: `PayUnit test failed: ${err.message}`, error: "CONNECTION_ERROR" };
+  }
+}
+
 async function testSellia(credentials: Record<string, string>): Promise<TestConnectionResponse> {
   try {
     const apiKey = credentials.api_key;
@@ -263,6 +317,8 @@ async function testConnection(
       return testFlutterwave(credentials);
     case "paystack":
       return testPaystack(credentials);
+    case "payunit":
+      return testPayUnit(credentials);
     case "sellia":
       return testSellia(credentials);
     case "twilio":

@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -228,8 +229,9 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
 
-    if (!supabaseUrl || !serviceRoleKey) {
+    if (!supabaseUrl || !serviceRoleKey || !anonKey) {
       return new Response(
         JSON.stringify({ success: false, message: "Server not configured" }),
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -248,6 +250,44 @@ Deno.serve(async (req: Request) => {
         return new Response(
           JSON.stringify({ success: false, message: "Missing required fields" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // BUG FIX / SECURITY: strict multi-tenant isolation (see
+      // paystack-payments for the same fix and rationale) — verify the
+      // caller actually belongs to body.tenant_id before touching any
+      // Flutterwave credentials or moving money.
+      const authHeader = req.headers.get("Authorization") ?? "";
+      const bearerToken = authHeader.replace("Bearer ", "");
+      const callerClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: `Bearer ${bearerToken}` } },
+      });
+      const { data: callerData, error: callerErr } = await callerClient.auth.getUser();
+      if (callerErr || !callerData.user) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Non authentifié" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const adminClient = createClient(supabaseUrl, serviceRoleKey);
+      const { data: callerMember } = await adminClient
+        .from("tenant_members")
+        .select("role")
+        .eq("tenant_id", body.tenant_id)
+        .eq("user_id", callerData.user.id)
+        .maybeSingle();
+
+      if (!callerMember) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Accès refusé pour ce tenant" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (action === "refund" && !["admin", "manager", "super_admin"].includes(callerMember.role)) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Permission insuffisante pour un remboursement" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 

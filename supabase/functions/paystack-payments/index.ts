@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -48,7 +49,9 @@ async function initializePaystackTransaction(
       body: JSON.stringify({
         email: request.email,
         amount: amountInSubunits,
-        currency: request.currency || "NGN",
+        // BUG FIX: platform currency is USD, not NGN — this used to force
+        // every transaction with no explicit currency to Nigerian Naira.
+        currency: request.currency || "USD",
         metadata: {
           tenant_id: request.tenant_id,
           sale_id: request.sale_id,
@@ -112,7 +115,7 @@ async function verifyPaystackTransaction(
       return {
         status: "error",
         amount: 0,
-        currency: "NGN",
+        currency: "USD",
         error: error.message || "Verification failed",
       };
     }
@@ -122,7 +125,7 @@ async function verifyPaystackTransaction(
       return {
         status: "error",
         amount: 0,
-        currency: "NGN",
+        currency: "USD",
         error: "No transaction data",
       };
     }
@@ -138,7 +141,7 @@ async function verifyPaystackTransaction(
     return {
       status: "error",
       amount: 0,
-      currency: "NGN",
+      currency: "USD",
       error: err.message,
     };
   }
@@ -245,8 +248,9 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
 
-    if (!supabaseUrl || !serviceRoleKey) {
+    if (!supabaseUrl || !serviceRoleKey || !anonKey) {
       return new Response(
         JSON.stringify({ success: false, message: "Server not configured" }),
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -265,6 +269,46 @@ Deno.serve(async (req: Request) => {
         return new Response(
           JSON.stringify({ success: false, message: "Missing required fields" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // BUG FIX / SECURITY: strict multi-tenant isolation. This function
+      // used to trust body.tenant_id blindly — any authenticated caller
+      // could pass ANY tenant_id and initialize charges or issue refunds
+      // against a completely different tenant's Paystack account. Verify
+      // the caller is actually a member of tenant_id before doing anything.
+      const authHeader = req.headers.get("Authorization") ?? "";
+      const bearerToken = authHeader.replace("Bearer ", "");
+      const callerClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: `Bearer ${bearerToken}` } },
+      });
+      const { data: callerData, error: callerErr } = await callerClient.auth.getUser();
+      if (callerErr || !callerData.user) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Non authentifié" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const adminClient = createClient(supabaseUrl, serviceRoleKey);
+      const { data: callerMember } = await adminClient
+        .from("tenant_members")
+        .select("role")
+        .eq("tenant_id", body.tenant_id)
+        .eq("user_id", callerData.user.id)
+        .maybeSingle();
+
+      if (!callerMember) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Accès refusé pour ce tenant" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      // Refunds are a sensitive, money-moving action — restrict to admins/managers.
+      if (action === "refund" && !["admin", "manager", "super_admin"].includes(callerMember.role)) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Permission insuffisante pour un remboursement" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
