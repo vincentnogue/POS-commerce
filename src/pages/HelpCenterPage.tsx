@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Search, ChevronDown, BookOpen, Zap, Shield, Users, CreditCard, Globe } from 'lucide-react';
+import { Search, ChevronDown, BookOpen, Zap, Shield, Users, CreditCard, Globe, Check, X } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface FAQItem {
   id: string;
@@ -8,6 +9,29 @@ interface FAQItem {
   answer: string;
   icon?: typeof BookOpen;
 }
+
+interface PlanFeature {
+  feature: string;
+  starter: boolean;
+  pro: boolean;
+  business: boolean;
+  enterprise: boolean;
+}
+
+const PLAN_FEATURES: PlanFeature[] = [
+  { feature: 'Basic POS System', starter: true, pro: true, business: true, enterprise: true },
+  { feature: 'Unlimited Products', starter: false, pro: false, business: true, enterprise: true },
+  { feature: 'API Access', starter: false, pro: true, business: true, enterprise: true },
+  { feature: 'Advanced Reports', starter: false, pro: true, business: true, enterprise: true },
+  { feature: 'Custom Integrations', starter: false, pro: false, business: true, enterprise: true },
+  { feature: 'Dedicated Support', starter: false, pro: false, business: false, enterprise: true },
+  { feature: 'Priority Support', starter: false, pro: true, business: true, enterprise: true },
+  { feature: 'SSO/SAML', starter: false, pro: false, business: false, enterprise: true },
+  { feature: 'Audit Logs', starter: false, pro: true, business: true, enterprise: true },
+  { feature: 'Multi-store Support', starter: false, pro: true, business: true, enterprise: true },
+  { feature: 'Email Support', starter: true, pro: true, business: true, enterprise: true },
+  { feature: 'Chat Support (24/7)', starter: false, pro: true, business: true, enterprise: true },
+];
 
 const FAQ_ITEMS: FAQItem[] = [
   {
@@ -193,6 +217,72 @@ export function HelpCenterPage() {
               <p className="text-ink-500 dark:text-ink-300">No results found. Try a different search term.</p>
             </div>
           )}
+        </div>
+
+        {/* Plan Features Matrix */}
+        <div className="my-16 py-12 border-y border-ink-200 dark:border-ink-700">
+          <h2 className="text-3xl font-bold text-ink-900 dark:text-white mb-8 text-center">Features by Plan</h2>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-ink-200 dark:border-ink-700">
+                  <th className="text-left py-4 px-4 font-semibold text-ink-900 dark:text-white">Feature</th>
+                  <th className="text-center py-4 px-4 font-semibold">
+                    <div className="text-ink-600 dark:text-ink-300">Starter</div>
+                    <div className="text-xs text-ink-500 dark:text-ink-400">$9/mo</div>
+                  </th>
+                  <th className="text-center py-4 px-4 font-semibold">
+                    <div className="text-ink-600 dark:text-ink-300">Professional</div>
+                    <div className="text-xs text-ink-500 dark:text-ink-400">$19/mo</div>
+                  </th>
+                  <th className="text-center py-4 px-4 font-semibold">
+                    <div className="text-ink-600 dark:text-ink-300">Business</div>
+                    <div className="text-xs text-ink-500 dark:text-ink-400">$49/mo</div>
+                  </th>
+                  <th className="text-center py-4 px-4 font-semibold">
+                    <div className="text-ink-600 dark:text-ink-300">Enterprise</div>
+                    <div className="text-xs text-ink-500 dark:text-ink-400">$119/mo</div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {PLAN_FEATURES.map((item, idx) => (
+                  <tr key={idx} className={idx % 2 === 0 ? 'bg-white dark:bg-ink-950' : 'bg-ink-50/50 dark:bg-ink-900/30'}>
+                    <td className="py-3 px-4 text-ink-900 dark:text-ink-100 font-medium">{item.feature}</td>
+                    <td className="text-center py-3 px-4">
+                      {item.starter ? (
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400 mx-auto" />
+                      ) : (
+                        <X className="w-5 h-5 text-ink-300 dark:text-ink-600 mx-auto" />
+                      )}
+                    </td>
+                    <td className="text-center py-3 px-4">
+                      {item.pro ? (
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400 mx-auto" />
+                      ) : (
+                        <X className="w-5 h-5 text-ink-300 dark:text-ink-600 mx-auto" />
+                      )}
+                    </td>
+                    <td className="text-center py-3 px-4">
+                      {item.business ? (
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400 mx-auto" />
+                      ) : (
+                        <X className="w-5 h-5 text-ink-300 dark:text-ink-600 mx-auto" />
+                      )}
+                    </td>
+                    <td className="text-center py-3 px-4">
+                      {item.enterprise ? (
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400 mx-auto" />
+                      ) : (
+                        <X className="w-5 h-5 text-ink-300 dark:text-ink-600 mx-auto" />
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Contact Section */}
