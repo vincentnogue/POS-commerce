@@ -1,8 +1,19 @@
+-- BUG FIX: every statement below is now idempotent (IF NOT EXISTS / DROP
+-- POLICY IF EXISTS first). This migration previously failed CI on
+-- "column trial_ends_at of relation tenants already exists" (SQLSTATE
+-- 42701) because the column had already been added to the real database at
+-- some point, but this file's migration state had drifted out of sync with
+-- that (e.g. after a manual dashboard fix or a re-numbered file), so
+-- `supabase db push` tried to re-run it from statement 0 and aborted
+-- immediately — which also skipped deploying any edge functions in the same
+-- CI run. Making it idempotent means it's safe to (re)apply regardless of
+-- which of these objects already exist, without changing the end schema.
+
 -- Add trial_ends_at column for 14-day free trial
-ALTER TABLE tenants ADD COLUMN trial_ends_at TIMESTAMP NULL DEFAULT NULL;
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMP NULL DEFAULT NULL;
 
 -- Create index on trial_ends_at for quick lookups
-CREATE INDEX idx_tenants_trial_ends_at ON tenants(trial_ends_at);
+CREATE INDEX IF NOT EXISTS idx_tenants_trial_ends_at ON tenants(trial_ends_at);
 
 -- Add comment explaining the field
 COMMENT ON COLUMN tenants.trial_ends_at IS '14-day free trial expiration date. If NULL, either trial not started or plan active.';
@@ -55,12 +66,13 @@ CREATE TABLE IF NOT EXISTS super_admin_audit_logs (
 );
 
 -- Create index on super_admin_audit_logs
-CREATE INDEX idx_super_admin_audit_created_at ON super_admin_audit_logs(created_at DESC);
-CREATE INDEX idx_super_admin_audit_super_admin_id ON super_admin_audit_logs(super_admin_id);
+CREATE INDEX IF NOT EXISTS idx_super_admin_audit_created_at ON super_admin_audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_super_admin_audit_super_admin_id ON super_admin_audit_logs(super_admin_id);
 
 -- RLS for super_admin_audit_logs (only super admins can view their own logs)
 ALTER TABLE super_admin_audit_logs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS super_admin_audit_self ON super_admin_audit_logs;
 CREATE POLICY super_admin_audit_self ON super_admin_audit_logs
   FOR SELECT
   USING (
@@ -81,12 +93,13 @@ CREATE TABLE IF NOT EXISTS payment_verification (
   UNIQUE(tenant_id, verification_type)
 );
 
-CREATE INDEX idx_payment_verification_tenant ON payment_verification(tenant_id);
-CREATE INDEX idx_payment_verification_status ON payment_verification(status);
+CREATE INDEX IF NOT EXISTS idx_payment_verification_tenant ON payment_verification(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_payment_verification_status ON payment_verification(status);
 
 -- RLS for payment_verification
 ALTER TABLE payment_verification ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS payment_verification_own_tenant ON payment_verification;
 CREATE POLICY payment_verification_own_tenant ON payment_verification
   FOR SELECT
   USING (
