@@ -106,41 +106,36 @@ export function LandingPage() {
       <header className="sticky top-0 z-40 border-b border-gray-100 dark:border-ink-800 bg-white/95 dark:bg-ink-950/95 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 py-4 lg:px-8">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-brand-600">POS Flow</span>
+            <Link to="/" className="flex items-center gap-2.5">
+              <img src="/logo-pos-icon.png" alt="Liafrik POS" className="h-9 w-9" />
+              <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+                Liafrik <span className="text-brand-600">POS</span>
+              </span>
             </Link>
 
             <nav className="hidden md:flex items-center gap-8">
               <div className="relative group">
                 <button className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600 flex items-center gap-1">
-                  Retail <ChevronDown size={16} />
-                </button>
-                <div className="absolute left-0 mt-0 w-56 bg-white dark:bg-ink-900 border border-gray-200 dark:border-ink-700 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition">
-                  <a href="#features" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">Caisse (POS)</a>
-                  <a href="#features" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">Gestion du stock</a>
-                  <a href="#features" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">Multi-boutique</a>
-                </div>
-              </div>
-
-              <div className="relative group">
-                <button className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600 flex items-center gap-1">
                   Produits <ChevronDown size={16} />
                 </button>
-                <div className="absolute left-0 mt-0 w-56 bg-white dark:bg-ink-900 border border-gray-200 dark:border-ink-700 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition">
-                  <a href="#features" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">Plateforme complète</a>
+                <div className="absolute left-0 mt-0 w-64 bg-white dark:bg-ink-900 border border-gray-200 dark:border-ink-700 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition">
+                  <a href="#features" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">Caisse, stock & facturation</a>
                   <Link to="/marketplace" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">Marketplace & intégrations</Link>
                 </div>
               </div>
 
               <a href="#pricing" onClick={scrollToPricing} className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600">Tarifs</a>
 
+              <Link to="/about" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600">À propos</Link>
+
               <div className="relative group">
                 <button className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600 flex items-center gap-1">
                   Ressources <ChevronDown size={16} />
                 </button>
                 <div className="absolute left-0 mt-0 w-48 bg-white dark:bg-ink-900 border border-gray-200 dark:border-ink-700 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition">
-                  <Link to="/help" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">Centre d'aide</Link>
                   <Link to="/documentation" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">Documentation</Link>
+                  <Link to="/help" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">Centre d'aide</Link>
+                  <Link to="/blog" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">Blog</Link>
                 </div>
               </div>
             </nav>
@@ -173,7 +168,10 @@ export function LandingPage() {
               exit={{ opacity: 0, height: 0 }}
               className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-ink-700 space-y-3"
             >
+              <a href="#features" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">Fonctionnalités</a>
               <a href="#pricing" onClick={scrollToPricing} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">Tarifs</a>
+              <Link to="/about" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">À propos</Link>
+              <Link to="/documentation" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">Documentation</Link>
               <Link to="/help" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">Aide</Link>
               <Link to="/login" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">Connexion</Link>
               <Link to="/signup" className="block w-full px-6 py-2 bg-brand-600 text-white rounded-full font-medium text-center">Essai gratuit</Link>
@@ -404,8 +402,10 @@ export function LandingPage() {
             <div>
               <p className="font-semibold text-gray-900 dark:text-white mb-4">Entreprise</p>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li className="text-gray-500 dark:text-gray-500">LiAfrik — Dubaï, EAU</li>
-                <li className="text-gray-500 dark:text-gray-500">Opérations en Afrique</li>
+                <li><Link to="/about" className="hover:text-brand-600">À propos</Link></li>
+                <li><Link to="/careers" className="hover:text-brand-600">Carrières</Link></li>
+                <li><Link to="/blog" className="hover:text-brand-600">Blog</Link></li>
+                <li><Link to="/contact" className="hover:text-brand-600">Contact</Link></li>
               </ul>
             </div>
             <div>
@@ -418,8 +418,9 @@ export function LandingPage() {
             <div>
               <p className="font-semibold text-gray-900 dark:text-white mb-4">Légal</p>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><a href="#" className="hover:text-brand-600">Confidentialité</a></li>
-                <li><a href="#" className="hover:text-brand-600">Conditions d'utilisation</a></li>
+                <li><Link to="/privacy" className="hover:text-brand-600">Confidentialité</Link></li>
+                <li><Link to="/terms" className="hover:text-brand-600">Conditions d'utilisation</Link></li>
+                <li><Link to="/legal" className="hover:text-brand-600">Mentions légales</Link></li>
               </ul>
             </div>
           </div>
