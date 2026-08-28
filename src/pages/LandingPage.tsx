@@ -15,17 +15,18 @@ import {
 } from '../lib/currency';
 
 // Real feature set — every entry below maps to an actual module that ships
-// in this app (see src/pages/modules/*), not aspirational copy.
-const FEATURES = [
-  { icon: ShoppingCart, title: 'Caisse (POS)', desc: 'Encaissement rapide, hors-ligne compatible, tickets et reçus personnalisables.' },
-  { icon: Package, title: 'Gestion du stock', desc: "Suivi des niveaux de stock, alertes de rupture, transferts entre boutiques." },
-  { icon: Store, title: 'Multi-boutique & GPS', desc: 'Pilotez plusieurs points de vente, avec localisation GPS de chaque boutique.' },
-  { icon: Wallet, title: 'Multi-devises réelles', desc: `${30}+ devises avec taux de conversion en direct — du Dirham au Franc CFA.` },
-  { icon: FileText, title: 'Factures & devis', desc: 'Facturation automatique, devis, bons de commande et suivi des livraisons.' },
-  { icon: Plug, title: 'Marketplace de paiements', desc: 'Connectez PayUnit, Flutterwave, Paystack et vos processeurs locaux.' },
-  { icon: BarChart3, title: 'Rapports & comptabilité', desc: 'Tableaux de bord en temps réel et comptabilité complète intégrée.' },
-  { icon: ShieldCheck, title: 'Rôles & permissions', desc: 'Contrôle granulaire des accès par employé, boutique et fonction.' },
-];
+// in this app (see src/pages/modules/*), not aspirational copy. Titles/descriptions
+// come from i18n (pLanding.feature.*) so the EN toggle translates this grid too.
+const FEATURE_KEYS = [
+  { icon: ShoppingCart, key: 'pos' },
+  { icon: Package, key: 'stock' },
+  { icon: Store, key: 'stores' },
+  { icon: Wallet, key: 'currencies' },
+  { icon: FileText, key: 'invoicing' },
+  { icon: Plug, key: 'marketplace' },
+  { icon: BarChart3, key: 'reports' },
+  { icon: ShieldCheck, key: 'roles' },
+] as const;
 
 function formatUpdatedAt(iso: string | null): string {
   if (!iso) return '';
@@ -185,7 +186,7 @@ export function LandingPage() {
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1687422808311-a776f467a468?w=1600&h=1000&fit=crop&q=80"
-            alt="Commerçante au comptoir de sa boutique"
+            alt={t('pLanding.hero.imageAlt')}
             className="w-full h-full object-cover opacity-40"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/40" />
@@ -278,15 +279,15 @@ export function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <p className="text-3xl font-bold text-gray-900 dark:text-white">30+</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Devises avec conversion en direct</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.currencies')}</p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-gray-900 dark:text-white">2</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Régions connectées : Golfe & Afrique</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.regions')}</p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-gray-900 dark:text-white">3</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Processeurs de paiement intégrés</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.processors')}</p>
             </div>
           </div>
         </div>
@@ -296,24 +297,24 @@ export function LandingPage() {
       <section id="features" className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center mb-14">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Tout ce qu'il faut pour faire tourner votre commerce
+            {t('pLanding.features.title')}
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Une seule plateforme, du comptoir jusqu'à la comptabilité.
+            {t('pLanding.features.desc')}
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {FEATURES.map((f) => (
+          {FEATURE_KEYS.map((f) => (
             <div
-              key={f.title}
+              key={f.key}
               className="rounded-xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 hover:border-brand-500/50 hover:shadow-lg transition"
             >
               <div className="w-11 h-11 rounded-lg bg-brand-500/10 flex items-center justify-center mb-4">
                 <f.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
               </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{f.title}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{f.desc}</p>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t(`pLanding.feature.${f.key}.title`)}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{t(`pLanding.feature.${f.key}.desc`)}</p>
             </div>
           ))}
         </div>
@@ -324,15 +325,15 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-4">
             <div className="inline-block px-4 py-2 rounded-full bg-flow-500/10 border border-flow-500/30 text-flow-300 text-sm font-semibold mb-6">
-              Tarification simple et transparente
+              {t('pLanding.pricing.badge')}
             </div>
-            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">Un tarif pour chaque taille de commerce</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">{t('pLanding.pricing.title')}</h2>
             <p className="text-lg text-ink-300 max-w-2xl mx-auto mb-2">
-              4 plans, des prix en dollars convertis automatiquement dans votre devise locale.
+              {t('pLanding.pricing.desc')}
             </p>
             {ratesUpdatedAt && (
               <p className="text-xs text-ink-500">
-                {ratesLive ? 'Taux de change en direct' : 'Taux indicatifs'} · dernière mise à jour {formatUpdatedAt(ratesUpdatedAt)}
+                {ratesLive ? t('pLanding.pricing.ratesLive') : t('pLanding.pricing.ratesIndicative')} · {t('pLanding.pricing.updated', { date: formatUpdatedAt(ratesUpdatedAt) })}
               </p>
             )}
           </div>
@@ -353,7 +354,7 @@ export function LandingPage() {
 
           <div className="text-center mt-10">
             <Link to="/pricing" className="inline-flex items-center gap-2 text-flow-300 hover:text-flow-200 font-medium">
-              Voir la matrice complète des 30+ devises <ArrowRight size={18} />
+              {t('pLanding.pricing.viewMatrix')} <ArrowRight size={18} />
             </Link>
           </div>
         </div>
@@ -362,17 +363,13 @@ export function LandingPage() {
       {/* Why LiAfrik built this */}
       <section className="py-20 px-4 lg:px-8 max-w-5xl mx-auto text-center">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-          Pensé pour les commerçants entre le Golfe et l'Afrique
+          {t('pLanding.why.title')}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left mt-10">
-          {[
-            'Multi-devises natif : dirham, franc CFA, shilling, rand, cedi et plus, avec conversion en temps réel.',
-            "Multi-boutique avec suivi GPS, pour les réseaux qui s'étendent sur plusieurs pays.",
-            'Marketplace de paiements locaux (PayUnit, Flutterwave, Paystack) au lieu de dépendre d\'un seul processeur.',
-          ].map((point) => (
-            <div key={point} className="flex items-start gap-3">
+          {(['point1', 'point2', 'point3'] as const).map((key) => (
+            <div key={key} className="flex items-start gap-3">
               <Check className="w-5 h-5 text-brand-600 flex-shrink-0 mt-1" />
-              <p className="text-gray-600 dark:text-gray-300">{point}</p>
+              <p className="text-gray-600 dark:text-gray-300">{t(`pLanding.why.${key}`)}</p>
             </div>
           ))}
         </div>
@@ -381,10 +378,10 @@ export function LandingPage() {
       {/* CTA */}
       <section className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
         <div className="bg-gradient-to-r from-brand-50 to-orange-50 dark:from-brand-900/20 dark:to-orange-900/20 rounded-3xl p-12 text-center">
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Prêt à équiper votre commerce ?</h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">Essai gratuit de 7 jours. Aucune carte bancaire requise.</p>
+          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{t('pLanding.finalCta.title')}</h2>
+          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">{t('pLanding.finalCta.desc')}</p>
           <Link to="/signup" className="inline-block px-8 py-4 bg-brand-600 text-white rounded-full font-semibold hover:bg-brand-700 transition">
-            Démarrer l'essai gratuit
+            {t('pLanding.finalCta.button')}
           </Link>
         </div>
       </section>
@@ -394,9 +391,9 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 py-12 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">Produit</p>
+              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.product')}</p>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><a href="#features" className="hover:text-brand-600">Fonctionnalités</a></li>
+                <li><a href="#features" className="hover:text-brand-600">{t('pLanding.footer.features')}</a></li>
                 <li><a href="#pricing" onClick={scrollToPricing} className="hover:text-brand-600">{t('pLanding.nav.pricing')}</a></li>
                 <li><Link to="/marketplace" className="hover:text-brand-600">{t('pLanding.footer.marketplace')}</Link></li>
               </ul>
