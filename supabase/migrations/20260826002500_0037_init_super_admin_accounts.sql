@@ -45,12 +45,13 @@ BEGIN
 
   IF v_tenant_id IS NULL THEN
     INSERT INTO tenants (
-      id, name, country_code, country_name, region, currency, status, created_at
+      id, name, country_code, country_name, region, city, currency, status, created_at
     ) VALUES (
       gen_random_uuid(),
       'POS Flow - Administration',
       'AE',
       'United Arab Emirates',
+      'Dubai',
       'Dubai',
       'USD',
       'active',
