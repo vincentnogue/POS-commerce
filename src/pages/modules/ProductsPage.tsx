@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, Pencil, Trash2, Package, Download } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, Download, Image as ImageIcon, X } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -9,7 +9,16 @@ import { PageHeader, Modal, EmptyState, useToast } from '../../components/ui';
 import { DataTable, SearchInput, Field, exportCSV } from '../../components/DataTable';
 import type { Product, Category } from '../../lib/types';
 
-const EMPTY = { name: '', sku: '', barcode: '', description: '', cost_price: 0, sale_price: 0, tax_rate: 0, unit: 'unité', low_stock_threshold: 5, category_id: '' };
+const EMPTY = { name: '', sku: '', barcode: '', description: '', cost_price: 0, sale_price: 0, tax_rate: 0, unit: 'unité', low_stock_threshold: 5, category_id: '', image_url: '', sizes: '' };
+
+// products.variants is stored as a JSON array (e.g. [{ type: 'size', value: 'M' }]).
+// The form only needs a simple comma-separated size list for now, so we
+// convert both ways without touching how other parts of the app read variants.
+const variantsToSizesText = (variants: any[] | null | undefined) =>
+  (variants ?? []).filter((v) => v?.type === 'size').map((v) => v.value).join(', ');
+
+const sizesTextToVariants = (text: string) =>
+  text.split(',').map((s) => s.trim()).filter(Boolean).map((value) => ({ type: 'size', value }));
 
 export function ProductsPage() {
   const { tenant, can } = useAuth();
@@ -24,6 +33,7 @@ export function ProductsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState<any>(EMPTY);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const currency = tenant?.currency ?? 'XOF';
   const isNew = params.get('new') === '1';
@@ -60,7 +70,7 @@ export function ProductsPage() {
   const openNew = () => { setEditing(null); setForm(EMPTY); setModalOpen(true); };
   const openEdit = (p: Product) => {
     setEditing(p);
-    setForm({ name: p.name, sku: p.sku ?? '', barcode: p.barcode ?? '', description: p.description ?? '', cost_price: Number(p.cost_price), sale_price: Number(p.sale_price), tax_rate: Number(p.tax_rate), unit: p.unit, low_stock_threshold: p.low_stock_threshold, category_id: p.category_id ?? '' });
+    setForm({ name: p.name, sku: p.sku ?? '', barcode: p.barcode ?? '', description: p.description ?? '', cost_price: Number(p.cost_price), sale_price: Number(p.sale_price), tax_rate: Number(p.tax_rate), unit: p.unit, low_stock_threshold: p.low_stock_threshold, category_id: p.category_id ?? '', image_url: p.image_url ?? '', sizes: variantsToSizesText(p.variants) });
     setModalOpen(true);
   };
 
@@ -78,6 +88,8 @@ export function ProductsPage() {
       tax_rate: Number(form.tax_rate),
       unit: form.unit,
       low_stock_threshold: Number(form.low_stock_threshold),
+      image_url: form.image_url || null,
+      variants: sizesTextToVariants(form.sizes),
       is_active: true,
     };
     if (editing) {
@@ -96,6 +108,18 @@ export function ProductsPage() {
     }
     setModalOpen(false);
     await reload();
+  };
+
+  const uploadProductImage = async (file: File) => {
+    if (!tenant) return;
+    setUploadingImage(true);
+    const ext = file.name.split('.').pop();
+    const path = `${tenant.id}/${editing?.id ?? 'new'}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('product-images').upload(path, file, { upsert: true });
+    if (error) { toast('error', error.message); setUploadingImage(false); return; }
+    const url = supabase.storage.from('product-images').getPublicUrl(path).data.publicUrl;
+    setForm((f: any) => ({ ...f, image_url: url }));
+    setUploadingImage(false);
   };
 
   const remove = async (p: Product) => {
@@ -143,6 +167,11 @@ export function ProductsPage() {
           <DataTable
             loading={loading}
             columns={[
+              { key: 'photo', label: '', render: (p: Product) => (
+                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-brand-50 dark:bg-brand-900/25 text-brand-400">
+                  {p.image_url ? <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" /> : <ImageIcon size={16} />}
+                </div>
+              )},
               { key: 'name', label: t('products.col.name'), render: (p: Product) => (
                 <div>
                   <p className="font-medium text-ink-900 dark:text-ink-50">{p.name}</p>
@@ -167,6 +196,25 @@ export function ProductsPage() {
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? t('products.editTitle') : t('products.newTitle')} maxWidth="max-w-xl">
         <div className="grid gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Field label={t('products.field.photo')}>
+              <div className="flex items-center gap-3">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-ink-200 dark:border-ink-700 bg-brand-50 dark:bg-brand-900/25 text-brand-400">
+                  {form.image_url ? <img src={form.image_url} alt="" className="h-full w-full object-cover" /> : <ImageIcon size={20} />}
+                </div>
+                <label className="btn-ghost cursor-pointer text-sm">
+                  {uploadingImage ? t('products.photo.uploading') : t('products.photo.choose')}
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadProductImage(f); }} />
+                </label>
+                {form.image_url && (
+                  <button type="button" onClick={() => setForm({ ...form, image_url: '' })} className="rounded-lg p-1.5 text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600" title={t('common.remove')}>
+                    <X size={15} />
+                  </button>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-ink-400 dark:text-ink-500">{t('products.photo.hint')}</p>
+            </Field>
+          </div>
           <div className="sm:col-span-2"><Field label={t('products.field.name')}><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" /></Field></div>
           <Field label="SKU"><input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className="input" /></Field>
           <Field label={t('products.field.barcode')}><input value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} className="input" /></Field>
@@ -181,6 +229,11 @@ export function ProductsPage() {
           <Field label={t('products.field.sale')}><input type="number" value={form.sale_price} onChange={(e) => setForm({ ...form, sale_price: e.target.value })} className="input" /></Field>
           <Field label={t('products.field.tax')}><input type="number" value={form.tax_rate} onChange={(e) => setForm({ ...form, tax_rate: e.target.value })} className="input" /></Field>
           <Field label={t('products.field.lowStock')}><input type="number" value={form.low_stock_threshold} onChange={(e) => setForm({ ...form, low_stock_threshold: e.target.value })} className="input" /></Field>
+          <div className="sm:col-span-2">
+            <Field label={t('products.field.sizes')}>
+              <input value={form.sizes} onChange={(e) => setForm({ ...form, sizes: e.target.value })} className="input" placeholder={t('products.field.sizesPlaceholder')} />
+            </Field>
+          </div>
           <div className="sm:col-span-2"><Field label={t('products.field.description')}><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input min-h-[70px]" /></Field></div>
         </div>
         <div className="mt-6 flex justify-end gap-2">

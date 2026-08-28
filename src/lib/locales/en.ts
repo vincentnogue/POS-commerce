@@ -345,6 +345,7 @@ export const en: Record<string, string> = {
 
   // Common
   "common.cancel": "Cancel",
+  "common.remove": "Remove",
   "common.save": "Save",
   "common.delete": "Delete",
   "common.edit": "Edit",
@@ -445,6 +446,12 @@ export const en: Record<string, string> = {
   "products.field.tax": "VAT (%)",
   "products.field.lowStock": "Low stock threshold",
   "products.field.description": "Description",
+  "products.field.photo": "Product photo",
+  "products.field.sizes": "Available sizes",
+  "products.field.sizesPlaceholder": "e.g. S, M, L, XL",
+  "products.photo.choose": "Choose a photo",
+  "products.photo.uploading": "Uploading…",
+  "products.photo.hint": "One or two photos is enough.",
   "products.costUnavailable": "Not available for your role.",
 
   // Stores module
