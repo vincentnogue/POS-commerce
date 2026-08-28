@@ -249,56 +249,61 @@ export function LandingPage() {
             </motion.div>
           </div>
 
-          {/* Dashboard mockup */}
+          {/* Shopping Demo Video */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.3 }}
             className="relative"
           >
-            <div className="animate-float rounded-3xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-4 shadow-float">
-              <div className="flex items-center gap-2 pb-3">
-                <div className="h-3 w-3 rounded-full bg-error-500" />
-                <div className="h-3 w-3 rounded-full bg-warning-500" />
-                <div className="h-3 w-3 rounded-full bg-success-600" />
-                <div className="ml-3 text-xs font-medium text-ink-400 dark:text-ink-500">app.posflow.africa/dashboard</div>
-              </div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {[
-                  { labelKey: 'landing.mock.monthRevenue', value: '$8,400', tone: 'bg-brand-100 dark:bg-brand-900/35 text-brand-700', icon: TrendingUp },
-                  { labelKey: 'landing.mock.sales', value: '128', tone: 'bg-action-100 dark:bg-action-900/35 text-action-600', icon: ShoppingCart },
-                  { labelKey: 'landing.mock.unpaid', value: '3', tone: 'bg-success-100 dark:bg-success-900/35 text-success-700', icon: FileText },
-                  { labelKey: 'landing.mock.deliveries', value: '7', tone: 'bg-warning-100 dark:bg-warning-900/35 text-warning-600', icon: Store },
-                ].map((s) => (
-                  <div key={s.labelKey} className="rounded-2xl border border-ink-200 dark:border-ink-700 p-3">
-                    <div className={`mb-2 inline-flex h-8 w-8 items-center justify-center rounded-full ${s.tone}`}>
-                      <s.icon size={15} />
-                    </div>
-                    <p className="text-[10px] font-medium uppercase text-ink-500 dark:text-ink-400">{t(s.labelKey)}</p>
-                    <p className="text-lg font-medium text-ink-900 dark:text-ink-50">{s.value}</p>
+            <div className="relative rounded-3xl overflow-hidden border-2 border-ink-200 dark:border-ink-700 bg-ink-900 shadow-float">
+              {/* Video */}
+              <div className="relative w-full aspect-video bg-black flex items-center justify-center">
+                <video
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 675'%3E%3Crect fill='%23000' width='1200' height='675'/%3E%3C/svg%3E"
+                >
+                  <source src="https://videos.pexels.com/video-files/3573382/3573382-sd_640_360_24fps.mp4" type="video/mp4" />
+                  {/* Fallback */}
+                  <div className="w-full h-full bg-gradient-to-br from-brand-900 to-ink-900 flex items-center justify-center">
+                    <ShoppingCart size={48} className="text-brand-400" />
                   </div>
-                ))}
+                </video>
+
+                {/* Play Button */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/50 transition cursor-pointer group">
+                  <div className="w-20 h-20 rounded-full bg-brand-500/20 border-2 border-brand-400 flex items-center justify-center group-hover:bg-brand-500/30 transition">
+                    <Play size={32} className="text-white ml-1" />
+                  </div>
+                </div>
               </div>
-              <div className="mt-3 rounded-2xl border border-ink-200 dark:border-ink-700 p-4">
-                <p className="mb-3 text-xs font-medium text-ink-700 dark:text-ink-200">{t('landing.mock.weeklySales')}</p>
-                <div className="flex items-end justify-between gap-2 h-32">
-                  {[42, 65, 38, 80, 55, 90, 72].map((h, i) => (
-                    <div key={i} className="flex flex-1 flex-col items-center gap-1">
-                      <motion.div
-                        initial={{ height: 0 }}
-                        animate={{ height: `${h}%` }}
-                        transition={{ duration: 0.8, delay: 0.6 + i * 0.08 }}
-                        className="w-full rounded-t-md bg-gradient-to-t from-brand-300 to-flow-400"
-                      />
-                      <span className="text-[9px] text-ink-400 dark:text-ink-500">{t(`landing.mock.day${i}`)}</span>
-                    </div>
-                  ))}
+
+              {/* Info Bar */}
+              <div className="bg-ink-800/90 backdrop-blur px-4 py-3 border-t border-ink-700">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-white">{t('landing.hero.title')}</p>
+                    <p className="text-xs text-ink-400">Watch how easily you can manage payments & orders</p>
+                  </div>
+                  <Play size={16} className="text-brand-400" />
                 </div>
               </div>
             </div>
-            <div className="absolute -right-3 -top-3 hidden rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-xs font-medium text-ink-700 dark:text-ink-200 shadow-soft sm:block">
-              <span className="text-success-600">+24%</span> {t('landing.mock.vsLastWeek')}
-            </div>
+
+            {/* Floating Badge */}
+            <motion.div
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="absolute -left-6 -bottom-6 rounded-2xl border-2 border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 py-3 shadow-soft hidden sm:block"
+            >
+              <p className="text-xs font-medium text-ink-500 dark:text-ink-400">
+                <span className="text-success-600 font-bold">✓ Live Demo</span>
+              </p>
+            </motion.div>
           </motion.div>
         </div>
       </section>

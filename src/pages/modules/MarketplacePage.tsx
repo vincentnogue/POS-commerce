@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../lib/auth';
 import { useTenant } from '../../lib/tenant';
@@ -305,6 +306,7 @@ interface IntegrationCardProps {
 }
 
 function IntegrationCard({ provider, connection, isLocked, onConnect, viewMode }: IntegrationCardProps) {
+  const navigate = useNavigate();
   const isConnected = connection?.status === 'connected';
 
   if (viewMode === 'list') {
@@ -389,15 +391,23 @@ function IntegrationCard({ provider, connection, isLocked, onConnect, viewMode }
 
       {/* Footer */}
       <div className="flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-700">
-        <a
-          href={provider.documentation_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 text-xs text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
-        >
-          Docs
-          <ExternalLink className="h-3 w-3" />
-        </a>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate(`/integration/${provider.provider_key.toLowerCase()}`)}
+            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+          >
+            More →
+          </button>
+          <a
+            href={provider.documentation_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-xs text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
+          >
+            Docs
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        </div>
 
         <button
           onClick={onConnect}

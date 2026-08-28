@@ -51,6 +51,7 @@ const AdministrationPage = lazy(() => import('./pages/modules/AdministrationPage
 const SettingsPage = lazy(() => import('./pages/modules/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const SuperAdminPage = lazy(() => import('./pages/modules/SuperAdminPage').then((m) => ({ default: m.SuperAdminPage })));
 const MarketplacePage = lazy(() => import('./pages/modules/MarketplacePage').then((m) => ({ default: m.MarketplacePage })));
+const IntegrationDetailPage = lazy(() => import('./pages/IntegrationDetailPage').then((m) => ({ default: m.IntegrationDetailPage })));
 
 function RouteFallback() {
   return (
@@ -136,6 +137,7 @@ export default function App() {
                       <Route path="/users" element={<UsersPage />} />
                       <Route path="/administration" element={<AdministrationPage />} />
                       <Route path="/marketplace" element={<MarketplacePage />} />
+                      <Route path="/integration/:id" element={<IntegrationDetailPage />} />
                       <Route path="/settings" element={<SettingsPage />} />
                     </Route>
 
