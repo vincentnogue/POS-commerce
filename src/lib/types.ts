@@ -72,6 +72,7 @@ export type Member = {
   custom_role_id: string | null;
   display_name: string | null;
   avatar_color: string;
+  staff_code?: string | null;
 };
 
 export type Plan = {

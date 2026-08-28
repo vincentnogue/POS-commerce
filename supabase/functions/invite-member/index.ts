@@ -34,9 +34,15 @@ Deno.serve(async (req: Request) => {
     const callerId = callerData.user.id;
 
     const body = await req.json();
-    const { email, tenant_id, role, display_name, avatar_color } = body;
+    const { email, tenant_id, role, display_name, avatar_color, password } = body;
     if (!email || !tenant_id || !role) {
       return new Response(JSON.stringify({ error: "Paramètres manquants" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (password !== undefined && password !== null && String(password).length < 6) {
+      return new Response(JSON.stringify({ error: "Le mot de passe doit contenir au moins 6 caractères." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -65,17 +71,36 @@ Deno.serve(async (req: Request) => {
     // Look up the target user by email
     const { data: existingId } = await adminClient.rpc("get_user_id_by_email", { p_email: email });
     let targetUserId: string | null = existingId ?? null;
+    let createdWithPassword = false;
 
-    // If the user doesn't exist yet, invite them via Supabase auth
+    // If the user doesn't exist yet: either the admin set an initial password
+    // directly (staff who won't check email — counter/shop-floor accounts),
+    // or fall back to the existing email-invite flow.
     if (!targetUserId) {
-      const { data: inviteData, error: inviteErr } = await adminClient.auth.admin.inviteUserByEmail(email);
-      if (inviteErr || !inviteData.user) {
-        return new Response(JSON.stringify({ error: inviteErr?.message ?? "Impossible d'inviter l'utilisateur" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+      if (password) {
+        const { data: createData, error: createErr } = await adminClient.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
         });
+        if (createErr || !createData.user) {
+          return new Response(JSON.stringify({ error: createErr?.message ?? "Impossible de créer le compte." }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        targetUserId = createData.user.id;
+        createdWithPassword = true;
+      } else {
+        const { data: inviteData, error: inviteErr } = await adminClient.auth.admin.inviteUserByEmail(email);
+        if (inviteErr || !inviteData.user) {
+          return new Response(JSON.stringify({ error: inviteErr?.message ?? "Impossible d'inviter l'utilisateur" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        targetUserId = inviteData.user.id;
       }
-      targetUserId = inviteData.user.id;
     }
 
     // Prevent duplicate membership
@@ -94,14 +119,18 @@ Deno.serve(async (req: Request) => {
     }
 
     // Create the membership
-    const { error: insertErr } = await adminClient.from("tenant_members").insert({
-      tenant_id,
-      user_id: targetUserId,
-      role,
-      display_name: display_name || email.split("@")[0],
-      avatar_color: avatar_color || "brand",
-      invited_at: new Date().toISOString(),
-    });
+    const { data: newMember, error: insertErr } = await adminClient
+      .from("tenant_members")
+      .insert({
+        tenant_id,
+        user_id: targetUserId,
+        role,
+        display_name: display_name || email.split("@")[0],
+        avatar_color: avatar_color || "brand",
+        invited_at: new Date().toISOString(),
+      })
+      .select("staff_code")
+      .single();
 
     if (insertErr) {
       return new Response(JSON.stringify({ error: insertErr.message }), {
@@ -110,11 +139,19 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    const message = createdWithPassword
+      ? "Compte créé avec le mot de passe défini"
+      : existingId
+        ? "Membre ajouté"
+        : "Invitation envoyée par email";
+
     return new Response(
       JSON.stringify({
-        message: existingId ? "Membre ajouté" : "Invitation envoyée par email",
+        message,
         user_id: targetUserId,
-        invited: !existingId,
+        invited: !existingId && !createdWithPassword,
+        created_with_password: createdWithPassword,
+        staff_code: newMember?.staff_code ?? null,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );

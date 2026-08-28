@@ -62,6 +62,8 @@ export function UsersPage() {
   const [inviteRole, setInviteRole] = useState('staff');
   const [inviteCustomRoleId, setInviteCustomRoleId] = useState('');
   const [inviteName, setInviteName] = useState('');
+  const [setPasswordMode, setSetPasswordMode] = useState(false);
+  const [invitePassword, setInvitePassword] = useState('');
   const [info, setInfo] = useState<string | null>(null);
   const [inviting, setInviting] = useState(false);
 
@@ -88,6 +90,10 @@ export function UsersPage() {
   const invite = async () => {
     setInfo(null);
     if (!tenant || !inviteEmail.trim()) return;
+    if (setPasswordMode && invitePassword.trim().length < 6) {
+      setInfo(t('users.err.generic', { msg: t('users.passwordTooShort') }));
+      return;
+    }
     setInviting(true);
     try {
       const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-member`;
@@ -105,14 +111,20 @@ export function UsersPage() {
           role: inviteRole,
           custom_role_id: inviteCustomRoleId || undefined,
           display_name: inviteName || undefined,
+          password: setPasswordMode ? invitePassword.trim() : undefined,
         }),
       });
       const json = await res.json();
       if (!res.ok) { setInfo(t('users.err.generic', { msg: json.error ?? res.statusText })); return; }
-      setInfo(json.invited
-        ? t('users.info.invitedByEmail', { email: inviteEmail })
-        : t('users.info.addedAsMember', { email: inviteEmail }));
+      setInfo(
+        json.created_with_password
+          ? t('users.info.createdWithPassword', { email: inviteEmail, staffCode: json.staff_code ?? '—' })
+          : json.invited
+            ? t('users.info.invitedByEmail', { email: inviteEmail })
+            : t('users.info.addedAsMember', { email: inviteEmail })
+      );
       setInviteEmail(''); setInviteName(''); setInviteRole('staff'); setInviteCustomRoleId('');
+      setSetPasswordMode(false); setInvitePassword('');
       setModalOpen(false);
       await reload();
     } catch (e: any) {
@@ -233,6 +245,7 @@ export function UsersPage() {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{m.display_name ?? t('users.invited')}</p>
+                        {m.staff_code && <p className="text-xs font-mono text-ink-500 dark:text-ink-400">{m.staff_code}</p>}
                         {m.user_id === member?.user_id && <p className="text-xs text-ink-500 dark:text-ink-400">{t('users.you')}</p>}
                         {customRole && <p className="text-xs text-brand-600">{customRole.name}</p>}
                       </div>
@@ -337,6 +350,23 @@ export function UsersPage() {
                 <option value="">{t('users.defaultRole')}</option>
                 {roles.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
+            </Field>
+          )}
+          <label className="flex items-center gap-2 text-sm text-ink-700 dark:text-ink-300 cursor-pointer">
+            <input type="checkbox" checked={setPasswordMode} onChange={(e) => setSetPasswordMode(e.target.checked)} className="rounded border-ink-300" />
+            {t('users.setPasswordDirectly')}
+          </label>
+          {setPasswordMode && (
+            <Field label={t('users.field.initialPassword')}>
+              <input
+                type="text"
+                value={invitePassword}
+                onChange={(e) => setInvitePassword(e.target.value)}
+                className="input"
+                placeholder={t('users.passwordMinChars')}
+                minLength={6}
+              />
+              <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">{t('users.setPasswordHint')}</p>
             </Field>
           )}
         </div>
