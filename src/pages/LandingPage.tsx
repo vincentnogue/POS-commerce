@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Menu, X, Globe, ChevronDown, ArrowRight, MapPin,
   ShoppingCart, Package, Store, Plug, FileText, BarChart3,
-  ShieldCheck, Wallet, Check,
+  ShieldCheck, Wallet, Check, Smartphone, TrendingUp, Receipt,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '../lib/i18n';
 import { PricingCard, type PricingPlan } from '../components/PricingCard';
 import { PLANS as REAL_PLANS } from '../lib/plans';
@@ -27,6 +27,212 @@ const FEATURE_KEYS = [
   { icon: BarChart3, key: 'reports' },
   { icon: ShieldCheck, key: 'roles' },
 ] as const;
+
+// Demo cart for the hero product showcase — illustrative, generic retail items
+// (rice, oil, soap) run through the real checkout vocabulary (cart, subtotal,
+// tax, mobile money) that ships in src/pages/modules/POSPage.tsx. Not a live
+// embed of the authenticated app (that needs a logged-in tenant + real data),
+// but a faithful, clearly-labelled preview of how a sale actually flows.
+const DEMO_ITEMS = [
+  { key: 'item1', price: 1200, qty: 1 },
+  { key: 'item2', price: 1600, qty: 2 },
+  { key: 'item3', price: 300, qty: 3 },
+] as const;
+
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReduced(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return reduced;
+}
+
+function formatFCFA(n: number): string {
+  return `${n.toLocaleString('fr-FR')} FCFA`;
+}
+
+// Cycles through: empty → items added one by one → paid → brief pause → reset.
+// Fully static (final, paid state) when the user prefers reduced motion.
+function usePosDemoStep() {
+  const reducedMotion = usePrefersReducedMotion();
+  const [step, setStep] = useState(reducedMotion ? DEMO_ITEMS.length + 1 : 0);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    if (reducedMotion) {
+      setStep(DEMO_ITEMS.length + 1);
+      return;
+    }
+    const maxStep = DEMO_ITEMS.length + 2; // items..., paid, hold
+    const delays = [900, 900, 900, 700, 2600, 1400]; // per-step dwell time
+    const advance = () => {
+      setStep((s) => {
+        const next = s >= maxStep ? 0 : s + 1;
+        timerRef.current = setTimeout(advance, delays[next] ?? 900);
+        return next;
+      });
+    };
+    timerRef.current = setTimeout(advance, delays[0]);
+    return () => clearTimeout(timerRef.current);
+  }, [reducedMotion]);
+
+  return { step, reducedMotion, itemCount: DEMO_ITEMS.length };
+}
+
+function PosLiveDemo() {
+  const { t } = useI18n();
+  const { step, reducedMotion, itemCount } = usePosDemoStep();
+  const [salesToday, setSalesToday] = useState(482300);
+
+  const visibleItems = DEMO_ITEMS.slice(0, Math.min(step, itemCount));
+  const isPaid = step >= itemCount + 1;
+  const subtotal = visibleItems.reduce((s, i) => s + i.price * i.qty, 0);
+  const tax = Math.round(subtotal * 0.05);
+  const total = subtotal + tax;
+
+  // Bump the "today's sales" stat once per completed sale — small, honest
+  // motion cue rather than a runaway counter.
+  const prevPaid = useRef(false);
+  useEffect(() => {
+    if (isPaid && !prevPaid.current) setSalesToday((v) => v + total);
+    prevPaid.current = isPaid;
+  }, [isPaid, total]);
+
+  return (
+    <div className="relative w-full max-w-md mx-auto lg:mx-0">
+      {/* Ambient glow — subtle, no particles */}
+      <div className="absolute -inset-8 bg-gradient-to-br from-brand-500/20 via-flow-500/10 to-transparent rounded-[2.5rem] blur-2xl" aria-hidden="true" />
+
+      {/* Backing layer for depth — slight offset, no heavy 3D */}
+      <div className="absolute inset-0 translate-x-3 translate-y-4 rotate-2 rounded-3xl bg-ink-800/60 border border-ink-700/60 hidden sm:block" aria-hidden="true" />
+
+      {/* Main POS panel */}
+      <div className="relative rounded-3xl border border-ink-700/80 bg-ink-900/95 backdrop-blur shadow-2xl shadow-black/40 overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-ink-800">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-action-500" />
+            <span className="text-sm font-semibold text-white">{t('pLanding.hero.demo.panelTitle')}</span>
+          </div>
+          <Receipt size={16} className="text-ink-500" />
+        </div>
+
+        <div className="px-5 py-4 min-h-[168px]">
+          {visibleItems.length === 0 ? (
+            <p className="text-sm text-ink-500 py-8 text-center">{t('pLanding.hero.demo.cartEmpty')}</p>
+          ) : (
+            <ul className="space-y-2.5">
+              <AnimatePresence initial={false}>
+                {visibleItems.map((item) => (
+                  <motion.li
+                    key={item.key}
+                    initial={reducedMotion ? false : { opacity: 0, x: 12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.35, ease: 'easeOut' }}
+                    className="flex items-center justify-between text-sm"
+                  >
+                    <span className="text-ink-200">
+                      {item.qty}× {t(`pLanding.hero.demo.${item.key}`)}
+                    </span>
+                    <span className="text-ink-400 tabular-nums">{formatFCFA(item.price * item.qty)}</span>
+                  </motion.li>
+                ))}
+              </AnimatePresence>
+            </ul>
+          )}
+        </div>
+
+        <div className="px-5 py-4 border-t border-ink-800 bg-ink-950/60 space-y-1.5">
+          <div className="flex items-center justify-between text-xs text-ink-500">
+            <span>{t('pLanding.hero.demo.subtotal')}</span>
+            <span className="tabular-nums">{formatFCFA(subtotal)}</span>
+          </div>
+          <div className="flex items-center justify-between text-xs text-ink-500">
+            <span>{t('pLanding.hero.demo.tax')}</span>
+            <span className="tabular-nums">{formatFCFA(tax)}</span>
+          </div>
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-sm font-semibold text-white">{t('pLanding.hero.demo.total')}</span>
+            <motion.span
+              key={total}
+              initial={reducedMotion ? false : { opacity: 0.4 }}
+              animate={{ opacity: 1 }}
+              className="text-lg font-bold text-white tabular-nums"
+            >
+              {formatFCFA(total)}
+            </motion.span>
+          </div>
+
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-hidden="true"
+            className={`mt-3 w-full rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 transition-colors ${
+              isPaid ? 'bg-brand-500 text-white' : 'bg-white text-ink-900'
+            }`}
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              {isPaid ? (
+                <motion.span
+                  key="paid"
+                  initial={reducedMotion ? false : { opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex items-center gap-2"
+                >
+                  <Check size={16} /> {t('pLanding.hero.demo.paid')}
+                </motion.span>
+              ) : (
+                <motion.span key="pay" className="flex items-center gap-2">
+                  {t('pLanding.hero.demo.pay')}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
+        </div>
+      </div>
+
+      {/* Floating card — today's sales, subtle live-count feel */}
+      <motion.div
+        initial={reducedMotion ? false : { opacity: 0, y: 10 }}
+        animate={reducedMotion ? { opacity: 1 } : { opacity: 1, y: [0, -6, 0] }}
+        transition={reducedMotion ? { duration: 0.4 } : { duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        className="hidden sm:flex absolute -top-6 -right-6 items-center gap-3 rounded-2xl border border-ink-700/80 bg-ink-900/95 backdrop-blur px-4 py-3 shadow-xl shadow-black/30"
+      >
+        <div className="h-8 w-8 rounded-lg bg-flow-500/15 flex items-center justify-center">
+          <TrendingUp size={16} className="text-flow-400" />
+        </div>
+        <div>
+          <p className="text-[11px] text-ink-500 leading-none mb-1">{t('pLanding.hero.demo.statSalesToday')}</p>
+          <p className="text-sm font-semibold text-white tabular-nums leading-none">{formatFCFA(salesToday)}</p>
+        </div>
+      </motion.div>
+
+      {/* Floating card — payment confirmation toast */}
+      <AnimatePresence>
+        {isPaid && (
+          <motion.div
+            initial={reducedMotion ? false : { opacity: 0, y: 10, x: -8 }}
+            animate={{ opacity: 1, y: 0, x: 0 }}
+            exit={reducedMotion ? undefined : { opacity: 0, y: 6 }}
+            transition={{ duration: 0.4 }}
+            className="hidden sm:flex absolute -bottom-5 -left-6 items-center gap-2.5 rounded-2xl border border-brand-500/30 bg-ink-900/95 backdrop-blur px-4 py-3 shadow-xl shadow-black/30"
+          >
+            <div className="h-7 w-7 rounded-full bg-brand-500/15 flex items-center justify-center">
+              <Smartphone size={14} className="text-brand-400" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-white leading-none mb-1">{t('pLanding.hero.demo.paid')}</p>
+              <p className="text-[11px] text-ink-500 leading-none">{t('pLanding.hero.demo.viaMobileMoney')}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 function formatUpdatedAt(iso: string | null): string {
   if (!iso) return '';
@@ -181,94 +387,103 @@ export function LandingPage() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative bg-black min-h-[90vh] flex items-center overflow-hidden">
-        <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1687422808311-a776f467a468?w=1600&h=1000&fit=crop&q=80"
-            alt={t('pLanding.hero.imageAlt')}
-            className="w-full h-full object-cover opacity-40"
+      {/* Hero Section — the product is the visual, not a stock photo */}
+      <section className="relative bg-ink-950 overflow-hidden">
+        {/* Ambient background: subtle radial glow + faint grid, no stock photography */}
+        <div className="absolute inset-0" aria-hidden="true">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(46,140,102,0.25),transparent)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_85%_60%,rgba(20,181,148,0.12),transparent)]" />
+          <div
+            className="absolute inset-0 opacity-[0.04]"
+            style={{
+              backgroundImage: 'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)',
+              backgroundSize: '56px 56px',
+            }}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/40" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 py-20 lg:px-8 w-full">
-          <div className="max-w-2xl">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="mb-8 inline-flex items-center gap-2 bg-gray-800/50 border border-gray-700 rounded-full px-4 py-2 backdrop-blur"
-            >
-              <MapPin size={16} className="text-action-500" />
-              <span className="text-sm font-medium text-gray-300">{t('pLanding.hero.badge')}</span>
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight"
-            >
-              {t('pLanding.hero.titleStart')}{' '}
-              <span className="relative inline-block">
-                <span className="text-white">{t('pLanding.hero.titleAccent')}</span>
-                <svg
-                  className="absolute left-0 right-0 bottom-1 w-full h-3"
-                  viewBox="0 0 300 50"
-                  preserveAspectRatio="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M 0 30 Q 75 5 150 30 T 300 30" stroke="#F96F22" strokeWidth="4" fill="none" strokeLinecap="round" />
-                </svg>
-              </span>{' '}
-              {t('pLanding.hero.titleEnd')}
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-xl text-gray-300 mb-8 max-w-lg leading-relaxed"
-            >
-              {t('pLanding.hero.desc')}
-            </motion.p>
-
-            <motion.form
-              onSubmit={handleGetStarted}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="mb-4 flex gap-2"
-            >
-              <input
-                type="email"
-                placeholder={t('pLanding.hero.emailPlaceholder')}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 px-6 py-3 rounded-full bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-600"
-                required
-              />
-              <button
-                type="submit"
-                className="px-8 py-3 bg-brand-600 text-white rounded-full font-semibold hover:bg-brand-700 transition whitespace-nowrap"
+        <div className="relative max-w-7xl mx-auto px-4 pt-16 pb-20 lg:pt-24 lg:pb-28 lg:px-8">
+          <div className="grid lg:grid-cols-[1.05fr_1fr] gap-14 lg:gap-10 items-center">
+            {/* Copy column */}
+            <div className="max-w-xl">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="mb-7 inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 backdrop-blur"
               >
-                {t('pLanding.hero.start')}
-              </button>
-            </motion.form>
+                <MapPin size={14} className="text-action-500" />
+                <span className="text-xs font-medium tracking-wide text-ink-200">{t('pLanding.hero.badge')}</span>
+              </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }} className="flex flex-wrap items-center gap-6">
-              <a href="#features" className="inline-flex items-center gap-2 text-sm font-semibold text-white border border-gray-600 hover:border-gray-400 rounded-full px-5 py-2.5 transition">
-                {t('pLanding.hero.exploreFeatures')}
-              </a>
-              <a href="#pricing" onClick={scrollToPricing} className="inline-flex items-center gap-2 text-gray-300 hover:text-white transition font-medium text-sm">
-                {t('pLanding.hero.viewPricing')} <ArrowRight size={16} />
-              </a>
+              <motion.h1
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.08 }}
+                className="text-[2.75rem] leading-[1.08] sm:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight"
+              >
+                {t('pLanding.hero.titleStart')}{' '}
+                <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-flow-400 to-brand-300">
+                  {t('pLanding.hero.titleAccent')}
+                </span>{' '}
+                {t('pLanding.hero.titleEnd')}
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.16 }}
+                className="text-lg text-ink-300 mb-9 leading-relaxed"
+              >
+                {t('pLanding.hero.desc')}
+              </motion.p>
+
+              <motion.form
+                onSubmit={handleGetStarted}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.24 }}
+                className="mb-5 flex flex-col sm:flex-row gap-3"
+              >
+                <input
+                  type="email"
+                  placeholder={t('pLanding.hero.emailPlaceholder')}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="flex-1 px-5 py-3.5 rounded-xl bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="group px-7 py-3.5 bg-brand-500 text-white rounded-xl font-semibold hover:bg-brand-600 active:scale-[0.98] transition-all whitespace-nowrap inline-flex items-center justify-center gap-2"
+                >
+                  {t('pLanding.hero.start')}
+                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                </button>
+              </motion.form>
+
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }} className="flex flex-wrap items-center gap-x-6 gap-y-3">
+                <a href="#features" className="text-sm font-medium text-ink-300 hover:text-white transition-colors">
+                  {t('pLanding.hero.exploreFeatures')}
+                </a>
+                <a href="#pricing" onClick={scrollToPricing} className="text-sm font-medium text-ink-300 hover:text-white transition-colors">
+                  {t('pLanding.hero.viewPricing')}
+                </a>
+                <span className="text-xs text-ink-500">{t('pLanding.hero.noCard')}</span>
+              </motion.div>
+            </div>
+
+            {/* Product showcase column */}
+            <motion.div
+              initial={{ opacity: 0, y: 24, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.15, ease: 'easeOut' }}
+            >
+              <PosLiveDemo />
+              <p className="hidden sm:block text-center text-[11px] text-ink-600 mt-8">
+                {t('pLanding.hero.demo.caption')}
+              </p>
             </motion.div>
-
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.5 }} className="text-xs text-gray-500 mt-6">
-              {t('pLanding.hero.noCard')}
-            </motion.p>
           </div>
         </div>
       </section>
