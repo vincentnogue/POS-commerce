@@ -72,11 +72,18 @@ CREATE INDEX IF NOT EXISTS idx_super_admin_audit_super_admin_id ON super_admin_a
 -- RLS for super_admin_audit_logs (only super admins can view their own logs)
 ALTER TABLE super_admin_audit_logs ENABLE ROW LEVEL SECURITY;
 
+-- BUG FIX: both policies below originally referenced a table called
+-- `members` with an `auth_id` column, which never existed anywhere in this
+-- schema (the real table is `tenant_members`, with `id`/`user_id` columns —
+-- see 0001_initial_schema.sql). Every 'supabase db push' failed with
+-- "relation \"members\" does not exist" (SQLSTATE 42P01) on this statement,
+-- aborting before any edge function could deploy. Fixed to reference the
+-- real table/columns.
 DROP POLICY IF EXISTS super_admin_audit_self ON super_admin_audit_logs;
 CREATE POLICY super_admin_audit_self ON super_admin_audit_logs
   FOR SELECT
   USING (
-    (auth.uid())::text = (SELECT auth_id FROM members WHERE id = super_admin_id LIMIT 1)
+    auth.uid() = (SELECT user_id FROM tenant_members WHERE id = super_admin_id LIMIT 1)
   );
 
 -- Payment verification table to prevent bypass
@@ -104,8 +111,8 @@ CREATE POLICY payment_verification_own_tenant ON payment_verification
   FOR SELECT
   USING (
     tenant_id IN (
-      SELECT tenant_id FROM members 
-      WHERE auth_id = auth.uid()::text
+      SELECT tenant_id FROM tenant_members 
+      WHERE user_id = auth.uid()
     )
   );
 
