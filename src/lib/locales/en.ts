@@ -1344,7 +1344,7 @@ export const en: Record<string, string> = {
   "pLanding.footer.privacy": "Privacy",
   "pLanding.footer.terms": "Terms of service",
   "pLanding.footer.legalNotice": "Legal notice",
-  "pLanding.footer.rights": "© {year} Liafrik POS — built by LiAfrik, Dubai & Africa. All rights reserved.",
+  "pLanding.footer.rights": "© {year} POS Flow — built by LiAfrik, Dubai & Africa. All rights reserved.",
   "pLanding.stats.currencies": "Currencies with live conversion",
   "pLanding.stats.regions": "Connected regions: Gulf & Africa",
   "pLanding.stats.processors": "Integrated payment processors",

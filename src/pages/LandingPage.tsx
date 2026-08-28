@@ -108,9 +108,9 @@ export function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 py-4 lg:px-8">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2.5">
-              <img src="/logo-pos-icon.png" alt="Liafrik POS" className="h-9 w-9" />
+              <img src="/logo-pos-icon.png" alt="POS Flow" className="h-9 w-9" />
               <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-                Liafrik <span className="text-brand-600">POS</span>
+                POS <span className="text-brand-600">Flow</span>
               </span>
             </Link>
 
