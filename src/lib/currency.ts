@@ -2,6 +2,7 @@
  * CURRENCY CONVERSION LIBRARY
  * Secure, real-time currency conversion with caching
  */
+import { supabase } from './supabase';
 
 export interface ExchangeRate {
   USD: number; // Base is always 1 USD
@@ -37,6 +38,17 @@ const CURRENCY_CONFIG: Record<string, { symbol: string; position: 'prefix' | 'su
   SGD: { symbol: 'S$', position: 'prefix' },
   HKD: { symbol: 'HK$', position: 'prefix' },
   NZD: { symbol: 'NZ$', position: 'prefix' },
+  XOF: { symbol: 'CFA', position: 'suffix' },
+  XAF: { symbol: 'FCFA', position: 'suffix' },
+  MAD: { symbol: 'DH', position: 'suffix' },
+  TND: { symbol: 'DT', position: 'suffix' },
+  DZD: { symbol: 'DA', position: 'suffix' },
+  RWF: { symbol: 'FRw', position: 'suffix' },
+  UGX: { symbol: 'USh', position: 'suffix' },
+  TZS: { symbol: 'TSh', position: 'suffix' },
+  ETB: { symbol: 'Br', position: 'suffix' },
+  SAR: { symbol: 'SR', position: 'suffix' },
+  QAR: { symbol: 'QR', position: 'suffix' },
 };
 
 // Local storage cache key
@@ -46,6 +58,19 @@ const CACHE_EXPIRY_MS = 1000 * 60 * 60; // 1 hour
 interface CachedRates {
   rates: ExchangeRate;
   timestamp: number;
+  live: boolean;
+  updatedAt?: string;
+}
+
+// Module-level status of the most recent fetch, so callers (the pricing
+// page's currency matrix) can tell the user whether they're looking at real
+// live rates or the offline fallback, instead of silently pretending
+// hardcoded numbers are current.
+export type RatesStatus = { live: boolean; updatedAt: string | null; error: string | null };
+let lastStatus: RatesStatus = { live: false, updatedAt: null, error: null };
+
+export function getRatesStatus(): RatesStatus {
+  return lastStatus;
 }
 
 /**
@@ -55,11 +80,13 @@ export async function getExchangeRates(): Promise<ExchangeRate> {
   const cached = getCachedRates();
 
   if (cached && !isExpired(cached.timestamp)) {
+    lastStatus = { live: cached.live, updatedAt: cached.updatedAt ?? null, error: null };
     return cached.rates;
   }
 
-  // Fetch from open-exchange-rates API
-  const rates = await fetchExchangeRates();
+  // Fetch real live rates via the exchange-rates Supabase Edge Function
+  const { rates, live, updatedAt, error } = await fetchExchangeRates();
+  lastStatus = { live, updatedAt: updatedAt ?? null, error };
 
   // Cache locally
   localStorage.setItem(
@@ -67,6 +94,8 @@ export async function getExchangeRates(): Promise<ExchangeRate> {
     JSON.stringify({
       rates,
       timestamp: Date.now(),
+      live,
+      updatedAt,
     })
   );
 
@@ -94,29 +123,42 @@ function isExpired(timestamp: number): boolean {
 }
 
 /**
- * Fetch exchange rates from API
- * In production, this calls your backend edge function for security
+ * Fetch real, live exchange rates from the exchange-rates Supabase Edge
+ * Function (see supabase/functions/exchange-rates). That function calls a
+ * free keyless provider (open.er-api.com) and returns real, current rates
+ * against USD, updated at least daily.
+ *
+ * BUG FIX: this used to call `fetch('/api/exchange-rates')`, a route that
+ * was never implemented anywhere (the app is static Cloudflare Pages, no
+ * matching Pages Function). Every call failed and silently fell back to
+ * hardcoded numbers, so "real-time conversion" was never actually real-time.
  */
-async function fetchExchangeRates(): Promise<ExchangeRate> {
+async function fetchExchangeRates(): Promise<{
+  rates: ExchangeRate;
+  live: boolean;
+  updatedAt?: string;
+  error: string | null;
+}> {
   try {
-    // Call your backend edge function (never expose API key to frontend)
-    const response = await fetch('/api/exchange-rates', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const { data, error } = await supabase.functions.invoke('exchange-rates');
+    if (error) throw error;
+    if (!data?.rates) throw new Error('Exchange rate function returned no rates');
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch rates');
-    }
-
-    const data = await response.json();
-    return data.rates;
+    return {
+      rates: { USD: 1, ...data.rates } as ExchangeRate,
+      live: true,
+      updatedAt: data.updatedAt,
+      error: null,
+    };
   } catch (error) {
     console.error('Exchange rate fetch error:', error);
-    // Return fallback rates (hardcoded for offline support)
-    return getFallbackRates();
+    // Offline / function-unavailable fallback so the UI can still render —
+    // callers are told via `live: false` that these are not current rates.
+    return {
+      rates: getFallbackRates(),
+      live: false,
+      error: error instanceof Error ? error.message : 'Unknown error fetching live rates',
+    };
   }
 }
 
@@ -145,6 +187,17 @@ function getFallbackRates(): ExchangeRate {
     SGD: 1.35,
     HKD: 7.81,
     NZD: 1.62,
+    XOF: 605.0,
+    XAF: 605.0,
+    MAD: 9.98,
+    TND: 3.1,
+    DZD: 134.5,
+    RWF: 1330.0,
+    UGX: 3720.0,
+    TZS: 2500.0,
+    ETB: 123.0,
+    SAR: 3.75,
+    QAR: 3.64,
   };
 }
 
@@ -288,6 +341,17 @@ export function getCurrencyInfo(currency: string): {
     NGN: 'Nigerian Naira',
     KES: 'Kenyan Shilling',
     GHS: 'Ghanaian Cedi',
+    XOF: 'West African CFA Franc',
+    XAF: 'Central African CFA Franc',
+    MAD: 'Moroccan Dirham',
+    TND: 'Tunisian Dinar',
+    DZD: 'Algerian Dinar',
+    RWF: 'Rwandan Franc',
+    UGX: 'Ugandan Shilling',
+    TZS: 'Tanzanian Shilling',
+    ETB: 'Ethiopian Birr',
+    SAR: 'Saudi Riyal',
+    QAR: 'Qatari Riyal',
   };
 
   return {

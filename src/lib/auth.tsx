@@ -176,7 +176,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const role: Role = (member?.role ?? 'staff') as Role;
   const builtInPerms = DEFAULT_PERMISSIONS[role] ?? DEFAULT_PERMISSIONS.staff;
-  const isSuperAdmin = role === 'super_admin';
+  // BUG FIX: `member` is scoped to the currently ACTIVE tenant, so checking
+  // `member.role` here made super-admin status flip on/off depending on
+  // which tenant the user happened to have selected. The real backend check
+  // (see supabase/functions/super-admin-auth) looks for a super_admin role
+  // across ALL of the user's tenant_members rows, independent of the active
+  // tenant. Mirror that here so the Super Admin nav item stays visible
+  // regardless of which store is currently selected.
+  const isSuperAdmin = role === 'super_admin'
+    || tenants.some((t) => t.member?.role === 'super_admin');
   // Custom role permissions override built-in defaults for non-admin roles
   const permissions: Permissions = (role === 'admin' || role === 'super_admin')
     ? builtInPerms

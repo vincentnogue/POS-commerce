@@ -68,34 +68,13 @@ const FAQ_ITEMS: FAQItem[] = [
   },
 ];
 
-interface Contact {
-  type: string;
-  label: string;
-  value: string;
-  icon: typeof Globe;
-}
-
-const CONTACTS: Contact[] = [
-  {
-    type: 'email',
-    label: 'Email Support',
-    value: 'support@pos.liafrik.com',
-    icon: Globe,
-  },
-  {
-    type: 'phone',
-    label: 'Phone Support',
-    value: '+971 4 XXX XXXX (Dubai)',
-    icon: Globe,
-  },
-  {
-    type: 'documentation',
-    label: 'Documentation',
-    value: 'Visit our API docs',
-    icon: BookOpen,
-  },
-];
-
+// BUG FIX: this page used to hardcode a dark gradient background with no
+// `dark:` variants at all (`bg-gradient-to-br from-ink-950 via-brand-950
+// to-ink-900`), so it ignored the app's light/dark toggle (see
+// src/lib/theme.tsx, which drives a real `.dark` class on <html>) and
+// always rendered dark, even in light mode. Every surface below now follows
+// the same light-by-default / dark-as-override pattern used elsewhere in
+// the app (see Sidebar.tsx: `bg-brand-50 dark:bg-ink-900`).
 export function HelpCenterPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -116,7 +95,7 @@ export function HelpCenterPage() {
   const categories = Array.from(new Set(FAQ_ITEMS.map((item) => item.category)));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-ink-950 via-brand-950 to-ink-900">
+    <div className="min-h-screen bg-brand-50 dark:bg-ink-900">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-brand-600 to-flow-600 py-16">
         <div className="max-w-4xl mx-auto px-6 text-center">
@@ -132,13 +111,13 @@ export function HelpCenterPage() {
         {/* Search Box */}
         <div className="mb-12">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-400 dark:text-ink-500" />
             <input
               type="text"
               placeholder="Search help articles..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 rounded-lg bg-ink-900/50 border border-ink-700 text-white placeholder-ink-400 focus:border-flow-500 focus:outline-none transition"
+              className="w-full pl-12 pr-4 py-4 rounded-lg bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 text-ink-900 dark:text-ink-50 placeholder-ink-400 dark:placeholder-ink-500 focus:border-flow-500 focus:outline-none transition"
             />
           </div>
         </div>
@@ -150,7 +129,7 @@ export function HelpCenterPage() {
             className={`px-4 py-2 rounded-lg font-medium transition ${
               !selectedCategory
                 ? 'bg-flow-500 text-white'
-                : 'bg-ink-800/50 text-ink-300 hover:bg-ink-700/50'
+                : 'bg-white dark:bg-ink-800 text-ink-600 dark:text-ink-300 border border-ink-200 dark:border-ink-700 hover:bg-ink-100 dark:hover:bg-ink-700/50'
             }`}
           >
             All Categories
@@ -162,7 +141,7 @@ export function HelpCenterPage() {
               className={`px-4 py-2 rounded-lg font-medium transition ${
                 selectedCategory === category
                   ? 'bg-flow-500 text-white'
-                  : 'bg-ink-800/50 text-ink-300 hover:bg-ink-700/50'
+                  : 'bg-white dark:bg-ink-800 text-ink-600 dark:text-ink-300 border border-ink-200 dark:border-ink-700 hover:bg-ink-100 dark:hover:bg-ink-700/50'
               }`}
             >
               {category}
@@ -180,29 +159,29 @@ export function HelpCenterPage() {
               return (
                 <div
                   key={item.id}
-                  className="rounded-lg border border-ink-700 bg-ink-900/50 overflow-hidden transition"
+                  className="rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 overflow-hidden transition shadow-soft"
                 >
                   <button
                     onClick={() => setExpandedId(isExpanded ? null : item.id)}
-                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-ink-800/50 transition text-left"
+                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-brand-50 dark:hover:bg-ink-700/50 transition text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <Icon className="w-5 h-5 text-flow-400 flex-shrink-0" />
+                      <Icon className="w-5 h-5 text-flow-500 dark:text-flow-400 flex-shrink-0" />
                       <div>
-                        <p className="font-semibold text-white">{item.question}</p>
-                        <p className="text-xs text-ink-400 mt-1">{item.category}</p>
+                        <p className="font-semibold text-ink-900 dark:text-ink-50">{item.question}</p>
+                        <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">{item.category}</p>
                       </div>
                     </div>
                     <ChevronDown
-                      className={`w-5 h-5 text-ink-400 transition transform ${
+                      className={`w-5 h-5 text-ink-400 dark:text-ink-500 transition transform ${
                         isExpanded ? 'rotate-180' : ''
                       }`}
                     />
                   </button>
 
                   {isExpanded && (
-                    <div className="px-6 py-4 bg-ink-800/30 border-t border-ink-700/50">
-                      <p className="text-ink-200 leading-relaxed">{item.answer}</p>
+                    <div className="px-6 py-4 bg-brand-50/60 dark:bg-ink-900/40 border-t border-ink-200 dark:border-ink-700/50">
+                      <p className="text-ink-700 dark:text-ink-200 leading-relaxed">{item.answer}</p>
                     </div>
                   )}
                 </div>
@@ -210,49 +189,49 @@ export function HelpCenterPage() {
             })
           ) : (
             <div className="text-center py-12">
-              <SearchIcon className="w-12 h-12 text-ink-600 mx-auto mb-4" />
-              <p className="text-ink-300">No results found. Try a different search term.</p>
+              <SearchIcon className="w-12 h-12 text-ink-300 dark:text-ink-600 mx-auto mb-4" />
+              <p className="text-ink-500 dark:text-ink-300">No results found. Try a different search term.</p>
             </div>
           )}
         </div>
 
         {/* Contact Section */}
         <div className="rounded-lg bg-gradient-to-r from-brand-500/10 to-flow-500/10 border border-brand-500/30 p-8">
-          <h2 className="text-2xl font-bold text-white mb-6">Didn't find what you're looking for?</h2>
+          <h2 className="text-2xl font-bold text-ink-900 dark:text-white mb-6">Didn't find what you're looking for?</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <a
               href="mailto:support@pos.liafrik.com"
-              className="p-4 rounded-lg bg-ink-900/50 border border-ink-700 hover:border-flow-500/50 transition"
+              className="p-4 rounded-lg bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 hover:border-flow-500/50 transition"
             >
-              <p className="font-semibold text-white mb-2">Email Support</p>
-              <p className="text-sm text-ink-300">support@pos.liafrik.com</p>
-              <p className="text-xs text-ink-400 mt-2">Response time: 24 hours</p>
+              <p className="font-semibold text-ink-900 dark:text-white mb-2">Email Support</p>
+              <p className="text-sm text-ink-600 dark:text-ink-300">support@pos.liafrik.com</p>
+              <p className="text-xs text-ink-400 dark:text-ink-400 mt-2">Response time: 24 hours</p>
             </a>
 
             <a
               href="tel:+97143221234"
-              className="p-4 rounded-lg bg-ink-900/50 border border-ink-700 hover:border-flow-500/50 transition"
+              className="p-4 rounded-lg bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 hover:border-flow-500/50 transition"
             >
-              <p className="font-semibold text-white mb-2">Phone Support</p>
-              <p className="text-sm text-ink-300">+971 4 XXX XXXX</p>
-              <p className="text-xs text-ink-400 mt-2">Available: 9AM-6PM GST</p>
+              <p className="font-semibold text-ink-900 dark:text-white mb-2">Phone Support</p>
+              <p className="text-sm text-ink-600 dark:text-ink-300">+971 4 XXX XXXX</p>
+              <p className="text-xs text-ink-400 dark:text-ink-400 mt-2">Available: 9AM-6PM GST</p>
             </a>
 
             <a
               href="/api-documentation"
-              className="p-4 rounded-lg bg-ink-900/50 border border-ink-700 hover:border-flow-500/50 transition"
+              className="p-4 rounded-lg bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 hover:border-flow-500/50 transition"
             >
-              <p className="font-semibold text-white mb-2">API Documentation</p>
-              <p className="text-sm text-ink-300">View technical docs</p>
-              <p className="text-xs text-ink-400 mt-2">Complete API reference</p>
+              <p className="font-semibold text-ink-900 dark:text-white mb-2">API Documentation</p>
+              <p className="text-sm text-ink-600 dark:text-ink-300">View technical docs</p>
+              <p className="text-xs text-ink-400 dark:text-ink-400 mt-2">Complete API reference</p>
             </a>
           </div>
         </div>
 
         {/* Quick Links */}
-        <div className="mt-12 rounded-lg bg-ink-900/50 border border-ink-700 p-8">
-          <h2 className="text-xl font-bold text-white mb-6">Quick Links</h2>
+        <div className="mt-12 rounded-lg bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 p-8 shadow-soft">
+          <h2 className="text-xl font-bold text-ink-900 dark:text-white mb-6">Quick Links</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[
               { label: 'Getting Started Guide', href: '#' },
@@ -265,7 +244,7 @@ export function HelpCenterPage() {
               <a
                 key={link.label}
                 href={link.href}
-                className="text-flow-300 hover:text-flow-200 transition text-sm font-medium"
+                className="text-flow-600 dark:text-flow-300 hover:text-flow-500 dark:hover:text-flow-200 transition text-sm font-medium"
               >
                 → {link.label}
               </a>

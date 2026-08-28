@@ -66,8 +66,13 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
   const navigate = useNavigate();
 
   const ALWAYS_AVAILABLE = ['dashboard', 'pos', 'settings'];
+  // BUG FIX: super admins must never be locked out of a module by plan tier —
+  // the /superadmin item shares the 'administration' module code with the
+  // regular admin panel, so without this check a super admin on a tenant
+  // whose plan excludes 'administration' would see the item redirect to
+  // /subscribe instead of opening the Super Admin console.
   const isLocked = (mod?: string) =>
-    !!mod && !ALWAYS_AVAILABLE.includes(mod) && !!planModules && !planModules.includes(mod);
+    !isSuperAdmin && !!mod && !ALWAYS_AVAILABLE.includes(mod) && !!planModules && !planModules.includes(mod);
 
   const filteredNav = NAV.filter((item) => !item.superAdminOnly || isSuperAdmin);
 
