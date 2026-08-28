@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '../lib/i18n';
+import { HeroLiafrikPOS } from '../components/HeroLiafrikPOS';
 import { PricingCard, type PricingPlan } from '../components/PricingCard';
 import { PLANS as REAL_PLANS } from '../lib/plans';
 import {
@@ -387,106 +388,8 @@ export function LandingPage() {
         </div>
       </header>
 
-      {/* Hero Section — the product is the visual, not a stock photo */}
-      <section className="relative bg-ink-950 overflow-hidden">
-        {/* Ambient background: subtle radial glow + faint grid, no stock photography */}
-        <div className="absolute inset-0" aria-hidden="true">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(46,140,102,0.25),transparent)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_85%_60%,rgba(20,181,148,0.12),transparent)]" />
-          <div
-            className="absolute inset-0 opacity-[0.04]"
-            style={{
-              backgroundImage: 'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)',
-              backgroundSize: '56px 56px',
-            }}
-          />
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-4 pt-16 pb-20 lg:pt-24 lg:pb-28 lg:px-8">
-          <div className="grid lg:grid-cols-[1.05fr_1fr] gap-14 lg:gap-10 items-center">
-            {/* Copy column */}
-            <div className="max-w-xl">
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="mb-7 inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 backdrop-blur"
-              >
-                <MapPin size={14} className="text-action-500" />
-                <span className="text-xs font-medium tracking-wide text-ink-200">{t('pLanding.hero.badge')}</span>
-              </motion.div>
-
-              <motion.h1
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.08 }}
-                className="text-[2.75rem] leading-[1.08] sm:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight"
-              >
-                {t('pLanding.hero.titleStart')}{' '}
-                <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-flow-400 to-brand-300">
-                  {t('pLanding.hero.titleAccent')}
-                </span>{' '}
-                {t('pLanding.hero.titleEnd')}
-              </motion.h1>
-
-              <motion.p
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.16 }}
-                className="text-lg text-ink-300 mb-9 leading-relaxed"
-              >
-                {t('pLanding.hero.desc')}
-              </motion.p>
-
-              <motion.form
-                onSubmit={handleGetStarted}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.24 }}
-                className="mb-5 flex flex-col sm:flex-row gap-3"
-              >
-                <input
-                  type="email"
-                  placeholder={t('pLanding.hero.emailPlaceholder')}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 px-5 py-3.5 rounded-xl bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                />
-                <button
-                  type="submit"
-                  className="group px-7 py-3.5 bg-brand-500 text-white rounded-xl font-semibold hover:bg-brand-600 active:scale-[0.98] transition-all whitespace-nowrap inline-flex items-center justify-center gap-2"
-                >
-                  {t('pLanding.hero.start')}
-                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-                </button>
-              </motion.form>
-
-              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }} className="flex flex-wrap items-center gap-x-6 gap-y-3">
-                <a href="#features" className="text-sm font-medium text-ink-300 hover:text-white transition-colors">
-                  {t('pLanding.hero.exploreFeatures')}
-                </a>
-                <a href="#pricing" onClick={scrollToPricing} className="text-sm font-medium text-ink-300 hover:text-white transition-colors">
-                  {t('pLanding.hero.viewPricing')}
-                </a>
-                <span className="text-xs text-ink-500">{t('pLanding.hero.noCard')}</span>
-              </motion.div>
-            </div>
-
-            {/* Product showcase column */}
-            <motion.div
-              initial={{ opacity: 0, y: 24, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.7, delay: 0.15, ease: 'easeOut' }}
-            >
-              <PosLiveDemo />
-              <p className="hidden sm:block text-center text-[11px] text-ink-600 mt-8">
-                {t('pLanding.hero.demo.caption')}
-              </p>
-            </motion.div>
-          </div>
-        </div>
-      </section>
+      {/* Hero Section - Premium POS Demo */}
+      <HeroLiafrikPOS />
 
       {/* Real stats strip */}
       <section className="bg-gray-50 dark:bg-ink-900 py-12 border-y border-gray-200 dark:border-ink-800">
