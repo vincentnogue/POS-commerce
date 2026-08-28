@@ -9,10 +9,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '../lib/i18n';
 import { PricingCard, type PricingPlan } from '../components/PricingCard';
 import { PLANS as REAL_PLANS } from '../lib/plans';
-import {
-  getExchangeRates, getUserCurrency, convertPrice,
-  type ConvertedPrice, type ExchangeRate,
-} from '../lib/currency';
 
 // Real feature set — every entry below maps to an actual module that ships
 // in this app (see src/pages/modules/*), not aspirational copy. Titles/descriptions
@@ -39,6 +35,20 @@ const DEMO_ITEMS = [
   { key: 'item3', price: 300, qty: 3 },
 ] as const;
 
+// Placeholder trust-marquee entries. These are generic sector/region
+// wordmarks, NOT real company names — swap each for a real partner/customer
+// logo (as an <img>) once brand assets are available. Kept generic on
+// purpose: we don't have the right to display real companies' trademarks
+// here without their logos and permission.
+const LOGO_PLACEHOLDERS = [
+  'Retail Group Afrique',
+  'LatAm Commerce Co.',
+  'Dubai Trading House',
+  'Grupo Comercial',
+  'Sahel Distribution',
+  'Andes Retail',
+];
+
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -49,6 +59,45 @@ function usePrefersReducedMotion() {
     return () => mq.removeEventListener('change', handler);
   }, []);
   return reduced;
+}
+
+// Scroll-triggered count-up for stat numbers. Starts counting once the
+// element enters the viewport (IntersectionObserver, fires once), jumps
+// straight to the final value when the user prefers reduced motion.
+function CountUp({ value, suffix = '', duration = 1400 }: { value: number; suffix?: string; duration?: number }) {
+  const reducedMotion = usePrefersReducedMotion();
+  const [display, setDisplay] = useState(reducedMotion ? value : 0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    if (reducedMotion) {
+      setDisplay(value);
+      return;
+    }
+    const node = ref.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true;
+          const start = performance.now();
+          const tick = (now: number) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+            setDisplay(Math.round(eased * value));
+            if (progress < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        }
+      },
+      { threshold: 0.4 }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [value, duration, reducedMotion]);
+
+  return <span ref={ref}>{display}{suffix}</span>;
 }
 
 function formatFCFA(n: number): string {
@@ -234,15 +283,6 @@ function PosLiveDemo() {
   );
 }
 
-function formatUpdatedAt(iso: string | null): string {
-  if (!iso) return '';
-  try {
-    return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
-  } catch {
-    return iso;
-  }
-}
-
 const PLAN_DESCRIPTIONS: Record<string, string> = {
   starter: 'Idéal pour démarrer votre commerce',
   pro: 'Pour les commerces en croissance',
@@ -268,32 +308,7 @@ export function LandingPage() {
   const [email, setEmail] = useState('');
   const { lang, setLang, t } = useI18n();
   const navigate = useNavigate();
-
-  const [convertedPrices, setConvertedPrices] = useState<Record<string, ConvertedPrice>>({});
-  const [ratesLive, setRatesLive] = useState(false);
-  const [ratesUpdatedAt, setRatesUpdatedAt] = useState<string | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const rates: ExchangeRate = await getExchangeRates();
-        const userCurrency = await getUserCurrency();
-        const currency = rates[userCurrency] ? userCurrency : 'USD';
-        const converted: Record<string, ConvertedPrice> = {};
-        for (const plan of LANDING_PLANS) {
-          converted[plan.id] = await convertPrice(plan.basePrice, currency);
-        }
-        setConvertedPrices(converted);
-        // We don't need getRatesStatus() detail here beyond a light "live" cue;
-        // if conversion succeeded with a non-USD currency the rates came from
-        // the live endpoint (USD stays 1:1 either way, so this is a light heuristic).
-        setRatesLive(currency !== 'USD' || Object.keys(rates).length > 5);
-        setRatesUpdatedAt(new Date().toISOString());
-      } catch (error) {
-        console.error('Landing pricing conversion error:', error);
-      }
-    })();
-  }, []);
+  const heroReducedMotion = usePrefersReducedMotion();
 
   const handleGetStarted = (e: React.FormEvent) => {
     e.preventDefault();
@@ -387,9 +402,35 @@ export function LandingPage() {
         </div>
       </header>
 
-      {/* Hero Section — the product is the visual, not a stock photo */}
+      {/* Hero Section — the product demo is the focal visual; video adds
+          ambient motion behind it (muted, looped, no controls) */}
       <section className="relative bg-ink-950 overflow-hidden">
-        {/* Ambient background: subtle radial glow + faint grid, no stock photography */}
+        {/* Background video layer — free Mixkit-licensed clip (no attribution
+            required, commercial use OK). Falls back to a static poster frame
+            for reduced-motion users instead of autoplaying. */}
+        <div className="absolute inset-0" aria-hidden="true">
+          {heroReducedMotion ? (
+            <img
+              src="https://assets.mixkit.co/videos/15914/15914-thumb-360-1.jpg"
+              alt=""
+              className="w-full h-full object-cover opacity-25"
+            />
+          ) : (
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              poster="https://assets.mixkit.co/videos/15914/15914-thumb-360-1.jpg"
+              className="w-full h-full object-cover opacity-25"
+            >
+              <source src="https://assets.mixkit.co/videos/15914/15914-360.mp4" type="video/mp4" />
+            </video>
+          )}
+          <div className="absolute inset-0 bg-ink-950/70" />
+        </div>
+
+        {/* Ambient gradient + grid, layered above the video */}
         <div className="absolute inset-0" aria-hidden="true">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(46,140,102,0.25),transparent)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_85%_60%,rgba(20,181,148,0.12),transparent)]" />
@@ -488,22 +529,49 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Real stats strip */}
+      {/* Real stats strip — international framing, animated count-up */}
       <section className="bg-gray-50 dark:bg-ink-900 py-12 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">30+</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                <CountUp value={30} suffix="+" />
+              </p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.currencies')}</p>
             </div>
             <div className="text-center">
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">2</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.regions')}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">3</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                <CountUp value={9} suffix="+" />
+              </p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.processors')}</p>
             </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">{t('pLanding.stats.internationalValue')}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.international')}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust marquee — scrolling logo band. Placeholder wordmarks: swap
+          each entry's `name` for a real logo <img> once brand assets are
+          provided (see LOGO_PLACEHOLDERS below). */}
+      <section className="bg-white dark:bg-ink-950 py-10 border-b border-gray-200 dark:border-ink-800 overflow-hidden">
+        <p className="text-center text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-ink-500 mb-6">
+          {t('pLanding.trust.title')}
+        </p>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white dark:from-ink-950 to-transparent z-10" />
+          <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white dark:from-ink-950 to-transparent z-10" />
+          <div className="flex w-max animate-marquee gap-16 px-8">
+            {[...LOGO_PLACEHOLDERS, ...LOGO_PLACEHOLDERS].map((logo, i) => (
+              <span
+                key={`${logo}-${i}`}
+                className="flex items-center justify-center h-8 shrink-0 text-lg font-bold tracking-tight text-gray-400 dark:text-ink-500 whitespace-nowrap"
+              >
+                {logo}
+              </span>
+            ))}
           </div>
         </div>
       </section>
@@ -535,40 +603,31 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing — real matrix, dark band like a serious SaaS pricing section */}
-      <section id="pricing" className="py-20 px-4 lg:px-8 bg-ink-950">
+      {/* Pricing — light section (was hardcoded dark), fixed USD prices */}
+      <section id="pricing" className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-4">
-            <div className="inline-block px-4 py-2 rounded-full bg-flow-500/10 border border-flow-500/30 text-flow-300 text-sm font-semibold mb-6">
+            <div className="inline-block px-4 py-2 rounded-full bg-flow-500/10 border border-flow-500/30 text-flow-700 dark:text-flow-300 text-sm font-semibold mb-6">
               {t('pLanding.pricing.badge')}
             </div>
-            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">{t('pLanding.pricing.title')}</h2>
-            <p className="text-lg text-ink-300 max-w-2xl mx-auto mb-2">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">{t('pLanding.pricing.title')}</h2>
+            <p className="text-lg text-gray-600 dark:text-ink-300 max-w-2xl mx-auto mb-2">
               {t('pLanding.pricing.desc')}
             </p>
-            {ratesUpdatedAt && (
-              <p className="text-xs text-ink-500">
-                {ratesLive ? t('pLanding.pricing.ratesLive') : t('pLanding.pricing.ratesIndicative')} · {t('pLanding.pricing.updated', { date: formatUpdatedAt(ratesUpdatedAt) })}
-              </p>
-            )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-10 items-stretch">
             {LANDING_PLANS.map((plan) => (
               <PricingCard
                 key={plan.id}
                 plan={plan}
-                convertedPrice={convertedPrices[plan.id] || {
-                  usd: plan.basePrice, currency: 'USD', amount: plan.basePrice,
-                  formatted: `$${plan.basePrice}`, rate: 1,
-                }}
                 onSelect={() => navigate(plan.cta.href)}
               />
             ))}
           </div>
 
           <div className="text-center mt-10">
-            <Link to="/pricing" className="inline-flex items-center gap-2 text-flow-300 hover:text-flow-200 font-medium">
+            <Link to="/pricing" className="inline-flex items-center gap-2 text-flow-700 dark:text-flow-300 hover:text-flow-600 dark:hover:text-flow-200 font-medium">
               {t('pLanding.pricing.viewMatrix')} <ArrowRight size={18} />
             </Link>
           </div>
@@ -590,13 +649,43 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
-        <div className="bg-gradient-to-r from-brand-50 to-orange-50 dark:from-brand-900/20 dark:to-orange-900/20 rounded-3xl p-12 text-center">
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{t('pLanding.finalCta.title')}</h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">{t('pLanding.finalCta.desc')}</p>
-          <Link to="/signup" className="inline-block px-8 py-4 bg-brand-600 text-white rounded-full font-semibold hover:bg-brand-700 transition">
-            {t('pLanding.finalCta.button')}
+      {/* Second hero — full video-backed CTA band before the footer */}
+      <section className="relative bg-ink-950 overflow-hidden">
+        <div className="absolute inset-0" aria-hidden="true">
+          {heroReducedMotion ? (
+            <img
+              src="https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg"
+              alt=""
+              className="w-full h-full object-cover opacity-25"
+            />
+          ) : (
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              poster="https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg"
+              className="w-full h-full object-cover opacity-25"
+            >
+              <source src="https://assets.mixkit.co/videos/49137/49137-360.mp4" type="video/mp4" />
+            </video>
+          )}
+          <div className="absolute inset-0 bg-ink-950/75" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_20%,rgba(20,181,148,0.18),transparent)]" />
+        </div>
+
+        <div className="relative max-w-4xl mx-auto px-4 py-24 lg:px-8 text-center">
+          <div className="mb-6 inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 backdrop-blur">
+            <Globe size={14} className="text-flow-400" />
+            <span className="text-xs font-medium tracking-wide text-ink-200">{t('pLanding.secondHero.badge')}</span>
+          </div>
+          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">{t('pLanding.finalCta.title')}</h2>
+          <p className="text-lg text-ink-300 mb-10 max-w-xl mx-auto">{t('pLanding.finalCta.desc')}</p>
+          <Link
+            to="/signup"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-brand-500 text-white rounded-full font-semibold hover:bg-brand-600 transition shadow-lg shadow-brand-500/30"
+          >
+            {t('pLanding.finalCta.button')} <ArrowRight size={18} />
           </Link>
         </div>
       </section>

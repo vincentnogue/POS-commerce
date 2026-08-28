@@ -206,3 +206,13 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Landing page trust-logo marquee (infinite horizontal scroll of a
+   duplicated list — see LOGO_PLACEHOLDERS in LandingPage.tsx) */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 28s linear infinite;
+}
