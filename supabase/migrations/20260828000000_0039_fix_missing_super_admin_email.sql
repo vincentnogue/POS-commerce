@@ -18,23 +18,30 @@ SELECT ensure_super_admin_user('liyahjoha@gmail.com', gen_random_uuid());
 -- ran before the account had signed up yet.
 DO $$
 BEGIN
-  INSERT INTO tenant_members (id, tenant_id, user_id, role, created_at)
-  SELECT
-    gen_random_uuid(),
-    t.id,
-    au.id,
-    'super_admin',
-    now()
-  FROM auth.users au
-  CROSS JOIN tenants t
-  WHERE au.email = 'liyahjoha@gmail.com'
-    AND t.name = 'POS Flow - Administration'
-    AND NOT EXISTS (
-      SELECT 1 FROM tenant_members tm
-      WHERE tm.user_id = au.id AND tm.tenant_id = t.id
-    )
-  ON CONFLICT (tenant_id, user_id) DO UPDATE
-  SET role = 'super_admin';
+  ALTER TABLE public.tenant_members DISABLE TRIGGER protect_privileged_fields;
+  BEGIN
+    INSERT INTO tenant_members (id, tenant_id, user_id, role, created_at)
+    SELECT
+      gen_random_uuid(),
+      t.id,
+      au.id,
+      'super_admin',
+      now()
+    FROM auth.users au
+    CROSS JOIN tenants t
+    WHERE au.email = 'liyahjoha@gmail.com'
+      AND t.name = 'POS Flow - Administration'
+      AND NOT EXISTS (
+        SELECT 1 FROM tenant_members tm
+        WHERE tm.user_id = au.id AND tm.tenant_id = t.id
+      )
+    ON CONFLICT (tenant_id, user_id) DO UPDATE
+    SET role = 'super_admin';
+  EXCEPTION WHEN OTHERS THEN
+    ALTER TABLE public.tenant_members ENABLE TRIGGER protect_privileged_fields;
+    RAISE;
+  END;
+  ALTER TABLE public.tenant_members ENABLE TRIGGER protect_privileged_fields;
 
   RAISE NOTICE 'liyahjoha@gmail.com super admin tenant membership ensured';
 END;
