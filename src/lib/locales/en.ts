@@ -1391,7 +1391,6 @@ export const en: Record<string, string> = {
   "pLanding.stats.processors": "Integrated payment processors",
   "pLanding.stats.internationalValue": "🌍",
   "pLanding.stats.international": "International platform — Africa, the Gulf, Latin America, and beyond",
-  "pLanding.trust.title": "Used by businesses across Africa, Latin America, and beyond",
   "pLanding.secondHero.badge": "LiAfrik — a global platform",
   "pLanding.features.title": "Everything you need to run your business",
   "pLanding.features.desc": "One platform, from the counter to the books.",

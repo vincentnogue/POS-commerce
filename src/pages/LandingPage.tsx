@@ -35,20 +35,6 @@ const DEMO_ITEMS = [
   { key: 'item3', price: 300, qty: 3 },
 ] as const;
 
-// Placeholder trust-marquee entries. These are generic sector/region
-// wordmarks, NOT real company names — swap each for a real partner/customer
-// logo (as an <img>) once brand assets are available. Kept generic on
-// purpose: we don't have the right to display real companies' trademarks
-// here without their logos and permission.
-const LOGO_PLACEHOLDERS = [
-  'Retail Group Afrique',
-  'LatAm Commerce Co.',
-  'Dubai Trading House',
-  'Grupo Comercial',
-  'Sahel Distribution',
-  'Andes Retail',
-];
-
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -549,29 +535,6 @@ export function LandingPage() {
               <p className="text-3xl font-bold text-gray-900 dark:text-white">{t('pLanding.stats.internationalValue')}</p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.international')}</p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Trust marquee — scrolling logo band. Placeholder wordmarks: swap
-          each entry's `name` for a real logo <img> once brand assets are
-          provided (see LOGO_PLACEHOLDERS below). */}
-      <section className="bg-white dark:bg-ink-950 py-10 border-b border-gray-200 dark:border-ink-800 overflow-hidden">
-        <p className="text-center text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-ink-500 mb-6">
-          {t('pLanding.trust.title')}
-        </p>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white dark:from-ink-950 to-transparent z-10" />
-          <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white dark:from-ink-950 to-transparent z-10" />
-          <div className="flex w-max animate-marquee gap-16 px-8">
-            {[...LOGO_PLACEHOLDERS, ...LOGO_PLACEHOLDERS].map((logo, i) => (
-              <span
-                key={`${logo}-${i}`}
-                className="flex items-center justify-center h-8 shrink-0 text-lg font-bold tracking-tight text-gray-400 dark:text-ink-500 whitespace-nowrap"
-              >
-                {logo}
-              </span>
-            ))}
           </div>
         </div>
       </section>
