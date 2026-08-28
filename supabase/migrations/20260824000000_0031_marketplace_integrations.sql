@@ -231,6 +231,18 @@ CREATE TABLE IF NOT EXISTS public.integration_sync_logs (
 -- RLS POLICIES
 -- ============================================================================
 
+-- BUG FIX: this ADD COLUMN used to sit near the bottom of this file (after
+-- all the CREATE POLICY statements below), but several of those policies
+-- reference tenant_members.can_manage_integrations. Postgres runs a
+-- migration file's statements strictly top-to-bottom, so every
+-- `supabase db push` against a fresh/behind database failed immediately
+-- with "column can_manage_integrations does not exist" (SQLSTATE 42703) —
+-- which in turn aborted the whole migration step and skipped deploying any
+-- edge functions in CI. Moving it here (column must exist before any policy
+-- can reference it) fixes deploys without changing the end schema — this
+-- statement was always idempotent (IF NOT EXISTS) and additive.
+ALTER TABLE public.tenant_members ADD COLUMN IF NOT EXISTS can_manage_integrations BOOLEAN DEFAULT FALSE;
+
 ALTER TABLE public.integration_providers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.integration_connections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.integration_credentials ENABLE ROW LEVEL SECURITY;
@@ -398,10 +410,9 @@ CREATE TRIGGER trigger_integration_connections_updated_at
   EXECUTE FUNCTION update_integration_connections_updated_at();
 
 -- ============================================================================
--- UPDATE tenant_members to include can_manage_integrations permission
+-- tenant_members.can_manage_integrations was added above, before the RLS
+-- policies that reference it (see BUG FIX note near the top of this file).
 -- ============================================================================
-
-ALTER TABLE public.tenant_members ADD COLUMN IF NOT EXISTS can_manage_integrations BOOLEAN DEFAULT FALSE;
 
 -- ============================================================================
 -- SEED: Initial integration providers (global)
