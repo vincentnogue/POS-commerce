@@ -69,6 +69,22 @@ export function POSPage() {
     );
   }, [products, search]);
 
+  // A barcode scanner behaves like a keyboard typing fast, then "Enter".
+  // Before this, a scan just narrowed the product grid and still required
+  // a manual click — slow, and risky if the filter matched more than one
+  // product. On Enter, if the typed text is an exact barcode match, add
+  // it straight to the cart and clear the field for the next scan.
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Enter') return;
+    const q = search.trim();
+    if (!q) return;
+    const exact = products.find((p) => p.barcode && p.barcode === q);
+    if (exact) {
+      addToCart(exact);
+      setSearch('');
+    }
+  };
+
   const addToCart = (p: Product) => {
     setCart((c) => {
       const existing = c.find((i) => i.product.id === p.id);
@@ -274,6 +290,7 @@ export function POSPage() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
                 placeholder={t('pos.searchPlaceholder')}
                 className="input pl-10"
               />
