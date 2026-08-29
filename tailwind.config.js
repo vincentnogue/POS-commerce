@@ -65,6 +65,7 @@ export default {
       fontFamily: {
         sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
         display: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+        heading: ['Poppins', 'Plus Jakarta Sans', 'Inter', 'sans-serif'],
       },
       borderRadius: {
         xl2: '1.25rem',
@@ -95,6 +96,9 @@ export default {
         'pulse-glow': {
           '0%, 100%': { opacity: '0.5', transform: 'scale(1)' },
           '50%': { opacity: '0.9', transform: 'scale(1.08)' },
+        },
+        flagscroll: {
+          to: { transform: 'translateX(-50%)' },
         },
       },
       animation: {

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '../lib/i18n';
+import { supabase } from '../lib/supabase';
 import { PricingCard, type PricingPlan } from '../components/PricingCard';
 import { PLANS as REAL_PLANS } from '../lib/plans';
 
@@ -34,6 +35,44 @@ const DEMO_ITEMS = [
   { key: 'item2', price: 6, qty: 2 },
   { key: 'item3', price: 1.5, qty: 3 },
 ] as const;
+
+// Real national flags (flagcdn.com, ISO 3166-1 alpha-2 codes) — UAE-anchored
+// with a strong African footprint, then rest of world. Purely a visual
+// statement of geographic reach, not a claim of offices/customers per country.
+const FLAG_COUNTRIES = [
+  { code: 'ae', name: 'United Arab Emirates' },
+  { code: 'ng', name: 'Nigeria' },
+  { code: 'gh', name: 'Ghana' },
+  { code: 'ke', name: 'Kenya' },
+  { code: 'za', name: 'South Africa' },
+  { code: 'cm', name: 'Cameroon' },
+  { code: 'sn', name: 'Senegal' },
+  { code: 'ci', name: "Côte d'Ivoire" },
+  { code: 'ug', name: 'Uganda' },
+  { code: 'tz', name: 'Tanzania' },
+  { code: 'ma', name: 'Morocco' },
+  { code: 'eg', name: 'Egypt' },
+  { code: 'et', name: 'Ethiopia' },
+  { code: 'rw', name: 'Rwanda' },
+  { code: 'bw', name: 'Botswana' },
+  { code: 'fr', name: 'France' },
+  { code: 'gb', name: 'United Kingdom' },
+  { code: 'us', name: 'United States' },
+  { code: 'ca', name: 'Canada' },
+  { code: 'sa', name: 'Saudi Arabia' },
+  { code: 'qa', name: 'Qatar' },
+  { code: 'in', name: 'India' },
+  { code: 'au', name: 'Australia' },
+] as const;
+
+// Shape of a row from the real integration_providers table, used only for
+// the landing page's ecosystem strip (subset of columns, public-readable).
+type EcosystemProvider = {
+  provider_key: string;
+  provider_name: string;
+  logo_url: string;
+  category: string;
+};
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -295,6 +334,26 @@ export function LandingPage() {
   const { lang, setLang, t } = useI18n();
   const navigate = useNavigate();
   const heroReducedMotion = usePrefersReducedMotion();
+  const [ecosystemProviders, setEcosystemProviders] = useState<EcosystemProvider[]>([]);
+
+  // Real integrations only — pulled live from the same integration_providers
+  // table that powers /marketplace (public SELECT policy, no auth needed).
+  // Never hardcode brand names here: if a provider isn't actually in the
+  // marketplace yet, it must not appear as "compatible" on the landing page.
+  useEffect(() => {
+    let cancelled = false;
+    supabase
+      .from('integration_providers')
+      .select('provider_key, provider_name, logo_url, category')
+      .eq('is_active', true)
+      .not('logo_url', 'is', null)
+      .order('is_featured', { ascending: false })
+      .limit(14)
+      .then(({ data }) => {
+        if (!cancelled && data) setEcosystemProviders(data as EcosystemProvider[]);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const handleGetStarted = (e: React.FormEvent) => {
     e.preventDefault();
@@ -515,6 +574,60 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Global markets band — real national flags (flagcdn.com), a visual
+          statement of reach, not a claim of customers/offices in each
+          country. UAE + strong African presence + rest of world, per brand
+          positioning (Liafrik, Dubai & Africa). */}
+      <section className="bg-white dark:bg-ink-950 py-8 border-b border-gray-100 dark:border-ink-800 overflow-hidden" aria-label="Global markets">
+        <p className="text-center text-xs font-semibold tracking-wide text-gray-500 dark:text-ink-400 mb-5 px-4">
+          {t('pLanding.flags.heading')}
+        </p>
+        <div className="flex w-max animate-[flagscroll_46s_linear_infinite] hover:[animation-play-state:paused] gap-5">
+          {[...FLAG_COUNTRIES, ...FLAG_COUNTRIES].map((c, i) => (
+            <div
+              key={`${c.code}-${i}`}
+              className="h-14 w-14 shrink-0 rounded-full overflow-hidden border border-gray-200 dark:border-ink-700 shadow-sm bg-gray-100"
+              title={c.name}
+            >
+              <img
+                src={`https://flagcdn.com/w160/${c.code}.png`}
+                alt={i < FLAG_COUNTRIES.length ? c.name : ''}
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Real integrations ecosystem — live from the marketplace's own
+          integration_providers table (same data /marketplace uses). Only
+          providers actually seeded there (real logo_url) appear here, so
+          this can never overstate what's actually connectable today. */}
+      {ecosystemProviders.length > 0 && (
+        <section className="bg-gray-50 dark:bg-ink-900 py-10 border-b border-gray-200 dark:border-ink-800 overflow-hidden" aria-label="Integration ecosystem">
+          <p className="text-center text-xs font-semibold tracking-wide text-gray-500 dark:text-ink-400 mb-6 px-4">
+            {t('pLanding.ecosystem.heading')}
+          </p>
+          <div className="flex w-max animate-[flagscroll_34s_linear_infinite] hover:[animation-play-state:paused] gap-3">
+            {[...ecosystemProviders, ...ecosystemProviders].map((p, i) => (
+              <div
+                key={`${p.provider_key}-${i}`}
+                className="flex items-center gap-2.5 h-[62px] min-w-[160px] px-5 rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-sm shrink-0"
+              >
+                <img src={p.logo_url} alt="" loading="lazy" className="h-7 w-7 object-contain" />
+                <span className="text-sm font-semibold text-gray-700 dark:text-ink-200 whitespace-nowrap">{p.provider_name}</span>
+              </div>
+            ))}
+          </div>
+          <div className="text-center mt-6">
+            <Link to="/marketplace" className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700">
+              {t('pLanding.ecosystem.cta')} <ArrowRight size={14} />
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* Real, verifiable stats only — 30+ currencies (src/lib/currency.ts)
           and 9+ payment processors (seeded integration_providers) are both
