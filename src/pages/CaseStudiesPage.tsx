@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
-import { TrendingUp, Award, Users, BarChart3, ArrowRight } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { TrendingUp, Award, Users, BarChart3, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface CaseStudy {
   id: string;
@@ -70,8 +70,22 @@ const CASE_STUDIES: CaseStudy[] = [
 ];
 
 export function CaseStudiesPage() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-brand-50 dark:bg-ink-900">
+      {/* Back Button */}
+      <div className="sticky top-0 z-40 bg-brand-50 dark:bg-ink-900 border-b border-ink-200 dark:border-ink-800">
+        <div className="max-w-6xl mx-auto px-6 py-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 font-medium transition"
+          >
+            <ArrowLeft size={18} /> Back
+          </button>
+        </div>
+      </div>
+
       {/* Hero */}
       <div className="bg-gradient-to-r from-brand-600 to-flow-600 py-20">
         <div className="max-w-5xl mx-auto px-6 text-center">

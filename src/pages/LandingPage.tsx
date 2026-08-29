@@ -416,7 +416,7 @@ export function LandingPage() {
             <img
               src="https://assets.mixkit.co/videos/15914/15914-thumb-360-1.jpg"
               alt=""
-              className="w-full h-full object-cover opacity-45"
+              className="w-full h-full object-cover opacity-80"
             />
           ) : (
             <video
@@ -425,7 +425,7 @@ export function LandingPage() {
               loop
               playsInline
               poster="https://assets.mixkit.co/videos/15914/15914-thumb-360-1.jpg"
-              className="w-full h-full object-cover opacity-45"
+              className="w-full h-full object-cover opacity-80"
             >
               <source src="https://assets.mixkit.co/videos/15914/15914-360.mp4" type="video/mp4" />
             </video>
@@ -745,7 +745,7 @@ export function LandingPage() {
             <img
               src="https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg"
               alt=""
-              className="w-full h-full object-cover opacity-45"
+              className="w-full h-full object-cover opacity-80"
             />
           ) : (
             <video
@@ -754,7 +754,7 @@ export function LandingPage() {
               loop
               playsInline
               poster="https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg"
-              className="w-full h-full object-cover opacity-45"
+              className="w-full h-full object-cover opacity-80"
             >
               <source src="https://assets.mixkit.co/videos/49137/49137-360.mp4" type="video/mp4" />
             </video>
@@ -776,6 +776,102 @@ export function LandingPage() {
           >
             {t('pLanding.finalCta.button')} <ArrowRight size={18} />
           </Link>
+        </div>
+      </section>
+
+      {/* Let's work together section */}
+      <section className="py-20 px-4 lg:px-8 bg-white dark:bg-ink-900">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left content */}
+            <div>
+              <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-6 leading-tight">
+                {t('pLanding.workTogether.title') || 'Let\'s work together\nto find the right\nsystem for your\nbusiness'}
+              </h2>
+              <p className="text-lg text-ink-700 dark:text-ink-300 mb-8 leading-relaxed">
+                {t('pLanding.workTogether.desc') || 'Our business consultants are available in person or by phone to help you find the right system. We\'ll help you get up and running, and then we\'re available 24/7/365 for troubleshooting and support.\n\nWe\'re here to help—always.'}
+              </p>
+              
+              <div className="mb-8">
+                <p className="text-sm font-bold text-ink-600 dark:text-ink-400 mb-2">{t('pLanding.workTogether.callLabel') || 'Call now'}</p>
+                <p className="text-3xl font-bold text-brand-600 dark:text-brand-400 mb-6">+971XXXXXXXX</p>
+              </div>
+
+              <Link
+                to="/contact"
+                className="inline-flex items-center gap-2 px-6 py-3 border-2 border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400 rounded-lg font-semibold hover:bg-brand-50 dark:hover:bg-brand-600/10 transition"
+              >
+                {t('pLanding.workTogether.cta') || 'Schedule a call'}
+              </Link>
+            </div>
+
+            {/* Right image (placeholder gradient) */}
+            <div className="relative h-96 rounded-xl overflow-hidden shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-100 to-flow-100 dark:from-ink-800 dark:to-ink-700 flex items-center justify-center">
+                <div className="text-6xl">👩‍💼</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Keep things flowing section */}
+      <section className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-16">
+            {t('pLanding.keepFlowing.title') || 'Keep things flowing with\nthe all-in-one platform'}
+          </h2>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Stat Cards */}
+            <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg">
+              <div className="text-4xl font-bold text-brand-600 mb-2">+34%</div>
+              <p className="text-sm font-semibold text-ink-600 dark:text-ink-400 mb-4">Sales Increase</p>
+              <p className="text-sm text-ink-500 dark:text-ink-400">Average growth for our customers</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-ink-800 to-ink-900 p-8 rounded-xl shadow-lg text-white">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-flow-500 mb-4">
+                <span className="text-2xl">⏱️</span>
+              </div>
+              <p className="text-sm font-semibold mb-2">Staff Clock-in</p>
+              <p className="text-xs text-white/70">Real-time employee tracking</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-action-50 to-flow-50 dark:from-ink-800 dark:to-ink-900 p-8 rounded-xl shadow-lg">
+              <div className="text-4xl mb-4">📊</div>
+              <p className="font-semibold text-ink-900 dark:text-white mb-2">Order #568</p>
+              <div className="space-y-2">
+                <p className="text-sm text-ink-700 dark:text-ink-300">🍔 Classic Burger</p>
+                <p className="text-sm text-ink-700 dark:text-ink-300">🍟 Truffle Fries</p>
+                <p className="text-sm text-ink-700 dark:text-ink-300">🥤 Chocolate Shake</p>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-brand-600" />
+                <div>
+                  <p className="font-semibold text-ink-900 dark:text-white text-sm">Sarah Johnson</p>
+                  <p className="text-xs text-ink-600 dark:text-ink-400">Member since 2022</p>
+                </div>
+              </div>
+              <div className="bg-gray-100 dark:bg-ink-900 p-3 rounded-lg">
+                <p className="font-bold text-brand-600 text-2xl">3,247</p>
+                <p className="text-xs text-ink-600 dark:text-ink-400">Points Balance</p>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="mt-16 text-center">
+            <Link
+              to="/pricing"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
+            >
+              {t('pLanding.keepFlowing.cta') || 'Explore Our Platform'} <ArrowRight size={18} />
+            </Link>
+          </div>
         </div>
       </section>
 
