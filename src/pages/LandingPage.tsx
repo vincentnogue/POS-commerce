@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
   Menu, X, Globe, ChevronDown, ArrowRight, MapPin,
   ShoppingCart, Package, Store, Plug, FileText, BarChart3,
-  ShieldCheck, Wallet, Check, Smartphone, TrendingUp, Receipt,
+  ShieldCheck, Wallet, Check, CheckCircle2, Smartphone, TrendingUp, Receipt,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '../lib/i18n';
@@ -638,6 +638,86 @@ export function LandingPage() {
             <Link to="/pricing" className="inline-flex items-center gap-2 text-flow-700 dark:text-flow-300 hover:text-flow-600 dark:hover:text-flow-200 font-medium">
               {t('pLanding.pricing.viewMatrix')} <ArrowRight size={18} />
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* "Let's get busy"-style hero, in LiAfrik colors — checklist + email
+          capture on a solid brand panel, stylized POS device mockup on a
+          gradient panel (no stock photo — the product's own UI, styled as
+          hardware, stays consistent with the rest of this page). */}
+      <section className="px-4 lg:px-8 max-w-7xl mx-auto py-4">
+        <div className="relative rounded-3xl overflow-hidden">
+          {/* Right-side gradient backdrop (spans full width, dark panel sits on top of it on the left) */}
+          <div className="absolute inset-0 bg-gradient-to-r from-brand-800 via-flow-600 to-flow-400" />
+
+          <div className="relative grid grid-cols-1 lg:grid-cols-2 min-h-[560px]">
+            {/* Dark content panel */}
+            <div className="relative bg-brand-900/95 px-8 py-14 lg:px-14 lg:py-16 flex flex-col justify-center">
+              <h2 className="text-4xl lg:text-5xl font-bold text-white leading-tight mb-8">
+                {t('pLanding.busyHero.titleBefore')}{' '}
+                <span className="relative inline-block">
+                  <span>{t('pLanding.busyHero.titleHighlight')}</span>
+                  <svg
+                    className="absolute -left-2 -right-2 -top-2 -bottom-1 w-[calc(100%+16px)] h-[calc(100%+12px)]"
+                    viewBox="0 0 220 70"
+                    preserveAspectRatio="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <ellipse cx="110" cy="35" rx="105" ry="30" fill="none" stroke="#F96F22" strokeWidth="4" />
+                  </svg>
+                </span>
+              </h2>
+
+              <div className="space-y-5 mb-10">
+                {(['point1', 'point2', 'point3'] as const).map((key) => (
+                  <div key={key} className="flex items-start gap-3">
+                    <CheckCircle2 className="w-6 h-6 text-white flex-shrink-0" />
+                    <p className="text-white/90 text-lg">{t(`pLanding.busyHero.${key}`)}</p>
+                  </div>
+                ))}
+              </div>
+
+              <form onSubmit={handleGetStarted} className="flex gap-2 max-w-md">
+                <input
+                  type="email"
+                  required
+                  placeholder={t('pLanding.busyHero.emailPlaceholder')}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="flex-1 px-5 py-3 rounded-full bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-action-500"
+                />
+                <button
+                  type="submit"
+                  className="px-6 py-3 bg-action-500 text-white rounded-full font-semibold hover:bg-action-600 transition whitespace-nowrap"
+                >
+                  {t('pLanding.busyHero.cta')}
+                </button>
+              </form>
+            </div>
+
+            {/* Device mockup panel */}
+            <div className="relative hidden lg:flex items-center justify-center p-12 overflow-hidden">
+              <div className="relative w-full max-w-md" style={{ transform: 'perspective(1200px) rotateY(-18deg) rotateX(4deg)' }}>
+                {/* Monitor screen */}
+                <div className="rounded-xl bg-ink-950/90 border-4 border-ink-900 shadow-2xl p-4">
+                  <div className="grid grid-cols-4 gap-2 mb-3">
+                    {[0, 1, 2, 3].map((i) => (
+                      <div key={i} className="h-6 rounded bg-white/10" />
+                    ))}
+                  </div>
+                  <div className="h-8 rounded bg-flow-500/40 mb-2" />
+                  <div className="grid grid-cols-3 gap-2">
+                    {Array.from({ length: 9 }).map((_, i) => (
+                      <div key={i} className="h-10 rounded bg-white/10" />
+                    ))}
+                  </div>
+                </div>
+                {/* Stand */}
+                <div className="mx-auto w-4 h-10 bg-ink-800" />
+                <div className="mx-auto w-40 h-6 rounded-full bg-ink-900 shadow-xl" />
+              </div>
+            </div>
           </div>
         </div>
       </section>
