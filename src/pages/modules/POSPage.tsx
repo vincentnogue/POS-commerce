@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -32,6 +32,10 @@ export function POSPage() {
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [paidAmount, setPaidAmount] = useState('');
   const [paymentReference, setPaymentReference] = useState('');
+  const [splitPayment, setSplitPayment] = useState(false);
+  const [splitTenders, setSplitTenders] = useState<{ method: string; amount: string; reference: string }[]>([
+    { method: 'cash', amount: '', reference: '' },
+  ]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [lastReceipt, setLastReceipt] = useState<{ items: CartItem[]; total: number; paymentMethod: string; paymentReference: string } | null>(null);
@@ -174,19 +178,51 @@ export function POSPage() {
   const taxTotal = cart.reduce((s, i) => s + i.quantity * i.unit_price * (Number(i.product.tax_rate) / 100), 0);
   const total = subtotal + taxTotal;
 
+  const splitTotal = splitTenders.reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  const splitRemaining = total - splitTotal;
+
   const checkout = async () => {
     if (!tenant || cart.length === 0) return;
     if (!daySession) {
       toast('error', t('pos.day.err.mustOpenFirst'));
       return;
     }
-    if ((paymentMethod === 'card' || paymentMethod === 'mobile_money') && !paymentReference.trim()) {
-      toast('error', t('pos.err.paymentRefRequired'));
-      return;
+
+    let finalPaymentMethod = paymentMethod;
+    let finalPaymentReference: string | null = paymentMethod === 'cash' ? null : paymentReference.trim();
+    let paid: number;
+    let tendersToRecord: { method: string; amount: number; reference: string | null }[];
+
+    if (splitPayment) {
+      const validTenders = splitTenders.filter((t) => Number(t.amount) > 0);
+      if (validTenders.length < 2) {
+        toast('error', t('pos.split.err.needTwoTenders'));
+        return;
+      }
+      if (Math.abs(splitRemaining) > 0.01) {
+        toast('error', t('pos.split.err.mustMatchTotal'));
+        return;
+      }
+      const missingRef = validTenders.find((t) => t.method !== 'cash' && !t.reference.trim());
+      if (missingRef) {
+        toast('error', t('pos.err.paymentRefRequired'));
+        return;
+      }
+      paid = splitTotal;
+      finalPaymentMethod = 'split';
+      finalPaymentReference = null;
+      tendersToRecord = validTenders.map((t) => ({ method: t.method, amount: Number(t.amount), reference: t.method === 'cash' ? null : t.reference.trim() }));
+    } else {
+      if ((paymentMethod === 'card' || paymentMethod === 'mobile_money') && !paymentReference.trim()) {
+        toast('error', t('pos.err.paymentRefRequired'));
+        return;
+      }
+      paid = paymentMethod === 'cash' ? (Number(paidAmount) || total) : total;
+      tendersToRecord = [{ method: paymentMethod, amount: paid, reference: finalPaymentReference }];
     }
-    const ref = `VTE-${Date.now().toString().slice(-8)}`;
-    const paid = paymentMethod === 'cash' ? (Number(paidAmount) || total) : total;
+
     const paymentStatus = paid >= total ? 'paid' : 'unpaid';
+    const ref = `VTE-${Date.now().toString().slice(-8)}`;
 
     const { data: sale, error } = await supabase
       .from('sales')
@@ -200,8 +236,8 @@ export function POSPage() {
         discount_total: 0,
         total,
         paid_amount: paid,
-        payment_method: paymentMethod,
-        payment_reference: paymentMethod === 'cash' ? null : paymentReference.trim(),
+        payment_method: finalPaymentMethod,
+        payment_reference: finalPaymentReference,
         payment_status: paymentStatus,
         sale_status: 'completed',
         notes: deliveryChoice === 'pending' ? t('pos.notes.deliveryPending') : t('pos.notes.delivered'),
@@ -214,6 +250,18 @@ export function POSPage() {
     if (error || !sale) {
       toast('error', error?.message ?? t('pos.err.saleFailed'));
       return;
+    }
+
+    // Record the tender breakdown (one row for a normal sale, several for a
+    // split payment). Best-effort: sales.payment_method/paid_amount above
+    // already fully describe a normal sale on their own, so a failure here
+    // must not roll back or block a completed, paid sale — it only means
+    // the itemized breakdown is missing for reporting.
+    const { error: paymentsErr } = await supabase.from('sale_payments').insert(
+      tendersToRecord.map((tRow) => ({ tenant_id: tenant.id, sale_id: sale.id, method: tRow.method, amount: tRow.amount, reference: tRow.reference }))
+    );
+    if (paymentsErr) {
+      console.error('sale_payments insert failed (non-blocking):', paymentsErr.message);
     }
 
     // This writes the actual line items — and triggers automatic stock
@@ -271,6 +319,8 @@ export function POSPage() {
     setCart([]);
     setPaymentReference('');
     setPaidAmount('');
+    setSplitPayment(false);
+    setSplitTenders([{ method: 'cash', amount: '', reference: '' }]);
     setCheckoutOpen(false);
     setCustomer(null);
     setCustomerSearch('');
@@ -490,21 +540,83 @@ export function POSPage() {
             {customer && <p className="mt-1 text-xs text-success-700">{t('pos.customerPrefix')}: {customer.name}</p>}
           </div>
           <div>
-            <p className="label">{t('pos.paymentMethod')}</p>
-            <div className="grid grid-cols-3 gap-2">
-              {PAYMENT_METHODS.map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setPaymentMethod(m.id)}
-                  className={`flex flex-col items-center gap-1 rounded-xl border p-3 text-xs font-medium transition ${
-                    paymentMethod === m.id ? 'border-brand-400 bg-brand-50 dark:bg-brand-900/25 text-brand-700' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-200'
-                  }`}
-                >
-                  <m.icon size={18} /> {t(m.labelKey)}
-                </button>
-              ))}
+            <div className="flex items-center justify-between">
+              <p className="label mb-0">{t('pos.paymentMethod')}</p>
+              <button
+                type="button"
+                onClick={() => setSplitPayment((v) => !v)}
+                className={`text-xs font-semibold underline ${splitPayment ? 'text-brand-600' : 'text-ink-400 dark:text-ink-500'}`}
+              >
+                {splitPayment ? t('pos.split.disable') : t('pos.split.enable')}
+              </button>
             </div>
+            {!splitPayment && (
+              <div className="grid grid-cols-3 gap-2">
+                {PAYMENT_METHODS.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => setPaymentMethod(m.id)}
+                    className={`flex flex-col items-center gap-1 rounded-xl border p-3 text-xs font-medium transition ${
+                      paymentMethod === m.id ? 'border-brand-400 bg-brand-50 dark:bg-brand-900/25 text-brand-700' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-200'
+                    }`}
+                  >
+                    <m.icon size={18} /> {t(m.labelKey)}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+
+          {splitPayment && (
+            <div className="space-y-2 rounded-xl border border-ink-200 dark:border-ink-700 p-3">
+              {splitTenders.map((tender, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <select
+                    value={tender.method}
+                    onChange={(e) => setSplitTenders((rows) => rows.map((r, i) => (i === idx ? { ...r, method: e.target.value } : r)))}
+                    className="input py-1.5 text-sm w-28 shrink-0"
+                  >
+                    {PAYMENT_METHODS.map((m) => <option key={m.id} value={m.id}>{t(m.labelKey)}</option>)}
+                  </select>
+                  <input
+                    type="number"
+                    value={tender.amount}
+                    onChange={(e) => setSplitTenders((rows) => rows.map((r, i) => (i === idx ? { ...r, amount: e.target.value } : r)))}
+                    className="input py-1.5 text-sm flex-1"
+                    placeholder={t('pos.split.amountPlaceholder')}
+                  />
+                  {tender.method !== 'cash' && (
+                    <input
+                      type="text"
+                      value={tender.reference}
+                      onChange={(e) => setSplitTenders((rows) => rows.map((r, i) => (i === idx ? { ...r, reference: e.target.value } : r)))}
+                      className="input py-1.5 text-sm w-28"
+                      placeholder={t('pos.split.refPlaceholder')}
+                    />
+                  )}
+                  {splitTenders.length > 1 && (
+                    <button type="button" onClick={() => setSplitTenders((rows) => rows.filter((_, i) => i !== idx))} className="text-error-500 hover:text-error-700 shrink-0">
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setSplitTenders((rows) => [...rows, { method: 'card', amount: '', reference: '' }])}
+                className="text-xs font-semibold text-brand-600"
+              >
+                + {t('pos.split.addTender')}
+              </button>
+              <p className={`text-xs font-medium ${Math.abs(splitRemaining) < 0.01 ? 'text-success-700' : 'text-warning-700'}`}>
+                {Math.abs(splitRemaining) < 0.01
+                  ? t('pos.split.fullyAllocated')
+                  : splitRemaining > 0
+                    ? t('pos.split.remaining', { amount: formatMoney(splitRemaining, currency) })
+                    : t('pos.split.overAllocated', { amount: formatMoney(-splitRemaining, currency) })}
+              </p>
+            </div>
+          )}
           <div>
             <p className="label">{t('pos.delivery')}</p>
             <div className="grid grid-cols-2 gap-2">
@@ -531,7 +643,7 @@ export function POSPage() {
             <p className="text-xs uppercase text-ink-500 dark:text-ink-400">{t('pos.totalToPay')}</p>
             <p className="text-2xl font-medium text-brand-700">{formatMoney(total, currency)}</p>
           </div>
-          {paymentMethod === 'cash' && (
+          {!splitPayment && paymentMethod === 'cash' && (
             <div>
               <label className="label">{t('pos.amountReceived')}</label>
               <input
@@ -546,7 +658,7 @@ export function POSPage() {
               )}
             </div>
           )}
-          {(paymentMethod === 'card' || paymentMethod === 'mobile_money') && (
+          {!splitPayment && (paymentMethod === 'card' || paymentMethod === 'mobile_money') && (
             <div>
               <label className="label">
                 {paymentMethod === 'card' ? t('pos.cardRefLabel') : t('pos.mobileRefLabel')}
@@ -562,7 +674,7 @@ export function POSPage() {
               <p className="mt-1 text-xs text-ink-400 dark:text-ink-500">{t('pos.refHelp')}</p>
             </div>
           )}
-          <button onClick={checkout} className="btn-primary w-full justify-center py-3">
+          <button onClick={checkout} disabled={splitPayment && Math.abs(splitRemaining) > 0.01} className="btn-primary w-full justify-center py-3 disabled:opacity-50 disabled:cursor-not-allowed">
             <Check size={16} /> {t('pos.confirmCheckout')}
           </button>
         </div>
