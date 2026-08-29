@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /pos
+Disallow: /stock
+Disallow: /products
+Disallow: /customers
+Disallow: /invoices
+Disallow: /quotes
+Disallow: /deliveries
+Disallow: /suppliers
+Disallow: /purchases
+Disallow: /expenses
+Disallow: /reports
+Disallow: /accounting
+Disallow: /users
+Disallow: /settings
+Disallow: /administration
+Disallow: /superadmin
+Disallow: /onboarding
+Disallow: /reset-password
+
+Sitemap: https://posflow.io/sitemap.xml
