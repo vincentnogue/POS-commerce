@@ -113,16 +113,6 @@ export default function App() {
                       }
                     />
 
-                    {/* Super Admin Route - Bypasses subscription requirements */}
-                    <Route
-                      path="/superadmin"
-                      element={
-                        <RequireSuperAdmin>
-                          <SuperAdminPage />
-                        </RequireSuperAdmin>
-                      }
-                    />
-
                     <Route
                       element={
                         <RequireActiveSubscription>
@@ -130,6 +120,14 @@ export default function App() {
                         </RequireActiveSubscription>
                       }
                     >
+                      <Route
+                        path="/superadmin"
+                        element={
+                          <RequireSuperAdmin>
+                            <SuperAdminPage />
+                          </RequireSuperAdmin>
+                        }
+                      />
                       <Route path="/dashboard" element={<DashboardPage />} />
                       <Route path="/pos" element={<POSPage />} />
                       <Route path="/products" element={<ProductsPage />} />

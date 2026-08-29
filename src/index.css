@@ -216,3 +216,13 @@
 .animate-marquee {
   animation: marquee 50s linear infinite;
 }
+
+/* Same infinite duplicated-list scroll, used by the partner-logo and
+   country-flag bands on the landing page via Tailwind's arbitrary
+   animate-[flagscroll_Ns_linear_infinite] syntax. Without this
+   @keyframes rule the animation name resolves to nothing and the two
+   bands render static instead of scrolling. */
+@keyframes flagscroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
