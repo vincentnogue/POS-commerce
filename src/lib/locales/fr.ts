@@ -355,6 +355,7 @@ export const fr: Record<string, string> = {
   "common.empty": "Aucune donnée",
   "common.back": "Retour",
   "common.close": "Fermer",
+  "common.noPermission": "Vous n'avez pas la permission d'effectuer cette action. Contactez votre administrateur.",
   "common.confirm": "Confirmer",
   "common.export": "Exporter",
   "common.create": "Créer",

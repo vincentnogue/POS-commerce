@@ -203,7 +203,19 @@ export function ProductsPage() {
             {canSeeCost && <button onClick={() => exportCSV('produits.csv', filtered.map((p) => ({ name: p.name, sku: p.sku, prix_achat: p.cost_price, prix_vente: p.sale_price, categorie: catName(p.category_id) })))} className="btn-ghost">
               <Download size={16} /> {t('common.export')}
             </button>}
-            {canCreate && <button onClick={openNew} className="btn-primary"><Plus size={16} /> {t('products.new')}</button>}
+            {/* BUG FIX: this button used to be omitted entirely (`{canCreate && <button>}`)
+                whenever the permission check was false, which is indistinguishable from
+                a rendering bug to the person looking at the screen — it just isn't there.
+                Always render it; disable it (with an explanatory tooltip) instead, so
+                "the button is missing" never happens regardless of role/plan state. */}
+            <button
+              onClick={canCreate ? openNew : undefined}
+              disabled={!canCreate}
+              title={!canCreate ? t('common.noPermission') : undefined}
+              className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Plus size={16} /> {t('products.new')}
+            </button>
           </div>
         }
       />
@@ -215,7 +227,14 @@ export function ProductsPage() {
             <option value="">{t('products.allCategories')}</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
-          {canCreate && <button onClick={() => setCategoryModalOpen(true)} className="btn-ghost"><Tags size={16} /> {t('products.categories.manageBtn')}</button>}
+          <button
+            onClick={canCreate ? () => setCategoryModalOpen(true) : undefined}
+            disabled={!canCreate}
+            title={!canCreate ? t('common.noPermission') : undefined}
+            className="btn-ghost disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Tags size={16} /> {t('products.categories.manageBtn')}
+          </button>
         </div>
 
         {filtered.length === 0 && !loading ? (
