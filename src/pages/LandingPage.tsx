@@ -1036,151 +1036,73 @@ export function LandingPage() {
         </Reveal>
       </section>
 
-      {/* Let's work together section */}
-      <section className="py-20 px-4 lg:px-8 bg-white dark:bg-ink-900">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left content */}
-            <div>
-              <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-6 leading-tight">
-                {t('pLanding.workTogether.title') || 'Let\'s work together\nto find the right\nsystem for your\nbusiness'}
-              </h2>
-              <p className="text-lg text-ink-700 dark:text-ink-300 mb-8 leading-relaxed">
-                {t('pLanding.workTogether.desc') || 'Our business consultants are available in person or by phone to help you find the right system. We\'ll help you get up and running, and then we\'re available 24/7/365 for troubleshooting and support.\n\nWe\'re here to help—always.'}
-              </p>
-              
-              <div className="mb-8">
-                <p className="text-sm font-bold text-ink-600 dark:text-ink-400 mb-2">{t('pLanding.workTogether.callLabel') || 'Call now'}</p>
-                <p className="text-3xl font-bold text-brand-600 dark:text-brand-400 mb-6">+971XXXXXXXX</p>
-              </div>
+      {/* Let's work together section removed: its i18n keys were never
+          filled in (rendered raw as "pLanding.workTogether.title" instead of
+          real text) and it showed a placeholder phone number
+          ("+971XXXXXXXX") and an emoji in place of an image — none of it
+          was ever real content. Deleted rather than fixed in place, per the
+          request to remove it outright. */}
 
-              <Link
-                to="/contact"
-                className="inline-flex items-center gap-2 px-6 py-3 border-2 border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400 rounded-lg font-semibold hover:bg-brand-50 dark:hover:bg-brand-600/10 transition"
-              >
-                {t('pLanding.workTogether.cta') || 'Schedule a call'}
-              </Link>
-            </div>
-
-            {/* Right image (placeholder gradient) */}
-            <div className="relative h-96 rounded-xl overflow-hidden shadow-xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-100 to-flow-100 dark:from-ink-800 dark:to-ink-700 flex items-center justify-center">
-                <div className="text-6xl">👩‍💼</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Keep things flowing section — four real product mockups (stock
-          movement, day-open staff clock-in, a POS sale ticket using the same
-          generic retail demo items as the hero above, and a return/exchange
-          store-credit ticket). Every figure shown is illustrative UI, not a
-          marketing stat — no invented percentages or fabricated feature
-          (there is no loyalty/points system in this product; store credit,
-          via Returns/Exchange, is the real equivalent). */}
-      <section className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
-        <div className="max-w-6xl mx-auto">
+      {/* Keep things flowing section — dashboard-style layout (2-col: real-module
+          checklist + a large illustrative report/dashboard panel), matching the
+          dark "Less admin. More control" treatment from the reference design.
+          The panel is a built graphic (bars/stat readouts), not a stock photo or
+          a screenshot claiming to be the live product — no invented percentages,
+          same real-module list as before (stock, day-open, POS sale, return
+          credit), now as a checklist instead of four small cards. */}
+      <section className="py-24 px-4 lg:px-8 bg-ink-950">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-16 items-center">
           <Reveal>
-            <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-16 whitespace-pre-line">
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6 whitespace-pre-line">
               {t('pLanding.keepFlowing.title')}
             </h2>
-          </Reveal>
-
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Card 1 — stock/sales movement, generic categories, no invented % */}
-            <Reveal delay={0}>
-            <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-              <div className="flex items-end gap-2.5 h-24 mb-5">
-                {[
-                  { h: 55, up: true, Icon: Package },
-                  { h: 78, up: true, Icon: ShoppingCart },
-                  { h: 38, up: false, Icon: Receipt },
-                  { h: 92, up: true, Icon: Store },
-                  { h: 64, up: false, Icon: Wallet },
-                ].map(({ h, up, Icon }, i) => (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
-                    {up
-                      ? <TrendingUp size={12} className="text-brand-500" />
-                      : <TrendingUp size={12} className="text-ink-300 dark:text-ink-600 rotate-180" />}
-                    <div
-                      className={`w-full rounded-t-md ${up ? 'bg-brand-500' : 'bg-ink-200 dark:bg-ink-600'}`}
-                      style={{ height: `${h}%` }}
-                    />
-                    <Icon size={14} className="text-ink-400 dark:text-ink-500" />
-                  </div>
-                ))}
-              </div>
-              <p className="font-semibold text-ink-900 dark:text-white text-sm mb-1">{t('pLanding.keepFlowing.card1.title')}</p>
-              <p className="text-xs text-ink-500 dark:text-ink-400">{t('pLanding.keepFlowing.card1.desc')}</p>
-            </div>
-            </Reveal>
-
-            {/* Card 2 — day-open staff clock-in (real module: petty cash + staff present) */}
-            <Reveal delay={0.08}>
-            <div className="bg-gradient-to-br from-ink-800 to-ink-900 p-8 rounded-xl shadow-lg text-white flex flex-col items-center text-center h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-              <div className="relative w-24 h-24 mb-5">
-                <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                  <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="6" strokeDasharray="2 8.5" strokeLinecap="round" />
-                  <circle cx="50" cy="50" r="42" fill="none" stroke="#14B594" strokeWidth="6" strokeLinecap="round" strokeDasharray="264" strokeDashoffset="64" />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Clock size={26} className="text-flow-400" />
-                </div>
-              </div>
-              <p className="text-sm font-semibold">{t('pLanding.keepFlowing.card2.name')}</p>
-              <p className="text-xs text-white/70 mb-3">{t('pLanding.keepFlowing.card2.status')}</p>
-              <p className="text-sm font-semibold">{t('pLanding.keepFlowing.card2.title')}</p>
-              <p className="text-xs text-white/70">{t('pLanding.keepFlowing.card2.desc')}</p>
-            </div>
-            </Reveal>
-
-            {/* Card 3 — a real sale ticket, same generic demo items as the hero */}
-            <Reveal delay={0.16}>
-            <div className="bg-gradient-to-br from-action-50 to-flow-50 dark:from-ink-800 dark:to-ink-900 p-8 rounded-xl shadow-lg h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-              <div className="w-10 h-10 rounded-lg bg-white dark:bg-ink-900 shadow-sm flex items-center justify-center mb-4">
-                <Receipt size={18} className="text-action-500" />
-              </div>
-              <p className="font-semibold text-ink-900 dark:text-white mb-3">{t('pLanding.keepFlowing.card3.title')}</p>
-              <div className="space-y-2">
-                {(['item1', 'item2', 'item3'] as const).map((key) => (
-                  <div key={key} className="flex items-center justify-between text-sm text-ink-700 dark:text-ink-300">
-                    <span>{t(`pLanding.hero.demo.${key}`)}</span>
-                    <div className="h-1.5 w-10 rounded-full bg-white/60 dark:bg-white/10" />
-                  </div>
-                ))}
-              </div>
-            </div>
-            </Reveal>
-
-            {/* Card 4 — store credit (real: issued by Returns/Exchange when the manager's refund policy is "credit ticket") */}
-            <Reveal delay={0.24}>
-            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700 h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center">
-                  <CreditCard size={18} className="text-white" />
-                </div>
-                <div>
-                  <p className="font-semibold text-ink-900 dark:text-white text-sm">{t('pLanding.keepFlowing.card4.title')}</p>
-                  <p className="text-xs text-ink-600 dark:text-ink-400">{t('pLanding.keepFlowing.card4.desc')}</p>
-                </div>
-              </div>
-              <div className="bg-gray-100 dark:bg-ink-900 p-3 rounded-lg">
-                <p className="font-bold text-brand-600 text-xl">{t('pLanding.keepFlowing.card4.label')}</p>
-              </div>
-            </div>
-            </Reveal>
-          </div>
-
-          {/* CTA */}
-          <div className="mt-16 text-center">
+            <ul className="space-y-4 my-8">
+              {(['benefit1', 'benefit2', 'benefit3', 'benefit4'] as const).map((key) => (
+                <li key={key} className="flex items-start gap-3">
+                  <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center">
+                    <Check size={12} strokeWidth={3} />
+                  </span>
+                  <span className="text-sm text-ink-200">{t(`pLanding.keepFlowing.${key}`)}</span>
+                </li>
+              ))}
+            </ul>
             <Link
               to="/pricing"
               className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
             >
               {t('pLanding.keepFlowing.cta')} <ArrowRight size={18} />
             </Link>
-          </div>
+          </Reveal>
+
+          <Reveal delay={0.1}>
+            <div className="p-3 rounded-3xl bg-[#172B3A] border border-white/10 shadow-2xl">
+              <div className="rounded-2xl bg-ink-900/60 p-8 h-[420px] sm:h-[480px] flex flex-col">
+                <div className="flex items-end gap-3 flex-1 mb-6">
+                  {[
+                    { h: 42, Icon: Package, labelKey: 'pLanding.keepFlowing.card1.title' },
+                    { h: 68, Icon: Clock, labelKey: 'pLanding.keepFlowing.card2.title' },
+                    { h: 88, Icon: Receipt, labelKey: 'pLanding.keepFlowing.card3.title' },
+                    { h: 55, Icon: CreditCard, labelKey: 'pLanding.keepFlowing.card4.title' },
+                  ].map(({ h, Icon }, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                      <div
+                        className="w-full rounded-t-lg bg-gradient-to-t from-brand-600 to-flow-400"
+                        style={{ height: `${h}%` }}
+                      />
+                      <Icon size={16} className="text-ink-400" />
+                    </div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  {(['benefit1', 'benefit3'] as const).map((key) => (
+                    <div key={key} className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                      <p className="text-xs text-ink-400">{t(`pLanding.keepFlowing.${key}`)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Reveal>
         </div>
       </section>
 
