@@ -221,7 +221,14 @@ export function HelpCenterPage() {
 
         {/* Plan Features Matrix */}
         <div className="my-16 py-12 border-y border-ink-200 dark:border-ink-700">
-          <h2 className="text-3xl font-bold text-ink-900 dark:text-white mb-8 text-center">Features by Plan</h2>
+          <h2 className="text-3xl font-bold text-ink-900 dark:text-white mb-4 text-center">Plan Access Levels</h2>
+          <p className="text-center text-ink-600 dark:text-ink-300 mb-8 max-w-2xl mx-auto">
+            Choose the plan that fits your needs. See exactly what features you'll have access to at each level.
+            <br/>
+            <span className="text-sm text-green-600 dark:text-green-400 font-medium">✓ Green checkmark = You have access</span>
+            <br/>
+            <span className="text-sm text-ink-400 dark:text-ink-500 font-medium">✗ Gray X = Not available in this plan</span>
+          </p>
           
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -282,6 +289,41 @@ export function HelpCenterPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Plan Selection CTA */}
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="p-6 rounded-lg bg-brand-50 dark:bg-ink-800 border border-brand-200 dark:border-ink-700">
+              <h3 className="font-bold text-brand-900 dark:text-white mb-2">Starter ($9/mo)</h3>
+              <p className="text-sm text-brand-700 dark:text-brand-200 mb-4">Perfect for getting started</p>
+              <a href="/signup" className="inline-block px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 transition">
+                Try for Free
+              </a>
+            </div>
+
+            <div className="p-6 rounded-lg bg-flow-50 dark:bg-ink-800 border border-flow-200 dark:border-ink-700">
+              <h3 className="font-bold text-flow-900 dark:text-white mb-2">Professional ($19/mo)</h3>
+              <p className="text-sm text-flow-700 dark:text-flow-200 mb-4">Recommended for growing businesses</p>
+              <a href="/signup" className="inline-block px-4 py-2 rounded-lg bg-flow-600 text-white text-sm font-medium hover:bg-flow-700 transition">
+                Try for Free
+              </a>
+            </div>
+
+            <div className="p-6 rounded-lg bg-action-50 dark:bg-ink-800 border border-action-200 dark:border-ink-700">
+              <h3 className="font-bold text-action-900 dark:text-white mb-2">Business ($49/mo)</h3>
+              <p className="text-sm text-action-700 dark:text-action-200 mb-4">For advanced users</p>
+              <a href="/signup" className="inline-block px-4 py-2 rounded-lg bg-action-600 text-white text-sm font-medium hover:bg-action-700 transition">
+                Try for Free
+              </a>
+            </div>
+
+            <div className="p-6 rounded-lg bg-gray-50 dark:bg-ink-800 border border-gray-200 dark:border-ink-700">
+              <h3 className="font-bold text-gray-900 dark:text-white mb-2">Enterprise ($119/mo)</h3>
+              <p className="text-sm text-gray-700 dark:text-gray-200 mb-4">Custom solutions for teams</p>
+              <a href="/contact" className="inline-block px-4 py-2 rounded-lg bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition">
+                Contact Sales
+              </a>
+            </div>
           </div>
         </div>
 

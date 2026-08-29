@@ -33,6 +33,10 @@ const DocumentationPage = lazy(() => import('./pages/DocumentationPage').then((m
 const ResourcesPage = lazy(() => import('./pages/ResourcesPage').then((m) => ({ default: m.ResourcesPage })));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage').then((m) => ({ default: m.OnboardingPage })));
 const SubscribePage = lazy(() => import('./pages/SubscribePage').then((m) => ({ default: m.SubscribePage })));
+const HardwarePage = lazy(() => import('./pages/HardwarePage').then((m) => ({ default: m.HardwarePage })));
+const IndustrySolutionsPage = lazy(() => import('./pages/IndustrySolutionsPage').then((m) => ({ default: m.IndustrySolutionsPage })));
+const CaseStudiesPage = lazy(() => import('./pages/CaseStudiesPage').then((m) => ({ default: m.CaseStudiesPage })));
+const AddOnsPage = lazy(() => import('./pages/AddOnsPage').then((m) => ({ default: m.AddOnsPage })));
 const DashboardPage = lazy(() => import('./pages/modules/DashboardPage').then((m) => ({ default: m.DashboardPage })));
 const POSPage = lazy(() => import('./pages/modules/POSPage').then((m) => ({ default: m.POSPage })));
 const ProductsPage = lazy(() => import('./pages/modules/ProductsPage').then((m) => ({ default: m.ProductsPage })));
@@ -84,6 +88,10 @@ export default function App() {
                     <Route path="/documentation" element={<DocumentationPage />} />
                     <Route path="/resources" element={<ResourcesPage />} />
                     <Route path="/help" element={<HelpCenterPage />} />
+                    <Route path="/hardware" element={<HardwarePage />} />
+                    <Route path="/industry-solutions" element={<IndustrySolutionsPage />} />
+                    <Route path="/case-studies" element={<CaseStudiesPage />} />
+                    <Route path="/addons" element={<AddOnsPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/signup" element={<SignupPage />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
