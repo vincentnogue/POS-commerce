@@ -687,6 +687,50 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Industries + Hardware teaser — links to the real dedicated pages
+          (IndustrySolutionsPage, HardwarePage) rather than duplicating their
+          content here. Only the 3 verticals that page actually documents
+          today (post restaurant-claims cleanup). */}
+      <section className="py-16 px-4 lg:px-8 max-w-7xl mx-auto">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3">
+            {t('pLanding.industries.title')}
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            {t('pLanding.industries.desc')}
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          {[
+            { icon: Store, key: 'retail' },
+            { icon: Smartphone, key: 'services' },
+            { icon: BarChart3, key: 'professional' },
+          ].map((ind) => (
+            <Link
+              key={ind.key}
+              to="/industry-solutions"
+              className="group rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-7 hover:border-brand-500/50 hover:shadow-lg transition"
+            >
+              <div className="w-11 h-11 rounded-lg bg-brand-500/10 flex items-center justify-center mb-4">
+                <ind.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+              </div>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-1.5">{t(`pLanding.industries.${ind.key}.title`)}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-3">{t(`pLanding.industries.${ind.key}.desc`)}</p>
+              <span className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 group-hover:gap-2 transition-all">
+                {t('pLanding.industries.link')} <ArrowRight size={14} />
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-gray-200 dark:border-ink-700 bg-gray-50 dark:bg-ink-900 px-7 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-gray-700 dark:text-gray-300">{t('pLanding.hardwareTeaser.text')}</p>
+          <Link to="/hardware" className="inline-flex items-center gap-1.5 shrink-0 text-sm font-semibold text-brand-600 hover:text-brand-700">
+            {t('pLanding.hardwareTeaser.cta')} <ArrowRight size={14} />
+          </Link>
+        </div>
+      </section>
+
       {/* Pricing — light section (was hardcoded dark), fixed USD prices */}
       <section id="pricing" className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto">
