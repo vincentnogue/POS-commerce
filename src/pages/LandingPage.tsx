@@ -3,10 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
   Menu, X, Globe, ChevronDown, ArrowRight, ArrowRightLeft, MapPin,
   ShoppingCart, Package, Store, Plug, FileText, BarChart3,
-  ShieldCheck, Wallet, Check, CheckCircle2, Smartphone, TrendingUp, Receipt,
+  ShieldCheck, Wallet, Check, CheckCircle2, Smartphone, TrendingUp, Receipt, Moon, Sun,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '../lib/i18n';
+import { useTheme } from '../lib/theme';
 import { supabase } from '../lib/supabase';
 import { PricingCard, type PricingPlan } from '../components/PricingCard';
 import { PLANS as REAL_PLANS } from '../lib/plans';
@@ -468,6 +469,7 @@ export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [email, setEmail] = useState('');
   const { lang, setLang, t } = useI18n();
+  const { theme, toggle } = useTheme();
   const navigate = useNavigate();
   const heroReducedMotion = usePrefersReducedMotion();
   const [ecosystemProviders, setEcosystemProviders] = useState<EcosystemProvider[]>([]);
@@ -545,6 +547,14 @@ export function LandingPage() {
 
             <div className="hidden md:flex items-center gap-4">
               <button
+                onClick={toggle}
+                aria-label={theme === 'dark' ? t('pLanding.nav.themeLight') : t('pLanding.nav.themeDark')}
+                title={theme === 'dark' ? t('pLanding.nav.themeLight') : t('pLanding.nav.themeDark')}
+                className="flex items-center justify-center h-9 w-9 rounded-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-ink-800 transition"
+              >
+                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
+              <button
                 onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
                 className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-brand-600"
               >
@@ -577,6 +587,23 @@ export function LandingPage() {
               <Link to="/documentation" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.docs')}</Link>
               <Link to="/resources" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.resources')}</Link>
               <Link to="/help" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.help')}</Link>
+              <div className="flex items-center gap-3 py-2">
+                <button
+                  onClick={toggle}
+                  aria-label={theme === 'dark' ? t('pLanding.nav.themeLight') : t('pLanding.nav.themeDark')}
+                  className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                  {theme === 'dark' ? t('pLanding.nav.themeLight') : t('pLanding.nav.themeDark')}
+                </button>
+                <span className="text-gray-300 dark:text-ink-700">•</span>
+                <button
+                  onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
+                  className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  <Globe size={16} /> {lang.toUpperCase()}
+                </button>
+              </div>
               <Link to="/login" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.login')}</Link>
               <Link to="/signup" className="block w-full px-6 py-2 bg-brand-600 text-white rounded-full font-medium text-center">{t('pLanding.nav.cta')}</Link>
             </motion.div>
@@ -727,7 +754,7 @@ export function LandingPage() {
                 key={`${p.provider_key}-${i}`}
                 className="flex items-center gap-2.5 h-[62px] min-w-[160px] px-5 rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-sm shrink-0"
               >
-                <img src={p.logo_url} alt="" loading="lazy" className="h-7 w-7 object-contain" />
+                <img src={p.logo_url} alt="" loading="lazy" className="h-8 w-auto max-w-[92px] object-contain" />
                 <span className="text-sm font-semibold text-gray-700 dark:text-ink-200 whitespace-nowrap">{p.provider_name}</span>
               </div>
             ))}
@@ -798,10 +825,12 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Industries + Hardware teaser — links to the real dedicated pages
-          (IndustrySolutionsPage, HardwarePage) rather than duplicating their
-          content here. Only the 3 verticals that page actually documents
-          today (post restaurant-claims cleanup). */}
+      {/* Industries teaser — links to the real dedicated page
+          (IndustrySolutionsPage) rather than duplicating its content here.
+          Only the 3 verticals that page actually documents today (post
+          restaurant-claims cleanup). No hardware teaser: POS Flow does not
+          sell/support physical hardware today, so a hardware CTA here would
+          be a false claim. */}
       <section className="py-16 px-4 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center mb-10">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3">
@@ -832,13 +861,6 @@ export function LandingPage() {
               </span>
             </Link>
           ))}
-        </div>
-
-        <div className="mt-6 rounded-2xl border border-gray-200 dark:border-ink-700 bg-gray-50 dark:bg-ink-900 px-7 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-gray-700 dark:text-gray-300">{t('pLanding.hardwareTeaser.text')}</p>
-          <Link to="/hardware" className="inline-flex items-center gap-1.5 shrink-0 text-sm font-semibold text-brand-600 hover:text-brand-700">
-            {t('pLanding.hardwareTeaser.cta')} <ArrowRight size={14} />
-          </Link>
         </div>
       </section>
 

@@ -1442,6 +1442,8 @@ export const en: Record<string, string> = {
   "pLanding.nav.blog": "Blog",
   "pLanding.nav.login": "Log in",
   "pLanding.nav.cta": "Free trial",
+  "pLanding.nav.themeLight": "Switch to light mode",
+  "pLanding.nav.themeDark": "Switch to dark mode",
   "pLanding.hero.badge": "Built by LiAfrik — Dubai & Africa",
   "pLanding.ecosystem.heading": "Connect the payment and business tools you already use",
   "pLanding.ecosystem.cta": "Explore the full marketplace",
