@@ -748,7 +748,7 @@ export function LandingPage() {
           <p className="text-center text-xs font-semibold tracking-wide text-gray-500 dark:text-ink-400 mb-6 px-4">
             {t('pLanding.ecosystem.heading')}
           </p>
-          <div className="flex w-max animate-[flagscroll_34s_linear_infinite] hover:[animation-play-state:paused] gap-3">
+          <div className="flex w-max animate-[flagscroll_60s_linear_infinite] hover:[animation-play-state:paused] gap-3">
             {[...ecosystemProviders, ...ecosystemProviders].map((p, i) => (
               <div
                 key={`${p.provider_key}-${i}`}
@@ -904,7 +904,7 @@ export function LandingPage() {
         <p className="text-center text-xs font-semibold tracking-wide text-gray-500 dark:text-ink-400 mb-5 px-4">
           {t('pLanding.flags.heading')}
         </p>
-        <div className="flex w-max animate-[flagscroll_46s_linear_infinite] hover:[animation-play-state:paused] gap-5">
+        <div className="flex w-max animate-[flagscroll_75s_linear_infinite] hover:[animation-play-state:paused] gap-5">
           {[...FLAG_COUNTRIES, ...FLAG_COUNTRIES].map((c, i) => (
             <div
               key={`${c.code}-${i}`}
@@ -976,21 +976,57 @@ export function LandingPage() {
               </form>
             </div>
 
-            {/* Device mockup panel */}
+            {/* Device mockup panel — a realistic POS checkout screen (product
+                grid + running cart total in USD), not abstract placeholder
+                blocks. Mirrors the real checkout layout in POSPage.tsx. */}
             <div className="relative hidden lg:flex items-center justify-center p-12 overflow-hidden">
-              <div className="relative w-full max-w-md" style={{ transform: 'perspective(1200px) rotateY(-18deg) rotateX(4deg)' }}>
-                {/* Monitor screen */}
-                <div className="rounded-xl bg-ink-950/90 border-4 border-ink-900 shadow-2xl p-4">
-                  <div className="grid grid-cols-4 gap-2 mb-3">
-                    {[0, 1, 2, 3].map((i) => (
-                      <div key={i} className="h-6 rounded bg-white/10" />
-                    ))}
+              <div className="relative w-full max-w-md" style={{ transform: 'perspective(1200px) rotateY(-14deg) rotateX(3deg)' }}>
+                <div className="rounded-xl bg-white border-4 border-ink-900 shadow-2xl overflow-hidden">
+                  {/* Screen top bar */}
+                  <div className="flex items-center justify-between bg-ink-950 px-3 py-2">
+                    <span className="text-[10px] font-semibold text-white/70 tracking-wide">POS FLOW · CHECKOUT</span>
+                    <span className="h-2 w-2 rounded-full bg-flow-400" />
                   </div>
-                  <div className="h-8 rounded bg-flow-500/40 mb-2" />
-                  <div className="grid grid-cols-3 gap-2">
-                    {Array.from({ length: 9 }).map((_, i) => (
-                      <div key={i} className="h-10 rounded bg-white/10" />
-                    ))}
+                  <div className="p-3">
+                    {/* Category tabs */}
+                    <div className="flex gap-1.5 mb-2.5">
+                      {['All', 'Drinks', 'Snacks', 'Home'].map((cat, i) => (
+                        <span
+                          key={cat}
+                          className={`text-[9px] font-medium px-2 py-1 rounded-full ${i === 0 ? 'bg-brand-600 text-white' : 'bg-gray-100 text-gray-500'}`}
+                        >
+                          {cat}
+                        </span>
+                      ))}
+                    </div>
+                    {/* Product grid */}
+                    <div className="grid grid-cols-3 gap-1.5 mb-3">
+                      {[
+                        { name: 'Sparkling water', price: '$1.50' },
+                        { name: 'Roasted almonds', price: '$4.20' },
+                        { name: 'Cotton tote', price: '$8.00' },
+                        { name: 'Ceramic mug', price: '$6.50' },
+                        { name: 'Notebook A5', price: '$3.10' },
+                        { name: 'Candle 200g', price: '$9.90' },
+                      ].map((p) => (
+                        <div key={p.name} className="rounded-lg bg-gray-50 border border-gray-100 p-1.5">
+                          <div className="h-6 rounded bg-gradient-to-br from-flow-200 to-brand-200 mb-1" />
+                          <p className="text-[7px] font-medium text-ink-700 leading-tight truncate">{p.name}</p>
+                          <p className="text-[8px] font-bold text-brand-600">{p.price}</p>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Cart summary */}
+                    <div className="rounded-lg bg-ink-950 p-2.5">
+                      <div className="flex items-center justify-between text-[9px] text-white/60 mb-1">
+                        <span>3 items</span>
+                        <span>Split: Cash + Card</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-semibold text-white">Total</span>
+                        <span className="text-base font-bold text-flow-400">$18.70</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 {/* Stand */}
@@ -1122,7 +1158,7 @@ export function LandingPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg">
-              <div className="text-3xl font-bold text-brand-600 dark:text-brand-400 mb-2">2 450 000 FCFA</div>
+              <div className="text-3xl font-bold text-brand-600 dark:text-brand-400 mb-2">$2,450</div>
               <p className="text-sm font-semibold text-ink-600 dark:text-ink-400 mb-4">{t('pLanding.keepFlowing.card.revenue')}</p>
               <div className="h-12 flex items-end gap-1 mt-3">
                 <div className="flex-1 bg-flow-300 rounded h-1/3"></div>
@@ -1155,13 +1191,13 @@ export function LandingPage() {
 
             <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700">
               <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 mb-4">{t('pLanding.keepFlowing.card.currencyLabel')}</p>
-              <p className="font-bold text-ink-900 dark:text-white text-xl mb-1">1 000 AED</p>
+              <p className="font-bold text-ink-900 dark:text-white text-xl mb-1">$1,000 USD</p>
               <div className="flex items-center gap-2 my-2 text-ink-400">
                 <div className="h-px flex-1 bg-gray-200 dark:bg-ink-700" />
                 <ArrowRight size={14} />
                 <div className="h-px flex-1 bg-gray-200 dark:bg-ink-700" />
               </div>
-              <p className="font-bold text-brand-600 dark:text-brand-400 text-xl">178 500 FCFA</p>
+              <p className="font-bold text-brand-600 dark:text-brand-400 text-xl">3,672.50 AED</p>
             </div>
           </div>
 
