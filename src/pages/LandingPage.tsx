@@ -575,36 +575,11 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Global markets band — real national flags (flagcdn.com), a visual
-          statement of reach, not a claim of customers/offices in each
-          country. UAE + strong African presence + rest of world, per brand
-          positioning (Liafrik, Dubai & Africa). */}
-      <section className="bg-white dark:bg-ink-950 py-8 border-b border-gray-100 dark:border-ink-800 overflow-hidden" aria-label="Global markets">
-        <p className="text-center text-xs font-semibold tracking-wide text-gray-500 dark:text-ink-400 mb-5 px-4">
-          {t('pLanding.flags.heading')}
-        </p>
-        <div className="flex w-max animate-[flagscroll_46s_linear_infinite] hover:[animation-play-state:paused] gap-5">
-          {[...FLAG_COUNTRIES, ...FLAG_COUNTRIES].map((c, i) => (
-            <div
-              key={`${c.code}-${i}`}
-              className="h-14 w-14 shrink-0 rounded-full overflow-hidden border border-gray-200 dark:border-ink-700 shadow-sm bg-gray-100"
-              title={c.name}
-            >
-              <img
-                src={`https://flagcdn.com/w160/${c.code}.png`}
-                alt={i < FLAG_COUNTRIES.length ? c.name : ''}
-                loading="lazy"
-                className="h-full w-full object-cover"
-              />
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* Real integrations ecosystem — live from the marketplace's own
           integration_providers table (same data /marketplace uses). Only
           providers actually seeded there (real logo_url) appear here, so
-          this can never overstate what's actually connectable today. */}
+          this can never overstate what's actually connectable today.
+          Placed immediately below the hero, per brand direction. */}
       {ecosystemProviders.length > 0 && (
         <section className="bg-gray-50 dark:bg-ink-900 py-10 border-b border-gray-200 dark:border-ink-800 overflow-hidden" aria-label="Integration ecosystem">
           <p className="text-center text-xs font-semibold tracking-wide text-gray-500 dark:text-ink-400 mb-6 px-4">
@@ -759,6 +734,33 @@ export function LandingPage() {
               {t('pLanding.pricing.viewMatrix')} <ArrowRight size={18} />
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Global markets band — real national flags (flagcdn.com), a visual
+          statement of reach, not a claim of customers/offices in each
+          country. UAE + strong African presence + rest of world, per brand
+          positioning (Liafrik, Dubai & Africa). Placed right after the
+          pricing/currency-matrix section, per brand direction. */}
+      <section className="bg-white dark:bg-ink-950 py-8 border-b border-gray-100 dark:border-ink-800 overflow-hidden" aria-label="Global markets">
+        <p className="text-center text-xs font-semibold tracking-wide text-gray-500 dark:text-ink-400 mb-5 px-4">
+          {t('pLanding.flags.heading')}
+        </p>
+        <div className="flex w-max animate-[flagscroll_46s_linear_infinite] hover:[animation-play-state:paused] gap-5">
+          {[...FLAG_COUNTRIES, ...FLAG_COUNTRIES].map((c, i) => (
+            <div
+              key={`${c.code}-${i}`}
+              className="h-14 w-14 shrink-0 rounded-full overflow-hidden border border-gray-200 dark:border-ink-700 shadow-sm bg-gray-100"
+              title={c.name}
+            >
+              <img
+                src={`https://flagcdn.com/w160/${c.code}.png`}
+                alt={i < FLAG_COUNTRIES.length ? c.name : ''}
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ))}
         </div>
       </section>
 
