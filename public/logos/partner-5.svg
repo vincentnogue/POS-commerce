@@ -1,4 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="140" height="48" viewBox="0 0 140 48">
-  <rect x="0" y="10" width="140" height="28" rx="6" fill="none" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <text x="70" y="29" font-family="Arial, sans-serif" font-size="13" font-weight="600" letter-spacing="1" fill="#9CA3AF" text-anchor="middle">LOGO</text>
+  <circle cx="24" cy="24" r="16" fill="#A855F7" opacity="0.15"/>
+  <circle cx="24" cy="24" r="16" fill="none" stroke="#A855F7" stroke-width="2"/>
+  <text x="24" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#A855F7" text-anchor="middle">E</text>
+  <text x="48" y="29" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#6B7280" letter-spacing="0.5">Marque E</text>
 </svg>

@@ -577,7 +577,7 @@ export function LandingPage() {
                 key={`${logo.src}-${i}`}
                 src={logo.src}
                 alt={logo.alt}
-                className="h-8 shrink-0 opacity-60 dark:opacity-50 dark:invert"
+                className="h-10 shrink-0 opacity-90 dark:opacity-80"
               />
             ))}
           </div>
