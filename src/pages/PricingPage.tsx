@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Globe, ArrowRight, ArrowLeft, Radio, WifiOff } from 'lucide-react';
+import { Globe, ArrowRight, ArrowLeft, Radio, WifiOff, Check, X } from 'lucide-react';
 import { PricingCard, type PricingPlan } from '../components/PricingCard';
 import { CountryFlagsMarquee } from '../components/CountryFlagsMarquee';
 import { PLANS as REAL_PLANS } from '../lib/plans';
@@ -40,6 +40,13 @@ const PLANS: PricingPlan[] = REAL_PLANS.map((p) => ({
   badge: p.popular ? 'LE PLUS POPULAIRE' : undefined,
 }));
 
+// The real plans (src/lib/plans.ts) are additive: each higher plan's
+// feature list is a superset of the one below it. The top plan
+// (Entreprise) therefore already lists every feature that exists, in a
+// sensible order — used as-is here rather than re-deriving/sorting a
+// union, so the matrix's row order always matches the plan data exactly.
+const ALL_FEATURES: string[] = REAL_PLANS[REAL_PLANS.length - 1].features;
+
 function formatUpdatedAt(iso: string | null): string {
   if (!iso) return '';
   try {
@@ -68,6 +75,7 @@ export function PricingPage() {
   const [loading, setLoading] = useState(true);
   const [currencies, setCurrencies] = useState<string[]>([]);
   const [showMatrix, setShowMatrix] = useState(false);
+  const [showFeatureMatrix, setShowFeatureMatrix] = useState(false);
 
   useEffect(() => {
     const initializePage = async () => {
@@ -139,7 +147,10 @@ export function PricingPage() {
           >
             <ArrowLeft size={18} /> Retour à l'accueil
           </Link>
-          <Link to="/" className="text-lg font-bold text-brand-600">POS Flow</Link>
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/logo-pos-icon.png" alt="POS Flow" className="h-7 w-7" />
+            <span className="text-lg font-bold text-brand-600">POS Flow</span>
+          </Link>
         </div>
       </div>
 
@@ -186,13 +197,103 @@ export function PricingPage() {
           )}
         </div>
 
-        <button
-          onClick={() => setShowMatrix((v) => !v)}
-          className="text-sm font-medium text-flow-600 dark:text-flow-300 hover:text-flow-500 dark:hover:text-flow-200 underline underline-offset-2"
-        >
-          {showMatrix ? 'Masquer' : 'Afficher'} la matrice complète de conversion ({currencies.length} devises)
-        </button>
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+          <button
+            onClick={() => setShowMatrix((v) => !v)}
+            className="text-sm font-medium text-flow-600 dark:text-flow-300 hover:text-flow-500 dark:hover:text-flow-200 underline underline-offset-2"
+          >
+            {showMatrix ? 'Masquer' : 'Afficher'} la matrice complète de conversion ({currencies.length} devises)
+          </button>
+          <button
+            onClick={() => setShowFeatureMatrix((v) => !v)}
+            className="text-sm font-medium text-flow-600 dark:text-flow-300 hover:text-flow-500 dark:hover:text-flow-200 underline underline-offset-2"
+          >
+            {showFeatureMatrix ? 'Masquer' : 'Voir'} le comparatif complet des fonctionnalités
+          </button>
+        </div>
       </div>
+
+      {/* Full feature comparison matrix — every checklist item across all 4
+          real plans (src/lib/plans.ts), plus usage limits (staff, boutiques,
+          produits). Plans here are cumulative/additive in the real data, so
+          a feature present in a lower plan is present in every plan above
+          it — this table makes that visible instead of hiding it inside
+          four separate cards, so a visitor can see exactly what they'd be
+          missing by not picking a higher plan. */}
+      {showFeatureMatrix && (
+        <div className="max-w-6xl mx-auto px-6 pb-16">
+          <div className="rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 overflow-hidden shadow-soft">
+            <div className="overflow-x-auto scroll-thin">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-ink-200 dark:border-ink-700 bg-brand-50 dark:bg-ink-900/50">
+                    <th className="px-4 py-3 text-left font-semibold text-ink-700 dark:text-ink-200">Fonctionnalité</th>
+                    {PLANS.map((plan) => (
+                      <th key={plan.id} className={`px-4 py-3 text-center font-semibold whitespace-nowrap ${plan.popular ? 'text-brand-700 dark:text-brand-300' : 'text-ink-700 dark:text-ink-200'}`}>
+                        {plan.name}
+                        {plan.popular && <span className="block text-[10px] font-medium text-brand-500">Recommandé</span>}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-ink-100 dark:border-ink-700/50 bg-brand-50/40 dark:bg-ink-900/20">
+                    <td className="px-4 py-2.5 font-medium text-ink-900 dark:text-ink-50">Staff inclus</td>
+                    {REAL_PLANS.map((p) => (
+                      <td key={p.code} className="px-4 py-2.5 text-center tabular-nums text-ink-700 dark:text-ink-200">{p.maxUsers}</td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-ink-100 dark:border-ink-700/50 bg-brand-50/40 dark:bg-ink-900/20">
+                    <td className="px-4 py-2.5 font-medium text-ink-900 dark:text-ink-50">Boutiques incluses</td>
+                    {REAL_PLANS.map((p) => (
+                      <td key={p.code} className="px-4 py-2.5 text-center tabular-nums text-ink-700 dark:text-ink-200">{p.maxStores}</td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-ink-100 dark:border-ink-700/50 bg-brand-50/40 dark:bg-ink-900/20">
+                    <td className="px-4 py-2.5 font-medium text-ink-900 dark:text-ink-50">Produits inclus</td>
+                    {REAL_PLANS.map((p) => (
+                      <td key={p.code} className="px-4 py-2.5 text-center tabular-nums text-ink-700 dark:text-ink-200">{p.maxProducts.toLocaleString('fr-FR')}</td>
+                    ))}
+                  </tr>
+                  {ALL_FEATURES.map((feature) => (
+                    <tr key={feature} className="border-b border-ink-100 dark:border-ink-700/50 last:border-0 hover:bg-brand-50/60 dark:hover:bg-ink-900/40">
+                      <td className="px-4 py-2.5 text-ink-900 dark:text-ink-50">{feature}</td>
+                      {REAL_PLANS.map((p) => (
+                        <td key={p.code} className="px-4 py-2.5 text-center">
+                          {p.features.includes(feature) ? (
+                            <Check className="w-4 h-4 text-success-600 dark:text-success-400 inline" />
+                          ) : (
+                            <X className="w-4 h-4 text-ink-300 dark:text-ink-600 inline" />
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="bg-brand-50/60 dark:bg-ink-900/40">
+                    <td className="px-4 py-4"></td>
+                    {PLANS.map((plan) => (
+                      <td key={plan.id} className="px-4 py-4 text-center">
+                        <Link
+                          to={plan.cta.href}
+                          className={`inline-flex items-center justify-center px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                            plan.popular
+                              ? 'bg-brand-500 text-white hover:bg-brand-600 shadow-md shadow-brand-500/30'
+                              : 'bg-flow-500/10 text-flow-700 dark:text-flow-300 hover:bg-flow-500/20 border border-flow-500/30'
+                          }`}
+                        >
+                          {plan.cta.text}
+                        </Link>
+                      </td>
+                    ))}
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Full currency conversion matrix */}
       {showMatrix && rates && (

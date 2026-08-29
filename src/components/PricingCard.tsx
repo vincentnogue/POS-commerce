@@ -1,4 +1,4 @@
-import { Check, X } from 'lucide-react';
+import { Check, X, Crown } from 'lucide-react';
 import type { ConvertedPrice } from '../lib/currency';
 
 export interface PricingPlan {
@@ -47,10 +47,12 @@ export function PricingCard({ plan, convertedPrice, onSelect }: PricingCardProps
           : 'border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900/50 hover:border-flow-500/50'
       }`}
     >
-      {/* Badge */}
+      {/* Badge — premium gradient pill with icon + soft glow, instead of a
+          flat single-color chip */}
       {plan.popular && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <div className="px-4 py-1 rounded-full bg-brand-500 text-white text-xs font-bold whitespace-nowrap">
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+          <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-brand-500 via-brand-600 to-flow-600 text-white text-xs font-bold whitespace-nowrap shadow-lg shadow-brand-500/40 ring-1 ring-white/40">
+            <Crown size={12} className="fill-white/90" strokeWidth={2.5} />
             {plan.badge || 'MOST POPULAR'}
           </div>
         </div>
