@@ -30,6 +30,7 @@ const CareersPage = lazy(() => import('./pages/CareersPage').then((m) => ({ defa
 const ContactPage = lazy(() => import('./pages/ContactPage').then((m) => ({ default: m.ContactPage })));
 const HelpCenterPage = lazy(() => import('./pages/HelpCenterPage').then((m) => ({ default: m.HelpCenterPage })));
 const DocumentationPage = lazy(() => import('./pages/DocumentationPage').then((m) => ({ default: m.DocumentationPage })));
+const ResourcesPage = lazy(() => import('./pages/ResourcesPage').then((m) => ({ default: m.ResourcesPage })));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage').then((m) => ({ default: m.OnboardingPage })));
 const SubscribePage = lazy(() => import('./pages/SubscribePage').then((m) => ({ default: m.SubscribePage })));
 const DashboardPage = lazy(() => import('./pages/modules/DashboardPage').then((m) => ({ default: m.DashboardPage })));
@@ -81,6 +82,7 @@ export default function App() {
                     <Route path="/careers" element={<CareersPage />} />
                     <Route path="/contact" element={<ContactPage />} />
                     <Route path="/documentation" element={<DocumentationPage />} />
+                    <Route path="/resources" element={<ResourcesPage />} />
                     <Route path="/help" element={<HelpCenterPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/signup" element={<SignupPage />} />

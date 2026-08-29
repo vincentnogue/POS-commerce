@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Globe, ArrowRight, Radio, WifiOff } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Globe, ArrowRight, ArrowLeft, Radio, WifiOff } from 'lucide-react';
 import { PricingCard, type PricingPlan } from '../components/PricingCard';
 import { PLANS as REAL_PLANS } from '../lib/plans';
 import {
   getExchangeRates,
-  getUserCurrency,
   convertPrice,
   getSupportedCurrencies,
   getCurrencyInfo,
@@ -85,10 +85,12 @@ export function PricingPage() {
         setRatesLive(status.live);
         setRatesUpdatedAt(status.updatedAt);
 
-        const userCurrency = await getUserCurrency();
-        const resolvedCurrency = availableCurrencies.includes(userCurrency) ? userCurrency : 'USD';
-        setCurrency(resolvedCurrency);
-        await convertPricesForCurrency(resolvedCurrency);
+        // Native currency is USD — don't auto-switch to the visitor's
+        // detected locale/IP currency on load (per explicit product
+        // decision). The selector below still lets anyone switch manually
+        // to see converted prices in their own currency.
+        setCurrency('USD');
+        await convertPricesForCurrency('USD');
       } catch (error) {
         console.error('Error initializing pricing page:', error);
         setCurrency('USD');
@@ -127,8 +129,21 @@ export function PricingPage() {
 
   return (
     <div className="min-h-screen bg-brand-50 dark:bg-ink-900">
+      {/* Sticky top bar — back to home */}
+      <div className="sticky top-0 z-40 border-b border-ink-200 dark:border-ink-800 bg-white/90 dark:bg-ink-950/90 backdrop-blur">
+        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 text-sm font-medium text-ink-600 dark:text-ink-300 hover:text-brand-600 dark:hover:text-brand-400 transition"
+          >
+            <ArrowLeft size={18} /> Retour à l'accueil
+          </Link>
+          <Link to="/" className="text-lg font-bold text-brand-600">POS Flow</Link>
+        </div>
+      </div>
+
       {/* Header */}
-      <div className="max-w-6xl mx-auto px-6 py-20 text-center">
+      <div className="max-w-6xl mx-auto px-6 py-16 text-center">
         <div className="inline-block px-4 py-2 rounded-full bg-flow-500/10 border border-flow-500/30 text-flow-600 dark:text-flow-300 text-sm font-semibold mb-6">
           Tarification simple et transparente
         </div>
@@ -137,7 +152,7 @@ export function PricingPage() {
           Choisissez votre plan
         </h1>
         <p className="text-xl text-ink-600 dark:text-ink-300 mb-8 max-w-2xl mx-auto">
-          Tous les plans incluent l'accès à notre plateforme complète. Évoluez de la petite boutique à l'entreprise.
+          Tous les plans incluent l'accès à notre plateforme complète. Prix affichés en dollars US (devise native) — convertissez dans n'importe laquelle de nos {currencies.length}+ devises ci-dessous.
         </p>
 
         {/* Currency Selector */}
