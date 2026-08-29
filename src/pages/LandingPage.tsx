@@ -30,10 +30,26 @@ const FEATURE_KEYS = [
 // embed of the authenticated app (that needs a logged-in tenant + real data),
 // but a faithful, clearly-labelled preview of how a sale actually flows.
 const DEMO_ITEMS = [
-  { key: 'item1', price: 1200, qty: 1 },
-  { key: 'item2', price: 1600, qty: 2 },
-  { key: 'item3', price: 300, qty: 3 },
+  { key: 'item1', price: 4.5, qty: 1 },
+  { key: 'item2', price: 6, qty: 2 },
+  { key: 'item3', price: 1.5, qty: 3 },
 ] as const;
+
+// Swappable trust-marquee logos — real <img> files under /public/logos/.
+// IMPORTANT: these are intentionally generic "logo slot" placeholders, NOT
+// invented company names (an earlier version used made-up names like
+// "Retail Group Afrique", which a site visitor would read as real
+// customers — that's fabricated social proof and was correctly removed).
+// Swap the 6 files in /public/logos/ for real partner/customer logos (with
+// their permission) whenever they're available; no code change needed.
+const LOGO_PLACEHOLDERS = [
+  { src: '/logos/partner-1.svg', alt: 'Emplacement logo partenaire' },
+  { src: '/logos/partner-2.svg', alt: 'Emplacement logo partenaire' },
+  { src: '/logos/partner-3.svg', alt: 'Emplacement logo partenaire' },
+  { src: '/logos/partner-4.svg', alt: 'Emplacement logo partenaire' },
+  { src: '/logos/partner-5.svg', alt: 'Emplacement logo partenaire' },
+  { src: '/logos/partner-6.svg', alt: 'Emplacement logo partenaire' },
+];
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -86,8 +102,8 @@ function CountUp({ value, suffix = '', duration = 1400 }: { value: number; suffi
   return <span ref={ref}>{display}{suffix}</span>;
 }
 
-function formatFCFA(n: number): string {
-  return `${n.toLocaleString('fr-FR')} FCFA`;
+function formatUSD(n: number): string {
+  return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 // Cycles through: empty → items added one by one → paid → brief pause → reset.
@@ -121,12 +137,12 @@ function usePosDemoStep() {
 function PosLiveDemo() {
   const { t } = useI18n();
   const { step, reducedMotion, itemCount } = usePosDemoStep();
-  const [salesToday, setSalesToday] = useState(482300);
+  const [salesToday, setSalesToday] = useState(842.5);
 
   const visibleItems = DEMO_ITEMS.slice(0, Math.min(step, itemCount));
   const isPaid = step >= itemCount + 1;
   const subtotal = visibleItems.reduce((s, i) => s + i.price * i.qty, 0);
-  const tax = Math.round(subtotal * 0.05);
+  const tax = Math.round(subtotal * 0.05 * 100) / 100;
   const total = subtotal + tax;
 
   // Bump the "today's sales" stat once per completed sale — small, honest
@@ -172,7 +188,7 @@ function PosLiveDemo() {
                     <span className="text-ink-200">
                       {item.qty}× {t(`pLanding.hero.demo.${item.key}`)}
                     </span>
-                    <span className="text-ink-400 tabular-nums">{formatFCFA(item.price * item.qty)}</span>
+                    <span className="text-ink-400 tabular-nums">{formatUSD(item.price * item.qty)}</span>
                   </motion.li>
                 ))}
               </AnimatePresence>
@@ -183,11 +199,11 @@ function PosLiveDemo() {
         <div className="px-5 py-4 border-t border-ink-800 bg-ink-950/60 space-y-1.5">
           <div className="flex items-center justify-between text-xs text-ink-500">
             <span>{t('pLanding.hero.demo.subtotal')}</span>
-            <span className="tabular-nums">{formatFCFA(subtotal)}</span>
+            <span className="tabular-nums">{formatUSD(subtotal)}</span>
           </div>
           <div className="flex items-center justify-between text-xs text-ink-500">
             <span>{t('pLanding.hero.demo.tax')}</span>
-            <span className="tabular-nums">{formatFCFA(tax)}</span>
+            <span className="tabular-nums">{formatUSD(tax)}</span>
           </div>
           <div className="flex items-center justify-between pt-1">
             <span className="text-sm font-semibold text-white">{t('pLanding.hero.demo.total')}</span>
@@ -197,7 +213,7 @@ function PosLiveDemo() {
               animate={{ opacity: 1 }}
               className="text-lg font-bold text-white tabular-nums"
             >
-              {formatFCFA(total)}
+              {formatUSD(total)}
             </motion.span>
           </div>
 
@@ -241,7 +257,7 @@ function PosLiveDemo() {
         </div>
         <div>
           <p className="text-[11px] text-ink-500 leading-none mb-1">{t('pLanding.hero.demo.statSalesToday')}</p>
-          <p className="text-sm font-semibold text-white tabular-nums leading-none">{formatFCFA(salesToday)}</p>
+          <p className="text-sm font-semibold text-white tabular-nums leading-none">{formatUSD(salesToday)}</p>
         </div>
       </motion.div>
 
@@ -399,7 +415,7 @@ export function LandingPage() {
             <img
               src="https://assets.mixkit.co/videos/15914/15914-thumb-360-1.jpg"
               alt=""
-              className="w-full h-full object-cover opacity-25"
+              className="w-full h-full object-cover opacity-45"
             />
           ) : (
             <video
@@ -408,12 +424,12 @@ export function LandingPage() {
               loop
               playsInline
               poster="https://assets.mixkit.co/videos/15914/15914-thumb-360-1.jpg"
-              className="w-full h-full object-cover opacity-25"
+              className="w-full h-full object-cover opacity-45"
             >
               <source src="https://assets.mixkit.co/videos/15914/15914-360.mp4" type="video/mp4" />
             </video>
           )}
-          <div className="absolute inset-0 bg-ink-950/70" />
+          <div className="absolute inset-0 bg-ink-950/55" />
         </div>
 
         {/* Ambient gradient + grid, layered above the video */}
@@ -518,7 +534,13 @@ export function LandingPage() {
       {/* Real stats strip — international framing, animated count-up */}
       <section className="bg-gray-50 dark:bg-ink-900 py-12 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                <CountUp value={1850} suffix="+" />
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.clients')}</p>
+            </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-gray-900 dark:text-white">
                 <CountUp value={30} suffix="+" />
@@ -535,6 +557,29 @@ export function LandingPage() {
               <p className="text-3xl font-bold text-gray-900 dark:text-white">{t('pLanding.stats.internationalValue')}</p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.international')}</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust marquee — scrolling logo band. Generic placeholder logo
+          slots (see LOGO_PLACEHOLDERS above) — not fabricated company
+          names, ready to swap for real partner/customer logos. */}
+      <section className="bg-white dark:bg-ink-950 py-10 border-b border-gray-200 dark:border-ink-800 overflow-hidden">
+        <p className="text-center text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-ink-500 mb-6">
+          {t('pLanding.trust.title')}
+        </p>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white dark:from-ink-950 to-transparent z-10" />
+          <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white dark:from-ink-950 to-transparent z-10" />
+          <div className="flex w-max animate-marquee gap-16 px-8">
+            {[...LOGO_PLACEHOLDERS, ...LOGO_PLACEHOLDERS].map((logo, i) => (
+              <img
+                key={`${logo.src}-${i}`}
+                src={logo.src}
+                alt={logo.alt}
+                className="h-8 shrink-0 opacity-60 dark:opacity-50 dark:invert"
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -619,7 +664,7 @@ export function LandingPage() {
             <img
               src="https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg"
               alt=""
-              className="w-full h-full object-cover opacity-25"
+              className="w-full h-full object-cover opacity-45"
             />
           ) : (
             <video
@@ -628,12 +673,12 @@ export function LandingPage() {
               loop
               playsInline
               poster="https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg"
-              className="w-full h-full object-cover opacity-25"
+              className="w-full h-full object-cover opacity-45"
             >
               <source src="https://assets.mixkit.co/videos/49137/49137-360.mp4" type="video/mp4" />
             </video>
           )}
-          <div className="absolute inset-0 bg-ink-950/75" />
+          <div className="absolute inset-0 bg-ink-950/60" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_20%,rgba(20,181,148,0.18),transparent)]" />
         </div>
 
