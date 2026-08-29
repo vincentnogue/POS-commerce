@@ -24,8 +24,12 @@ export function StockPage() {
   const [moveOpen, setMoveOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [form, setForm] = useState({ product_id: '', store_id: '', type: 'in', quantity: 1, reason: '' });
-  const [transferForm, setTransferForm] = useState({ product_id: '', source_store_id: '', dest_store_id: '', quantity: 1, notes: '' });
+  const [batches, setBatches] = useState<any[]>([]);
+  const [batchForm, setBatchForm] = useState({ name: '', source_store_id: '', dest_store_id: '', staff_code: '', notes: '' });
+  const [batchItems, setBatchItems] = useState<{ product_id: string; name: string; quantity: number }[]>([]);
+  const [scanInput, setScanInput] = useState('');
   const [transferErr, setTransferErr] = useState<string | null>(null);
+  const [submittingTransfer, setSubmittingTransfer] = useState(false);
 
   const canCreate = can('stock', 'create');
   const isAdmin = user && (can('stores', 'create'));
@@ -55,10 +59,22 @@ export function StockPage() {
 
   const reloadTransfers = async () => {
     if (!tenant) return;
+    // New named, multi-product transfers ("Transfer Out / Transfer In").
+    const { data: batchData } = await supabase
+      .from('transfer_batches')
+      .select('*, source:stores!source_store_id(name), dest:stores!dest_store_id(name), lines:stock_transfers(id, quantity, product:products(name))')
+      .eq('tenant_id', tenant.id)
+      .order('created_at', { ascending: false });
+    setBatches(batchData ?? []);
+
+    // Legacy single-product transfers created before this feature existed
+    // (batch_id is null for them) — kept visible and actionable so nothing
+    // already in flight silently disappears from the UI.
     const { data } = await supabase
       .from('stock_transfers')
       .select('*, product:products(name), source:stores!source_store_id(name), dest:stores!dest_store_id(name)')
       .eq('tenant_id', tenant.id)
+      .is('batch_id', null)
       .order('created_at', { ascending: false });
     setTransfers(data ?? []);
   };
@@ -111,50 +127,61 @@ export function StockPage() {
     toast('success', t('stock.toast.movementRecorded'));
   };
 
-  const createTransfer = async () => {
+  const addScannedItem = () => {
+    const q = scanInput.trim();
+    if (!q) return;
+    const found = products.find((p) => (p.barcode && p.barcode === q) || p.sku === q) ??
+      products.find((p) => p.name.toLowerCase() === q.toLowerCase());
+    if (!found) {
+      setTransferErr(t('stock.err.productNotFound', { code: q }));
+      return;
+    }
+    setTransferErr(null);
+    setBatchItems((items) => {
+      const existing = items.find((i) => i.product_id === found.id);
+      if (existing) {
+        return items.map((i) => (i.product_id === found.id ? { ...i, quantity: i.quantity + 1 } : i));
+      }
+      return [...items, { product_id: found.id, name: found.name, quantity: 1 }];
+    });
+    setScanInput('');
+  };
+
+  const createTransferBatch = async () => {
     setTransferErr(null);
     if (!tenant || !user) return;
-    if (!transferForm.product_id || !transferForm.source_store_id || !transferForm.dest_store_id) {
-      setTransferErr(t('stock.err.selectProductAndStores'));
-      return;
-    }
-    if (transferForm.source_store_id === transferForm.dest_store_id) {
-      setTransferErr(t('stock.err.storesMustDiffer'));
-      return;
-    }
-    const qty = Number(transferForm.quantity);
-    if (qty <= 0) { setTransferErr(t('stock.err.qtyPositive')); return; }
+    if (!batchForm.name.trim()) { setTransferErr(t('stock.err.transferNameRequired')); return; }
+    if (!batchForm.source_store_id || !batchForm.dest_store_id) { setTransferErr(t('stock.err.selectProductAndStores')); return; }
+    if (batchForm.source_store_id === batchForm.dest_store_id) { setTransferErr(t('stock.err.storesMustDiffer')); return; }
+    if (batchItems.length === 0) { setTransferErr(t('stock.err.noItemsScanned')); return; }
 
-    // Single atomic database transaction — checks stock, decrements source,
-    // creates the transfer and the movement log all-or-nothing server-side,
-    // instead of separate client round-trips that could race with a
-    // concurrent operation on the same product/store.
-    const { error } = await supabase.rpc('initiate_stock_transfer', {
+    setSubmittingTransfer(true);
+    const { error } = await supabase.rpc('initiate_stock_transfer_batch', {
       p_tenant_id: tenant.id,
-      p_product_id: transferForm.product_id,
-      p_source_store_id: transferForm.source_store_id,
-      p_dest_store_id: transferForm.dest_store_id,
-      p_quantity: qty,
-      p_notes: transferForm.notes || null,
+      p_name: batchForm.name.trim(),
+      p_source_store_id: batchForm.source_store_id,
+      p_dest_store_id: batchForm.dest_store_id,
+      p_items: batchItems.map((i) => ({ product_id: i.product_id, quantity: i.quantity })),
+      p_notes: batchForm.notes || null,
+      p_staff_code: batchForm.staff_code.trim() || null,
       p_user_id: user.id,
     });
+    setSubmittingTransfer(false);
 
-    if (error) {
-      setTransferErr(error.message);
-      return;
-    }
+    if (error) { setTransferErr(error.message); return; }
 
     setTransferOpen(false);
-    setTransferForm({ product_id: '', source_store_id: '', dest_store_id: '', quantity: 1, notes: '' });
+    setBatchForm({ name: '', source_store_id: '', dest_store_id: '', staff_code: '', notes: '' });
+    setBatchItems([]);
     const { data } = await supabase.from('inventory').select('*, product:products(name), store:stores(name)').eq('tenant_id', tenant.id);
     setInventory(data ?? []);
     await reloadTransfers();
-    toast('success', 'Transfert initié.');
+    toast('success', t('stock.toast.transferInitiated'));
   };
 
-  const receiveTransfer = async (t: any) => {
+  const receiveBatch = async (b: any) => {
     if (!tenant || !user) return;
-    const { error } = await supabase.rpc('receive_stock_transfer', { p_transfer_id: t.id, p_user_id: user.id });
+    const { error } = await supabase.rpc('receive_stock_transfer_batch', { p_batch_id: b.id, p_user_id: user.id });
     if (error) { toast('error', error.message); return; }
     const { data } = await supabase.from('inventory').select('*, product:products(name), store:stores(name)').eq('tenant_id', tenant.id);
     setInventory(data ?? []);
@@ -162,9 +189,29 @@ export function StockPage() {
     toast('success', t('stock.toast.transferReceived'));
   };
 
-  const cancelTransfer = async (t: any) => {
+  const cancelBatch = async (b: any) => {
     if (!tenant || !user) return;
-    const { error } = await supabase.rpc('cancel_stock_transfer', { p_transfer_id: t.id, p_user_id: user.id });
+    const { error } = await supabase.rpc('cancel_stock_transfer_batch', { p_batch_id: b.id, p_user_id: user.id });
+    if (error) { toast('error', error.message); return; }
+    const { data } = await supabase.from('inventory').select('*, product:products(name), store:stores(name)').eq('tenant_id', tenant.id);
+    setInventory(data ?? []);
+    await reloadTransfers();
+    toast('success', t('stock.toast.transferCancelled'));
+  };
+
+  const receiveTransfer = async (row: any) => {
+    if (!tenant || !user) return;
+    const { error } = await supabase.rpc('receive_stock_transfer', { p_transfer_id: row.id, p_user_id: user.id });
+    if (error) { toast('error', error.message); return; }
+    const { data } = await supabase.from('inventory').select('*, product:products(name), store:stores(name)').eq('tenant_id', tenant.id);
+    setInventory(data ?? []);
+    await reloadTransfers();
+    toast('success', t('stock.toast.transferReceived'));
+  };
+
+  const cancelTransfer = async (row: any) => {
+    if (!tenant || !user) return;
+    const { error } = await supabase.rpc('cancel_stock_transfer', { p_transfer_id: row.id, p_user_id: user.id });
     if (error) { toast('error', error.message); return; }
     const { data } = await supabase.from('inventory').select('*, product:products(name), store:stores(name)').eq('tenant_id', tenant.id);
     setInventory(data ?? []);
@@ -173,6 +220,7 @@ export function StockPage() {
   };
 
   const transferableSourceStores = stores.filter((s) => isAdmin || assignments.has(s.id));
+  const pendingTransferCount = batches.filter((b) => b.status === 'pending').length + transfers.filter((t) => t.status === 'pending').length;
 
   return (
     <div>
@@ -192,7 +240,7 @@ export function StockPage() {
 
       <div className="mb-4 inline-flex rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
         <button onClick={() => setTab('inventory')} className={`rounded-lg px-4 py-2 text-sm font-medium transition ${tab === 'inventory' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>{t('stock.tab.inventory')}</button>
-        <button onClick={() => setTab('transfers')} className={`rounded-lg px-4 py-2 text-sm font-medium transition ${tab === 'transfers' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>{t('stock.tab.transfers')} {transfers.filter((t) => t.status === 'pending').length > 0 && <span className="ml-1 rounded-full bg-warning-500 px-1.5 text-[10px] text-white">{transfers.filter((t) => t.status === 'pending').length}</span>}</button>
+        <button onClick={() => setTab('transfers')} className={`rounded-lg px-4 py-2 text-sm font-medium transition ${tab === 'transfers' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>{t('stock.tab.transfers')} {pendingTransferCount > 0 && <span className="ml-1 rounded-full bg-warning-500 px-1.5 text-[10px] text-white">{pendingTransferCount}</span>}</button>
       </div>
 
       {tab === 'inventory' && (
@@ -243,31 +291,74 @@ export function StockPage() {
       )}
 
       {tab === 'transfers' && (
-        <div className="card p-5">
-          {transfers.length === 0 && !loading ? (
-            <EmptyState icon={ArrowRightLeft} title={t('stock.transfersEmpty.title')} description={t('stock.transfersEmpty.desc')} />
-          ) : (
-            <DataTable
-              loading={loading}
-              columns={[
-                { key: 'date', label: t('common.date'), render: (t) => <span className="text-ink-500 dark:text-ink-400">{formatDate(t.created_at)}</span> },
-                { key: 'product', label: t('stock.col.product'), render: (t) => <span className="font-medium text-ink-900 dark:text-ink-50">{t.product?.name ?? '—'}</span> },
-                { key: 'route', label: t('stock.col.route'), render: (t) => <span className="text-ink-600 dark:text-ink-300">{t.source?.name} → {t.dest?.name}</span> },
-                { key: 'qty', label: t('stock.col.qty'), className: 'text-right', render: (t) => <span className="font-medium text-ink-900 dark:text-ink-50">{t.quantity}</span> },
-                { key: 'status', label: t('common.status'), render: (t) => <Badge tone={t.status === 'received' ? 'success' : t.status === 'cancelled' ? 'error' : 'warning'}>{t.status === 'received' ? t('stock.transferStatus.received') : t.status === 'cancelled' ? t('stock.transferStatus.cancelled') : t('stock.transferStatus.pending')}</Badge> },
-                { key: 'actions', label: '', className: 'text-right', render: (t) => (
-                  <div className="flex justify-end gap-2">
-                    {t.status === 'pending' && (isAdmin || assignments.has(t.dest_store_id)) && (
-                      <button onClick={() => receiveTransfer(t)} className="rounded-lg p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25" title={t('stock.markReceived')}><Check size={15} /></button>
-                    )}
-                    {t.status === 'pending' && (isAdmin || assignments.has(t.source_store_id)) && (
-                      <button onClick={() => cancelTransfer(t)} className="rounded-lg p-1.5 text-error-600 hover:bg-error-50 dark:hover:bg-error-900/25" title={t('common.cancel')}><X size={15} /></button>
-                    )}
-                  </div>
-                )},
-              ]}
-              rows={transfers}
-            />
+        <div className="space-y-6">
+          {/* Named, multi-product Transfer Out / Transfer In batches */}
+          <div className="card p-5">
+            <h3 className="mb-3 text-sm font-semibold text-ink-900 dark:text-ink-50">{t('stock.transfersBatches')}</h3>
+            {batches.length === 0 && !loading ? (
+              <EmptyState icon={ArrowRightLeft} title={t('stock.transfersEmpty.title')} description={t('stock.transfersEmpty.desc')} />
+            ) : (
+              <DataTable
+                loading={loading}
+                columns={[
+                  { key: 'date', label: t('common.date'), render: (row) => <span className="text-ink-500 dark:text-ink-400">{formatDate(row.created_at)}</span> },
+                  { key: 'name', label: t('stock.col.transferName'), render: (row) => (
+                    <div>
+                      <p className="font-medium text-ink-900 dark:text-ink-50">{row.name}</p>
+                      {row.initiated_staff_code && <p className="text-xs text-ink-500 dark:text-ink-400">{t('stock.col.staffId')}: {row.initiated_staff_code}</p>}
+                    </div>
+                  )},
+                  { key: 'route', label: t('stock.col.route'), render: (row) => <span className="text-ink-600 dark:text-ink-300">{row.source?.name} → {row.dest?.name}</span> },
+                  { key: 'items', label: t('stock.col.items'), render: (row) => (
+                    <div className="flex flex-wrap gap-1">
+                      {(row.lines ?? []).map((l: any) => (
+                        <span key={l.id} className="rounded-md bg-ink-100 dark:bg-ink-800 px-2 py-0.5 text-xs text-ink-700 dark:text-ink-200">{l.product?.name ?? '—'} × {l.quantity}</span>
+                      ))}
+                    </div>
+                  )},
+                  { key: 'status', label: t('common.status'), render: (row) => <Badge tone={row.status === 'received' ? 'success' : row.status === 'cancelled' ? 'error' : 'warning'}>{row.status === 'received' ? t('stock.transferStatus.received') : row.status === 'cancelled' ? t('stock.transferStatus.cancelled') : t('stock.transferStatus.pending')}</Badge> },
+                  { key: 'actions', label: '', className: 'text-right', render: (row) => (
+                    <div className="flex justify-end gap-2">
+                      {row.status === 'pending' && (isAdmin || assignments.has(row.dest_store_id)) && (
+                        <button onClick={() => receiveBatch(row)} className="rounded-lg p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25" title={t('stock.markReceived')}><Check size={15} /></button>
+                      )}
+                      {row.status === 'pending' && (isAdmin || assignments.has(row.source_store_id)) && (
+                        <button onClick={() => cancelBatch(row)} className="rounded-lg p-1.5 text-error-600 hover:bg-error-50 dark:hover:bg-error-900/25" title={t('common.cancel')}><X size={15} /></button>
+                      )}
+                    </div>
+                  )},
+                ]}
+                rows={batches}
+              />
+            )}
+          </div>
+
+          {/* Legacy single-product transfers, created before named batches existed */}
+          {transfers.length > 0 && (
+            <div className="card p-5">
+              <h3 className="mb-3 text-sm font-semibold text-ink-900 dark:text-ink-50">{t('stock.transfersLegacy')}</h3>
+              <DataTable
+                loading={loading}
+                columns={[
+                  { key: 'date', label: t('common.date'), render: (row) => <span className="text-ink-500 dark:text-ink-400">{formatDate(row.created_at)}</span> },
+                  { key: 'product', label: t('stock.col.product'), render: (row) => <span className="font-medium text-ink-900 dark:text-ink-50">{row.product?.name ?? '—'}</span> },
+                  { key: 'route', label: t('stock.col.route'), render: (row) => <span className="text-ink-600 dark:text-ink-300">{row.source?.name} → {row.dest?.name}</span> },
+                  { key: 'qty', label: t('stock.col.qty'), className: 'text-right', render: (row) => <span className="font-medium text-ink-900 dark:text-ink-50">{row.quantity}</span> },
+                  { key: 'status', label: t('common.status'), render: (row) => <Badge tone={row.status === 'received' ? 'success' : row.status === 'cancelled' ? 'error' : 'warning'}>{row.status === 'received' ? t('stock.transferStatus.received') : row.status === 'cancelled' ? t('stock.transferStatus.cancelled') : t('stock.transferStatus.pending')}</Badge> },
+                  { key: 'actions', label: '', className: 'text-right', render: (row) => (
+                    <div className="flex justify-end gap-2">
+                      {row.status === 'pending' && (isAdmin || assignments.has(row.dest_store_id)) && (
+                        <button onClick={() => receiveTransfer(row)} className="rounded-lg p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25" title={t('stock.markReceived')}><Check size={15} /></button>
+                      )}
+                      {row.status === 'pending' && (isAdmin || assignments.has(row.source_store_id)) && (
+                        <button onClick={() => cancelTransfer(row)} className="rounded-lg p-1.5 text-error-600 hover:bg-error-50 dark:hover:bg-error-900/25" title={t('common.cancel')}><X size={15} /></button>
+                      )}
+                    </div>
+                  )},
+                ]}
+                rows={transfers}
+              />
+            </div>
           )}
         </div>
       )}
@@ -303,34 +394,78 @@ export function StockPage() {
         </div>
       </Modal>
 
-      {/* Transfer modal */}
-      <Modal open={transferOpen} onClose={() => { setTransferOpen(false); setTransferErr(null); }} title={t('stock.transferTitle')}>
+      {/* Transfer modal — named batch, multiple scanned products */}
+      <Modal open={transferOpen} onClose={() => { setTransferOpen(false); setTransferErr(null); setBatchItems([]); setScanInput(''); }} title={t('stock.transferTitle')}>
         <div className="space-y-4">
-          <Field label={t('stock.col.product')}>
-            <select value={transferForm.product_id} onChange={(e) => setTransferForm({ ...transferForm, product_id: e.target.value })} className="input">
-              <option value="">{t('stock.selectPlaceholder')}</option>
-              {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
+          <Field label={t('stock.col.transferName')}>
+            <input value={batchForm.name} onChange={(e) => setBatchForm({ ...batchForm, name: e.target.value })} className="input" placeholder={t('stock.transferNamePlaceholder')} />
           </Field>
-          <Field label={t('stock.sourceStore')}>
-            <select value={transferForm.source_store_id} onChange={(e) => setTransferForm({ ...transferForm, source_store_id: e.target.value, dest_store_id: '' })} className="input">
-              <option value="">{t('stock.selectPlaceholder')}</option>
-              {transferableSourceStores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={t('stock.sourceStore')}>
+              <select value={batchForm.source_store_id} onChange={(e) => setBatchForm({ ...batchForm, source_store_id: e.target.value, dest_store_id: '' })} className="input">
+                <option value="">{t('stock.selectPlaceholder')}</option>
+                {transferableSourceStores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </Field>
+            <Field label={t('stock.destStore')}>
+              <select value={batchForm.dest_store_id} onChange={(e) => setBatchForm({ ...batchForm, dest_store_id: e.target.value })} className="input">
+                <option value="">{t('stock.selectPlaceholder')}</option>
+                {stores.filter((s) => s.id !== batchForm.source_store_id).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </Field>
+          </div>
+          <Field label={t('stock.staffIdOptional')}>
+            <input
+              value={batchForm.staff_code}
+              onChange={(e) => setBatchForm({ ...batchForm, staff_code: e.target.value })}
+              className="input font-mono"
+              placeholder="STF-001"
+            />
+            <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">{t('stock.staffIdHint')}</p>
           </Field>
-          <Field label={t('stock.destStore')}>
-            <select value={transferForm.dest_store_id} onChange={(e) => setTransferForm({ ...transferForm, dest_store_id: e.target.value })} className="input">
-              <option value="">{t('stock.selectPlaceholder')}</option>
-              {stores.filter((s) => s.id !== transferForm.source_store_id).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
+
+          <Field label={t('stock.scanProducts')}>
+            <div className="flex gap-2">
+              <input
+                value={scanInput}
+                onChange={(e) => setScanInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addScannedItem(); } }}
+                className="input flex-1"
+                placeholder={t('stock.scanPlaceholder')}
+                autoFocus
+              />
+              <button type="button" onClick={addScannedItem} className="btn-ghost shrink-0">{t('common.add')}</button>
+            </div>
           </Field>
-          <Field label={t('stock.col.quantity')}><input type="number" value={transferForm.quantity} onChange={(e) => setTransferForm({ ...transferForm, quantity: Number(e.target.value) })} className="input" /></Field>
-          <Field label={t('stock.col.notes')}><input value={transferForm.notes} onChange={(e) => setTransferForm({ ...transferForm, notes: e.target.value })} className="input" placeholder={t('stock.notesPlaceholder')} /></Field>
+
+          {batchItems.length > 0 && (
+            <div className="rounded-xl border border-ink-200 dark:border-ink-700 divide-y divide-ink-100 dark:divide-ink-800">
+              {batchItems.map((item) => (
+                <div key={item.product_id} className="flex items-center justify-between gap-2 px-3 py-2">
+                  <span className="text-sm text-ink-900 dark:text-ink-50">{item.name}</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={1}
+                      value={item.quantity}
+                      onChange={(e) => setBatchItems((items) => items.map((i) => (i.product_id === item.product_id ? { ...i, quantity: Math.max(1, Number(e.target.value)) } : i)))}
+                      className="input w-16 py-1 text-center text-sm"
+                    />
+                    <button type="button" onClick={() => setBatchItems((items) => items.filter((i) => i.product_id !== item.product_id))} className="text-error-500 hover:text-error-700">
+                      <X size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <Field label={t('stock.col.notes')}><input value={batchForm.notes} onChange={(e) => setBatchForm({ ...batchForm, notes: e.target.value })} className="input" placeholder={t('stock.notesPlaceholder')} /></Field>
           {transferErr && <div className="rounded-xl bg-error-50 dark:bg-error-900/25 p-3 text-sm text-error-600">{transferErr}</div>}
         </div>
         <div className="mt-6 flex justify-end gap-2">
-          <button onClick={() => { setTransferOpen(false); setTransferErr(null); }} className="btn-ghost">{t('common.cancel')}</button>
-          <button onClick={createTransfer} className="btn-primary"><ArrowRightLeft size={15} /> {t('stock.transferBtn')}</button>
+          <button onClick={() => { setTransferOpen(false); setTransferErr(null); setBatchItems([]); setScanInput(''); }} className="btn-ghost">{t('common.cancel')}</button>
+          <button onClick={createTransferBatch} disabled={submittingTransfer} className="btn-primary"><ArrowRightLeft size={15} /> {submittingTransfer ? t('stock.transferring') : t('stock.transferBtn')}</button>
         </div>
       </Modal>
     </div>
