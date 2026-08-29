@@ -831,6 +831,41 @@ export function LandingPage() {
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {/* Real stats strip — 30+ currencies (src/lib/currency.ts) and 9+
+          payment processors (seeded integration_providers) are counted
+          directly from actual code/data. The merchant-count card is added
+          conditionally, ONLY once a real count is fetched live from the
+          platform-stats edge function (supabase/functions/platform-stats) —
+          never a hardcoded literal. A hardcoded "1850+ merchants" number
+          was added and removed twice before this because it wasn't backed
+          by anything queryable; this fetch is what makes it legitimate. */}
+      <section className="bg-gray-50 dark:bg-ink-900 py-16 border-y border-gray-200 dark:border-ink-800">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8">
+          <div className={`grid grid-cols-2 gap-4 md:gap-6 ${merchantCount !== null ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
+            {[
+              ...(merchantCount !== null
+                ? [{ icon: Users, value: merchantCount, suffix: '+', labelKey: 'pLanding.stats.clients' }]
+                : []),
+              { icon: Wallet, value: 30, suffix: '+', labelKey: 'pLanding.stats.currencies' },
+              { icon: Plug, value: 9, suffix: '+', labelKey: 'pLanding.stats.processors' },
+              { icon: Globe, value: null, labelKey: 'pLanding.stats.international' },
+            ].map((stat, i) => (
+              <Reveal key={stat.labelKey} delay={i * 0.08}>
+                <div className="h-full rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 px-5 py-7 text-center transition hover:border-brand-300 dark:hover:border-brand-500/40 hover:shadow-lg">
+                  <div className="w-11 h-11 mx-auto rounded-xl bg-brand-500/10 flex items-center justify-center mb-4">
+                    <stat.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+                  </div>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+                    {stat.value !== null ? <CountUp value={stat.value} suffix={stat.suffix} /> : t('pLanding.stats.internationalValue')}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t(stat.labelKey)}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
           <div className="text-center mt-6">
             <Link to="/marketplace" className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700">
               {t('pLanding.ecosystem.cta')} <ArrowRight size={14} />

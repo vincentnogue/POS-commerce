@@ -358,6 +358,13 @@ export function PricingPage() {
               ? `Taux réels via open.er-api.com, base USD${ratesUpdatedAt ? `, mis à jour le ${formatUpdatedAt(ratesUpdatedAt)}` : ''}.`
               : 'Le service de taux en direct est momentanément indisponible — ces valeurs sont des taux indicatifs hors-ligne, pas les taux du marché actuel.'}
           </p>
+
+          <CountryFlagsMarquee
+            title="Fonctionne partout où vous faites du commerce"
+            lang="fr"
+            shape="circle"
+            speed="slow"
+          />
         </div>
       )}
 

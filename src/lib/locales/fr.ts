@@ -1546,6 +1546,7 @@ export const fr: Record<string, string> = {
   "pLanding.stats.processors": "Processeurs de paiement intégrés",
   "pLanding.stats.internationalValue": "🌍",
   "pLanding.stats.international": "Disponible dans le monde entier",
+  "pLanding.trust.title": "Utilisé par des commerces dans le monde entier",
   "pLanding.secondHero.badge": "LiAfrik — une plateforme internationale",
   "pLanding.features.title": "Tout ce qu'il faut pour faire tourner votre commerce",
   "pLanding.features.desc": "Une seule plateforme, du comptoir jusqu'à la comptabilité.",
