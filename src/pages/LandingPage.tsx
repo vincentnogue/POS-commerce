@@ -857,6 +857,39 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Trust & control — every claim maps to a real, shipped module:
+          granular role permissions (src/pages/modules/UsersPage.tsx),
+          traceable sale history with reprint (SaleHistoryTab.tsx), and
+          multi-store management (StoresPage.tsx). No invented
+          certifications or security standards. */}
+      <section className="py-16 px-4 lg:px-8 bg-gray-50 dark:bg-ink-900 border-y border-gray-200 dark:border-ink-800">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3">
+              {t('pLanding.trust.title')}
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              {t('pLanding.trust.desc')}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {[
+              { icon: ShieldCheck, key: 'roles' },
+              { icon: Receipt, key: 'traceability' },
+              { icon: Store, key: 'multiLocation' },
+            ].map((item) => (
+              <div key={item.key} className="rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-6">
+                <div className="w-11 h-11 rounded-lg bg-brand-500/10 flex items-center justify-center mb-4">
+                  <item.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1.5">{t(`pLanding.trust.${item.key}.title`)}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{t(`pLanding.trust.${item.key}.desc`)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Second hero — full video-backed CTA band before the footer */}
       <section className="relative bg-ink-950 overflow-hidden">
         <div className="absolute inset-0" aria-hidden="true">
