@@ -4,10 +4,11 @@ import {
   Menu, X, Globe, ChevronDown, ArrowRight, MapPin,
   ShoppingCart, Package, Store, Plug, FileText, BarChart3,
   ShieldCheck, Wallet, Check, CheckCircle2, Smartphone, TrendingUp, Receipt,
-  Clock, CreditCard,
+  Clock, CreditCard, Users,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '../lib/i18n';
+import { supabase } from '../lib/supabase';
 import { PricingCard, type PricingPlan } from '../components/PricingCard';
 import { CountryFlagsMarquee } from '../components/CountryFlagsMarquee';
 import { PLANS as REAL_PLANS } from '../lib/plans';
@@ -90,6 +91,24 @@ function CountUp({ value, suffix = '', duration = 1400 }: { value: number; suffi
 
 function formatUSD(n: number): string {
   return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+// Reusable scroll-triggered reveal (fade + rise), fires once per element.
+// Instant (no motion) when the user prefers reduced motion.
+function Reveal({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const reducedMotion = usePrefersReducedMotion();
+  if (reducedMotion) return <div className={className}>{children}</div>;
+  return (
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y: 22 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-80px' }}
+      transition={{ duration: 0.55, delay, ease: 'easeOut' }}
+    >
+      {children}
+    </motion.div>
+  );
 }
 
 // Cycles through: empty → items added one by one → paid → brief pause → reset.
@@ -297,6 +316,22 @@ export function LandingPage() {
   const { lang, setLang, t } = useI18n();
   const navigate = useNavigate();
   const heroReducedMotion = usePrefersReducedMotion();
+
+  // Real, live merchant count — see supabase/functions/platform-stats.
+  // No hardcoded fallback number: if the fetch fails, the stat card simply
+  // doesn't render rather than showing an unverifiable placeholder.
+  const [merchantCount, setMerchantCount] = useState<number | null>(null);
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('platform-stats');
+        if (error) throw error;
+        if (typeof data?.merchantCount === 'number') setMerchantCount(data.merchantCount);
+      } catch (error) {
+        console.error('platform-stats fetch failed:', error);
+      }
+    })();
+  }, []);
 
   const handleGetStarted = (e: React.FormEvent) => {
     e.preventDefault();
@@ -518,68 +553,71 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Real, verifiable stats only — 30+ currencies (src/lib/currency.ts)
-          and 9+ payment processors (seeded integration_providers) are both
-          counted from actual code/data. No customer/merchant count is shown
-          here: there is no real, verifiable number for that yet — showing
-          one (a fabricated "1850+ merchants trust us" briefly existed here)
-          would be exactly the fake social proof this product's landing page
-          explicitly must never contain. Add it back only when there's a
-          real, sourced count to show. */}
-      <section className="bg-gray-50 dark:bg-ink-900 py-12 border-y border-gray-200 dark:border-ink-800">
+      {/* Real stats strip — 30+ currencies (src/lib/currency.ts) and 9+
+          payment processors (seeded integration_providers) are counted
+          directly from actual code/data. The merchant-count card is added
+          conditionally, ONLY once a real count is fetched live from the
+          platform-stats edge function (supabase/functions/platform-stats) —
+          never a hardcoded literal. A hardcoded "1850+ merchants" number
+          was added and removed twice before this because it wasn't backed
+          by anything queryable; this fetch is what makes it legitimate. */}
+      <section className="bg-gray-50 dark:bg-ink-900 py-16 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                <CountUp value={30} suffix="+" />
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.currencies')}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                <CountUp value={9} suffix="+" />
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.processors')}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">{t('pLanding.stats.internationalValue')}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.international')}</p>
-            </div>
+          <div className={`grid grid-cols-2 gap-4 md:gap-6 ${merchantCount !== null ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
+            {[
+              ...(merchantCount !== null
+                ? [{ icon: Users, value: merchantCount, suffix: '+', labelKey: 'pLanding.stats.clients' }]
+                : []),
+              { icon: Wallet, value: 30, suffix: '+', labelKey: 'pLanding.stats.currencies' },
+              { icon: Plug, value: 9, suffix: '+', labelKey: 'pLanding.stats.processors' },
+              { icon: Globe, value: null, labelKey: 'pLanding.stats.international' },
+            ].map((stat, i) => (
+              <Reveal key={stat.labelKey} delay={i * 0.08}>
+                <div className="h-full rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 px-5 py-7 text-center transition hover:border-brand-300 dark:hover:border-brand-500/40 hover:shadow-lg">
+                  <div className="w-11 h-11 mx-auto rounded-xl bg-brand-500/10 flex items-center justify-center mb-4">
+                    <stat.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+                  </div>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+                    {stat.value !== null ? <CountUp value={stat.value} suffix={stat.suffix} /> : t('pLanding.stats.internationalValue')}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t(stat.labelKey)}</p>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section id="features" className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-14">
+      <section id="features" className="py-24 px-4 lg:px-8 max-w-7xl mx-auto">
+        <Reveal className="text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
             {t('pLanding.features.title')}
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             {t('pLanding.features.desc')}
           </p>
-        </div>
+        </Reveal>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {FEATURE_KEYS.map((f) => (
-            <div
-              key={f.key}
-              className="rounded-xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 hover:border-brand-500/50 hover:shadow-lg transition"
-            >
-              <div className="w-11 h-11 rounded-lg bg-brand-500/10 flex items-center justify-center mb-4">
-                <f.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+          {FEATURE_KEYS.map((f, i) => (
+            <Reveal key={f.key} delay={i * 0.06}>
+              <div className="group relative h-full rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-brand-300 dark:hover:border-brand-500/50 hover:shadow-xl hover:shadow-brand-500/5">
+                <div className="w-11 h-11 rounded-xl bg-brand-500/10 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110">
+                  <f.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t(`pLanding.feature.${f.key}.title`)}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{t(`pLanding.feature.${f.key}.desc`)}</p>
               </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t(`pLanding.feature.${f.key}.title`)}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{t(`pLanding.feature.${f.key}.desc`)}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </section>
 
       {/* Pricing — light section (was hardcoded dark), fixed USD prices */}
-      <section id="pricing" className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
+      <section id="pricing" className="py-24 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-4">
+          <Reveal className="text-center mb-4">
             <div className="inline-block px-4 py-2 rounded-full bg-flow-500/10 border border-flow-500/30 text-flow-700 dark:text-flow-300 text-sm font-semibold mb-6">
               {t('pLanding.pricing.badge')}
             </div>
@@ -587,15 +625,18 @@ export function LandingPage() {
             <p className="text-lg text-gray-600 dark:text-ink-300 max-w-2xl mx-auto mb-2">
               {t('pLanding.pricing.desc')}
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-10 items-stretch">
-            {LANDING_PLANS.map((plan) => (
-              <PricingCard
-                key={plan.id}
-                plan={plan}
-                onSelect={() => navigate(plan.cta.href)}
-              />
+            {LANDING_PLANS.map((plan, i) => (
+              <Reveal key={plan.id} delay={i * 0.08} className="h-full">
+                <div className={plan.popular ? 'h-full rounded-2xl shadow-2xl shadow-brand-500/20' : 'h-full'}>
+                  <PricingCard
+                    plan={plan}
+                    onSelect={() => navigate(plan.cta.href)}
+                  />
+                </div>
+              </Reveal>
             ))}
           </div>
 
@@ -665,24 +706,36 @@ export function LandingPage() {
 
             {/* Device mockup panel */}
             <div className="relative hidden lg:flex items-center justify-center p-12 overflow-hidden">
+              {/* Ambient glow behind the device */}
+              <div className="absolute w-72 h-72 bg-flow-400/30 rounded-full blur-3xl" aria-hidden="true" />
+
               <div className="relative w-full max-w-md" style={{ transform: 'perspective(1200px) rotateY(-18deg) rotateX(4deg)' }}>
                 {/* Monitor screen */}
-                <div className="rounded-xl bg-ink-950/90 border-4 border-ink-900 shadow-2xl p-4">
+                <div className="rounded-xl bg-ink-950/90 border-4 border-ink-900 shadow-2xl shadow-black/50 p-4">
                   <div className="grid grid-cols-4 gap-2 mb-3">
-                    {[0, 1, 2, 3].map((i) => (
-                      <div key={i} className="h-6 rounded bg-white/10" />
-                    ))}
+                    <div className="h-6 rounded bg-brand-400/40" />
+                    <div className="h-6 rounded bg-white/10" />
+                    <div className="h-6 rounded bg-white/10" />
+                    <div className="h-6 rounded bg-action-400/30" />
                   </div>
                   <div className="h-8 rounded bg-flow-500/40 mb-2" />
                   <div className="grid grid-cols-3 gap-2">
                     {Array.from({ length: 9 }).map((_, i) => (
-                      <div key={i} className="h-10 rounded bg-white/10" />
+                      <div key={i} className={`h-10 rounded ${i === 4 ? 'bg-brand-400/30' : 'bg-white/10'}`} />
                     ))}
                   </div>
                 </div>
                 {/* Stand */}
                 <div className="mx-auto w-4 h-10 bg-ink-800" />
                 <div className="mx-auto w-40 h-6 rounded-full bg-ink-900 shadow-xl" />
+                {/* Ground shadow */}
+                <div className="mx-auto w-48 h-3 rounded-full bg-black/40 blur-md -mt-1" />
+
+                {/* Floating live-status badge, echoing the hero demo's style */}
+                <div className="absolute -top-4 -right-6 flex items-center gap-2 rounded-full border border-white/10 bg-ink-900/95 backdrop-blur px-3 py-2 shadow-xl shadow-black/30">
+                  <span className="h-2 w-2 rounded-full bg-brand-400 animate-pulse" />
+                  <span className="text-xs font-medium text-white">{t('pLanding.busyHero.liveBadge')}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -690,16 +743,22 @@ export function LandingPage() {
       </section>
 
       {/* Why LiAfrik built this */}
-      <section className="py-20 px-4 lg:px-8 max-w-5xl mx-auto text-center">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-          {t('pLanding.why.title')}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left mt-10">
-          {(['point1', 'point2', 'point3'] as const).map((key) => (
-            <div key={key} className="flex items-start gap-3">
-              <Check className="w-5 h-5 text-brand-600 flex-shrink-0 mt-1" />
-              <p className="text-gray-600 dark:text-gray-300">{t(`pLanding.why.${key}`)}</p>
-            </div>
+      <section className="py-24 px-4 lg:px-8 max-w-6xl mx-auto">
+        <Reveal className="text-center mb-14">
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+            {t('pLanding.why.title')}
+          </h2>
+        </Reveal>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {(['point1', 'point2', 'point3'] as const).map((key, i) => (
+            <Reveal key={key} delay={i * 0.08}>
+              <div className="h-full rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/5">
+                <div className="w-11 h-11 rounded-xl bg-brand-500/10 flex items-center justify-center mb-5">
+                  <Check className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+                </div>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{t(`pLanding.why.${key}`)}</p>
+              </div>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -729,7 +788,7 @@ export function LandingPage() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_20%,rgba(20,181,148,0.18),transparent)]" />
         </div>
 
-        <div className="relative max-w-4xl mx-auto px-4 py-24 lg:px-8 text-center">
+        <Reveal className="relative max-w-4xl mx-auto px-4 py-24 lg:px-8 text-center">
           <div className="mb-6 inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 backdrop-blur">
             <Globe size={14} className="text-flow-400" />
             <span className="text-xs font-medium tracking-wide text-ink-200">{t('pLanding.secondHero.badge')}</span>
@@ -738,11 +797,11 @@ export function LandingPage() {
           <p className="text-lg text-ink-300 mb-10 max-w-xl mx-auto">{t('pLanding.finalCta.desc')}</p>
           <Link
             to="/signup"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-brand-500 text-white rounded-full font-semibold hover:bg-brand-600 transition shadow-lg shadow-brand-500/30"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-brand-500 text-white rounded-full font-semibold hover:bg-brand-600 active:scale-[0.98] transition-all shadow-lg shadow-brand-500/30 hover:shadow-brand-500/40"
           >
             {t('pLanding.finalCta.button')} <ArrowRight size={18} />
           </Link>
-        </div>
+        </Reveal>
       </section>
 
       {/* Let's work together section */}
