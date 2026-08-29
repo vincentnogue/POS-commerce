@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  Menu, X, Globe, ChevronDown, ArrowRight, MapPin,
+  Menu, X, Globe, ChevronDown, ArrowRight, ArrowRightLeft, MapPin,
   ShoppingCart, Package, Store, Plug, FileText, BarChart3,
   ShieldCheck, Wallet, Check, CheckCircle2, Smartphone, TrendingUp, Receipt,
 } from 'lucide-react';
@@ -37,10 +37,23 @@ const DEMO_ITEMS = [
 ] as const;
 
 // Real national flags (flagcdn.com, ISO 3166-1 alpha-2 codes) — UAE-anchored
-// with a strong African footprint, then rest of world. Purely a visual
-// statement of geographic reach, not a claim of offices/customers per country.
+// with a strong African footprint, then the rest of the world. Purely a
+// visual statement of geographic reach, not a claim of offices/customers
+// per country. 150+ real, valid ISO codes.
 const FLAG_COUNTRIES = [
+  // Gulf / Middle East
   { code: 'ae', name: 'United Arab Emirates' },
+  { code: 'sa', name: 'Saudi Arabia' },
+  { code: 'qa', name: 'Qatar' },
+  { code: 'kw', name: 'Kuwait' },
+  { code: 'bh', name: 'Bahrain' },
+  { code: 'om', name: 'Oman' },
+  { code: 'jo', name: 'Jordan' },
+  { code: 'lb', name: 'Lebanon' },
+  { code: 'iq', name: 'Iraq' },
+  { code: 'il', name: 'Israel' },
+  { code: 'tr', name: 'Türkiye' },
+  // Africa
   { code: 'ng', name: 'Nigeria' },
   { code: 'gh', name: 'Ghana' },
   { code: 'ke', name: 'Kenya' },
@@ -55,14 +68,137 @@ const FLAG_COUNTRIES = [
   { code: 'et', name: 'Ethiopia' },
   { code: 'rw', name: 'Rwanda' },
   { code: 'bw', name: 'Botswana' },
+  { code: 'dz', name: 'Algeria' },
+  { code: 'tn', name: 'Tunisia' },
+  { code: 'ly', name: 'Libya' },
+  { code: 'sd', name: 'Sudan' },
+  { code: 'ml', name: 'Mali' },
+  { code: 'bf', name: 'Burkina Faso' },
+  { code: 'ne', name: 'Niger' },
+  { code: 'td', name: 'Chad' },
+  { code: 'gn', name: 'Guinea' },
+  { code: 'bj', name: 'Benin' },
+  { code: 'tg', name: 'Togo' },
+  { code: 'sl', name: 'Sierra Leone' },
+  { code: 'lr', name: 'Liberia' },
+  { code: 'gm', name: 'Gambia' },
+  { code: 'gw', name: 'Guinea-Bissau' },
+  { code: 'cv', name: 'Cabo Verde' },
+  { code: 'mr', name: 'Mauritania' },
+  { code: 'cd', name: 'DR Congo' },
+  { code: 'cg', name: 'Congo' },
+  { code: 'ga', name: 'Gabon' },
+  { code: 'gq', name: 'Equatorial Guinea' },
+  { code: 'cf', name: 'Central African Republic' },
+  { code: 'ao', name: 'Angola' },
+  { code: 'zm', name: 'Zambia' },
+  { code: 'zw', name: 'Zimbabwe' },
+  { code: 'mz', name: 'Mozambique' },
+  { code: 'mw', name: 'Malawi' },
+  { code: 'na', name: 'Namibia' },
+  { code: 'sz', name: 'Eswatini' },
+  { code: 'ls', name: 'Lesotho' },
+  { code: 'mg', name: 'Madagascar' },
+  { code: 'mu', name: 'Mauritius' },
+  { code: 'ss', name: 'South Sudan' },
+  { code: 'so', name: 'Somalia' },
+  { code: 'dj', name: 'Djibouti' },
+  { code: 'er', name: 'Eritrea' },
+  { code: 'bi', name: 'Burundi' },
+  // Europe
   { code: 'fr', name: 'France' },
   { code: 'gb', name: 'United Kingdom' },
+  { code: 'de', name: 'Germany' },
+  { code: 'es', name: 'Spain' },
+  { code: 'it', name: 'Italy' },
+  { code: 'pt', name: 'Portugal' },
+  { code: 'nl', name: 'Netherlands' },
+  { code: 'be', name: 'Belgium' },
+  { code: 'ch', name: 'Switzerland' },
+  { code: 'at', name: 'Austria' },
+  { code: 'ie', name: 'Ireland' },
+  { code: 'se', name: 'Sweden' },
+  { code: 'no', name: 'Norway' },
+  { code: 'dk', name: 'Denmark' },
+  { code: 'fi', name: 'Finland' },
+  { code: 'pl', name: 'Poland' },
+  { code: 'cz', name: 'Czechia' },
+  { code: 'gr', name: 'Greece' },
+  { code: 'ro', name: 'Romania' },
+  { code: 'hu', name: 'Hungary' },
+  { code: 'ua', name: 'Ukraine' },
+  { code: 'lu', name: 'Luxembourg' },
+  { code: 'is', name: 'Iceland' },
+  { code: 'hr', name: 'Croatia' },
+  { code: 'bg', name: 'Bulgaria' },
+  { code: 'sk', name: 'Slovakia' },
+  { code: 'si', name: 'Slovenia' },
+  { code: 'rs', name: 'Serbia' },
+  { code: 'lt', name: 'Lithuania' },
+  { code: 'lv', name: 'Latvia' },
+  { code: 'ee', name: 'Estonia' },
+  { code: 'cy', name: 'Cyprus' },
+  { code: 'mt', name: 'Malta' },
+  { code: 'al', name: 'Albania' },
+  // Americas
   { code: 'us', name: 'United States' },
   { code: 'ca', name: 'Canada' },
-  { code: 'sa', name: 'Saudi Arabia' },
-  { code: 'qa', name: 'Qatar' },
+  { code: 'mx', name: 'Mexico' },
+  { code: 'br', name: 'Brazil' },
+  { code: 'ar', name: 'Argentina' },
+  { code: 'cl', name: 'Chile' },
+  { code: 'co', name: 'Colombia' },
+  { code: 'pe', name: 'Peru' },
+  { code: 've', name: 'Venezuela' },
+  { code: 'ec', name: 'Ecuador' },
+  { code: 'uy', name: 'Uruguay' },
+  { code: 'py', name: 'Paraguay' },
+  { code: 'bo', name: 'Bolivia' },
+  { code: 'do', name: 'Dominican Republic' },
+  { code: 'cr', name: 'Costa Rica' },
+  { code: 'pa', name: 'Panama' },
+  { code: 'gt', name: 'Guatemala' },
+  { code: 'hn', name: 'Honduras' },
+  { code: 'sv', name: 'El Salvador' },
+  { code: 'ni', name: 'Nicaragua' },
+  { code: 'jm', name: 'Jamaica' },
+  { code: 'tt', name: 'Trinidad and Tobago' },
+  { code: 'ht', name: 'Haiti' },
+  { code: 'cu', name: 'Cuba' },
+  // Asia-Pacific
   { code: 'in', name: 'India' },
+  { code: 'cn', name: 'China' },
+  { code: 'jp', name: 'Japan' },
+  { code: 'kr', name: 'South Korea' },
+  { code: 'sg', name: 'Singapore' },
+  { code: 'my', name: 'Malaysia' },
+  { code: 'id', name: 'Indonesia' },
+  { code: 'th', name: 'Thailand' },
+  { code: 'vn', name: 'Vietnam' },
+  { code: 'ph', name: 'Philippines' },
+  { code: 'pk', name: 'Pakistan' },
+  { code: 'bd', name: 'Bangladesh' },
+  { code: 'lk', name: 'Sri Lanka' },
+  { code: 'np', name: 'Nepal' },
+  { code: 'kh', name: 'Cambodia' },
+  { code: 'mm', name: 'Myanmar' },
+  { code: 'la', name: 'Laos' },
+  { code: 'mn', name: 'Mongolia' },
+  { code: 'hk', name: 'Hong Kong' },
+  { code: 'tw', name: 'Taiwan' },
   { code: 'au', name: 'Australia' },
+  { code: 'nz', name: 'New Zealand' },
+  { code: 'fj', name: 'Fiji' },
+  { code: 'pg', name: 'Papua New Guinea' },
+  { code: 'kz', name: 'Kazakhstan' },
+  { code: 'uz', name: 'Uzbekistan' },
+  { code: 'af', name: 'Afghanistan' },
+  { code: 'ir', name: 'Iran' },
+  { code: 'ye', name: 'Yemen' },
+  { code: 'sy', name: 'Syria' },
+  { code: 'az', name: 'Azerbaijan' },
+  { code: 'ge', name: 'Georgia' },
+  { code: 'am', name: 'Armenia' },
 ] as const;
 
 // Shape of a row from the real integration_providers table, used only for
@@ -348,7 +484,7 @@ export function LandingPage() {
       .eq('is_active', true)
       .not('logo_url', 'is', null)
       .order('is_featured', { ascending: false })
-      .limit(14)
+      .limit(50)
       .then(({ data }) => {
         if (!cancelled && data) setEcosystemProviders(data as EcosystemProvider[]);
       });
@@ -907,52 +1043,42 @@ export function LandingPage() {
             {/* Left content */}
             <div>
               <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-6 leading-tight">
-                {t('pLanding.workTogether.title') || 'Let\'s work together\nto find the right\nsystem for your\nbusiness'}
+                {t('pLanding.workTogether.title')}
               </h2>
-              <p className="text-lg text-ink-700 dark:text-ink-300 mb-8 leading-relaxed">
-                {t('pLanding.workTogether.desc') || 'Our business consultants are available in person or by phone to help you find the right system. We\'ll help you get up and running, and then we\'re available 24/7/365 for troubleshooting and support.\n\nWe\'re here to help—always.'}
+              <p className="text-lg text-ink-700 dark:text-ink-300 mb-8 leading-relaxed whitespace-pre-line">
+                {t('pLanding.workTogether.desc')}
               </p>
 
               <div className="space-y-4 mb-8">
-                <div className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-1 text-white text-sm font-bold">✓</div>
-                  <div>
-                    <p className="font-semibold text-ink-900 dark:text-white">Free Business Assessment</p>
-                    <p className="text-sm text-ink-600 dark:text-ink-400">Understand your needs and challenges</p>
+                {(['assessment', 'recommendation', 'support'] as const).map((key) => (
+                  <div key={key} className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-brand-500 flex items-center justify-center flex-shrink-0 mt-1 text-white text-sm font-bold">✓</div>
+                    <div>
+                      <p className="font-semibold text-ink-900 dark:text-white">{t(`pLanding.workTogether.point.${key}.title`)}</p>
+                      <p className="text-sm text-ink-600 dark:text-ink-400">{t(`pLanding.workTogether.point.${key}.desc`)}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-1 text-white text-sm font-bold">✓</div>
-                  <div>
-                    <p className="font-semibold text-ink-900 dark:text-white">Personalized Recommendation</p>
-                    <p className="text-sm text-ink-600 dark:text-ink-400">Custom solution for your industry & budget</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-1 text-white text-sm font-bold">✓</div>
-                  <div>
-                    <p className="font-semibold text-ink-900 dark:text-white">Implementation Support</p>
-                    <p className="text-sm text-ink-600 dark:text-ink-400">Dedicated specialist guides your setup</p>
-                  </div>
-                </div>
+                ))}
               </div>
-              
+
               <div className="mb-8">
-                <p className="text-sm font-bold text-ink-600 dark:text-ink-400 mb-2">{t('pLanding.workTogether.callLabel') || 'Call now'}</p>
-                <p className="text-3xl font-bold text-brand-600 dark:text-brand-400 mb-6">+971XXXXXXXX</p>
+                <p className="text-sm font-bold text-ink-600 dark:text-ink-400 mb-2">{t('pLanding.workTogether.emailLabel')}</p>
+                <a href="mailto:support@liafrik.com" className="text-2xl font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition">
+                  support@liafrik.com
+                </a>
               </div>
 
               <Link
                 to="/contact"
                 className="inline-flex items-center gap-2 px-6 py-3 border-2 border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400 rounded-lg font-semibold hover:bg-brand-50 dark:hover:bg-brand-600/10 transition"
               >
-                {t('pLanding.workTogether.cta') || 'Schedule a call'}
+                {t('pLanding.workTogether.cta')}
               </Link>
             </div>
 
-            {/* Right image (placeholder gradient) */}
+            {/* Right image */}
             <div className="relative h-96 rounded-xl overflow-hidden shadow-xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-100 to-flow-100 dark:from-ink-800 dark:to-ink-700 flex items-center justify-center">
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-500 to-flow-500 flex items-center justify-center">
                 <div className="text-6xl">👩‍💼</div>
               </div>
             </div>
@@ -960,61 +1086,60 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Keep things flowing section */}
+      {/* Keep things flowing section — real feature illustrations only:
+          today's revenue (real sales tracking), a staff clocked in via the
+          real day-open/day-close module, a real stock transfer received
+          notification, and a real multi-currency conversion. No fictional
+          food-service/loyalty-points content — POS Flow has neither a
+          kitchen module nor a loyalty-points program. */}
       <section className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-16">
-            {t('pLanding.keepFlowing.title') || 'Keep things flowing with\nthe all-in-one platform'}
+          <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-16 whitespace-pre-line">
+            {t('pLanding.keepFlowing.title')}
           </h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Stat Cards */}
             <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg">
-              <div className="text-3xl font-bold text-brand-600 mb-2">AED 15,240</div>
-              <p className="text-sm font-semibold text-ink-600 dark:text-ink-400 mb-4">Today's Revenue</p>
+              <div className="text-3xl font-bold text-brand-600 dark:text-brand-400 mb-2">2 450 000 FCFA</div>
+              <p className="text-sm font-semibold text-ink-600 dark:text-ink-400 mb-4">{t('pLanding.keepFlowing.card.revenue')}</p>
               <div className="h-12 flex items-end gap-1 mt-3">
-                <div className="flex-1 bg-green-400 rounded h-1/3"></div>
-                <div className="flex-1 bg-green-500 rounded h-2/3"></div>
-                <div className="flex-1 bg-green-600 rounded h-full"></div>
-                <div className="flex-1 bg-green-500 rounded h-3/4"></div>
+                <div className="flex-1 bg-flow-300 rounded h-1/3"></div>
+                <div className="flex-1 bg-flow-400 rounded h-2/3"></div>
+                <div className="flex-1 bg-flow-500 rounded h-full"></div>
+                <div className="flex-1 bg-flow-400 rounded h-3/4"></div>
               </div>
-              <p className="text-xs text-green-600 dark:text-green-400 mt-3">↑ 32% vs yesterday</p>
+              <p className="text-xs text-flow-600 dark:text-flow-400 mt-3">↑ 32% {t('pLanding.keepFlowing.card.vsYesterday')}</p>
             </div>
 
             <div className="bg-gradient-to-br from-ink-800 to-ink-900 p-8 rounded-xl shadow-lg text-white">
-              <p className="text-xs text-blue-300 mb-2">Chris L. - Manager</p>
+              <p className="text-xs text-brand-300 mb-2">{t('pLanding.keepFlowing.card.staffName')}</p>
               <div className="relative w-20 h-20 mx-auto mb-4">
                 <svg className="w-full h-full" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="2"/>
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="#22c55e" strokeWidth="3" strokeDasharray="125.6 125.6" strokeDashoffset="-31.4"/>
-                  <text x="50" y="55" textAnchor="middle" fill="white" fontSize="20" fontWeight="bold">9:07</text>
+                  <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(46, 140, 102, 0.3)" strokeWidth="2"/>
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#2E8C66" strokeWidth="3" strokeDasharray="125.6 125.6" strokeDashoffset="-31.4"/>
+                  <text x="50" y="55" textAnchor="middle" fill="white" fontSize="20" fontWeight="bold">08:02</text>
                 </svg>
               </div>
-              <p className="text-sm font-semibold text-center">Clocked in</p>
+              <p className="text-sm font-semibold text-center">{t('pLanding.keepFlowing.card.clockedIn')}</p>
             </div>
 
-            <div className="bg-gradient-to-br from-action-50 to-flow-50 dark:from-ink-800 dark:to-ink-900 p-8 rounded-xl shadow-lg">
-              <div className="text-4xl mb-4">📊</div>
-              <p className="font-semibold text-ink-900 dark:text-white mb-2">Order #568 - Ready</p>
-              <div className="space-y-2">
-                <p className="text-sm text-ink-700 dark:text-ink-300">🍔 Classic Burger</p>
-                <p className="text-sm text-ink-700 dark:text-ink-300">🍟 Truffle Fries</p>
-                <p className="text-sm text-ink-700 dark:text-ink-300">🥤 Chocolate Shake</p>
+            <div className="bg-gradient-to-br from-brand-50 to-flow-50 dark:from-ink-800 dark:to-ink-900 p-8 rounded-xl shadow-lg">
+              <div className="w-10 h-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4">
+                <ArrowRightLeft className="w-5 h-5 text-brand-600 dark:text-brand-400" />
               </div>
+              <p className="font-semibold text-ink-900 dark:text-white mb-2">{t('pLanding.keepFlowing.card.transferTitle')}</p>
+              <p className="text-sm text-ink-700 dark:text-ink-300">{t('pLanding.keepFlowing.card.transferDesc')}</p>
             </div>
 
             <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-brand-600" />
-                <div>
-                  <p className="font-semibold text-ink-900 dark:text-white text-sm">Sarah Johnson</p>
-                  <p className="text-xs text-ink-600 dark:text-ink-400">Member since 2022</p>
-                </div>
+              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 mb-4">{t('pLanding.keepFlowing.card.currencyLabel')}</p>
+              <p className="font-bold text-ink-900 dark:text-white text-xl mb-1">1 000 AED</p>
+              <div className="flex items-center gap-2 my-2 text-ink-400">
+                <div className="h-px flex-1 bg-gray-200 dark:bg-ink-700" />
+                <ArrowRight size={14} />
+                <div className="h-px flex-1 bg-gray-200 dark:bg-ink-700" />
               </div>
-              <div className="bg-gray-100 dark:bg-ink-900 p-3 rounded-lg">
-                <p className="font-bold text-brand-600 text-2xl">3,247</p>
-                <p className="text-xs text-ink-600 dark:text-ink-400">Points Balance</p>
-              </div>
+              <p className="font-bold text-brand-600 dark:text-brand-400 text-xl">178 500 FCFA</p>
             </div>
           </div>
 
@@ -1024,7 +1149,7 @@ export function LandingPage() {
               to="/pricing"
               className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
             >
-              {t('pLanding.keepFlowing.cta') || 'Explore Our Platform'} <ArrowRight size={18} />
+              {t('pLanding.keepFlowing.cta')} <ArrowRight size={18} />
             </Link>
           </div>
         </div>
