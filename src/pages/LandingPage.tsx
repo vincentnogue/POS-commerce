@@ -779,185 +779,132 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Let's work together section - REAL DETAILED CONTENT */}
-      <section className="py-20 px-4 lg:px-8 bg-gradient-to-br from-white to-gray-50 dark:from-ink-900 dark:to-ink-950">
+      {/* Let's work together section - REAL & SIMPLE */}
+      <section className="py-20 px-4 lg:px-8 bg-white dark:bg-ink-900">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            {/* Left content - REAL CONSULTATION */}
             <div>
-              <div className="inline-block px-4 py-2 rounded-full bg-brand-100 dark:bg-brand-900/30 border border-brand-300 dark:border-brand-700 text-brand-700 dark:text-brand-300 text-sm font-semibold mb-6">
-                {t('pLanding.workTogether.badge') || 'Expert Consultation'}
-              </div>
-              
-              <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-6 leading-tight">
-                {t('pLanding.workTogether.title') || 'Let\'s work together to find the right system for your business'}
+              <h2 className="text-5xl lg:text-6xl font-bold text-ink-900 dark:text-white mb-6 leading-tight">
+                Let's work together<br />to find the right<br />system for your<br />business
               </h2>
               
               <p className="text-lg text-ink-700 dark:text-ink-300 mb-8 leading-relaxed">
-                {t('pLanding.workTogether.desc') || 'Our certified business consultants understand your industry challenges. We\'ll assess your current workflow, identify bottlenecks, and recommend the perfect POS Flow solution tailored to your business needs.'}
+                Our business consultants are available in person or by phone to help you find the right system. We'll help you get up and running, and then we're available 24/7/365 for troubleshooting and support.<br /><br />We're here to help—always.
               </p>
 
-              {/* Real consultation benefits */}
-              <div className="space-y-4 mb-8">
-                <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-1">
-                    <span className="text-white text-sm">✓</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-ink-900 dark:text-white text-sm">{t('pLanding.workTogether.benefit1') || 'Free Business Assessment'}</p>
-                    <p className="text-sm text-ink-600 dark:text-ink-400">Comprehensive analysis of your current operations and pain points</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-1">
-                    <span className="text-white text-sm">✓</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-ink-900 dark:text-white text-sm">{t('pLanding.workTogether.benefit2') || 'Personalized Recommendation'}</p>
-                    <p className="text-sm text-ink-600 dark:text-ink-400">Customized POS solution matching your industry & budget</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-1">
-                    <span className="text-white text-sm">✓</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-ink-900 dark:text-white text-sm">{t('pLanding.workTogether.benefit3') || 'Implementation Support'}</p>
-                    <p className="text-sm text-ink-600 dark:text-ink-400">Dedicated onboarding specialist guides your entire setup process</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-1">
-                    <span className="text-white text-sm">✓</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-ink-900 dark:text-white text-sm">{t('pLanding.workTogether.benefit4') || '24/7/365 Support Guarantee'}</p>
-                    <p className="text-sm text-ink-600 dark:text-ink-400">Dedicated support team available always for troubleshooting</p>
-                  </div>
-                </div>
+              <div className="mb-8">
+                <p className="text-sm font-bold text-ink-900 dark:text-white mb-2">Call now</p>
+                <p className="text-3xl font-bold text-brand-600 dark:text-brand-400 mb-6">+971XXXXXXXX</p>
               </div>
 
-              {/* Real contact section */}
-              <div className="bg-brand-50 dark:bg-ink-800 p-6 rounded-lg border border-brand-200 dark:border-brand-700 mb-8">
-                <p className="text-sm font-bold text-brand-700 dark:text-brand-300 mb-3">📞 {t('pLanding.workTogether.contactLabel') || 'Get Expert Guidance'}</p>
-                <p className="text-2xl font-bold text-ink-900 dark:text-white mb-4">+971 XXXXXXXX</p>
-                <p className="text-sm text-ink-600 dark:text-ink-400 mb-4">Available Mon-Fri 9AM-6PM GST</p>
-                <Link
-                  to="/contact"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition w-full justify-center"
-                >
-                  Schedule a Free Consultation
-                </Link>
-              </div>
-
-              {/* Social proof */}
-              <div className="flex items-center gap-4 text-sm text-ink-600 dark:text-ink-400">
-                <div className="flex -space-x-2">
-                  <div className="w-8 h-8 rounded-full bg-brand-500" />
-                  <div className="w-8 h-8 rounded-full bg-flow-500" />
-                  <div className="w-8 h-8 rounded-full bg-action-500" />
-                </div>
-                <p><span className="font-bold text-ink-900 dark:text-white">500+</span> businesses guided this year</p>
-              </div>
+              <Link
+                to="/contact"
+                className="inline-block px-8 py-3 border-2 border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400 rounded-lg font-semibold hover:bg-brand-50 dark:hover:bg-brand-600/10 transition"
+              >
+                Schedule a call
+              </Link>
             </div>
 
-            {/* Right side - REAL PROFESSIONAL VISUAL */}
-            <div className="relative">
-              {/* Professional image placeholder with real data */}
-              <div className="relative bg-gradient-to-br from-brand-100 via-flow-100 to-action-100 dark:from-ink-800 dark:via-ink-700 dark:to-ink-600 rounded-2xl overflow-hidden shadow-2xl aspect-square flex items-center justify-center p-8">
-                {/* Simulate professional workspace */}
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-white dark:bg-ink-900 mb-6 shadow-lg">
-                    <span className="text-5xl">👩‍💼</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-ink-900 dark:text-white mb-2">Sarah Martinez</h3>
-                  <p className="text-sm text-ink-600 dark:text-ink-400 mb-4">Business Consultant</p>
-                  <p className="text-sm text-ink-600 dark:text-ink-400 max-w-xs mx-auto leading-relaxed">
-                    {t('pLanding.workTogether.consultantBio') || '"10+ years helping retail and restaurant businesses transform operations"'}
-                  </p>
-                </div>
-
-                {/* Floating stats cards */}
-                <div className="absolute top-6 left-6 bg-white dark:bg-ink-800 p-3 rounded-lg shadow-lg">
-                  <p className="text-xl font-bold text-green-600">98%</p>
-                  <p className="text-xs text-ink-600 dark:text-ink-400">Success Rate</p>
-                </div>
-
-                <div className="absolute bottom-6 right-6 bg-white dark:bg-ink-800 p-3 rounded-lg shadow-lg">
-                  <p className="text-xl font-bold text-brand-600">5★</p>
-                  <p className="text-xs text-ink-600 dark:text-ink-400">Client Rating</p>
-                </div>
+            <div className="relative h-96 rounded-xl overflow-hidden shadow-2xl bg-gradient-to-br from-brand-100 via-flow-100 to-action-100 dark:from-ink-800 dark:via-ink-700 dark:to-ink-600 flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-7xl mb-4">👩‍💼</div>
+                <p className="text-lg font-bold text-ink-900 dark:text-white">Expert Consultation</p>
               </div>
-
-              {/* Decorative element */}
-              <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-action-500/10 rounded-full blur-3xl" />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Keep things flowing section */}
-      <section className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-16">
-            {t('pLanding.keepFlowing.title') || 'Keep things flowing with\nthe all-in-one platform'}
+      {/* Keep things flowing section - REAL DASHBOARD */}
+      <section className="py-20 px-4 lg:px-8 bg-gradient-to-b from-gray-50 to-white dark:from-ink-950 dark:to-ink-900 border-t border-gray-200 dark:border-ink-800">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-5xl lg:text-6xl font-bold text-ink-900 dark:text-white mb-6 leading-tight">
+            Keep things flowing with the all-in-one platform
           </h2>
+          
+          <p className="text-lg text-ink-600 dark:text-ink-400 mb-16 max-w-2xl">
+            Transform your business with integrated software designed to streamline operations, enhance customer experiences, and boost profitability through insights.
+          </p>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Stat Cards */}
-            <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg">
-              <div className="text-4xl font-bold text-brand-600 mb-2">+34%</div>
-              <p className="text-sm font-semibold text-ink-600 dark:text-ink-400 mb-4">Sales Increase</p>
-              <p className="text-sm text-ink-500 dark:text-ink-400">Average growth for our customers</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-ink-800 to-ink-900 p-8 rounded-xl shadow-lg text-white">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-flow-500 mb-4">
-                <span className="text-2xl">⏱️</span>
-              </div>
-              <p className="text-sm font-semibold mb-2">Staff Clock-in</p>
-              <p className="text-xs text-white/70">Real-time employee tracking</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-action-50 to-flow-50 dark:from-ink-800 dark:to-ink-900 p-8 rounded-xl shadow-lg">
-              <div className="text-4xl mb-4">📊</div>
-              <p className="font-semibold text-ink-900 dark:text-white mb-2">Order #568</p>
-              <div className="space-y-2">
-                <p className="text-sm text-ink-700 dark:text-ink-300">🍔 Classic Burger</p>
-                <p className="text-sm text-ink-700 dark:text-ink-300">🍟 Truffle Fries</p>
-                <p className="text-sm text-ink-700 dark:text-ink-300">🥤 Chocolate Shake</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {/* Revenue Card */}
+            <div className="bg-white dark:bg-ink-800 p-8 rounded-lg border border-gray-200 dark:border-ink-700 shadow-md">
+              <p className="text-sm text-ink-600 dark:text-ink-400 font-medium mb-2">Daily Revenue</p>
+              <p className="text-4xl font-bold text-brand-600 dark:text-brand-400 mb-3">AED 15,240</p>
+              <p className="text-sm text-green-600 dark:text-green-400 mb-6">↑ 32% vs yesterday</p>
+              <div className="flex items-end gap-2 h-16">
+                <div className="flex-1 bg-brand-500 rounded h-1/3" />
+                <div className="flex-1 bg-brand-600 rounded h-1/2" />
+                <div className="flex-1 bg-brand-700 rounded h-3/4" />
+                <div className="flex-1 bg-brand-800 rounded h-full" />
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-brand-600" />
-                <div>
-                  <p className="font-semibold text-ink-900 dark:text-white text-sm">Sarah Johnson</p>
-                  <p className="text-xs text-ink-600 dark:text-ink-400">Member since 2022</p>
+            {/* Clock In Card */}
+            <div className="bg-gradient-to-br from-ink-800 to-ink-900 dark:from-ink-700 dark:to-ink-800 p-8 rounded-lg shadow-md flex flex-col items-center justify-center text-white">
+              <div className="relative w-32 h-32 mb-6">
+                <div className="absolute inset-0 border-4 border-green-500 rounded-full" />
+                <div className="absolute inset-2 border-2 border-ink-600 rounded-full" />
+                <div className="absolute inset-4 flex flex-col items-center justify-center">
+                  <p className="text-sm font-semibold">Chris L.</p>
+                  <p className="text-xs text-gray-300">Clocked in</p>
+                  <p className="text-xs text-green-400 font-bold">9:07 AM</p>
                 </div>
               </div>
-              <div className="bg-gray-100 dark:bg-ink-900 p-3 rounded-lg">
-                <p className="font-bold text-brand-600 text-2xl">3,247</p>
+            </div>
+
+            {/* Order Card */}
+            <div className="bg-gradient-to-br from-green-400 to-green-500 p-8 rounded-lg shadow-md text-white">
+              <p className="text-lg font-bold mb-6">Order #568</p>
+              <div className="space-y-3">
+                <div className="bg-white/20 backdrop-blur p-3 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">🍔</span>
+                    <p className="font-medium">Classic Burger</p>
+                  </div>
+                </div>
+                <div className="bg-white/20 backdrop-blur p-3 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">🍟</span>
+                    <p className="font-medium">Truffle Fries</p>
+                  </div>
+                </div>
+                <div className="bg-white/20 backdrop-blur p-3 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">🥤</span>
+                    <p className="font-medium">Chocolate Shake</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Loyalty Card */}
+            <div className="bg-gradient-to-br from-gray-800 to-gray-900 dark:from-ink-800 dark:to-ink-900 p-8 rounded-lg shadow-md border border-gray-700 dark:border-ink-700">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm">SR</div>
+                <div>
+                  <p className="font-semibold text-white text-sm">Shannon Rodgers</p>
+                  <p className="text-xs text-gray-400">Member since 2018</p>
+                </div>
+              </div>
+              <div className="bg-white dark:bg-ink-900 p-4 rounded-lg">
+                <p className="font-bold text-brand-600 dark:text-brand-400 text-3xl">2,817</p>
                 <p className="text-xs text-ink-600 dark:text-ink-400">Points Balance</p>
               </div>
             </div>
           </div>
 
-          {/* CTA */}
-          <div className="mt-16 text-center">
+          <div className="text-center">
             <Link
               to="/pricing"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
+              className="inline-block px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition shadow-lg"
             >
-              {t('pLanding.keepFlowing.cta') || 'Explore Our Platform'} <ArrowRight size={18} />
+              Explore Food & Beverage →
             </Link>
           </div>
         </div>
       </section>
+
 
       {/* Footer */}
       <footer className="border-t border-gray-200 dark:border-ink-800 bg-white dark:bg-ink-950">
