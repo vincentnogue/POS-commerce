@@ -35,22 +35,6 @@ const DEMO_ITEMS = [
   { key: 'item3', price: 1.5, qty: 3 },
 ] as const;
 
-// Swappable trust-marquee logos — real <img> files under /public/logos/.
-// IMPORTANT: these are intentionally generic "logo slot" placeholders, NOT
-// invented company names (an earlier version used made-up names like
-// "Retail Group Afrique", which a site visitor would read as real
-// customers — that's fabricated social proof and was correctly removed).
-// Swap the 6 files in /public/logos/ for real partner/customer logos (with
-// their permission) whenever they're available; no code change needed.
-const LOGO_PLACEHOLDERS = [
-  { src: '/logos/partner-1.svg', alt: 'Emplacement logo partenaire' },
-  { src: '/logos/partner-2.svg', alt: 'Emplacement logo partenaire' },
-  { src: '/logos/partner-3.svg', alt: 'Emplacement logo partenaire' },
-  { src: '/logos/partner-4.svg', alt: 'Emplacement logo partenaire' },
-  { src: '/logos/partner-5.svg', alt: 'Emplacement logo partenaire' },
-  { src: '/logos/partner-6.svg', alt: 'Emplacement logo partenaire' },
-];
-
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -532,16 +516,17 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Real stats strip — international framing, animated count-up */}
+      {/* Real, verifiable stats only — 30+ currencies (src/lib/currency.ts)
+          and 9+ payment processors (seeded integration_providers) are both
+          counted from actual code/data. No customer/merchant count is shown
+          here: there is no real, verifiable number for that yet — showing
+          one (a fabricated "1850+ merchants trust us" briefly existed here)
+          would be exactly the fake social proof this product's landing page
+          explicitly must never contain. Add it back only when there's a
+          real, sourced count to show. */}
       <section className="bg-gray-50 dark:bg-ink-900 py-12 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                <CountUp value={1850} suffix="+" />
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.clients')}</p>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             <div className="text-center">
               <p className="text-3xl font-bold text-gray-900 dark:text-white">
                 <CountUp value={30} suffix="+" />
@@ -558,29 +543,6 @@ export function LandingPage() {
               <p className="text-3xl font-bold text-gray-900 dark:text-white">{t('pLanding.stats.internationalValue')}</p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.international')}</p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Trust marquee — scrolling logo band. Generic placeholder logo
-          slots (see LOGO_PLACEHOLDERS above) — not fabricated company
-          names, ready to swap for real partner/customer logos. */}
-      <section className="bg-white dark:bg-ink-950 py-10 border-b border-gray-200 dark:border-ink-800 overflow-hidden">
-        <p className="text-center text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-ink-500 mb-6">
-          {t('pLanding.trust.title')}
-        </p>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white dark:from-ink-950 to-transparent z-10" />
-          <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white dark:from-ink-950 to-transparent z-10" />
-          <div className="flex w-max animate-marquee gap-16 px-8">
-            {[...LOGO_PLACEHOLDERS, ...LOGO_PLACEHOLDERS].map((logo, i) => (
-              <img
-                key={`${logo.src}-${i}`}
-                src={logo.src}
-                alt={logo.alt}
-                className="h-10 shrink-0 opacity-90 dark:opacity-80"
-              />
-            ))}
           </div>
         </div>
       </section>
