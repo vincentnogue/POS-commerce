@@ -176,8 +176,9 @@ export function StockPage() {
     setTransferErr(null);
     if (!tenant || !user) return;
     if (!batchForm.name.trim()) { setTransferErr(t('stock.err.transferNameRequired')); return; }
-    if (!batchForm.source_store_id || !batchForm.dest_store_id) { setTransferErr(t('stock.err.selectProductAndStores')); return; }
-    if (batchForm.source_store_id === batchForm.dest_store_id) { setTransferErr(t('stock.err.storesMustDiffer')); return; }
+    if (!batchForm.source_store_id) { setTransferErr(t('stock.err.selectProductAndStores')); return; }
+    if (batchForm.type === 'transfer' && !batchForm.dest_store_id) { setTransferErr(t('stock.err.selectProductAndStores')); return; }
+    if (batchForm.dest_store_id && batchForm.source_store_id === batchForm.dest_store_id) { setTransferErr(t('stock.err.storesMustDiffer')); return; }
     if (batchItems.length === 0) { setTransferErr(t('stock.err.noItemsScanned')); return; }
 
     setSubmittingTransfer(true);
@@ -185,7 +186,7 @@ export function StockPage() {
       p_tenant_id: tenant.id,
       p_name: batchForm.name.trim(),
       p_source_store_id: batchForm.source_store_id,
-      p_dest_store_id: batchForm.dest_store_id,
+      p_dest_store_id: batchForm.dest_store_id || null,
       p_items: batchItems.map((i) => ({ product_id: i.product_id, quantity: i.quantity })),
       p_notes: batchForm.notes || null,
       p_staff_code: batchForm.staff_code.trim() || null,
@@ -259,9 +260,9 @@ export function StockPage() {
           <div className="flex gap-2">
             <button onClick={() => exportCSV('stock.csv', stockByProduct.map((r) => ({ produit: r.product.name, quantite: r.total, seuil: r.product.low_stock_threshold, statut: r.low ? 'bas' : 'ok' })))} className="btn-ghost"><Download size={16} /> {t('common.export')}</button>
             {canCreate && <button onClick={() => setMoveOpen(true)} className="btn-primary"><Plus size={16} /> {t('stock.movement')}</button>}
-            {canCreate && transferableSourceStores.length > 0 && stores.length > 1 && (
+            {canCreate && transferableSourceStores.length > 0 && (
               <>
-                <button onClick={openTransferModal} className="btn-ghost border-brand-200 text-brand-700"><ArrowRightLeft size={16} /> {t('stock.transfer')}</button>
+                {stores.length > 1 && <button onClick={openTransferModal} className="btn-ghost border-brand-200 text-brand-700"><ArrowRightLeft size={16} /> {t('stock.transfer')}</button>}
                 <button onClick={openRmsModal} className="btn-ghost border-error-200 text-error-700"><AlertTriangle size={16} /> {t('stock.rms.reportBtn')}</button>
               </>
             )}
@@ -447,20 +448,25 @@ export function StockPage() {
           <Field label={t('stock.col.transferName')}>
             <input value={batchForm.name} onChange={(e) => setBatchForm({ ...batchForm, name: e.target.value })} className="input" placeholder={batchForm.type === 'rms' ? t('stock.rms.namePlaceholder') : t('stock.transferNamePlaceholder')} />
           </Field>
-          <div className="grid grid-cols-2 gap-3">
+          <div className={batchForm.type === 'rms' && stores.length <= 1 ? '' : 'grid grid-cols-2 gap-3'}>
             <Field label={t('stock.sourceStore')}>
               <select value={batchForm.source_store_id} onChange={(e) => setBatchForm({ ...batchForm, source_store_id: e.target.value, dest_store_id: batchForm.type === 'rms' ? batchForm.dest_store_id : '' })} className="input">
                 <option value="">{t('stock.selectPlaceholder')}</option>
                 {transferableSourceStores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </Field>
-            <Field label={batchForm.type === 'rms' ? t('stock.rms.destination') : t('stock.destStore')}>
-              <select value={batchForm.dest_store_id} onChange={(e) => setBatchForm({ ...batchForm, dest_store_id: e.target.value })} className="input">
-                <option value="">{t('stock.selectPlaceholder')}</option>
-                {stores.filter((s) => s.id !== batchForm.source_store_id).map((s) => <option key={s.id} value={s.id}>{s.name}{s.id === tenant?.rms_destination_store_id ? ` (${t('stock.rms.defaultHo')})` : ''}</option>)}
-              </select>
-            </Field>
+            {(batchForm.type !== 'rms' || stores.length > 1) && (
+              <Field label={batchForm.type === 'rms' ? t('stock.rms.destination') : t('stock.destStore')}>
+                <select value={batchForm.dest_store_id} onChange={(e) => setBatchForm({ ...batchForm, dest_store_id: e.target.value })} className="input">
+                  <option value="">{batchForm.type === 'rms' ? t('stock.rms.writeOffOption') : t('stock.selectPlaceholder')}</option>
+                  {stores.filter((s) => s.id !== batchForm.source_store_id).map((s) => <option key={s.id} value={s.id}>{s.name}{s.id === tenant?.rms_destination_store_id ? ` (${t('stock.rms.defaultHo')})` : ''}</option>)}
+                </select>
+              </Field>
+            )}
           </div>
+          {batchForm.type === 'rms' && stores.length <= 1 && (
+            <p className="text-xs text-ink-500 dark:text-ink-400">{t('stock.rms.writeOffHint')}</p>
+          )}
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t('stock.staffIdOptional')}>
               <input

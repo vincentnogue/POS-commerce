@@ -710,6 +710,8 @@ export const fr: Record<string, string> = {
   "stock.rms.namePlaceholder": "ex: Casse rayon frais 29/08",
   "stock.rms.destination": "Destination (Direction / HO)",
   "stock.rms.defaultHo": "HO par défaut",
+  "stock.rms.writeOffOption": "— Écriture de perte interne (pas d'envoi) —",
+  "stock.rms.writeOffHint": "Un seul magasin est configuré : ce rapport déduira le stock immédiatement comme une perte interne, sans transfert vers un autre site.",
   "stock.rms.submitBtn": "Envoyer le rapport",
   "stock.toast.rmsReported": "Rapport RMS envoyé à la direction.",
   "stock.noPermission": "Vous n'avez pas la permission de modifier le stock.",

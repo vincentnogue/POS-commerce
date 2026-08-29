@@ -710,6 +710,8 @@ export const en: Record<string, string> = {
   "stock.rms.namePlaceholder": "e.g. Chiller aisle breakage 08/29",
   "stock.rms.destination": "Destination (Direction / HO)",
   "stock.rms.defaultHo": "Default HO",
+  "stock.rms.writeOffOption": "— Internal write-off (no destination) —",
+  "stock.rms.writeOffHint": "Only one store is configured: this report will deduct stock immediately as an internal loss, with no transfer to another location.",
   "stock.rms.submitBtn": "Submit report",
   "stock.toast.rmsReported": "RMS report sent to Direction.",
   "stock.noPermission": "You don't have permission to modify stock.",
