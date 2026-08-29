@@ -723,7 +723,6 @@ export const en: Record<string, string> = {
   "stock.err.storesMustDiffer": "Source and destination stores must differ.",
   "stock.err.qtyPositive": "Quantity must be positive.",
   "stock.toast.movementRecorded": "Stock movement recorded.",
-  "stock.toast.transferInitiated": "Transfer initiated.",
   "stock.toast.transferReceived": "Transfer received, stock updated.",
   "stock.toast.transferCancelled": "Transfer cancelled, stock restored.",
 
