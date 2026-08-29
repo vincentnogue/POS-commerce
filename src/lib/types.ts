@@ -18,6 +18,8 @@ export type Tenant = {
   trial_ends_at: string | null; // 14 days free trial
   created_at: string;
   rms_destination_store_id?: string | null;
+  return_settings?: { allow_cash?: boolean; allow_card?: boolean; allow_store_credit?: boolean; allow_exchange?: boolean } | null;
+  max_x_reports_per_day?: number;
 };
 
 export type Store = {
@@ -119,6 +121,7 @@ export type Customer = {
   balance: number;
   notes: string | null;
   created_at: string;
+  store_credit_balance?: number;
 };
 
 export type Supplier = {
@@ -281,6 +284,34 @@ export type Quote = {
   discount_total: number;
   total: number;
   notes: string | null;
+};
+
+export type SaleReturn = {
+  id: string;
+  tenant_id: string;
+  store_id: string | null;
+  original_sale_id: string;
+  customer_id: string | null;
+  day_session_id: string | null;
+  reference: string;
+  kind: 'return' | 'exchange';
+  reason: string | null;
+  refund_method: 'cash' | 'card' | 'mobile_money' | 'store_credit' | 'none';
+  refund_amount: number;
+  staff_code: string | null;
+  processed_by: string | null;
+  created_at: string;
+};
+
+export type SaleReturnItem = {
+  id: string;
+  return_id: string;
+  sale_item_id: string | null;
+  product_id: string | null;
+  name: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
 };
 
 export type Category = {
