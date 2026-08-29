@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '../lib/i18n';
 import { PricingCard, type PricingPlan } from '../components/PricingCard';
 import { CountryFlagsMarquee } from '../components/CountryFlagsMarquee';
+import { IntegrationsMarquee } from '../components/IntegrationsMarquee';
 import { PLANS as REAL_PLANS } from '../lib/plans';
 
 // Real feature set — every entry below maps to an actual module that ships
@@ -608,6 +609,8 @@ export function LandingPage() {
 
         <CountryFlagsMarquee title={t('pLanding.worldwide.title')} lang={lang} />
       </section>
+
+      <IntegrationsMarquee title={t('pLanding.integrations.marqueeTitle')} />
 
       {/* "Let's get busy"-style hero, in LiAfrik colors — checklist + email
           capture on a solid brand panel, stylized POS device mockup on a

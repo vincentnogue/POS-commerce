@@ -216,3 +216,10 @@
 .animate-marquee {
   animation: marquee 28s linear infinite;
 }
+
+/* Slower variant for the country-flags marquee: circular flag images read
+   better at a calmer pace than the short logo pills above. Same keyframe,
+   dedicated class so nothing else using .animate-marquee is affected. */
+.animate-marquee-slow {
+  animation: marquee 70s linear infinite;
+}

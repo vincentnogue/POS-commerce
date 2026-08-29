@@ -1517,6 +1517,7 @@ export const fr: Record<string, string> = {
   "pLanding.pricing.updated": "dernière mise à jour {date}",
   "pLanding.pricing.viewMatrix": "Voir la matrice complète des 30+ devises",
   "pLanding.worldwide.title": "Conçu pour fonctionner partout dans le monde",
+  "pLanding.integrations.marqueeTitle": "Déjà connecté aux outils que vous utilisez",
   "pLanding.keepFlowing.title": "Gardez le flux avec\nla plateforme tout-en-un",
   "pLanding.keepFlowing.cta": "Explorer notre plateforme",
   "pLanding.keepFlowing.card1.title": "Stock & ventes en temps réel",
