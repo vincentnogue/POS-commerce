@@ -674,6 +674,101 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Buy smarter / Sell faster / Grow smarter — each pillar maps to a
+          real shipped module, not aspirational copy: purchasing/suppliers,
+          the POS checkout itself, and reports/multi-location/marketplace. */}
+      <section className="py-24 px-4 lg:px-8 bg-gray-50 dark:bg-ink-900 border-y border-gray-200 dark:border-ink-800">
+        <div className="max-w-7xl mx-auto">
+          <Reveal className="text-center mb-14">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3">
+              {t('pLanding.bsg.title')}
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              {t('pLanding.bsg.desc')}
+            </p>
+          </Reveal>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { icon: Package, key: 'buy', to: '/purchases' },
+              { icon: ShoppingCart, key: 'sell', to: '/signup' },
+              { icon: TrendingUp, key: 'grow', to: '/pricing' },
+            ].map((card, i) => (
+              <Reveal key={card.key} delay={i * 0.08}>
+                <div className="h-full rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-8 flex flex-col">
+                  <div className="w-12 h-12 rounded-xl bg-brand-500/10 flex items-center justify-center mb-5">
+                    <card.icon className="w-6 h-6 text-brand-600 dark:text-brand-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{t(`pLanding.bsg.${card.key}.title`)}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-5 flex-1">{t(`pLanding.bsg.${card.key}.desc`)}</p>
+                  <ul className="space-y-2 mb-6">
+                    {(['point1', 'point2', 'point3'] as const).map((p) => (
+                      <li key={p} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <Check className="w-4 h-4 text-brand-600 mt-0.5 flex-shrink-0" />
+                        {t(`pLanding.bsg.${card.key}.${p}`)}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link to={card.to} className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 mt-auto">
+                    {t(`pLanding.bsg.${card.key}.cta`)} <ArrowRight size={14} />
+                  </Link>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Integrations by category — real cards, real logos, real category
+          tags, live from integration_providers (same data as the marquee
+          above and /marketplace itself). Grouped by the actual `category`
+          column values in the database: payments, accounting, ecommerce,
+          communication, shipping — never invented categories like
+          "banking" or "delivery" that don't exist in this system yet. */}
+      {ecosystemProviders.length > 0 && (
+        <section id="integrations" className="py-24 px-4 lg:px-8 max-w-7xl mx-auto">
+          <Reveal className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-14">
+            <div>
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3">
+                {t('pLanding.integrationsGrid.title')}
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-xl">
+                {t('pLanding.integrationsGrid.desc')}
+              </p>
+            </div>
+            <Link
+              to="/marketplace"
+              className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-ink-950 dark:bg-white text-white dark:text-ink-950 text-sm font-semibold hover:opacity-90 transition"
+            >
+              {t('pLanding.integrationsGrid.cta')} <ArrowRight size={14} />
+            </Link>
+          </Reveal>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {ecosystemProviders.slice(0, 9).map((p, i) => (
+              <Reveal key={p.provider_key} delay={i * 0.04}>
+                <div className="relative h-full rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-brand-300 dark:hover:border-brand-500/50 hover:shadow-xl hover:shadow-brand-500/5">
+                  <span className="absolute right-5 top-6 text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-ink-500">
+                    {p.category}
+                  </span>
+                  <div className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-ink-800 border border-gray-200 dark:border-ink-700 flex items-center justify-center mb-4">
+                    <img src={p.logo_url} alt="" loading="lazy" className="h-7 w-7 object-contain" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1.5">{p.provider_name}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                    {t(`pLanding.integrationsGrid.category.${p.category}`)}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal className="mt-6 flex items-center justify-between gap-4 rounded-2xl border border-gray-200 dark:border-ink-700 bg-gray-50 dark:bg-ink-900 px-6 py-5 flex-wrap">
+            <span className="text-sm text-gray-600 dark:text-gray-400">{t('pLanding.integrationsGrid.apiNote')}</span>
+            <Link to="/documentation" className="text-sm font-semibold text-brand-600 hover:text-brand-700">
+              {t('pLanding.integrationsGrid.apiCta')} →
+            </Link>
+          </Reveal>
+        </section>
+      )}
+
       {/* Industries + Hardware teaser — links to the real dedicated pages
           (IndustrySolutionsPage, HardwarePage) rather than duplicating their
           content here. Only the 3 verticals that page actually documents
