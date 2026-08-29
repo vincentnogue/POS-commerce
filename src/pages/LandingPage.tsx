@@ -4,10 +4,12 @@ import {
   Menu, X, Globe, ChevronDown, ArrowRight, MapPin,
   ShoppingCart, Package, Store, Plug, FileText, BarChart3,
   ShieldCheck, Wallet, Check, CheckCircle2, Smartphone, TrendingUp, Receipt,
+  Clock, CreditCard,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '../lib/i18n';
 import { PricingCard, type PricingPlan } from '../components/PricingCard';
+import { CountryFlagsMarquee } from '../components/CountryFlagsMarquee';
 import { PLANS as REAL_PLANS } from '../lib/plans';
 
 // Real feature set — every entry below maps to an actual module that ships
@@ -603,6 +605,8 @@ export function LandingPage() {
             </Link>
           </div>
         </div>
+
+        <CountryFlagsMarquee title={t('pLanding.worldwide.title')} lang={lang} />
       </section>
 
       {/* "Let's get busy"-style hero, in LiAfrik colors — checklist + email
@@ -777,50 +781,92 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Keep things flowing section */}
+      {/* Keep things flowing section — four real product mockups (stock
+          movement, day-open staff clock-in, a POS sale ticket using the same
+          generic retail demo items as the hero above, and a return/exchange
+          store-credit ticket). Every figure shown is illustrative UI, not a
+          marketing stat — no invented percentages or fabricated feature
+          (there is no loyalty/points system in this product; store credit,
+          via Returns/Exchange, is the real equivalent). */}
       <section className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-16">
-            {t('pLanding.keepFlowing.title') || 'Keep things flowing with\nthe all-in-one platform'}
+          <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-16 whitespace-pre-line">
+            {t('pLanding.keepFlowing.title')}
           </h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Stat Cards */}
-            <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg">
-              <div className="text-4xl font-bold text-brand-600 mb-2">+34%</div>
-              <p className="text-sm font-semibold text-ink-600 dark:text-ink-400 mb-4">Sales Increase</p>
-              <p className="text-sm text-ink-500 dark:text-ink-400">Average growth for our customers</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-ink-800 to-ink-900 p-8 rounded-xl shadow-lg text-white">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-flow-500 mb-4">
-                <span className="text-2xl">⏱️</span>
+            {/* Card 1 — stock/sales movement, generic categories, no invented % */}
+            <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg flex flex-col">
+              <div className="flex items-end gap-2.5 h-24 mb-5">
+                {[
+                  { h: 55, up: true, Icon: Package },
+                  { h: 78, up: true, Icon: ShoppingCart },
+                  { h: 38, up: false, Icon: Receipt },
+                  { h: 92, up: true, Icon: Store },
+                  { h: 64, up: false, Icon: Wallet },
+                ].map(({ h, up, Icon }, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
+                    {up
+                      ? <TrendingUp size={12} className="text-brand-500" />
+                      : <TrendingUp size={12} className="text-ink-300 dark:text-ink-600 rotate-180" />}
+                    <div
+                      className={`w-full rounded-t-md ${up ? 'bg-brand-500' : 'bg-ink-200 dark:bg-ink-600'}`}
+                      style={{ height: `${h}%` }}
+                    />
+                    <Icon size={14} className="text-ink-400 dark:text-ink-500" />
+                  </div>
+                ))}
               </div>
-              <p className="text-sm font-semibold mb-2">Staff Clock-in</p>
-              <p className="text-xs text-white/70">Real-time employee tracking</p>
+              <p className="font-semibold text-ink-900 dark:text-white text-sm mb-1">{t('pLanding.keepFlowing.card1.title')}</p>
+              <p className="text-xs text-ink-500 dark:text-ink-400">{t('pLanding.keepFlowing.card1.desc')}</p>
             </div>
 
+            {/* Card 2 — day-open staff clock-in (real module: petty cash + staff present) */}
+            <div className="bg-gradient-to-br from-ink-800 to-ink-900 p-8 rounded-xl shadow-lg text-white flex flex-col items-center text-center">
+              <div className="relative w-24 h-24 mb-5">
+                <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="6" strokeDasharray="2 8.5" strokeLinecap="round" />
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="#14B594" strokeWidth="6" strokeLinecap="round" strokeDasharray="264" strokeDashoffset="64" />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Clock size={26} className="text-flow-400" />
+                </div>
+              </div>
+              <p className="text-sm font-semibold">{t('pLanding.keepFlowing.card2.name')}</p>
+              <p className="text-xs text-white/70 mb-3">{t('pLanding.keepFlowing.card2.status')}</p>
+              <p className="text-sm font-semibold">{t('pLanding.keepFlowing.card2.title')}</p>
+              <p className="text-xs text-white/70">{t('pLanding.keepFlowing.card2.desc')}</p>
+            </div>
+
+            {/* Card 3 — a real sale ticket, same generic demo items as the hero */}
             <div className="bg-gradient-to-br from-action-50 to-flow-50 dark:from-ink-800 dark:to-ink-900 p-8 rounded-xl shadow-lg">
-              <div className="text-4xl mb-4">📊</div>
-              <p className="font-semibold text-ink-900 dark:text-white mb-2">Order #568</p>
+              <div className="w-10 h-10 rounded-lg bg-white dark:bg-ink-900 shadow-sm flex items-center justify-center mb-4">
+                <Receipt size={18} className="text-action-500" />
+              </div>
+              <p className="font-semibold text-ink-900 dark:text-white mb-3">{t('pLanding.keepFlowing.card3.title')}</p>
               <div className="space-y-2">
-                <p className="text-sm text-ink-700 dark:text-ink-300">🍔 Classic Burger</p>
-                <p className="text-sm text-ink-700 dark:text-ink-300">🍟 Truffle Fries</p>
-                <p className="text-sm text-ink-700 dark:text-ink-300">🥤 Chocolate Shake</p>
+                {(['item1', 'item2', 'item3'] as const).map((key) => (
+                  <div key={key} className="flex items-center justify-between text-sm text-ink-700 dark:text-ink-300">
+                    <span>{t(`pLanding.hero.demo.${key}`)}</span>
+                    <div className="h-1.5 w-10 rounded-full bg-white/60 dark:bg-white/10" />
+                  </div>
+                ))}
               </div>
             </div>
 
+            {/* Card 4 — store credit (real: issued by Returns/Exchange when the manager's refund policy is "credit ticket") */}
             <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-brand-600" />
+                <div className="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center">
+                  <CreditCard size={18} className="text-white" />
+                </div>
                 <div>
-                  <p className="font-semibold text-ink-900 dark:text-white text-sm">Sarah Johnson</p>
-                  <p className="text-xs text-ink-600 dark:text-ink-400">Member since 2022</p>
+                  <p className="font-semibold text-ink-900 dark:text-white text-sm">{t('pLanding.keepFlowing.card4.title')}</p>
+                  <p className="text-xs text-ink-600 dark:text-ink-400">{t('pLanding.keepFlowing.card4.desc')}</p>
                 </div>
               </div>
               <div className="bg-gray-100 dark:bg-ink-900 p-3 rounded-lg">
-                <p className="font-bold text-brand-600 text-2xl">3,247</p>
-                <p className="text-xs text-ink-600 dark:text-ink-400">Points Balance</p>
+                <p className="font-bold text-brand-600 text-xl">{t('pLanding.keepFlowing.card4.label')}</p>
               </div>
             </div>
           </div>
@@ -831,7 +877,7 @@ export function LandingPage() {
               to="/pricing"
               className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
             >
-              {t('pLanding.keepFlowing.cta') || 'Explore Our Platform'} <ArrowRight size={18} />
+              {t('pLanding.keepFlowing.cta')} <ArrowRight size={18} />
             </Link>
           </div>
         </div>
