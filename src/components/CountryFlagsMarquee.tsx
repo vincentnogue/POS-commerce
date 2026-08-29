@@ -1,16 +1,17 @@
-import { COUNTRIES, flagEmoji } from '../lib/countries';
+import { COUNTRIES } from '../lib/countries';
 
 /**
- * Horizontally auto-scrolling banner of real country flags (native Unicode
- * flag emoji — the browser/OS renders the actual flag for each ISO code,
- * so there are no logo images to source, host, or license). Used under the
- * pricing tables to back up the "works for merchants worldwide" framing
- * with an honest, concrete list rather than a vague claim.
+ * Horizontally auto-scrolling banner of real country flags — circular flag
+ * photos (flagcdn.com, the same free/public flag CDN used in the reference
+ * design), not emoji or text pills. Matches the "flag-item" circles from
+ * the supplied premium landing page exactly: a plain round flag image,
+ * nothing else. Used to back up the "works for merchants worldwide"
+ * framing with an honest, concrete list of real countries.
  *
  * The list is duplicated once so the CSS marquee can loop seamlessly at
  * -50% translateX with no visible seam.
  */
-export function CountryFlagsMarquee({ title, lang }: { title: string; lang: 'fr' | 'en' }) {
+export function CountryFlagsMarquee({ title }: { title: string; lang?: 'fr' | 'en' }) {
   const loop = [...COUNTRIES, ...COUNTRIES];
 
   return (
@@ -23,17 +24,20 @@ export function CountryFlagsMarquee({ title, lang }: { title: string; lang: 'fr'
         role="list"
         aria-label={title}
       >
-        <div className="flex w-max animate-marquee gap-3 hover:[animation-play-state:paused]">
+        <div className="flex w-max animate-marquee gap-5 hover:[animation-play-state:paused]">
           {loop.map((c, i) => (
             <div
               key={`${c.code}-${i}`}
               role="listitem"
-              className="flex shrink-0 items-center gap-2 rounded-full border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-4 py-2 shadow-sm"
+              title={c.en}
+              className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-white dark:border-ink-800 shadow-md bg-ink-100 dark:bg-ink-800"
             >
-              <span className="text-xl leading-none" aria-hidden="true">{flagEmoji(c.code)}</span>
-              <span className="text-sm font-medium text-ink-700 dark:text-ink-200 whitespace-nowrap">
-                {lang === 'fr' ? c.fr : c.en}
-              </span>
+              <img
+                src={`https://flagcdn.com/w160/${c.code.toLowerCase()}.png`}
+                alt={c.en}
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
             </div>
           ))}
         </div>
