@@ -4,6 +4,7 @@ import {
   Menu, X, Globe, ChevronDown, ArrowRight, ArrowRightLeft, MapPin,
   ShoppingCart, Package, Store, Plug, FileText, BarChart3,
   ShieldCheck, Wallet, Check, CheckCircle2, Smartphone, TrendingUp, Receipt, Moon, Sun,
+  Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '../lib/i18n';
@@ -976,55 +977,103 @@ export function LandingPage() {
               </form>
             </div>
 
-            {/* Device mockup panel — a realistic POS checkout screen (product
-                grid + running cart total in USD), not abstract placeholder
-                blocks. Mirrors the real checkout layout in POSPage.tsx. */}
-            <div className="relative hidden lg:flex items-center justify-center p-12 overflow-hidden">
-              <div className="relative w-full max-w-md" style={{ transform: 'perspective(1200px) rotateY(-14deg) rotateX(3deg)' }}>
-                <div className="rounded-xl bg-white border-4 border-ink-900 shadow-2xl overflow-hidden">
+            {/* Device mockup panel — a realistic POS checkout screen: search
+                bar, category tabs, an icon-coded product grid, and a full
+                cart panel with line items, tax and payment methods. Mirrors
+                the real checkout layout in POSPage.tsx, no stock photo. */}
+            <div className="relative hidden lg:flex items-center justify-center p-10 overflow-hidden">
+              <div className="relative w-full max-w-lg" style={{ transform: 'perspective(1400px) rotateY(-12deg) rotateX(2deg)' }}>
+                <div className="rounded-2xl bg-white border-4 border-ink-900 shadow-2xl overflow-hidden">
                   {/* Screen top bar */}
-                  <div className="flex items-center justify-between bg-ink-950 px-3 py-2">
-                    <span className="text-[10px] font-semibold text-white/70 tracking-wide">POS FLOW · CHECKOUT</span>
-                    <span className="h-2 w-2 rounded-full bg-flow-400" />
+                  <div className="flex items-center justify-between bg-ink-950 px-4 py-2.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-red-400/70" />
+                      <span className="h-2 w-2 rounded-full bg-yellow-400/70" />
+                      <span className="h-2 w-2 rounded-full bg-flow-400" />
+                    </div>
+                    <span className="text-[9px] font-semibold text-white/50 tracking-widest">POS FLOW · CHECKOUT</span>
+                    <span className="text-[9px] font-medium text-white/40">S. Amara</span>
                   </div>
-                  <div className="p-3">
-                    {/* Category tabs */}
-                    <div className="flex gap-1.5 mb-2.5">
-                      {['All', 'Drinks', 'Snacks', 'Home'].map((cat, i) => (
-                        <span
-                          key={cat}
-                          className={`text-[9px] font-medium px-2 py-1 rounded-full ${i === 0 ? 'bg-brand-600 text-white' : 'bg-gray-100 text-gray-500'}`}
-                        >
-                          {cat}
-                        </span>
-                      ))}
-                    </div>
-                    {/* Product grid */}
-                    <div className="grid grid-cols-3 gap-1.5 mb-3">
-                      {[
-                        { name: 'Sparkling water', price: '$1.50' },
-                        { name: 'Roasted almonds', price: '$4.20' },
-                        { name: 'Cotton tote', price: '$8.00' },
-                        { name: 'Ceramic mug', price: '$6.50' },
-                        { name: 'Notebook A5', price: '$3.10' },
-                        { name: 'Candle 200g', price: '$9.90' },
-                      ].map((p) => (
-                        <div key={p.name} className="rounded-lg bg-gray-50 border border-gray-100 p-1.5">
-                          <div className="h-6 rounded bg-gradient-to-br from-flow-200 to-brand-200 mb-1" />
-                          <p className="text-[7px] font-medium text-ink-700 leading-tight truncate">{p.name}</p>
-                          <p className="text-[8px] font-bold text-brand-600">{p.price}</p>
-                        </div>
-                      ))}
-                    </div>
-                    {/* Cart summary */}
-                    <div className="rounded-lg bg-ink-950 p-2.5">
-                      <div className="flex items-center justify-between text-[9px] text-white/60 mb-1">
-                        <span>3 items</span>
-                        <span>Split: Cash + Card</span>
+
+                  <div className="flex bg-gray-50">
+                    {/* Left: catalog */}
+                    <div className="flex-[1.5] p-3.5 border-r border-gray-100">
+                      {/* Search */}
+                      <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 mb-2.5">
+                        <Search size={10} className="text-gray-400" />
+                        <span className="text-[8px] text-gray-400">Search or scan barcode…</span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-semibold text-white">Total</span>
-                        <span className="text-base font-bold text-flow-400">$18.70</span>
+                      {/* Category tabs */}
+                      <div className="flex gap-1.5 mb-2.5">
+                        {[
+                          { label: 'All', active: true },
+                          { label: 'Drinks', active: false },
+                          { label: 'Snacks', active: false },
+                          { label: 'Home', active: false },
+                        ].map((cat) => (
+                          <span
+                            key={cat.label}
+                            className={`text-[8px] font-semibold px-2 py-1 rounded-full ${cat.active ? 'bg-brand-600 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
+                          >
+                            {cat.label}
+                          </span>
+                        ))}
+                      </div>
+                      {/* Product grid */}
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {[
+                          { name: 'Sparkling water', price: '$1.50', icon: Coffee, tint: 'from-sky-100 to-sky-50 text-sky-600' },
+                          { name: 'Roasted almonds', price: '$4.20', icon: Package, tint: 'from-amber-100 to-amber-50 text-amber-600' },
+                          { name: 'Cotton tote', price: '$8.00', icon: Shirt, tint: 'from-brand-100 to-brand-50 text-brand-600' },
+                          { name: 'Ceramic mug', price: '$6.50', icon: Coffee, tint: 'from-flow-100 to-flow-50 text-flow-600' },
+                          { name: 'Notebook A5', price: '$3.10', icon: FileText, tint: 'from-violet-100 to-violet-50 text-violet-600' },
+                          { name: 'Candle 200g', price: '$9.90', icon: Sparkles, tint: 'from-rose-100 to-rose-50 text-rose-600' },
+                        ].map((p) => (
+                          <div key={p.name} className="rounded-lg bg-white border border-gray-100 p-1.5 shadow-sm">
+                            <div className={`h-7 rounded-md bg-gradient-to-br ${p.tint} flex items-center justify-center mb-1`}>
+                              <p.icon size={11} strokeWidth={2} />
+                            </div>
+                            <p className="text-[6.5px] font-medium text-ink-700 leading-tight truncate">{p.name}</p>
+                            <p className="text-[7.5px] font-bold text-brand-600">{p.price}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Right: cart */}
+                    <div className="flex-1 bg-ink-950 p-3.5 flex flex-col">
+                      <p className="text-[8px] font-semibold text-white/50 tracking-wide mb-2">CURRENT SALE · #INV-0842</p>
+                      <div className="space-y-1.5 mb-2.5 flex-1">
+                        {[
+                          { name: 'Roasted almonds', qty: 1, price: '$4.20' },
+                          { name: 'Cotton tote', qty: 1, price: '$8.00' },
+                          { name: 'Ceramic mug', qty: 1, price: '$6.50' },
+                        ].map((line) => (
+                          <div key={line.name} className="flex items-center justify-between">
+                            <span className="text-[7.5px] text-white/80 truncate">{line.qty}× {line.name}</span>
+                            <span className="text-[7.5px] font-semibold text-white">{line.price}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="border-t border-white/10 pt-2 space-y-1 mb-2.5">
+                        <div className="flex items-center justify-between text-[7px] text-white/50">
+                          <span className="flex items-center gap-1"><Percent size={8} /> Tax</span>
+                          <span>$0.00</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] font-semibold text-white">Total</span>
+                          <span className="text-lg font-bold text-flow-400">$18.70</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-1.5">
+                        <div className="flex-1 flex items-center justify-center gap-1 bg-white/10 rounded-md py-1.5">
+                          <Banknote size={10} className="text-flow-400" />
+                          <span className="text-[7px] font-medium text-white/80">Cash</span>
+                        </div>
+                        <div className="flex-1 flex items-center justify-center gap-1 bg-flow-500 rounded-md py-1.5">
+                          <CreditCard size={10} className="text-white" />
+                          <span className="text-[7px] font-medium text-white">Card</span>
+                        </div>
                       </div>
                     </div>
                   </div>
