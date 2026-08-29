@@ -94,7 +94,7 @@ export function IntegrationCredentialForm({
     } catch (err) {
       setTestResult({
         success: false,
-        message: err.message || 'Connection test failed',
+        message: err instanceof Error ? err.message : 'Connection test failed',
       });
     } finally {
       setTesting(false);
@@ -131,7 +131,7 @@ export function IntegrationCredentialForm({
         setErrors([{ message: data.message }]);
       }
     } catch (err) {
-      setErrors([{ message: err.message || 'Failed to save connection' }]);
+      setErrors([{ message: err instanceof Error ? err.message : 'Failed to save connection' }]);
     } finally {
       setSaving(false);
     }

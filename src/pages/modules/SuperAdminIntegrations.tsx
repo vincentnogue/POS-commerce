@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Plug, Check, AlertCircle, Loader2, Eye, EyeOff, Copy, Trash2 } from 'lucide-react';
+import { Plug, Check, Loader2, Trash2 } from 'lucide-react';
 
 interface Integration {
   id: string;
@@ -25,8 +25,7 @@ export function SuperAdminIntegrations() {
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
-  const [showCredentials, setShowCredentials] = useState(false);
+  const [, setSelectedIntegration] = useState<Integration | null>(null);
 
   useEffect(() => {
     loadData();

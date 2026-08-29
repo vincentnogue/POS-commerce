@@ -9,7 +9,7 @@ export const ROLE_LABELS: Record<string, { key: string; tone: 'primary' | 'succe
 };
 
 export const PERMISSIONS_BY_ROLE: Record<Role, string[]> = {
-  owner: ['*'], // All permissions
+  super_admin: ['*'], // All permissions
   admin: [
     'dashboard:read', 'dashboard:write',
     'pos:read', 'pos:write',

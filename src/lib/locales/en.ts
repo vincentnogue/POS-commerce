@@ -953,6 +953,7 @@ export const en: Record<string, string> = {
   "users.module.accounting": "Accounting",
   "users.module.users": "Users",
   "users.module.administration": "Administration",
+  "users.module.marketplace": "Marketplace",
   "users.module.settings": "Settings",
   "users.action.view": "View",
   "users.action.create": "Create",

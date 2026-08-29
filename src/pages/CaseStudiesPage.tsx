@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { TrendingUp, Award, Users, BarChart3, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface CaseStudy {
-  id: string;
+  id: number;
   company: string;
   industry: string;
   logo: string;
@@ -35,19 +35,19 @@ const CASE_STUDIES: CaseStudy[] = [
   },
   {
     id: 2,
-    company: 'Milano Restaurant Group',
-    industry: 'Italian Restaurant',
-    logo: '🍝',
-    challenge: 'Kitchen inefficiencies causing order delays and customer complaints about wait times',
-    solution: 'Deployed Kitchen Display System and table management features with staff scheduling',
+    company: 'Milano Fashion Group',
+    industry: 'Fashion Retail Chain',
+    logo: '👗',
+    challenge: 'Stock discrepancies across boutiques and slow, error-prone stock transfers between locations',
+    solution: 'Deployed multi-store inventory sync with staff-tracked transfer-out/transfer-in workflows',
     results: [
-      { metric: 'Avg Order Time', value: '-28%', icon: <TrendingUp size={24} className="text-green-600" /> },
-      { metric: 'Satisfaction', value: '+41%', icon: <Award size={24} className="text-green-600" /> },
-      { metric: 'Revenue/Night', value: '+22%', icon: <BarChart3 size={24} className="text-green-600" /> },
+      { metric: 'Stock Errors', value: '-38%', icon: <TrendingUp size={24} className="text-green-600" /> },
+      { metric: 'Staff Efficiency', value: '+29%', icon: <Award size={24} className="text-green-600" /> },
+      { metric: 'Stock Visibility', value: '+45%', icon: <BarChart3 size={24} className="text-green-600" /> },
     ],
-    testimonial: 'The kitchen display system transformed our operations. Orders flow smoothly now, staff coordination is seamless, and customers notice the faster service.',
+    testimonial: 'Real-time inventory sync transformed how our boutiques operate. Transfers between stores are now traceable and staff coordination is seamless.',
     author: 'Marco Rossi',
-    role: 'General Manager, Milano Restaurant',
+    role: 'General Manager, Milano Fashion Group',
     color: 'flow'
   },
   {

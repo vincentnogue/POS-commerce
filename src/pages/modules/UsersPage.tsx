@@ -32,6 +32,7 @@ const MODULE_LABELS: Record<ModuleCode, string> = {
   accounting: 'users.module.accounting',
   users: 'users.module.users',
   administration: 'users.module.administration',
+  marketplace: 'users.module.marketplace',
   settings: 'users.module.settings',
 };
 

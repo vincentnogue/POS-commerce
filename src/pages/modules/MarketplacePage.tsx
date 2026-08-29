@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../lib/auth';
 import { useTenant } from '../../lib/tenant';
-import { Search, Grid, List, Filter, Plus, CheckCircle, AlertCircle, ExternalLink, Trash2 } from 'lucide-react';
+import { Search, Grid, List, Plus, CheckCircle, AlertCircle, ExternalLink, Trash2 } from 'lucide-react';
 import { IntegrationCredentialForm } from '../../components/IntegrationCredentialForm';
 
 interface IntegrationProvider {
@@ -16,6 +16,7 @@ interface IntegrationProvider {
   category: string;
   subcategory: string;
   auth_type: string;
+  auth_schema: { type: string; properties: Record<string, { type: string; title: string }>; required: string[] } | null;
   capabilities: string[];
   minimum_plan: string | null;
   is_featured: boolean;
@@ -44,7 +45,7 @@ const CATEGORIES = [
 ];
 
 export function MarketplacePage() {
-  const { user } = useAuth();
+  const { user, member } = useAuth();
   const { tenant, plan } = useTenant();
   const [providers, setProviders] = useState<IntegrationProvider[]>([]);
   const [connections, setConnections] = useState<IntegrationConnection[]>([]);
@@ -96,7 +97,7 @@ export function MarketplacePage() {
     } catch (error) {
       console.error('Failed to check marketplace access:', error);
       // Super admin can always connect
-      setUserCanConnect(user?.user_metadata?.role === 'super_admin' || user?.user_metadata?.role === 'admin');
+      setUserCanConnect(member?.role === 'super_admin' || member?.role === 'admin');
     }
   }
 
@@ -164,7 +165,7 @@ export function MarketplacePage() {
   const isProviderLocked = (provider: IntegrationProvider) => {
     if (!provider.minimum_plan) return false;
     const planHierarchy = ['basic', 'pro', 'premium', 'enterprise'];
-    const currentPlanIndex = planHierarchy.indexOf(plan?.code?.toLowerCase() || 'basic');
+    const currentPlanIndex = planHierarchy.indexOf(plan?.plan_id?.toLowerCase() || 'basic');
     const requiredPlanIndex = planHierarchy.indexOf(provider.minimum_plan.toLowerCase());
     return currentPlanIndex < requiredPlanIndex;
   };
@@ -179,6 +180,23 @@ export function MarketplacePage() {
             Connect external services and extend POS Flow with powerful integrations
           </p>
         </div>
+
+        {/* Plan usage banner */}
+        {integrationLimit !== null && (
+          <div
+            className={`mb-6 flex items-center gap-3 rounded-lg border p-4 ${
+              activeIntegrations >= integrationLimit && !userCanConnect
+                ? 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-300'
+                : 'border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
+            }`}
+          >
+            <AlertCircle className="h-5 w-5 shrink-0" />
+            <p className="text-sm">
+              {activeIntegrations} / {integrationLimit} integrations connected on your current plan
+              {activeIntegrations >= integrationLimit && !userCanConnect && ' — upgrade your plan to connect more integrations.'}
+            </p>
+          </div>
+        )}
 
         {/* Search & Filters */}
         <div className="mb-8 space-y-4">
@@ -546,7 +564,7 @@ function IntegrationConnectionModal({ provider, connection, onClose, onSuccess }
               <IntegrationCredentialForm
                 providerKey={provider.provider_key}
                 providerName={provider.provider_name}
-                authSchema={provider.auth_schema}
+                authSchema={provider.auth_schema || { type: 'object', properties: {}, required: [] }}
                 tenantId={tenant?.id || ''}
                 onSuccess={() => {
                   setShowForm(false);

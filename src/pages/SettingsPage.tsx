@@ -3,7 +3,7 @@ import { useAuth } from '../lib/auth';
 import { supabase } from '../lib/supabase';
 import {
   Settings, Globe, DollarSign, MapPin, Bell, Lock, LogOut,
-  Save, Loader2, CheckCircle, AlertCircle, Eye, EyeOff,
+  Save, Loader2, CheckCircle, AlertCircle,
 } from 'lucide-react';
 import { PageHeader, Spinner, Badge } from '../components/ui';
 
@@ -54,7 +54,6 @@ export function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -138,7 +137,7 @@ export function SettingsPage() {
         <PageHeader
           icon={Settings}
           title="Settings"
-          description="Manage your account and workspace settings"
+          subtitle="Manage your account and workspace settings"
         />
         <div className="max-w-4xl mx-auto px-6 py-8">
           <div className="rounded-lg bg-red-500/10 border border-red-500/30 p-6 text-red-300">
@@ -155,7 +154,7 @@ export function SettingsPage() {
       <PageHeader
         icon={Settings}
         title="Settings"
-        description="Manage your account and workspace settings"
+        subtitle="Manage your account and workspace settings"
       />
 
       <div className="max-w-4xl mx-auto px-6 py-8">
@@ -273,7 +272,7 @@ export function SettingsPage() {
                       disabled
                       className="flex-1 px-4 py-2 rounded-lg bg-ink-800/30 border border-ink-700 text-ink-400 cursor-not-allowed"
                     />
-                    <Badge variant="primary">{settings.currency}</Badge>
+                    <Badge tone="brand">{settings.currency}</Badge>
                   </div>
                   <p className="text-xs text-ink-400 mt-2">
                     Platform base currency. All prices in USD, auto-converted to {settings.currency}

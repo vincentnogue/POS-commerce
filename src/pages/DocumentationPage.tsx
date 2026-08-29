@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Code, Copy, ExternalLink, BookOpen, Search, ChevronDown } from 'lucide-react';
+import { Copy, BookOpen, Search, ChevronDown } from 'lucide-react';
 
 export function DocumentationPage() {
   const [searchQuery, setSearchQuery] = useState('');

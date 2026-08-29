@@ -16,7 +16,6 @@ const BUSINESS_TYPES: { value: string; labelKey: string }[] = [
   { value: 'Épicerie', labelKey: 'onboarding.btype.grocery' },
   { value: 'Pharmacie', labelKey: 'onboarding.btype.pharmacy' },
   { value: 'Magasin de mode', labelKey: 'onboarding.btype.fashion' },
-  { value: 'Restaurant / Fast-food', labelKey: 'onboarding.btype.restaurant' },
   { value: 'Boulangerie', labelKey: 'onboarding.btype.bakery' },
   { value: 'Quincaillerie', labelKey: 'onboarding.btype.hardware' },
   { value: 'Boutique cosmétique', labelKey: 'onboarding.btype.cosmetics' },

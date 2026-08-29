@@ -1,6 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, UtensilsCrossed, Heart, Briefcase, TrendingUp, Check, ArrowRight, ArrowLeft } from 'lucide-react';
-import { useI18n } from '../lib/i18n';
+import { ShoppingBag, Heart, Briefcase, TrendingUp, Check, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface Industry {
   id: string;
@@ -42,35 +41,6 @@ const INDUSTRIES: Industry[] = [
     ],
     color: 'brand',
     cta: 'Start Your Retail Plan'
-  },
-  {
-    id: 'restaurant',
-    name: 'Restaurants & Cafes',
-    icon: <UtensilsCrossed size={40} />,
-    description: 'Manage orders, tables, staff, and kitchen operations seamlessly.',
-    challenges: [
-      'Complex order management',
-      'Table reservation conflicts',
-      'Kitchen communication',
-      'Peak-hour performance'
-    ],
-    solutions: [
-      'Kitchen display system (KDS)',
-      'Table management with reservations',
-      'Staff scheduling and clock-in/out',
-      'Online ordering and delivery integration'
-    ],
-    features: [
-      'Order management system',
-      'Table mapping',
-      'Staff scheduling',
-      'Kitchen display screen',
-      'Delivery integration',
-      'Loyalty programs',
-      'Advanced reporting'
-    ],
-    color: 'flow',
-    cta: 'Start Your Restaurant Plan'
   },
   {
     id: 'services',
@@ -133,7 +103,6 @@ const INDUSTRIES: Industry[] = [
 ];
 
 export function IndustrySolutionsPage() {
-  const { t } = useI18n();
   const navigate = useNavigate();
 
   return (
@@ -157,7 +126,7 @@ export function IndustrySolutionsPage() {
             Solutions Built for Your Industry
           </h1>
           <p className="text-xl text-white/90">
-            From retail to restaurants to professional services. POS Flow adapts to your business.
+            From retail to services to distribution. POS Flow adapts to your business.
           </p>
         </div>
       </div>
@@ -165,7 +134,7 @@ export function IndustrySolutionsPage() {
       {/* Industry Cards */}
       <div className="max-w-6xl mx-auto px-6 py-20">
         <div className="space-y-12">
-          {INDUSTRIES.map((industry, idx) => {
+          {INDUSTRIES.map((industry) => {
             const colorMap = {
               brand: 'from-brand-500 to-brand-600',
               flow: 'from-flow-500 to-flow-600',

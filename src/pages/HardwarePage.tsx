@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Smartphone, Monitor, Wifi, Battery, Check, ArrowRight, ShoppingCart, ArrowLeft } from 'lucide-react';
-import { useI18n } from '../lib/i18n';
+import { Check, ArrowRight, ArrowLeft } from 'lucide-react';
+
 
 interface Device {
   id: string;
@@ -51,18 +51,17 @@ const DEVICES: Device[] = [
   {
     id: 'station',
     name: 'POS Flow Station',
-    description: 'Professional dual-screen POS for restaurants & retail',
+    description: 'Professional dual-screen POS for retail & multi-station checkout',
     price: '$2,199',
     specs: [
       '14" merchant display (HD)',
       '8" customer-facing screen',
       'Industrial receipt printer',
-      'Order management system',
       'Multi-terminal sync',
       'Advanced analytics'
     ],
     image: '🖥️',
-    best_for: 'Full-service restaurants, high-volume retail, multi-station setup',
+    best_for: 'High-volume retail, distribution, multi-station setup',
     color: 'action'
   },
   {
@@ -85,7 +84,6 @@ const DEVICES: Device[] = [
 ];
 
 export function HardwarePage() {
-  const { t } = useI18n();
   const navigate = useNavigate();
 
   return (

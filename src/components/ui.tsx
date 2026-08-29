@@ -36,17 +36,25 @@ export function StatCard({
 }
 
 export function PageHeader({
-  title, subtitle, action,
+  icon: Icon, title, subtitle, action,
 }: {
+  icon?: LucideIcon;
   title: ReactNode;
   subtitle?: ReactNode;
   action?: ReactNode;
 }) {
   return (
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-ink-900 dark:text-ink-50 sm:text-3xl">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{subtitle}</p>}
+      <div className="flex items-start gap-3">
+        {Icon && (
+          <div className="mt-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 dark:bg-brand-900/25 text-brand-500">
+            <Icon size={20} strokeWidth={2} />
+          </div>
+        )}
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-ink-900 dark:text-ink-50 sm:text-3xl">{title}</h1>
+          {subtitle && <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{subtitle}</p>}
+        </div>
       </div>
       {action && <div className="flex items-center gap-2">{action}</div>}
     </div>

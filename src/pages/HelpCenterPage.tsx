@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Search, ChevronDown, BookOpen, Zap, Shield, Users, CreditCard, Globe, Check, X } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 interface FAQItem {
   id: string;

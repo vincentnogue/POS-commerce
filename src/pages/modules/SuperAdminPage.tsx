@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import {
   Crown, Users, Building2, DollarSign, Plug, BarChart3, Shield, TrendingUp,
-  Plus, Loader2, Eye, EyeOff, Search, Trash2, Check, AlertCircle
+  Trash2, Check
 } from 'lucide-react';
-import { PageHeader, Spinner, Badge } from '../../components/ui';
+import { Spinner, Badge } from '../../components/ui';
 
 type Tab = 'overview' | 'tenants' | 'users' | 'subscriptions' | 'integrations' | 'payments' | 'audit';
 
@@ -50,11 +50,9 @@ export function SuperAdminPage() {
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
 
   // UI states
   const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
-  const [showCredentials, setShowCredentials] = useState(false);
 
   useEffect(() => {
     loadAllData();
@@ -243,8 +241,8 @@ export function SuperAdminPage() {
                     <p className="text-sm text-ink-300 mb-4">{integration.description}</p>
 
                     <div className="mb-4 flex gap-2">
-                      <Badge variant="secondary">{integration.category}</Badge>
-                      {integration.featured && <Badge variant="primary">Featured</Badge>}
+                      <Badge tone="neutral">{integration.category}</Badge>
+                      {integration.featured && <Badge tone="brand">Featured</Badge>}
                     </div>
 
                     {isConnected && (
@@ -257,7 +255,10 @@ export function SuperAdminPage() {
                     )}
 
                     <button
-                      onClick={() => setSelectedIntegration(integration)}
+                      onClick={() => {
+                        setSelectedIntegration(integration);
+                        document.getElementById('active-connections-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }}
                       className="w-full px-4 py-2 rounded bg-flow-500 text-white hover:bg-flow-600 transition font-medium text-sm"
                     >
                       {isConnected ? 'Manage Connections' : 'Connect Now'}
@@ -269,17 +270,18 @@ export function SuperAdminPage() {
 
             {/* Active Connections */}
             {connections.length > 0 && (
-              <div className="rounded-lg bg-ink-900/50 border border-ink-700 p-6">
+              <div id="active-connections-section" className="rounded-lg bg-ink-900/50 border border-ink-700 p-6">
                 <h3 className="text-xl font-bold text-white mb-4">
                   Active Connections ({connections.length})
                 </h3>
                 <div className="space-y-3">
                   {connections.map((conn) => {
                     const integration = integrations.find((i) => i.id === conn.integration_id);
+                    const isSelected = selectedIntegration?.id === conn.integration_id;
                     return (
                       <div
                         key={conn.id}
-                        className="flex items-center justify-between p-4 rounded bg-ink-800/50 border border-ink-700"
+                        className={`flex items-center justify-between p-4 rounded bg-ink-800/50 border transition ${isSelected ? 'border-flow-500 ring-1 ring-flow-500/50' : 'border-ink-700'}`}
                       >
                         <div className="flex items-center gap-3">
                           <Check className="w-5 h-5 text-green-400" />
@@ -359,7 +361,7 @@ export function SuperAdminPage() {
                         <td className="px-6 py-4 text-white font-medium">{sub.plan_id}</td>
                         <td className="px-6 py-4">
                           <Badge
-                            variant={sub.status === 'active' ? 'primary' : 'secondary'}
+                            tone={sub.status === 'active' ? 'success' : 'neutral'}
                           >
                             {sub.status}
                           </Badge>

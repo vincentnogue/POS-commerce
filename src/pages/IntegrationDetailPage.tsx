@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Check, X, Shield, Zap, Globe, ChevronDown, ExternalLink } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Check, X, Shield, ChevronDown, ExternalLink } from 'lucide-react';
 
 interface PlanAccess {
   plan: string;
