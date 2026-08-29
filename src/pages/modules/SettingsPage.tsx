@@ -43,6 +43,8 @@ export function SettingsPage() {
     region: tenant?.region ?? '',
     city: tenant?.city ?? '',
   });
+  const [maxXReports, setMaxXReports] = useState(String(tenant?.max_x_reports_per_day ?? 0));
+  const [xReportSaving, setXReportSaving] = useState(false);
   const [contactForm, setContactForm] = useState({
     phone: '',
     address: '',
@@ -66,6 +68,19 @@ export function SettingsPage() {
       region: form.region || null,
       city: form.city || null,
     }).eq('id', tenant.id);
+    if (error) { toast('error', error.message); return; }
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+    await refreshProfile();
+  };
+
+  const saveXReportLimit = async () => {
+    if (!tenant) return;
+    const n = Number(maxXReports);
+    if (!Number.isInteger(n) || n < 0) { toast('error', t('settings.security.xReportLimitInvalid')); return; }
+    setXReportSaving(true);
+    const { error } = await supabase.from('tenants').update({ max_x_reports_per_day: n }).eq('id', tenant.id);
+    setXReportSaving(false);
     if (error) { toast('error', error.message); return; }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -282,6 +297,22 @@ export function SettingsPage() {
                   <p className="font-medium text-ink-900 dark:text-ink-50">{t('settings.security.activeSessions')}</p>
                   <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{t('settings.security.activeSessionsDesc')}</p>
                   <button onClick={async () => { await supabase.auth.signOut({ scope: 'others' }); setSaved(true); setTimeout(() => setSaved(false), 2000); }} className="btn-ghost mt-3">{t('settings.security.signOutOthers')}</button>
+                </div>
+                <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-4">
+                  <p className="font-medium text-ink-900 dark:text-ink-50">{t('settings.security.xReportLimit')}</p>
+                  <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{t('settings.security.xReportLimitDesc')}</p>
+                  <div className="mt-3 flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      value={maxXReports}
+                      onChange={(e) => setMaxXReports(e.target.value)}
+                      className="input w-28"
+                    />
+                    <span className="text-sm text-ink-500 dark:text-ink-400">{t('settings.security.xReportLimitUnit')}</span>
+                    <button onClick={saveXReportLimit} disabled={xReportSaving} className="btn-ghost">{t('common.save')}</button>
+                  </div>
+                  <p className="mt-2 text-xs text-ink-400">{t('settings.security.xReportLimitZero')}</p>
                 </div>
               </div>
             </div>
