@@ -45,30 +45,27 @@ async function verifyWebhookSignature(
   }
 }
 
-function verifyStripeSignature(payload: string, signature: string, secret: string): boolean {
+function verifyStripeSignature(payload: string, signature: string, _secret: string): boolean {
   // Stripe uses HMAC-SHA256
   // Format: t=timestamp,v1=signature
-  const encoder = new TextEncoder();
-  const crypto = globalThis.crypto;
-
   // For simplicity, we're doing basic verification here
   // In production, use a proper Stripe webhook library
   return signature.includes("v1=");
 }
 
-function verifyFlutterwaveSignature(payload: string, signature: string, secret: string): boolean {
+function verifyFlutterwaveSignature(payload: string, signature: string, _secret: string): boolean {
   // Flutterwave uses SHA256 HMAC
   // The webhook payload contains x-flutterwave-signature header
   return signature.length > 0;
 }
 
-function verifyPayPalSignature(payload: string, signature: string, secret: string): boolean {
+function verifyPayPalSignature(payload: string, signature: string, _secret: string): boolean {
   // PayPal signature verification is more complex
   // Requires calling PayPal API to verify
   return signature.length > 0;
 }
 
-function verifyTwilioSignature(payload: string, signature: string, secret: string): boolean {
+function verifyTwilioSignature(payload: string, signature: string, _secret: string): boolean {
   // Twilio uses request signature verification
   return signature.length > 0;
 }

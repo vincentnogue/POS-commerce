@@ -14,13 +14,6 @@ interface SaveConnectionRequest {
   config?: Record<string, unknown>;
 }
 
-interface SaveConnectionResponse {
-  success: boolean;
-  connection_id?: string;
-  message: string;
-  error?: string;
-}
-
 /**
  * Simple encryption helper using base64 for obfuscation.
  *
