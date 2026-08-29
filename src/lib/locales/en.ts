@@ -1456,7 +1456,7 @@ export const en: Record<string, string> = {
   "pLanding.feature.stores.title": "Multi-store & GPS",
   "pLanding.feature.stores.desc": "Run several points of sale, with GPS location for every store.",
   "pLanding.feature.currencies.title": "Real multi-currency",
-  "pLanding.feature.currencies.desc": "30+ currencies with live conversion rates — from Dirham to CFA Franc.",
+  "pLanding.feature.currencies.desc": "30+ currencies with live conversion rates, anywhere in the world.",
   "pLanding.feature.invoicing.title": "Invoices & quotes",
   "pLanding.feature.invoicing.desc": "Automatic invoicing, quotes, purchase orders and delivery tracking.",
   "pLanding.feature.marketplace.title": "Payments marketplace",
