@@ -1589,6 +1589,10 @@ export const fr: Record<string, string> = {
   "pLanding.keepFlowing.card4.title": "Crédit magasin",
   "pLanding.keepFlowing.card4.desc": "Émis lors d'un retour ou échange",
   "pLanding.keepFlowing.card4.label": "Ticket crédit TCK-2481",
+  "pLanding.keepFlowing.benefit1": "Stock & ventes en temps réel — visibilité produit par produit, magasin par magasin.",
+  "pLanding.keepFlowing.benefit2": "Ouverture de journée avec fonds de caisse et liste du personnel présent.",
+  "pLanding.keepFlowing.benefit3": "Chaque vente liée à un employé, traçable et réimprimable à tout moment.",
+  "pLanding.keepFlowing.benefit4": "Retour ou échange : remboursement, ou crédit magasin — au choix du gérant.",
   "pLanding.why.title": "Pensé pour le commerce international",
 
   "pLanding.busyHero.titleBefore": "Place à",

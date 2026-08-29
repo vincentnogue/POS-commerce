@@ -1589,6 +1589,10 @@ export const en: Record<string, string> = {
   "pLanding.keepFlowing.card4.title": "Store Credit",
   "pLanding.keepFlowing.card4.desc": "Issued on a return or exchange",
   "pLanding.keepFlowing.card4.label": "Credit ticket TCK-2481",
+  "pLanding.keepFlowing.benefit1": "Real-time stock & sales — visibility product by product, store by store.",
+  "pLanding.keepFlowing.benefit2": "Day-open with an opening cash float and the list of staff present.",
+  "pLanding.keepFlowing.benefit3": "Every sale tied to a staff member, traceable and reprintable anytime.",
+  "pLanding.keepFlowing.benefit4": "Return or exchange: refund, or store credit — the manager's choice.",
   "pLanding.why.title": "Built for international commerce",
 
   "pLanding.busyHero.titleBefore": "Let's get",
