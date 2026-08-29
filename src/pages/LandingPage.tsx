@@ -849,13 +849,16 @@ export function LandingPage() {
           via Returns/Exchange, is the real equivalent). */}
       <section className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-16 whitespace-pre-line">
-            {t('pLanding.keepFlowing.title')}
-          </h2>
+          <Reveal>
+            <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-16 whitespace-pre-line">
+              {t('pLanding.keepFlowing.title')}
+            </h2>
+          </Reveal>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Card 1 — stock/sales movement, generic categories, no invented % */}
-            <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg flex flex-col">
+            <Reveal delay={0}>
+            <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
               <div className="flex items-end gap-2.5 h-24 mb-5">
                 {[
                   { h: 55, up: true, Icon: Package },
@@ -879,9 +882,11 @@ export function LandingPage() {
               <p className="font-semibold text-ink-900 dark:text-white text-sm mb-1">{t('pLanding.keepFlowing.card1.title')}</p>
               <p className="text-xs text-ink-500 dark:text-ink-400">{t('pLanding.keepFlowing.card1.desc')}</p>
             </div>
+            </Reveal>
 
             {/* Card 2 — day-open staff clock-in (real module: petty cash + staff present) */}
-            <div className="bg-gradient-to-br from-ink-800 to-ink-900 p-8 rounded-xl shadow-lg text-white flex flex-col items-center text-center">
+            <Reveal delay={0.08}>
+            <div className="bg-gradient-to-br from-ink-800 to-ink-900 p-8 rounded-xl shadow-lg text-white flex flex-col items-center text-center h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
               <div className="relative w-24 h-24 mb-5">
                 <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                   <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="6" strokeDasharray="2 8.5" strokeLinecap="round" />
@@ -896,9 +901,11 @@ export function LandingPage() {
               <p className="text-sm font-semibold">{t('pLanding.keepFlowing.card2.title')}</p>
               <p className="text-xs text-white/70">{t('pLanding.keepFlowing.card2.desc')}</p>
             </div>
+            </Reveal>
 
             {/* Card 3 — a real sale ticket, same generic demo items as the hero */}
-            <div className="bg-gradient-to-br from-action-50 to-flow-50 dark:from-ink-800 dark:to-ink-900 p-8 rounded-xl shadow-lg">
+            <Reveal delay={0.16}>
+            <div className="bg-gradient-to-br from-action-50 to-flow-50 dark:from-ink-800 dark:to-ink-900 p-8 rounded-xl shadow-lg h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
               <div className="w-10 h-10 rounded-lg bg-white dark:bg-ink-900 shadow-sm flex items-center justify-center mb-4">
                 <Receipt size={18} className="text-action-500" />
               </div>
@@ -912,9 +919,11 @@ export function LandingPage() {
                 ))}
               </div>
             </div>
+            </Reveal>
 
             {/* Card 4 — store credit (real: issued by Returns/Exchange when the manager's refund policy is "credit ticket") */}
-            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700">
+            <Reveal delay={0.24}>
+            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700 h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center">
                   <CreditCard size={18} className="text-white" />
@@ -928,6 +937,7 @@ export function LandingPage() {
                 <p className="font-bold text-brand-600 text-xl">{t('pLanding.keepFlowing.card4.label')}</p>
               </div>
             </div>
+            </Reveal>
           </div>
 
           {/* CTA */}
