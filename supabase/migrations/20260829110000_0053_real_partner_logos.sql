@@ -15,6 +15,7 @@ update public.integration_providers set logo_url = '/logos/partners/dhl.png' whe
 update public.integration_providers set logo_url = '/logos/partners/whatsapp.png' where provider_key = 'whatsapp_business';
 update public.integration_providers set logo_url = '/logos/partners/wave.png' where provider_key = 'wave';
 update public.integration_providers set logo_url = '/logos/partners/mpesa.png' where provider_key = 'mpesa';
+update public.integration_providers set logo_url = '/logos/partners/sellia.png' where provider_key = 'sellia';
 
 INSERT INTO public.integration_providers (
   provider_key, provider_name, description, logo_url, documentation_url,
