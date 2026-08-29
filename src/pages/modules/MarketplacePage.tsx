@@ -57,11 +57,40 @@ export function MarketplacePage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [loading, setLoading] = useState(true);
   const [selectedProvider, setSelectedProvider] = useState<IntegrationProvider | null>(null);
+  // BUG FIX: isProviderLocked used to compare `plan?.plan_id` — that field
+  // (from useTenant()'s `subscription`) holds the plan's UUID, never a
+  // code like 'starter'/'pro'. Comparing a UUID against
+  // ['basic','pro','premium','enterprise'] always resolved to -1, so every
+  // tenant on every real plan (Starter through Entreprise) saw any
+  // provider gated at 'pro'/'premium'/'basic' as permanently locked,
+  // including paying Entreprise customers. We now resolve the tenant's
+  // actual plan CODE from tenants.plan_id -> plans.code (the same
+  // authoritative source create_tenant_for_user sets at signup) and match
+  // it against the real plan codes used everywhere else in the app:
+  // starter / pro / premium / entreprise (see src/lib/plans.ts).
+  const [planCode, setPlanCode] = useState<string | null>(null);
 
   // Load providers and connections
   useEffect(() => {
     loadData();
   }, [tenant?.id]);
+
+  useEffect(() => {
+    if (!tenant?.plan_id) {
+      setPlanCode(null);
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .from('plans')
+      .select('code')
+      .eq('id', tenant.plan_id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setPlanCode(data?.code ?? null);
+      });
+    return () => { cancelled = true; };
+  }, [tenant?.plan_id]);
 
   // Check marketplace access and plan limits
   useEffect(() => {
@@ -164,8 +193,11 @@ export function MarketplacePage() {
 
   const isProviderLocked = (provider: IntegrationProvider) => {
     if (!provider.minimum_plan) return false;
-    const planHierarchy = ['basic', 'pro', 'premium', 'enterprise'];
-    const currentPlanIndex = planHierarchy.indexOf(plan?.plan_id?.toLowerCase() || 'basic');
+    // Real plan codes (src/lib/plans.ts), lowest to highest. 'basic' is
+    // kept as an alias of 'starter' for any older provider row still
+    // seeded with that value (e.g. mtn_momo, migration 0053).
+    const planHierarchy = ['basic', 'starter', 'pro', 'premium', 'entreprise'];
+    const currentPlanIndex = planHierarchy.indexOf(planCode?.toLowerCase() || 'starter');
     const requiredPlanIndex = planHierarchy.indexOf(provider.minimum_plan.toLowerCase());
     return currentPlanIndex < requiredPlanIndex;
   };
@@ -443,9 +475,18 @@ function IntegrationCard({ provider, connection, isLocked, onConnect, viewMode }
       </div>
 
       {/* Lock Badge */}
-      {isLocked && (
+      {isLocked && provider.minimum_plan && (
         <div className="mt-2 rounded bg-amber-50 p-2 text-center dark:bg-amber-900 dark:bg-opacity-30">
-          <p className="text-xs font-medium text-amber-700 dark:text-amber-400">Upgrade to {provider.minimum_plan}</p>
+          <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
+            {/* Real plan display names — never show the raw DB code
+                ('basic' has no matching plan; the real lowest tier is
+                'Starter'). Keep in sync with src/lib/plans.ts. */}
+            Upgrade to {(
+              { basic: 'Starter', starter: 'Starter', pro: 'Pro', premium: 'Premium', entreprise: 'Entreprise' }[
+                provider.minimum_plan.toLowerCase()
+              ] ?? provider.minimum_plan
+            )}
+          </p>
         </div>
       )}
     </div>
