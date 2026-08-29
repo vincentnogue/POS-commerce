@@ -25,7 +25,7 @@ export function StockPage() {
   const [transferOpen, setTransferOpen] = useState(false);
   const [form, setForm] = useState({ product_id: '', store_id: '', type: 'in', quantity: 1, reason: '' });
   const [batches, setBatches] = useState<any[]>([]);
-  const [batchForm, setBatchForm] = useState({ name: '', source_store_id: '', dest_store_id: '', staff_code: '', notes: '' });
+  const [batchForm, setBatchForm] = useState({ name: '', source_store_id: '', dest_store_id: '', staff_code: '', notes: '', type: 'transfer' as 'transfer' | 'rms', reason: 'broken' });
   const [batchItems, setBatchItems] = useState<{ product_id: string; name: string; quantity: number }[]>([]);
   const [scanInput, setScanInput] = useState('');
   const [transferErr, setTransferErr] = useState<string | null>(null);
@@ -147,6 +147,30 @@ export function StockPage() {
     setScanInput('');
   };
 
+  const openRmsModal = () => {
+    setBatchForm({
+      name: '',
+      source_store_id: '',
+      dest_store_id: tenant?.rms_destination_store_id ?? '',
+      staff_code: '',
+      notes: '',
+      type: 'rms',
+      reason: 'broken',
+    });
+    setBatchItems([]);
+    setScanInput('');
+    setTransferErr(null);
+    setTransferOpen(true);
+  };
+
+  const openTransferModal = () => {
+    setBatchForm({ name: '', source_store_id: '', dest_store_id: '', staff_code: '', notes: '', type: 'transfer', reason: 'broken' });
+    setBatchItems([]);
+    setScanInput('');
+    setTransferErr(null);
+    setTransferOpen(true);
+  };
+
   const createTransferBatch = async () => {
     setTransferErr(null);
     if (!tenant || !user) return;
@@ -165,18 +189,20 @@ export function StockPage() {
       p_notes: batchForm.notes || null,
       p_staff_code: batchForm.staff_code.trim() || null,
       p_user_id: user.id,
+      p_type: batchForm.type,
+      p_reason: batchForm.type === 'rms' ? batchForm.reason : null,
     });
     setSubmittingTransfer(false);
 
     if (error) { setTransferErr(error.message); return; }
 
     setTransferOpen(false);
-    setBatchForm({ name: '', source_store_id: '', dest_store_id: '', staff_code: '', notes: '' });
+    setBatchForm({ name: '', source_store_id: '', dest_store_id: '', staff_code: '', notes: '', type: 'transfer', reason: 'broken' });
     setBatchItems([]);
     const { data } = await supabase.from('inventory').select('*, product:products(name), store:stores(name)').eq('tenant_id', tenant.id);
     setInventory(data ?? []);
     await reloadTransfers();
-    toast('success', t('stock.toast.transferInitiated'));
+    toast('success', batchForm.type === 'rms' ? t('stock.toast.rmsReported') : t('stock.toast.transferInitiated'));
   };
 
   const receiveBatch = async (b: any) => {
@@ -232,7 +258,10 @@ export function StockPage() {
             <button onClick={() => exportCSV('stock.csv', stockByProduct.map((r) => ({ produit: r.product.name, quantite: r.total, seuil: r.product.low_stock_threshold, statut: r.low ? 'bas' : 'ok' })))} className="btn-ghost"><Download size={16} /> {t('common.export')}</button>
             {canCreate && <button onClick={() => setMoveOpen(true)} className="btn-primary"><Plus size={16} /> {t('stock.movement')}</button>}
             {canCreate && transferableSourceStores.length > 0 && stores.length > 1 && (
-              <button onClick={() => setTransferOpen(true)} className="btn-ghost border-brand-200 text-brand-700"><ArrowRightLeft size={16} /> {t('stock.transfer')}</button>
+              <>
+                <button onClick={openTransferModal} className="btn-ghost border-brand-200 text-brand-700"><ArrowRightLeft size={16} /> {t('stock.transfer')}</button>
+                <button onClick={openRmsModal} className="btn-ghost border-error-200 text-error-700"><AlertTriangle size={16} /> {t('stock.rms.reportBtn')}</button>
+              </>
             )}
           </div>
         }
@@ -304,7 +333,11 @@ export function StockPage() {
                   { key: 'date', label: t('common.date'), render: (row) => <span className="text-ink-500 dark:text-ink-400">{formatDate(row.created_at)}</span> },
                   { key: 'name', label: t('stock.col.transferName'), render: (row) => (
                     <div>
-                      <p className="font-medium text-ink-900 dark:text-ink-50">{row.name}</p>
+                      <p className="font-medium text-ink-900 dark:text-ink-50 flex items-center gap-1.5">
+                        {row.type === 'rms' && <AlertTriangle size={13} className="text-error-500" />}
+                        {row.name}
+                      </p>
+                      {row.type === 'rms' && row.reason && <p className="text-xs text-error-600">{t(`stock.rms.reason.${row.reason}`)}</p>}
                       {row.initiated_staff_code && <p className="text-xs text-ink-500 dark:text-ink-400">{t('stock.col.staffId')}: {row.initiated_staff_code}</p>}
                     </div>
                   )},
@@ -395,22 +428,34 @@ export function StockPage() {
       </Modal>
 
       {/* Transfer modal — named batch, multiple scanned products */}
-      <Modal open={transferOpen} onClose={() => { setTransferOpen(false); setTransferErr(null); setBatchItems([]); setScanInput(''); }} title={t('stock.transferTitle')}>
+      <Modal open={transferOpen} onClose={() => { setTransferOpen(false); setTransferErr(null); setBatchItems([]); setScanInput(''); }} title={batchForm.type === 'rms' ? t('stock.rms.title') : t('stock.transferTitle')}>
         <div className="space-y-4">
+          {batchForm.type === 'rms' && (
+            <div>
+              <label className="mb-1 block text-sm font-medium text-ink-700 dark:text-ink-300">{t('stock.rms.reason')}</label>
+              <select value={batchForm.reason} onChange={(e) => setBatchForm({ ...batchForm, reason: e.target.value })} className="input">
+                <option value="broken">{t('stock.rms.reason.broken')}</option>
+                <option value="expired">{t('stock.rms.reason.expired')}</option>
+                <option value="damaged">{t('stock.rms.reason.damaged')}</option>
+                <option value="lost">{t('stock.rms.reason.lost')}</option>
+                <option value="other">{t('stock.rms.reason.other')}</option>
+              </select>
+            </div>
+          )}
           <Field label={t('stock.col.transferName')}>
-            <input value={batchForm.name} onChange={(e) => setBatchForm({ ...batchForm, name: e.target.value })} className="input" placeholder={t('stock.transferNamePlaceholder')} />
+            <input value={batchForm.name} onChange={(e) => setBatchForm({ ...batchForm, name: e.target.value })} className="input" placeholder={batchForm.type === 'rms' ? t('stock.rms.namePlaceholder') : t('stock.transferNamePlaceholder')} />
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label={t('stock.sourceStore')}>
-              <select value={batchForm.source_store_id} onChange={(e) => setBatchForm({ ...batchForm, source_store_id: e.target.value, dest_store_id: '' })} className="input">
+              <select value={batchForm.source_store_id} onChange={(e) => setBatchForm({ ...batchForm, source_store_id: e.target.value, dest_store_id: batchForm.type === 'rms' ? batchForm.dest_store_id : '' })} className="input">
                 <option value="">{t('stock.selectPlaceholder')}</option>
                 {transferableSourceStores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </Field>
-            <Field label={t('stock.destStore')}>
+            <Field label={batchForm.type === 'rms' ? t('stock.rms.destination') : t('stock.destStore')}>
               <select value={batchForm.dest_store_id} onChange={(e) => setBatchForm({ ...batchForm, dest_store_id: e.target.value })} className="input">
                 <option value="">{t('stock.selectPlaceholder')}</option>
-                {stores.filter((s) => s.id !== batchForm.source_store_id).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                {stores.filter((s) => s.id !== batchForm.source_store_id).map((s) => <option key={s.id} value={s.id}>{s.name}{s.id === tenant?.rms_destination_store_id ? ` (${t('stock.rms.defaultHo')})` : ''}</option>)}
               </select>
             </Field>
           </div>
@@ -465,7 +510,7 @@ export function StockPage() {
         </div>
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={() => { setTransferOpen(false); setTransferErr(null); setBatchItems([]); setScanInput(''); }} className="btn-ghost">{t('common.cancel')}</button>
-          <button onClick={createTransferBatch} disabled={submittingTransfer} className="btn-primary"><ArrowRightLeft size={15} /> {submittingTransfer ? t('stock.transferring') : t('stock.transferBtn')}</button>
+          <button onClick={createTransferBatch} disabled={submittingTransfer} className="btn-primary"><ArrowRightLeft size={15} /> {submittingTransfer ? t('stock.transferring') : batchForm.type === 'rms' ? t('stock.rms.submitBtn') : t('stock.transferBtn')}</button>
         </div>
       </Modal>
     </div>

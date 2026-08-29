@@ -17,6 +17,7 @@ export type Tenant = {
   status: string;
   trial_ends_at: string | null; // 14 days free trial
   created_at: string;
+  rms_destination_store_id?: string | null;
 };
 
 export type Store = {
