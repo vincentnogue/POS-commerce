@@ -396,7 +396,7 @@ export function PricingPage() {
               Y a-t-il un essai gratuit ?
             </h3>
             <p className="text-ink-600 dark:text-ink-300">
-              Oui ! Tous les plans incluent un essai gratuit de 7 jours. Aucune carte bancaire requise pour démarrer.
+              Oui ! Tous les plans incluent un essai gratuit de 14 jours. Aucune carte bancaire requise pour démarrer.
             </p>
           </div>
 
@@ -415,7 +415,7 @@ export function PricingPage() {
               Proposez-vous des remboursements ?
             </h3>
             <p className="text-ink-600 dark:text-ink-300">
-              Pendant l'essai de 7 jours, vous pouvez annuler et être intégralement remboursé. Passé ce délai, les abonnements ne sont pas remboursables,
+              Pendant l'essai de 14 jours, vous pouvez annuler et être intégralement remboursé. Passé ce délai, les abonnements ne sont pas remboursables,
               mais vous pouvez annuler à tout moment sans pénalité.
             </p>
           </div>
@@ -437,7 +437,7 @@ export function PricingPage() {
           Prêt à commencer ?
         </h2>
         <p className="text-xl text-ink-600 dark:text-ink-300 mb-8">
-          Démarrez votre essai gratuit de 7 jours dès aujourd'hui. Aucune carte bancaire requise.
+          Démarrez votre essai gratuit de 14 jours dès aujourd'hui. Aucune carte bancaire requise.
         </p>
         <button className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/30">
           Démarrer l'essai gratuit

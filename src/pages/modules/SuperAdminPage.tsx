@@ -290,7 +290,7 @@ function SuperTenants() {
   const subStatus = (ten: Tenant) => {
     if (ten.status === 'suspended') return { tone: 'error' as const, labelKey: 'super.tenants.statusSuspended' };
     const created = new Date(ten.created_at);
-    const trialEnd = new Date(created.getTime() + 7 * 86400000);
+    const trialEnd = new Date(created.getTime() + 14 * 86400000); // FIX: real trial is 14 days, not 7 — keep in sync with TRIAL_DAYS (lib/access.ts, lib/plans.ts) and tenant_access_active()
     if (new Date() < trialEnd) return { tone: 'warning' as const, labelKey: 'super.tenants.statusTrial' };
     return { tone: 'success' as const, labelKey: 'super.tenants.statusActive' };
   };
@@ -1266,7 +1266,7 @@ function SuperComms() {
       if (segment === 'active') return ten.status === 'active';
       if (segment === 'suspended') return ten.status === 'suspended';
       if (segment === 'trial') {
-        const trialEnd = new Date(new Date(ten.created_at).getTime() + 7 * 86400000);
+        const trialEnd = new Date(new Date(ten.created_at).getTime() + 14 * 86400000); // FIX: real trial is 14 days, not 7
         return now < trialEnd;
       }
       return true;

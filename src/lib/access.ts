@@ -15,7 +15,7 @@ export type Subscription = {
   billing_cycle: string;
 };
 
-export const TRIAL_DAYS = 7;
+export const TRIAL_DAYS = 14; // FIX: real trial length is 14 days, not 7 — see supabase/migrations/20260830000000_0047_extend_trial_to_14_days.sql, must match
 
 export type AccessState = {
   isSuperAdmin: boolean;
