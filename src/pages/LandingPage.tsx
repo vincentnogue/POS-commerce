@@ -4,13 +4,10 @@ import {
   Menu, X, Globe, ChevronDown, ArrowRight, MapPin,
   ShoppingCart, Package, Store, Plug, FileText, BarChart3,
   ShieldCheck, Wallet, Check, CheckCircle2, Smartphone, TrendingUp, Receipt,
-  Clock, CreditCard, Users,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '../lib/i18n';
-import { supabase } from '../lib/supabase';
 import { PricingCard, type PricingPlan } from '../components/PricingCard';
-import { CountryFlagsMarquee } from '../components/CountryFlagsMarquee';
 import { PLANS as REAL_PLANS } from '../lib/plans';
 
 // Real feature set — every entry below maps to an actual module that ships
@@ -38,14 +35,21 @@ const DEMO_ITEMS = [
   { key: 'item3', price: 1.5, qty: 3 },
 ] as const;
 
-// Shape of a row from the real integration_providers table, used only for
-// the landing page's ecosystem strip (subset of columns, public-readable).
-type EcosystemProvider = {
-  provider_key: string;
-  provider_name: string;
-  logo_url: string;
-  category: string;
-};
+// Swappable trust-marquee logos — real <img> files under /public/logos/.
+// IMPORTANT: these are intentionally generic "logo slot" placeholders, NOT
+// invented company names (an earlier version used made-up names like
+// "Retail Group Afrique", which a site visitor would read as real
+// customers — that's fabricated social proof and was correctly removed).
+// Swap the 6 files in /public/logos/ for real partner/customer logos (with
+// their permission) whenever they're available; no code change needed.
+const LOGO_PLACEHOLDERS = [
+  { src: '/logos/partner-1.svg', alt: 'Emplacement logo partenaire' },
+  { src: '/logos/partner-2.svg', alt: 'Emplacement logo partenaire' },
+  { src: '/logos/partner-3.svg', alt: 'Emplacement logo partenaire' },
+  { src: '/logos/partner-4.svg', alt: 'Emplacement logo partenaire' },
+  { src: '/logos/partner-5.svg', alt: 'Emplacement logo partenaire' },
+  { src: '/logos/partner-6.svg', alt: 'Emplacement logo partenaire' },
+];
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -100,24 +104,6 @@ function CountUp({ value, suffix = '', duration = 1400 }: { value: number; suffi
 
 function formatUSD(n: number): string {
   return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-// Reusable scroll-triggered reveal (fade + rise), fires once per element.
-// Instant (no motion) when the user prefers reduced motion.
-function Reveal({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
-  const reducedMotion = usePrefersReducedMotion();
-  if (reducedMotion) return <div className={className}>{children}</div>;
-  return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y: 22 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: 0.55, delay, ease: 'easeOut' }}
-    >
-      {children}
-    </motion.div>
-  );
 }
 
 // Cycles through: empty → items added one by one → paid → brief pause → reset.
@@ -325,42 +311,6 @@ export function LandingPage() {
   const { lang, setLang, t } = useI18n();
   const navigate = useNavigate();
   const heroReducedMotion = usePrefersReducedMotion();
-  const [ecosystemProviders, setEcosystemProviders] = useState<EcosystemProvider[]>([]);
-
-  // Real integrations only — pulled live from the same integration_providers
-  // table that powers /marketplace (public SELECT policy, no auth needed).
-  // Never hardcode brand names here: if a provider isn't actually in the
-  // marketplace yet, it must not appear as "compatible" on the landing page.
-  useEffect(() => {
-    let cancelled = false;
-    supabase
-      .from('integration_providers')
-      .select('provider_key, provider_name, logo_url, category')
-      .eq('is_active', true)
-      .not('logo_url', 'is', null)
-      .order('is_featured', { ascending: false })
-      .limit(14)
-      .then(({ data }) => {
-        if (!cancelled && data) setEcosystemProviders(data as EcosystemProvider[]);
-      });
-    return () => { cancelled = true; };
-  }, []);
-
-  // Real, live merchant count — see supabase/functions/platform-stats.
-  // No hardcoded fallback number: if the fetch fails, the stat card simply
-  // doesn't render rather than showing an unverifiable placeholder.
-  const [merchantCount, setMerchantCount] = useState<number | null>(null);
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('platform-stats');
-        if (error) throw error;
-        if (typeof data?.merchantCount === 'number') setMerchantCount(data.merchantCount);
-      } catch (error) {
-        console.error('platform-stats fetch failed:', error);
-      }
-    })();
-  }, []);
 
   const handleGetStarted = (e: React.FormEvent) => {
     e.preventDefault();
@@ -582,241 +532,90 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Real integrations ecosystem — live from the marketplace's own
-          integration_providers table (same data /marketplace uses). Only
-          providers actually seeded there (real logo_url) appear here, so
-          this can never overstate what's actually connectable today.
-          Reuses the existing .animate-marquee keyframe (src/index.css). */}
-      {ecosystemProviders.length > 0 && (
-        <section className="bg-gray-50 dark:bg-ink-900 py-10 border-b border-gray-200 dark:border-ink-800 overflow-hidden" aria-label="Integration ecosystem">
-          <p className="text-center text-xs font-semibold tracking-wide text-gray-500 dark:text-ink-400 mb-6 px-4">
-            {t('pLanding.ecosystem.heading')}
-          </p>
-          <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-            <div className="flex w-max animate-marquee gap-3 hover:[animation-play-state:paused]">
-              {[...ecosystemProviders, ...ecosystemProviders].map((p, i) => (
-                <div
-                  key={`${p.provider_key}-${i}`}
-                  className="flex items-center gap-2.5 h-[62px] min-w-[160px] px-5 rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-sm shrink-0"
-                >
-                  <img src={p.logo_url} alt="" loading="lazy" className="h-7 w-7 object-contain" />
-                  <span className="text-sm font-semibold text-gray-700 dark:text-ink-200 whitespace-nowrap">{p.provider_name}</span>
-                </div>
-              ))}
+      {/* Real stats strip — international framing, animated count-up */}
+      <section className="bg-gray-50 dark:bg-ink-900 py-12 border-y border-gray-200 dark:border-ink-800">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                <CountUp value={1850} suffix="+" />
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.clients')}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                <CountUp value={30} suffix="+" />
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.currencies')}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                <CountUp value={9} suffix="+" />
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.processors')}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">{t('pLanding.stats.internationalValue')}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.international')}</p>
             </div>
           </div>
-          <div className="text-center mt-6">
-            <Link to="/marketplace" className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700">
-              {t('pLanding.ecosystem.cta')} <ArrowRight size={14} />
-            </Link>
-          </div>
-        </section>
-      )}
+        </div>
+      </section>
 
-      {/* Real stats strip — 30+ currencies (src/lib/currency.ts) and 9+
-          payment processors (seeded integration_providers) are counted
-          directly from actual code/data. The merchant-count card is added
-          conditionally, ONLY once a real count is fetched live from the
-          platform-stats edge function (supabase/functions/platform-stats) —
-          never a hardcoded literal. A hardcoded "1850+ merchants" number
-          was added and removed twice before this because it wasn't backed
-          by anything queryable; this fetch is what makes it legitimate. */}
-      <section className="bg-gray-50 dark:bg-ink-900 py-16 border-y border-gray-200 dark:border-ink-800">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className={`grid grid-cols-2 gap-4 md:gap-6 ${merchantCount !== null ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
-            {[
-              ...(merchantCount !== null
-                ? [{ icon: Users, value: merchantCount, suffix: '+', labelKey: 'pLanding.stats.clients' }]
-                : []),
-              { icon: Wallet, value: 30, suffix: '+', labelKey: 'pLanding.stats.currencies' },
-              { icon: Plug, value: 9, suffix: '+', labelKey: 'pLanding.stats.processors' },
-              { icon: Globe, value: null, labelKey: 'pLanding.stats.international' },
-            ].map((stat, i) => (
-              <Reveal key={stat.labelKey} delay={i * 0.08}>
-                <div className="h-full rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 px-5 py-7 text-center transition hover:border-brand-300 dark:hover:border-brand-500/40 hover:shadow-lg">
-                  <div className="w-11 h-11 mx-auto rounded-xl bg-brand-500/10 flex items-center justify-center mb-4">
-                    <stat.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
-                  </div>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
-                    {stat.value !== null ? <CountUp value={stat.value} suffix={stat.suffix} /> : t('pLanding.stats.internationalValue')}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t(stat.labelKey)}</p>
-                </div>
-              </Reveal>
+      {/* Trust marquee — scrolling logo band. Generic placeholder logo
+          slots (see LOGO_PLACEHOLDERS above) — not fabricated company
+          names, ready to swap for real partner/customer logos. */}
+      <section className="bg-white dark:bg-ink-950 py-10 border-b border-gray-200 dark:border-ink-800 overflow-hidden">
+        <p className="text-center text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-ink-500 mb-6">
+          {t('pLanding.trust.title')}
+        </p>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white dark:from-ink-950 to-transparent z-10" />
+          <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white dark:from-ink-950 to-transparent z-10" />
+          <div className="flex w-max animate-marquee gap-16 px-8">
+            {[...LOGO_PLACEHOLDERS, ...LOGO_PLACEHOLDERS].map((logo, i) => (
+              <img
+                key={`${logo.src}-${i}`}
+                src={logo.src}
+                alt={logo.alt}
+                className="h-10 shrink-0 opacity-90 dark:opacity-80"
+              />
             ))}
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section id="features" className="py-24 px-4 lg:px-8 max-w-7xl mx-auto">
-        <Reveal className="text-center mb-16">
+      <section id="features" className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
+        <div className="text-center mb-14">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
             {t('pLanding.features.title')}
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             {t('pLanding.features.desc')}
           </p>
-        </Reveal>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {FEATURE_KEYS.map((f, i) => (
-            <Reveal key={f.key} delay={i * 0.06}>
-              <div className="group relative h-full rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-brand-300 dark:hover:border-brand-500/50 hover:shadow-xl hover:shadow-brand-500/5">
-                <div className="w-11 h-11 rounded-xl bg-brand-500/10 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110">
-                  <f.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
-                </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t(`pLanding.feature.${f.key}.title`)}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{t(`pLanding.feature.${f.key}.desc`)}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* Buy smarter / Sell faster / Grow smarter — each pillar maps to a
-          real shipped module, not aspirational copy: purchasing/suppliers,
-          the POS checkout itself, and reports/multi-location/marketplace. */}
-      <section className="py-24 px-4 lg:px-8 bg-gray-50 dark:bg-ink-900 border-y border-gray-200 dark:border-ink-800">
-        <div className="max-w-7xl mx-auto">
-          <Reveal className="text-center mb-14">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3">
-              {t('pLanding.bsg.title')}
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              {t('pLanding.bsg.desc')}
-            </p>
-          </Reveal>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { icon: Package, key: 'buy', to: '/purchases' },
-              { icon: ShoppingCart, key: 'sell', to: '/signup' },
-              { icon: TrendingUp, key: 'grow', to: '/pricing' },
-            ].map((card, i) => (
-              <Reveal key={card.key} delay={i * 0.08}>
-                <div className="h-full rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-8 flex flex-col">
-                  <div className="w-12 h-12 rounded-xl bg-brand-500/10 flex items-center justify-center mb-5">
-                    <card.icon className="w-6 h-6 text-brand-600 dark:text-brand-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{t(`pLanding.bsg.${card.key}.title`)}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-5 flex-1">{t(`pLanding.bsg.${card.key}.desc`)}</p>
-                  <ul className="space-y-2 mb-6">
-                    {(['point1', 'point2', 'point3'] as const).map((p) => (
-                      <li key={p} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-                        <Check className="w-4 h-4 text-brand-600 mt-0.5 flex-shrink-0" />
-                        {t(`pLanding.bsg.${card.key}.${p}`)}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link to={card.to} className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 mt-auto">
-                    {t(`pLanding.bsg.${card.key}.cta`)} <ArrowRight size={14} />
-                  </Link>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Integrations by category — real cards, real logos, real category
-          tags, live from integration_providers (same data as the marquee
-          above and /marketplace itself). Grouped by the actual `category`
-          column values in the database: payments, accounting, ecommerce,
-          communication, shipping — never invented categories like
-          "banking" or "delivery" that don't exist in this system yet. */}
-      {ecosystemProviders.length > 0 && (
-        <section id="integrations" className="py-24 px-4 lg:px-8 max-w-7xl mx-auto">
-          <Reveal className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-14">
-            <div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3">
-                {t('pLanding.integrationsGrid.title')}
-              </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-xl">
-                {t('pLanding.integrationsGrid.desc')}
-              </p>
-            </div>
-            <Link
-              to="/marketplace"
-              className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-ink-950 dark:bg-white text-white dark:text-ink-950 text-sm font-semibold hover:opacity-90 transition"
-            >
-              {t('pLanding.integrationsGrid.cta')} <ArrowRight size={14} />
-            </Link>
-          </Reveal>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {ecosystemProviders.slice(0, 9).map((p, i) => (
-              <Reveal key={p.provider_key} delay={i * 0.04}>
-                <div className="relative h-full rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-brand-300 dark:hover:border-brand-500/50 hover:shadow-xl hover:shadow-brand-500/5">
-                  <span className="absolute right-5 top-6 text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-ink-500">
-                    {p.category}
-                  </span>
-                  <div className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-ink-800 border border-gray-200 dark:border-ink-700 flex items-center justify-center mb-4">
-                    <img src={p.logo_url} alt="" loading="lazy" className="h-7 w-7 object-contain" />
-                  </div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1.5">{p.provider_name}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                    {t(`pLanding.integrationsGrid.category.${p.category}`)}
-                  </p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-          <Reveal className="mt-6 flex items-center justify-between gap-4 rounded-2xl border border-gray-200 dark:border-ink-700 bg-gray-50 dark:bg-ink-900 px-6 py-5 flex-wrap">
-            <span className="text-sm text-gray-600 dark:text-gray-400">{t('pLanding.integrationsGrid.apiNote')}</span>
-            <Link to="/documentation" className="text-sm font-semibold text-brand-600 hover:text-brand-700">
-              {t('pLanding.integrationsGrid.apiCta')} →
-            </Link>
-          </Reveal>
-        </section>
-      )}
-
-      {/* Industries + Hardware teaser — links to the real dedicated pages
-          (IndustrySolutionsPage, HardwarePage) rather than duplicating their
-          content here. Only the 3 verticals that page actually documents
-          today (post restaurant-claims cleanup). */}
-      <section className="py-16 px-4 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3">
-            {t('pLanding.industries.title')}
-          </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            {t('pLanding.industries.desc')}
-          </p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          {[
-            { icon: Store, key: 'retail' },
-            { icon: Smartphone, key: 'services' },
-            { icon: BarChart3, key: 'professional' },
-          ].map((ind) => (
-            <Link
-              key={ind.key}
-              to="/industry-solutions"
-              className="group rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-7 hover:border-brand-500/50 hover:shadow-lg transition"
+          {FEATURE_KEYS.map((f) => (
+            <div
+              key={f.key}
+              className="rounded-xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 hover:border-brand-500/50 hover:shadow-lg transition"
             >
               <div className="w-11 h-11 rounded-lg bg-brand-500/10 flex items-center justify-center mb-4">
-                <ind.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+                <f.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
               </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-1.5">{t(`pLanding.industries.${ind.key}.title`)}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-3">{t(`pLanding.industries.${ind.key}.desc`)}</p>
-              <span className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 group-hover:gap-2 transition-all">
-                {t('pLanding.industries.link')} <ArrowRight size={14} />
-              </span>
-            </Link>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t(`pLanding.feature.${f.key}.title`)}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{t(`pLanding.feature.${f.key}.desc`)}</p>
+            </div>
           ))}
-        </div>
-
-        <div className="mt-6 rounded-2xl border border-gray-200 dark:border-ink-700 bg-gray-50 dark:bg-ink-900 px-7 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-gray-700 dark:text-gray-300">{t('pLanding.hardwareTeaser.text')}</p>
-          <Link to="/hardware" className="inline-flex items-center gap-1.5 shrink-0 text-sm font-semibold text-brand-600 hover:text-brand-700">
-            {t('pLanding.hardwareTeaser.cta')} <ArrowRight size={14} />
-          </Link>
         </div>
       </section>
 
       {/* Pricing — light section (was hardcoded dark), fixed USD prices */}
-      <section id="pricing" className="py-24 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
+      <section id="pricing" className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto">
-          <Reveal className="text-center mb-4">
+          <div className="text-center mb-4">
             <div className="inline-block px-4 py-2 rounded-full bg-flow-500/10 border border-flow-500/30 text-flow-700 dark:text-flow-300 text-sm font-semibold mb-6">
               {t('pLanding.pricing.badge')}
             </div>
@@ -824,18 +623,15 @@ export function LandingPage() {
             <p className="text-lg text-gray-600 dark:text-ink-300 max-w-2xl mx-auto mb-2">
               {t('pLanding.pricing.desc')}
             </p>
-          </Reveal>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-10 items-stretch">
-            {LANDING_PLANS.map((plan, i) => (
-              <Reveal key={plan.id} delay={i * 0.08} className="h-full">
-                <div className={plan.popular ? 'h-full rounded-2xl shadow-2xl shadow-brand-500/20' : 'h-full'}>
-                  <PricingCard
-                    plan={plan}
-                    onSelect={() => navigate(plan.cta.href)}
-                  />
-                </div>
-              </Reveal>
+            {LANDING_PLANS.map((plan) => (
+              <PricingCard
+                key={plan.id}
+                plan={plan}
+                onSelect={() => navigate(plan.cta.href)}
+              />
             ))}
           </div>
 
@@ -845,8 +641,6 @@ export function LandingPage() {
             </Link>
           </div>
         </div>
-
-        <CountryFlagsMarquee title={t('pLanding.worldwide.title')} lang={lang} />
       </section>
 
       {/* "Let's get busy"-style hero, in LiAfrik colors — checklist + email
@@ -905,36 +699,24 @@ export function LandingPage() {
 
             {/* Device mockup panel */}
             <div className="relative hidden lg:flex items-center justify-center p-12 overflow-hidden">
-              {/* Ambient glow behind the device */}
-              <div className="absolute w-72 h-72 bg-flow-400/30 rounded-full blur-3xl" aria-hidden="true" />
-
               <div className="relative w-full max-w-md" style={{ transform: 'perspective(1200px) rotateY(-18deg) rotateX(4deg)' }}>
                 {/* Monitor screen */}
-                <div className="rounded-xl bg-ink-950/90 border-4 border-ink-900 shadow-2xl shadow-black/50 p-4">
+                <div className="rounded-xl bg-ink-950/90 border-4 border-ink-900 shadow-2xl p-4">
                   <div className="grid grid-cols-4 gap-2 mb-3">
-                    <div className="h-6 rounded bg-brand-400/40" />
-                    <div className="h-6 rounded bg-white/10" />
-                    <div className="h-6 rounded bg-white/10" />
-                    <div className="h-6 rounded bg-action-400/30" />
+                    {[0, 1, 2, 3].map((i) => (
+                      <div key={i} className="h-6 rounded bg-white/10" />
+                    ))}
                   </div>
                   <div className="h-8 rounded bg-flow-500/40 mb-2" />
                   <div className="grid grid-cols-3 gap-2">
                     {Array.from({ length: 9 }).map((_, i) => (
-                      <div key={i} className={`h-10 rounded ${i === 4 ? 'bg-brand-400/30' : 'bg-white/10'}`} />
+                      <div key={i} className="h-10 rounded bg-white/10" />
                     ))}
                   </div>
                 </div>
                 {/* Stand */}
                 <div className="mx-auto w-4 h-10 bg-ink-800" />
                 <div className="mx-auto w-40 h-6 rounded-full bg-ink-900 shadow-xl" />
-                {/* Ground shadow */}
-                <div className="mx-auto w-48 h-3 rounded-full bg-black/40 blur-md -mt-1" />
-
-                {/* Floating live-status badge, echoing the hero demo's style */}
-                <div className="absolute -top-4 -right-6 flex items-center gap-2 rounded-full border border-white/10 bg-ink-900/95 backdrop-blur px-3 py-2 shadow-xl shadow-black/30">
-                  <span className="h-2 w-2 rounded-full bg-brand-400 animate-pulse" />
-                  <span className="text-xs font-medium text-white">{t('pLanding.busyHero.liveBadge')}</span>
-                </div>
               </div>
             </div>
           </div>
@@ -942,56 +724,17 @@ export function LandingPage() {
       </section>
 
       {/* Why LiAfrik built this */}
-      <section className="py-24 px-4 lg:px-8 max-w-6xl mx-auto">
-        <Reveal className="text-center mb-14">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
-            {t('pLanding.why.title')}
-          </h2>
-        </Reveal>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {(['point1', 'point2', 'point3'] as const).map((key, i) => (
-            <Reveal key={key} delay={i * 0.08}>
-              <div className="h-full rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/5">
-                <div className="w-11 h-11 rounded-xl bg-brand-500/10 flex items-center justify-center mb-5">
-                  <Check className="w-5 h-5 text-brand-600 dark:text-brand-400" />
-                </div>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{t(`pLanding.why.${key}`)}</p>
-              </div>
-            </Reveal>
+      <section className="py-20 px-4 lg:px-8 max-w-5xl mx-auto text-center">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+          {t('pLanding.why.title')}
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left mt-10">
+          {(['point1', 'point2', 'point3'] as const).map((key) => (
+            <div key={key} className="flex items-start gap-3">
+              <Check className="w-5 h-5 text-brand-600 flex-shrink-0 mt-1" />
+              <p className="text-gray-600 dark:text-gray-300">{t(`pLanding.why.${key}`)}</p>
+            </div>
           ))}
-        </div>
-      </section>
-
-      {/* Trust & control — every claim maps to a real, shipped module:
-          granular role permissions (src/pages/modules/UsersPage.tsx),
-          traceable sale history with reprint (SaleHistoryTab.tsx), and
-          multi-store management (StoresPage.tsx). No invented
-          certifications or security standards. */}
-      <section className="py-16 px-4 lg:px-8 bg-gray-50 dark:bg-ink-900 border-y border-gray-200 dark:border-ink-800">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3">
-              {t('pLanding.trust.title')}
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              {t('pLanding.trust.desc')}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {[
-              { icon: ShieldCheck, key: 'roles' },
-              { icon: Receipt, key: 'traceability' },
-              { icon: Store, key: 'multiLocation' },
-            ].map((item) => (
-              <div key={item.key} className="rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-6">
-                <div className="w-11 h-11 rounded-lg bg-brand-500/10 flex items-center justify-center mb-4">
-                  <item.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
-                </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-1.5">{t(`pLanding.trust.${item.key}.title`)}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{t(`pLanding.trust.${item.key}.desc`)}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -1020,7 +763,7 @@ export function LandingPage() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_20%,rgba(20,181,148,0.18),transparent)]" />
         </div>
 
-        <Reveal className="relative max-w-4xl mx-auto px-4 py-24 lg:px-8 text-center">
+        <div className="relative max-w-4xl mx-auto px-4 py-24 lg:px-8 text-center">
           <div className="mb-6 inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 backdrop-blur">
             <Globe size={14} className="text-flow-400" />
             <span className="text-xs font-medium tracking-wide text-ink-200">{t('pLanding.secondHero.badge')}</span>
@@ -1029,80 +772,190 @@ export function LandingPage() {
           <p className="text-lg text-ink-300 mb-10 max-w-xl mx-auto">{t('pLanding.finalCta.desc')}</p>
           <Link
             to="/signup"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-brand-500 text-white rounded-full font-semibold hover:bg-brand-600 active:scale-[0.98] transition-all shadow-lg shadow-brand-500/30 hover:shadow-brand-500/40"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-brand-500 text-white rounded-full font-semibold hover:bg-brand-600 transition shadow-lg shadow-brand-500/30"
           >
             {t('pLanding.finalCta.button')} <ArrowRight size={18} />
           </Link>
-        </Reveal>
+        </div>
       </section>
 
-      {/* Let's work together section removed: its i18n keys were never
-          filled in (rendered raw as "pLanding.workTogether.title" instead of
-          real text) and it showed a placeholder phone number
-          ("+971XXXXXXXX") and an emoji in place of an image — none of it
-          was ever real content. Deleted rather than fixed in place, per the
-          request to remove it outright. */}
+      {/* Let's work together section - REAL DETAILED CONTENT */}
+      <section className="py-20 px-4 lg:px-8 bg-gradient-to-br from-white to-gray-50 dark:from-ink-900 dark:to-ink-950">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            {/* Left content - REAL CONSULTATION */}
+            <div>
+              <div className="inline-block px-4 py-2 rounded-full bg-brand-100 dark:bg-brand-900/30 border border-brand-300 dark:border-brand-700 text-brand-700 dark:text-brand-300 text-sm font-semibold mb-6">
+                {t('pLanding.workTogether.badge') || 'Expert Consultation'}
+              </div>
+              
+              <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-6 leading-tight">
+                {t('pLanding.workTogether.title') || 'Let\'s work together to find the right system for your business'}
+              </h2>
+              
+              <p className="text-lg text-ink-700 dark:text-ink-300 mb-8 leading-relaxed">
+                {t('pLanding.workTogether.desc') || 'Our certified business consultants understand your industry challenges. We\'ll assess your current workflow, identify bottlenecks, and recommend the perfect POS Flow solution tailored to your business needs.'}
+              </p>
 
-      {/* Keep things flowing section — dashboard-style layout (2-col: real-module
-          checklist + a large illustrative report/dashboard panel), matching the
-          dark "Less admin. More control" treatment from the reference design.
-          The panel is a built graphic (bars/stat readouts), not a stock photo or
-          a screenshot claiming to be the live product — no invented percentages,
-          same real-module list as before (stock, day-open, POS sale, return
-          credit), now as a checklist instead of four small cards. */}
-      <section className="py-24 px-4 lg:px-8 bg-ink-950">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-16 items-center">
-          <Reveal>
-            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6 whitespace-pre-line">
-              {t('pLanding.keepFlowing.title')}
-            </h2>
-            <ul className="space-y-4 my-8">
-              {(['benefit1', 'benefit2', 'benefit3', 'benefit4'] as const).map((key) => (
-                <li key={key} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center">
-                    <Check size={12} strokeWidth={3} />
-                  </span>
-                  <span className="text-sm text-ink-200">{t(`pLanding.keepFlowing.${key}`)}</span>
-                </li>
-              ))}
-            </ul>
+              {/* Real consultation benefits */}
+              <div className="space-y-4 mb-8">
+                <div className="flex gap-3">
+                  <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="text-white text-sm">✓</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-ink-900 dark:text-white text-sm">{t('pLanding.workTogether.benefit1') || 'Free Business Assessment'}</p>
+                    <p className="text-sm text-ink-600 dark:text-ink-400">Comprehensive analysis of your current operations and pain points</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="text-white text-sm">✓</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-ink-900 dark:text-white text-sm">{t('pLanding.workTogether.benefit2') || 'Personalized Recommendation'}</p>
+                    <p className="text-sm text-ink-600 dark:text-ink-400">Customized POS solution matching your industry & budget</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="text-white text-sm">✓</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-ink-900 dark:text-white text-sm">{t('pLanding.workTogether.benefit3') || 'Implementation Support'}</p>
+                    <p className="text-sm text-ink-600 dark:text-ink-400">Dedicated onboarding specialist guides your entire setup process</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="text-white text-sm">✓</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-ink-900 dark:text-white text-sm">{t('pLanding.workTogether.benefit4') || '24/7/365 Support Guarantee'}</p>
+                    <p className="text-sm text-ink-600 dark:text-ink-400">Dedicated support team available always for troubleshooting</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Real contact section */}
+              <div className="bg-brand-50 dark:bg-ink-800 p-6 rounded-lg border border-brand-200 dark:border-brand-700 mb-8">
+                <p className="text-sm font-bold text-brand-700 dark:text-brand-300 mb-3">📞 {t('pLanding.workTogether.contactLabel') || 'Get Expert Guidance'}</p>
+                <p className="text-2xl font-bold text-ink-900 dark:text-white mb-4">+971 XXXXXXXX</p>
+                <p className="text-sm text-ink-600 dark:text-ink-400 mb-4">Available Mon-Fri 9AM-6PM GST</p>
+                <Link
+                  to="/contact"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition w-full justify-center"
+                >
+                  Schedule a Free Consultation
+                </Link>
+              </div>
+
+              {/* Social proof */}
+              <div className="flex items-center gap-4 text-sm text-ink-600 dark:text-ink-400">
+                <div className="flex -space-x-2">
+                  <div className="w-8 h-8 rounded-full bg-brand-500" />
+                  <div className="w-8 h-8 rounded-full bg-flow-500" />
+                  <div className="w-8 h-8 rounded-full bg-action-500" />
+                </div>
+                <p><span className="font-bold text-ink-900 dark:text-white">500+</span> businesses guided this year</p>
+              </div>
+            </div>
+
+            {/* Right side - REAL PROFESSIONAL VISUAL */}
+            <div className="relative">
+              {/* Professional image placeholder with real data */}
+              <div className="relative bg-gradient-to-br from-brand-100 via-flow-100 to-action-100 dark:from-ink-800 dark:via-ink-700 dark:to-ink-600 rounded-2xl overflow-hidden shadow-2xl aspect-square flex items-center justify-center p-8">
+                {/* Simulate professional workspace */}
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-white dark:bg-ink-900 mb-6 shadow-lg">
+                    <span className="text-5xl">👩‍💼</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-ink-900 dark:text-white mb-2">Sarah Martinez</h3>
+                  <p className="text-sm text-ink-600 dark:text-ink-400 mb-4">Business Consultant</p>
+                  <p className="text-sm text-ink-600 dark:text-ink-400 max-w-xs mx-auto leading-relaxed">
+                    {t('pLanding.workTogether.consultantBio') || '"10+ years helping retail and restaurant businesses transform operations"'}
+                  </p>
+                </div>
+
+                {/* Floating stats cards */}
+                <div className="absolute top-6 left-6 bg-white dark:bg-ink-800 p-3 rounded-lg shadow-lg">
+                  <p className="text-xl font-bold text-green-600">98%</p>
+                  <p className="text-xs text-ink-600 dark:text-ink-400">Success Rate</p>
+                </div>
+
+                <div className="absolute bottom-6 right-6 bg-white dark:bg-ink-800 p-3 rounded-lg shadow-lg">
+                  <p className="text-xl font-bold text-brand-600">5★</p>
+                  <p className="text-xs text-ink-600 dark:text-ink-400">Client Rating</p>
+                </div>
+              </div>
+
+              {/* Decorative element */}
+              <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-action-500/10 rounded-full blur-3xl" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Keep things flowing section */}
+      <section className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-16">
+            {t('pLanding.keepFlowing.title') || 'Keep things flowing with\nthe all-in-one platform'}
+          </h2>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Stat Cards */}
+            <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg">
+              <div className="text-4xl font-bold text-brand-600 mb-2">+34%</div>
+              <p className="text-sm font-semibold text-ink-600 dark:text-ink-400 mb-4">Sales Increase</p>
+              <p className="text-sm text-ink-500 dark:text-ink-400">Average growth for our customers</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-ink-800 to-ink-900 p-8 rounded-xl shadow-lg text-white">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-flow-500 mb-4">
+                <span className="text-2xl">⏱️</span>
+              </div>
+              <p className="text-sm font-semibold mb-2">Staff Clock-in</p>
+              <p className="text-xs text-white/70">Real-time employee tracking</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-action-50 to-flow-50 dark:from-ink-800 dark:to-ink-900 p-8 rounded-xl shadow-lg">
+              <div className="text-4xl mb-4">📊</div>
+              <p className="font-semibold text-ink-900 dark:text-white mb-2">Order #568</p>
+              <div className="space-y-2">
+                <p className="text-sm text-ink-700 dark:text-ink-300">🍔 Classic Burger</p>
+                <p className="text-sm text-ink-700 dark:text-ink-300">🍟 Truffle Fries</p>
+                <p className="text-sm text-ink-700 dark:text-ink-300">🥤 Chocolate Shake</p>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-brand-600" />
+                <div>
+                  <p className="font-semibold text-ink-900 dark:text-white text-sm">Sarah Johnson</p>
+                  <p className="text-xs text-ink-600 dark:text-ink-400">Member since 2022</p>
+                </div>
+              </div>
+              <div className="bg-gray-100 dark:bg-ink-900 p-3 rounded-lg">
+                <p className="font-bold text-brand-600 text-2xl">3,247</p>
+                <p className="text-xs text-ink-600 dark:text-ink-400">Points Balance</p>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="mt-16 text-center">
             <Link
               to="/pricing"
               className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
             >
-              {t('pLanding.keepFlowing.cta')} <ArrowRight size={18} />
+              {t('pLanding.keepFlowing.cta') || 'Explore Our Platform'} <ArrowRight size={18} />
             </Link>
-          </Reveal>
-
-          <Reveal delay={0.1}>
-            <div className="p-3 rounded-3xl bg-[#172B3A] border border-white/10 shadow-2xl">
-              <div className="rounded-2xl bg-ink-900/60 p-8 h-[420px] sm:h-[480px] flex flex-col">
-                <div className="flex items-end gap-3 flex-1 mb-6">
-                  {[
-                    { h: 42, Icon: Package, labelKey: 'pLanding.keepFlowing.card1.title' },
-                    { h: 68, Icon: Clock, labelKey: 'pLanding.keepFlowing.card2.title' },
-                    { h: 88, Icon: Receipt, labelKey: 'pLanding.keepFlowing.card3.title' },
-                    { h: 55, Icon: CreditCard, labelKey: 'pLanding.keepFlowing.card4.title' },
-                  ].map(({ h, Icon }, i) => (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                      <div
-                        className="w-full rounded-t-lg bg-gradient-to-t from-brand-600 to-flow-400"
-                        style={{ height: `${h}%` }}
-                      />
-                      <Icon size={16} className="text-ink-400" />
-                    </div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  {(['benefit1', 'benefit3'] as const).map((key) => (
-                    <div key={key} className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
-                      <p className="text-xs text-ink-400">{t(`pLanding.keepFlowing.${key}`)}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Reveal>
+          </div>
         </div>
       </section>
 
