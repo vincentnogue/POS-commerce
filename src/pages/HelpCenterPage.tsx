@@ -332,11 +332,11 @@ export function HelpCenterPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <a
-              href="mailto:support@pos.liafrik.com"
+              href="mailto:support@liafrik.com"
               className="p-4 rounded-lg bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 hover:border-flow-500/50 transition"
             >
               <p className="font-semibold text-ink-900 dark:text-white mb-2">Email Support</p>
-              <p className="text-sm text-ink-600 dark:text-ink-300">support@pos.liafrik.com</p>
+              <p className="text-sm text-ink-600 dark:text-ink-300">support@liafrik.com</p>
               <p className="text-xs text-ink-400 dark:text-ink-400 mt-2">Response time: 24 hours</p>
             </a>
 
