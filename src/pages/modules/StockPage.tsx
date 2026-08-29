@@ -25,7 +25,7 @@ export function StockPage() {
   const [transferOpen, setTransferOpen] = useState(false);
   const [form, setForm] = useState({ product_id: '', store_id: '', type: 'in', quantity: 1, reason: '' });
   const [batches, setBatches] = useState<any[]>([]);
-  const [batchForm, setBatchForm] = useState({ name: '', source_store_id: '', dest_store_id: '', staff_code: '', notes: '', type: 'transfer' as 'transfer' | 'rms', reason: 'broken' });
+  const [batchForm, setBatchForm] = useState({ name: '', source_store_id: '', dest_store_id: '', staff_code: '', staff_pin: '', notes: '', type: 'transfer' as 'transfer' | 'rms', reason: 'broken' });
   const [batchItems, setBatchItems] = useState<{ product_id: string; name: string; quantity: number }[]>([]);
   const [scanInput, setScanInput] = useState('');
   const [transferErr, setTransferErr] = useState<string | null>(null);
@@ -153,6 +153,7 @@ export function StockPage() {
       source_store_id: '',
       dest_store_id: tenant?.rms_destination_store_id ?? '',
       staff_code: '',
+      staff_pin: '',
       notes: '',
       type: 'rms',
       reason: 'broken',
@@ -164,7 +165,7 @@ export function StockPage() {
   };
 
   const openTransferModal = () => {
-    setBatchForm({ name: '', source_store_id: '', dest_store_id: '', staff_code: '', notes: '', type: 'transfer', reason: 'broken' });
+    setBatchForm({ name: '', source_store_id: '', dest_store_id: '', staff_code: '', staff_pin: '', notes: '', type: 'transfer', reason: 'broken' });
     setBatchItems([]);
     setScanInput('');
     setTransferErr(null);
@@ -191,13 +192,14 @@ export function StockPage() {
       p_user_id: user.id,
       p_type: batchForm.type,
       p_reason: batchForm.type === 'rms' ? batchForm.reason : null,
+      p_staff_pin: batchForm.staff_code.trim() ? (batchForm.staff_pin.trim() || null) : null,
     });
     setSubmittingTransfer(false);
 
     if (error) { setTransferErr(error.message); return; }
 
     setTransferOpen(false);
-    setBatchForm({ name: '', source_store_id: '', dest_store_id: '', staff_code: '', notes: '', type: 'transfer', reason: 'broken' });
+    setBatchForm({ name: '', source_store_id: '', dest_store_id: '', staff_code: '', staff_pin: '', notes: '', type: 'transfer', reason: 'broken' });
     setBatchItems([]);
     const { data } = await supabase.from('inventory').select('*, product:products(name), store:stores(name)').eq('tenant_id', tenant.id);
     setInventory(data ?? []);
@@ -459,15 +461,30 @@ export function StockPage() {
               </select>
             </Field>
           </div>
-          <Field label={t('stock.staffIdOptional')}>
-            <input
-              value={batchForm.staff_code}
-              onChange={(e) => setBatchForm({ ...batchForm, staff_code: e.target.value })}
-              className="input font-mono"
-              placeholder="STF-001"
-            />
-            <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">{t('stock.staffIdHint')}</p>
-          </Field>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label={t('stock.staffIdOptional')}>
+              <input
+                value={batchForm.staff_code}
+                onChange={(e) => setBatchForm({ ...batchForm, staff_code: e.target.value })}
+                className="input font-mono"
+                placeholder="STF-001"
+              />
+              <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">{t('stock.staffIdHint')}</p>
+            </Field>
+            <Field label={t('stock.staffPin')}>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={8}
+                value={batchForm.staff_pin}
+                onChange={(e) => setBatchForm({ ...batchForm, staff_pin: e.target.value.replace(/[^0-9]/g, '') })}
+                className="input tracking-widest"
+                placeholder="••••"
+                disabled={!batchForm.staff_code.trim()}
+              />
+              <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">{t('stock.staffPinHint')}</p>
+            </Field>
+          </div>
 
           <Field label={t('stock.scanProducts')}>
             <div className="flex gap-2">
