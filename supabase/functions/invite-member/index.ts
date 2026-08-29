@@ -60,8 +60,7 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     const callerRole = callerMember?.role;
-    const isSuperAdmin = callerRole === "super_admin";
-    if (!callerRole || !["admin", "super_admin", "manager"].includes(callerRole)) {
+        if (!callerRole || !["admin", "super_admin", "manager"].includes(callerRole)) {
       return new Response(JSON.stringify({ error: "Permission refusée" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

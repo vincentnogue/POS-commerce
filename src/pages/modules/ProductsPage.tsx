@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, Pencil, Trash2, Package, Download, Image as ImageIcon, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, Download, Image as ImageIcon, X, Tags } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -34,6 +34,12 @@ export function ProductsPage() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState<any>(EMPTY);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [bulkCategoryText, setBulkCategoryText] = useState('');
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editingCategoryName, setEditingCategoryName] = useState('');
+  const [savingCategory, setSavingCategory] = useState(false);
 
   const currency = tenant?.currency ?? 'XOF';
   const isNew = params.get('new') === '1';
@@ -137,6 +143,56 @@ export function ProductsPage() {
 
   const catName = (id: string | null) => categories.find((c) => c.id === id)?.name ?? '—';
 
+  const reloadCategories = async () => {
+    if (!tenant) return;
+    const { data } = await supabase.from('categories').select('*').eq('tenant_id', tenant.id).order('name');
+    setCategories((data as Category[]) ?? []);
+  };
+
+  const randomColor = () => ['#2E8C66', '#14B594', '#F96F22', '#4FA480', '#7CBBA0', '#F5A623', '#E5484D', '#6366F1'][Math.floor(Math.random() * 8)];
+
+  // Manual: one category. Bulk: one category per line, so a manager can
+  // paste a whole list at once ("créer des catégories en masse").
+  const addCategory = async () => {
+    if (!tenant || !newCategoryName.trim()) return;
+    setSavingCategory(true);
+    const { error } = await supabase.from('categories').insert({ tenant_id: tenant.id, name: newCategoryName.trim(), color: randomColor() });
+    setSavingCategory(false);
+    if (error) { toast('error', error.message); return; }
+    setNewCategoryName('');
+    await reloadCategories();
+  };
+
+  const addCategoriesBulk = async () => {
+    if (!tenant) return;
+    const names = bulkCategoryText.split('\n').map((n) => n.trim()).filter(Boolean);
+    if (names.length === 0) return;
+    setSavingCategory(true);
+    const { error } = await supabase.from('categories').insert(names.map((name) => ({ tenant_id: tenant.id, name, color: randomColor() })));
+    setSavingCategory(false);
+    if (error) { toast('error', error.message); return; }
+    setBulkCategoryText('');
+    await reloadCategories();
+    toast('success', t('products.categories.toast.bulkAdded', { count: names.length }));
+  };
+
+  const renameCategory = async (id: string) => {
+    if (!editingCategoryName.trim()) return;
+    const { error } = await supabase.from('categories').update({ name: editingCategoryName.trim() }).eq('id', id);
+    if (error) { toast('error', error.message); return; }
+    setEditingCategoryId(null);
+    setEditingCategoryName('');
+    await reloadCategories();
+  };
+
+  const deleteCategory = async (c: Category) => {
+    if (!confirm(t('products.categories.confirmDelete', { name: c.name }))) return;
+    const { error } = await supabase.from('categories').delete().eq('id', c.id);
+    if (error) { toast('error', error.message); return; }
+    await reloadCategories();
+    await reload();
+  };
+
   return (
     <div>
       <PageHeader
@@ -159,6 +215,7 @@ export function ProductsPage() {
             <option value="">{t('products.allCategories')}</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
+          {canCreate && <button onClick={() => setCategoryModalOpen(true)} className="btn-ghost"><Tags size={16} /> {t('products.categories.manageBtn')}</button>}
         </div>
 
         {filtered.length === 0 && !loading ? (
@@ -239,6 +296,63 @@ export function ProductsPage() {
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={() => setModalOpen(false)} className="btn-ghost">{t('common.cancel')}</button>
           <button onClick={save} className="btn-primary">{editing ? t('common.save') : t('common.create')}</button>
+        </div>
+      </Modal>
+
+      {/* Category management — manual (one at a time) or bulk (one per line) */}
+      <Modal open={categoryModalOpen} onClose={() => setCategoryModalOpen(false)} title={t('products.categories.title')} maxWidth="max-w-lg">
+        <div className="space-y-5">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-ink-700 dark:text-ink-300">{t('products.categories.addOne')}</label>
+            <div className="flex gap-2">
+              <input value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addCategory(); }} className="input flex-1" placeholder={t('products.categories.namePlaceholder')} />
+              <button onClick={addCategory} disabled={savingCategory || !newCategoryName.trim()} className="btn-primary shrink-0"><Plus size={15} /> {t('common.add')}</button>
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-ink-700 dark:text-ink-300">{t('products.categories.addBulk')}</label>
+            <textarea value={bulkCategoryText} onChange={(e) => setBulkCategoryText(e.target.value)} className="input min-h-[80px]" placeholder={t('products.categories.bulkPlaceholder')} />
+            <div className="mt-2 flex justify-end">
+              <button onClick={addCategoriesBulk} disabled={savingCategory || !bulkCategoryText.trim()} className="btn-ghost">{t('products.categories.addBulkBtn')}</button>
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-ink-700 dark:text-ink-300">{t('products.categories.existing')}</label>
+            {categories.length === 0 ? (
+              <p className="text-sm text-ink-400 dark:text-ink-500">{t('common.empty')}</p>
+            ) : (
+              <div className="max-h-64 space-y-1 overflow-y-auto rounded-xl border border-ink-200 dark:border-ink-700 p-2">
+                {categories.map((c) => (
+                  <div key={c.id} className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 hover:bg-ink-50 dark:hover:bg-ink-800">
+                    {editingCategoryId === c.id ? (
+                      <input
+                        value={editingCategoryName}
+                        onChange={(e) => setEditingCategoryName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') renameCategory(c.id); if (e.key === 'Escape') setEditingCategoryId(null); }}
+                        onBlur={() => renameCategory(c.id)}
+                        autoFocus
+                        className="input py-1 text-sm"
+                      />
+                    ) : (
+                      <span className="flex items-center gap-2 text-sm text-ink-900 dark:text-ink-50">
+                        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: c.color }} />
+                        {c.name}
+                      </span>
+                    )}
+                    <div className="flex shrink-0 gap-1">
+                      <button onClick={() => { setEditingCategoryId(c.id); setEditingCategoryName(c.name); }} className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={13} /></button>
+                      <button onClick={() => deleteCategory(c)} className="rounded-lg p-1.5 text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={13} /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end">
+          <button onClick={() => setCategoryModalOpen(false)} className="btn-ghost">{t('common.close')}</button>
         </div>
       </Modal>
     </div>

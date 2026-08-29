@@ -97,9 +97,6 @@ export default {
           '0%, 100%': { opacity: '0.5', transform: 'scale(1)' },
           '50%': { opacity: '0.9', transform: 'scale(1.08)' },
         },
-        flagscroll: {
-          to: { transform: 'translateX(-50%)' },
-        },
       },
       animation: {
         float: 'float 6s ease-in-out infinite',

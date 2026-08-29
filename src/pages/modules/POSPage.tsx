@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
 import { PageHeader, Modal, EmptyState, useToast } from '../../components/ui';
 import { printSaleReceipt } from '../../lib/receipt';
+import { printDayReport } from '../../lib/dayReport';
 import { SaleHistoryTab } from './SaleHistoryTab';
+import { ReturnsTab } from './ReturnsTab';
 import type { Product, Customer } from '../../lib/types';
 
 type CartItem = {
@@ -46,7 +48,7 @@ export function POSPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [stores, setStores] = useState<{ id: string; name: string }[]>([]);
   const [storeId, setStoreId] = useState<string | null>(null);
-  const [pageTab, setPageTab] = useState<'sale' | 'history'>('sale');
+  const [pageTab, setPageTab] = useState<'sale' | 'history' | 'returns'>('sale');
   const [daySession, setDaySession] = useState<any | null>(null);
   const [daySessionLoading, setDaySessionLoading] = useState(true);
   const [members, setMembers] = useState<{ id: string; display_name: string | null; staff_code: string | null }[]>([]);
@@ -57,6 +59,7 @@ export function POSPage() {
   const [dayNotes, setDayNotes] = useState('');
   const [closingCash, setClosingCash] = useState('');
   const [daySubmitting, setDaySubmitting] = useState(false);
+  const [xReportSubmitting, setXReportSubmitting] = useState(false);
 
   const currency = tenant?.currency ?? 'XOF';
 
@@ -116,8 +119,9 @@ export function POSPage() {
     const cashValue = Number(closingCash);
     if (Number.isNaN(cashValue) || cashValue < 0) { toast('error', t('pos.day.err.invalidCash')); return; }
     setDaySubmitting(true);
+    const sessionId = daySession.id;
     const { error } = await supabase.rpc('close_day_session', {
-      p_session_id: daySession.id,
+      p_session_id: sessionId,
       p_closing_cash: cashValue,
       p_notes: dayNotes || null,
       p_user_id: user.id,
@@ -126,8 +130,115 @@ export function POSPage() {
     if (error) { toast('error', error.message); return; }
     setCloseDayModal(false);
     setClosingCash(''); setDayNotes('');
+
+    // Z-Report: printed once, at the moment the day is closed — this is
+    // the day-closing document, with the final expected-vs-counted cash
+    // reconciliation computed server-side by close_day_session().
+    const { data: closedSession } = await supabase.from('day_sessions').select('*').eq('id', sessionId).single();
+    if (closedSession) {
+      const snap = await buildDayReportSnapshot(sessionId);
+      printDayReport(
+        {
+          sessionReference: sessionId.slice(0, 8).toUpperCase(),
+          kind: 'z',
+          openedAt: new Date(closedSession.opened_at),
+          closedAt: closedSession.closed_at ? new Date(closedSession.closed_at) : new Date(),
+          storeName: stores.find((s) => s.id === storeId)?.name ?? tenant.name,
+          openingCash: Number(closedSession.opening_cash),
+          closingCash: Number(closedSession.closing_cash ?? 0),
+          expectedCash: Number(closedSession.expected_cash ?? 0),
+          cashVariance: Number(closedSession.cash_variance ?? 0),
+          staffNames: snap.staffNames,
+          salesCount: snap.salesCount,
+          paymentBreakdown: snap.paymentBreakdown,
+          returnsTotal: snap.returnsTotal,
+          grossTotal: snap.grossTotal,
+        },
+        dayReportLabels(),
+        { businessName: tenant.name, currency, lang, locale, formatMoney },
+      );
+    }
+
     await loadDaySession();
     toast('success', t('pos.day.toast.closed'));
+  };
+
+  // Aggregates the current day session's sales and returns into the
+  // payment breakdown / totals shown on the X-Report and Z-Report.
+  const buildDayReportSnapshot = async (sessionId: string) => {
+    const { data: srows } = await supabase.from('sales').select('payment_method, total, sale_status').eq('day_session_id', sessionId);
+    const validSales = (srows ?? []).filter((r: any) => r.sale_status !== 'cancelled');
+    const byMethod: Record<string, { amount: number; count: number }> = {};
+    validSales.forEach((r: any) => {
+      const m = r.payment_method || 'cash';
+      byMethod[m] = byMethod[m] ?? { amount: 0, count: 0 };
+      byMethod[m].amount += Number(r.total);
+      byMethod[m].count += 1;
+    });
+    const { data: returnsRows } = await supabase.from('sale_returns').select('refund_amount').eq('day_session_id', sessionId);
+    const { data: staffRows } = await supabase
+      .from('day_session_staff')
+      .select('staff_code, member:tenant_members(display_name)')
+      .eq('day_session_id', sessionId);
+
+    return {
+      salesCount: validSales.length,
+      grossTotal: validSales.reduce((s: number, r: any) => s + Number(r.total), 0),
+      paymentBreakdown: Object.entries(byMethod).map(([method, v]) => ({ method, amount: v.amount, count: v.count })),
+      returnsTotal: (returnsRows ?? []).reduce((s: number, r: any) => s + Number(r.refund_amount), 0),
+      staffNames: (staffRows ?? []).map((r: any) => r.member?.display_name || r.staff_code || t('pos.history.unnamedStaff')),
+    };
+  };
+
+  const dayReportLabels = () => ({
+    xTitle: t('pos.day.xReport.title'),
+    zTitle: t('pos.day.zReport.title'),
+    store: t('stock.col.store'),
+    openedAt: t('pos.day.openedAtLabel'),
+    closedAt: t('pos.day.closedAtLabel'),
+    staffPresent: t('pos.day.staffPresent'),
+    salesCount: t('pos.day.report.salesCount'),
+    grossTotal: t('pos.day.report.grossTotal'),
+    returnsTotal: t('pos.day.report.returnsTotal'),
+    paymentBreakdown: t('pos.day.report.paymentBreakdown'),
+    openingCash: t('pos.day.openingCash'),
+    closingCash: t('pos.day.countedCash'),
+    expectedCash: t('pos.day.report.expectedCash'),
+    cashVariance: t('pos.day.report.cashVariance'),
+    printNumber: t('pos.day.report.printNumber'),
+    notClosed: t('pos.day.report.notClosed'),
+    paymentMethodLabel: paymentLabel,
+  });
+
+  // X-Report: a snapshot printed as many times as needed while the day
+  // stays open (capped by the admin via tenants.max_x_reports_per_day,
+  // enforced server-side in record_x_report_print). Unlike the Z-Report,
+  // it never closes the day.
+  const printXReport = async () => {
+    if (!tenant || !user || !daySession) return;
+    setXReportSubmitting(true);
+    const { data: printNumber, error } = await supabase.rpc('record_x_report_print', { p_session_id: daySession.id, p_user_id: user.id });
+    setXReportSubmitting(false);
+    if (error) { toast('error', error.message); return; }
+    const snap = await buildDayReportSnapshot(daySession.id);
+    printDayReport(
+      {
+        sessionReference: daySession.id.slice(0, 8).toUpperCase(),
+        kind: 'x',
+        openedAt: new Date(daySession.opened_at),
+        closedAt: null,
+        storeName: stores.find((s) => s.id === storeId)?.name ?? tenant.name,
+        openingCash: Number(daySession.opening_cash),
+        staffNames: snap.staffNames,
+        salesCount: snap.salesCount,
+        paymentBreakdown: snap.paymentBreakdown,
+        returnsTotal: snap.returnsTotal,
+        grossTotal: snap.grossTotal,
+        printNumber: printNumber as number,
+      },
+      dayReportLabels(),
+      { businessName: tenant.name, currency, lang, locale, formatMoney },
+    );
   };
 
   const filtered = useMemo(() => {
@@ -327,7 +438,7 @@ export function POSPage() {
     setDeliveryChoice('delivered');
   };
 
-  const paymentLabel = (m: string) => m === 'cash' ? t('pos.pay.cash') : m === 'card' ? t('pos.pay.cardLabel') : t('pos.pay.mobileMoney');
+  const paymentLabel = (m: string) => m === 'cash' ? t('pos.pay.cash') : m === 'card' ? t('pos.pay.cardLabel') : m === 'mobile_money' ? t('pos.pay.mobileMoney') : m === 'split' ? t('pos.split.label') : m;
 
   const printReceipt = () => {
     if (!success || !lastReceipt) return;
@@ -393,9 +504,14 @@ export function POSPage() {
               <Check size={15} />
               {t('pos.day.openSince', { time: new Date(daySession.opened_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) })}
             </div>
-            <button onClick={() => setCloseDayModal(true)} className="text-xs font-semibold text-success-700 dark:text-success-300 underline">
-              {t('pos.day.closeBtn')}
-            </button>
+            <div className="flex items-center gap-3">
+              <button onClick={printXReport} disabled={xReportSubmitting} className="flex items-center gap-1 text-xs font-semibold text-success-700 dark:text-success-300 underline">
+                <FileBarChart size={13} /> {t('pos.day.xReportBtn')}
+              </button>
+              <button onClick={() => setCloseDayModal(true)} className="text-xs font-semibold text-success-700 dark:text-success-300 underline">
+                {t('pos.day.closeBtn')}
+              </button>
+            </div>
           </div>
         ) : (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-warning-200 bg-warning-50 dark:border-warning-900/40 dark:bg-warning-900/20 px-4 py-2.5">
@@ -412,10 +528,15 @@ export function POSPage() {
         <button onClick={() => setPageTab('history')} className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition ${pageTab === 'history' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
           <History size={14} /> {t('pos.tab.history')}
         </button>
+        <button onClick={() => setPageTab('returns')} className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition ${pageTab === 'returns' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
+          <RotateCcw size={14} /> {t('pos.tab.returns')}
+        </button>
       </div>
 
       {pageTab === 'history' ? (
         <SaleHistoryTab />
+      ) : pageTab === 'returns' ? (
+        <ReturnsTab />
       ) : (
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Products */}

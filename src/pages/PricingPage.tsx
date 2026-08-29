@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Globe, ArrowRight, ArrowLeft, Radio, WifiOff } from 'lucide-react';
 import { PricingCard, type PricingPlan } from '../components/PricingCard';
+import { CountryFlagsMarquee } from '../components/CountryFlagsMarquee';
 import { PLANS as REAL_PLANS } from '../lib/plans';
 import {
   getExchangeRates,
@@ -267,6 +268,10 @@ export function PricingPage() {
             />
           ))}
         </div>
+      </div>
+
+      <div className="border-t border-ink-200 dark:border-ink-800/50">
+        <CountryFlagsMarquee title="Conçu pour fonctionner partout dans le monde" lang="fr" />
       </div>
 
       {/* FAQ Section */}

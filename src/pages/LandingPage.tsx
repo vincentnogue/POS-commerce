@@ -4,11 +4,13 @@ import {
   Menu, X, Globe, ChevronDown, ArrowRight, MapPin,
   ShoppingCart, Package, Store, Plug, FileText, BarChart3,
   ShieldCheck, Wallet, Check, CheckCircle2, Smartphone, TrendingUp, Receipt,
+  Clock, CreditCard, Users,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '../lib/i18n';
 import { supabase } from '../lib/supabase';
 import { PricingCard, type PricingPlan } from '../components/PricingCard';
+import { CountryFlagsMarquee } from '../components/CountryFlagsMarquee';
 import { PLANS as REAL_PLANS } from '../lib/plans';
 
 // Real feature set — every entry below maps to an actual module that ships
@@ -34,35 +36,6 @@ const DEMO_ITEMS = [
   { key: 'item1', price: 4.5, qty: 1 },
   { key: 'item2', price: 6, qty: 2 },
   { key: 'item3', price: 1.5, qty: 3 },
-] as const;
-
-// Real national flags (flagcdn.com, ISO 3166-1 alpha-2 codes) — UAE-anchored
-// with a strong African footprint, then rest of world. Purely a visual
-// statement of geographic reach, not a claim of offices/customers per country.
-const FLAG_COUNTRIES = [
-  { code: 'ae', name: 'United Arab Emirates' },
-  { code: 'ng', name: 'Nigeria' },
-  { code: 'gh', name: 'Ghana' },
-  { code: 'ke', name: 'Kenya' },
-  { code: 'za', name: 'South Africa' },
-  { code: 'cm', name: 'Cameroon' },
-  { code: 'sn', name: 'Senegal' },
-  { code: 'ci', name: "Côte d'Ivoire" },
-  { code: 'ug', name: 'Uganda' },
-  { code: 'tz', name: 'Tanzania' },
-  { code: 'ma', name: 'Morocco' },
-  { code: 'eg', name: 'Egypt' },
-  { code: 'et', name: 'Ethiopia' },
-  { code: 'rw', name: 'Rwanda' },
-  { code: 'bw', name: 'Botswana' },
-  { code: 'fr', name: 'France' },
-  { code: 'gb', name: 'United Kingdom' },
-  { code: 'us', name: 'United States' },
-  { code: 'ca', name: 'Canada' },
-  { code: 'sa', name: 'Saudi Arabia' },
-  { code: 'qa', name: 'Qatar' },
-  { code: 'in', name: 'India' },
-  { code: 'au', name: 'Australia' },
 ] as const;
 
 // Shape of a row from the real integration_providers table, used only for
@@ -127,6 +100,24 @@ function CountUp({ value, suffix = '', duration = 1400 }: { value: number; suffi
 
 function formatUSD(n: number): string {
   return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+// Reusable scroll-triggered reveal (fade + rise), fires once per element.
+// Instant (no motion) when the user prefers reduced motion.
+function Reveal({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const reducedMotion = usePrefersReducedMotion();
+  if (reducedMotion) return <div className={className}>{children}</div>;
+  return (
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y: 22 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-80px' }}
+      transition={{ duration: 0.55, delay, ease: 'easeOut' }}
+    >
+      {children}
+    </motion.div>
+  );
 }
 
 // Cycles through: empty → items added one by one → paid → brief pause → reset.
@@ -355,6 +346,22 @@ export function LandingPage() {
     return () => { cancelled = true; };
   }, []);
 
+  // Real, live merchant count — see supabase/functions/platform-stats.
+  // No hardcoded fallback number: if the fetch fails, the stat card simply
+  // doesn't render rather than showing an unverifiable placeholder.
+  const [merchantCount, setMerchantCount] = useState<number | null>(null);
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('platform-stats');
+        if (error) throw error;
+        if (typeof data?.merchantCount === 'number') setMerchantCount(data.merchantCount);
+      } catch (error) {
+        console.error('platform-stats fetch failed:', error);
+      }
+    })();
+  }, []);
+
   const handleGetStarted = (e: React.FormEvent) => {
     e.preventDefault();
     if (email) {
@@ -575,51 +582,28 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Global markets band — real national flags (flagcdn.com), a visual
-          statement of reach, not a claim of customers/offices in each
-          country. UAE + strong African presence + rest of world, per brand
-          positioning (Liafrik, Dubai & Africa). */}
-      <section className="bg-white dark:bg-ink-950 py-8 border-b border-gray-100 dark:border-ink-800 overflow-hidden" aria-label="Global markets">
-        <p className="text-center text-xs font-semibold tracking-wide text-gray-500 dark:text-ink-400 mb-5 px-4">
-          {t('pLanding.flags.heading')}
-        </p>
-        <div className="flex w-max animate-[flagscroll_46s_linear_infinite] hover:[animation-play-state:paused] gap-5">
-          {[...FLAG_COUNTRIES, ...FLAG_COUNTRIES].map((c, i) => (
-            <div
-              key={`${c.code}-${i}`}
-              className="h-14 w-14 shrink-0 rounded-full overflow-hidden border border-gray-200 dark:border-ink-700 shadow-sm bg-gray-100"
-              title={c.name}
-            >
-              <img
-                src={`https://flagcdn.com/w160/${c.code}.png`}
-                alt={i < FLAG_COUNTRIES.length ? c.name : ''}
-                loading="lazy"
-                className="h-full w-full object-cover"
-              />
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* Real integrations ecosystem — live from the marketplace's own
           integration_providers table (same data /marketplace uses). Only
           providers actually seeded there (real logo_url) appear here, so
-          this can never overstate what's actually connectable today. */}
+          this can never overstate what's actually connectable today.
+          Reuses the existing .animate-marquee keyframe (src/index.css). */}
       {ecosystemProviders.length > 0 && (
         <section className="bg-gray-50 dark:bg-ink-900 py-10 border-b border-gray-200 dark:border-ink-800 overflow-hidden" aria-label="Integration ecosystem">
           <p className="text-center text-xs font-semibold tracking-wide text-gray-500 dark:text-ink-400 mb-6 px-4">
             {t('pLanding.ecosystem.heading')}
           </p>
-          <div className="flex w-max animate-[flagscroll_34s_linear_infinite] hover:[animation-play-state:paused] gap-3">
-            {[...ecosystemProviders, ...ecosystemProviders].map((p, i) => (
-              <div
-                key={`${p.provider_key}-${i}`}
-                className="flex items-center gap-2.5 h-[62px] min-w-[160px] px-5 rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-sm shrink-0"
-              >
-                <img src={p.logo_url} alt="" loading="lazy" className="h-7 w-7 object-contain" />
-                <span className="text-sm font-semibold text-gray-700 dark:text-ink-200 whitespace-nowrap">{p.provider_name}</span>
-              </div>
-            ))}
+          <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+            <div className="flex w-max animate-marquee gap-3 hover:[animation-play-state:paused]">
+              {[...ecosystemProviders, ...ecosystemProviders].map((p, i) => (
+                <div
+                  key={`${p.provider_key}-${i}`}
+                  className="flex items-center gap-2.5 h-[62px] min-w-[160px] px-5 rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-sm shrink-0"
+                >
+                  <img src={p.logo_url} alt="" loading="lazy" className="h-7 w-7 object-contain" />
+                  <span className="text-sm font-semibold text-gray-700 dark:text-ink-200 whitespace-nowrap">{p.provider_name}</span>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="text-center mt-6">
             <Link to="/marketplace" className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700">
@@ -629,60 +613,63 @@ export function LandingPage() {
         </section>
       )}
 
-      {/* Real, verifiable stats only — 30+ currencies (src/lib/currency.ts)
-          and 9+ payment processors (seeded integration_providers) are both
-          counted from actual code/data. No customer/merchant count is shown
-          here: there is no real, verifiable number for that yet — showing
-          one (a fabricated "1850+ merchants trust us" briefly existed here)
-          would be exactly the fake social proof this product's landing page
-          explicitly must never contain. Add it back only when there's a
-          real, sourced count to show. */}
-      <section className="bg-gray-50 dark:bg-ink-900 py-12 border-y border-gray-200 dark:border-ink-800">
+      {/* Real stats strip — 30+ currencies (src/lib/currency.ts) and 9+
+          payment processors (seeded integration_providers) are counted
+          directly from actual code/data. The merchant-count card is added
+          conditionally, ONLY once a real count is fetched live from the
+          platform-stats edge function (supabase/functions/platform-stats) —
+          never a hardcoded literal. A hardcoded "1850+ merchants" number
+          was added and removed twice before this because it wasn't backed
+          by anything queryable; this fetch is what makes it legitimate. */}
+      <section className="bg-gray-50 dark:bg-ink-900 py-16 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                <CountUp value={30} suffix="+" />
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.currencies')}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                <CountUp value={9} suffix="+" />
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.processors')}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">{t('pLanding.stats.internationalValue')}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.international')}</p>
-            </div>
+          <div className={`grid grid-cols-2 gap-4 md:gap-6 ${merchantCount !== null ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
+            {[
+              ...(merchantCount !== null
+                ? [{ icon: Users, value: merchantCount, suffix: '+', labelKey: 'pLanding.stats.clients' }]
+                : []),
+              { icon: Wallet, value: 30, suffix: '+', labelKey: 'pLanding.stats.currencies' },
+              { icon: Plug, value: 9, suffix: '+', labelKey: 'pLanding.stats.processors' },
+              { icon: Globe, value: null, labelKey: 'pLanding.stats.international' },
+            ].map((stat, i) => (
+              <Reveal key={stat.labelKey} delay={i * 0.08}>
+                <div className="h-full rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 px-5 py-7 text-center transition hover:border-brand-300 dark:hover:border-brand-500/40 hover:shadow-lg">
+                  <div className="w-11 h-11 mx-auto rounded-xl bg-brand-500/10 flex items-center justify-center mb-4">
+                    <stat.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+                  </div>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+                    {stat.value !== null ? <CountUp value={stat.value} suffix={stat.suffix} /> : t('pLanding.stats.internationalValue')}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t(stat.labelKey)}</p>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section id="features" className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-14">
+      <section id="features" className="py-24 px-4 lg:px-8 max-w-7xl mx-auto">
+        <Reveal className="text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
             {t('pLanding.features.title')}
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             {t('pLanding.features.desc')}
           </p>
-        </div>
+        </Reveal>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {FEATURE_KEYS.map((f) => (
-            <div
-              key={f.key}
-              className="rounded-xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 hover:border-brand-500/50 hover:shadow-lg transition"
-            >
-              <div className="w-11 h-11 rounded-lg bg-brand-500/10 flex items-center justify-center mb-4">
-                <f.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+          {FEATURE_KEYS.map((f, i) => (
+            <Reveal key={f.key} delay={i * 0.06}>
+              <div className="group relative h-full rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-brand-300 dark:hover:border-brand-500/50 hover:shadow-xl hover:shadow-brand-500/5">
+                <div className="w-11 h-11 rounded-xl bg-brand-500/10 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110">
+                  <f.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t(`pLanding.feature.${f.key}.title`)}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{t(`pLanding.feature.${f.key}.desc`)}</p>
               </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t(`pLanding.feature.${f.key}.title`)}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{t(`pLanding.feature.${f.key}.desc`)}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -732,9 +719,9 @@ export function LandingPage() {
       </section>
 
       {/* Pricing — light section (was hardcoded dark), fixed USD prices */}
-      <section id="pricing" className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
+      <section id="pricing" className="py-24 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-4">
+          <Reveal className="text-center mb-4">
             <div className="inline-block px-4 py-2 rounded-full bg-flow-500/10 border border-flow-500/30 text-flow-700 dark:text-flow-300 text-sm font-semibold mb-6">
               {t('pLanding.pricing.badge')}
             </div>
@@ -742,15 +729,18 @@ export function LandingPage() {
             <p className="text-lg text-gray-600 dark:text-ink-300 max-w-2xl mx-auto mb-2">
               {t('pLanding.pricing.desc')}
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-10 items-stretch">
-            {LANDING_PLANS.map((plan) => (
-              <PricingCard
-                key={plan.id}
-                plan={plan}
-                onSelect={() => navigate(plan.cta.href)}
-              />
+            {LANDING_PLANS.map((plan, i) => (
+              <Reveal key={plan.id} delay={i * 0.08} className="h-full">
+                <div className={plan.popular ? 'h-full rounded-2xl shadow-2xl shadow-brand-500/20' : 'h-full'}>
+                  <PricingCard
+                    plan={plan}
+                    onSelect={() => navigate(plan.cta.href)}
+                  />
+                </div>
+              </Reveal>
             ))}
           </div>
 
@@ -760,6 +750,8 @@ export function LandingPage() {
             </Link>
           </div>
         </div>
+
+        <CountryFlagsMarquee title={t('pLanding.worldwide.title')} lang={lang} />
       </section>
 
       {/* "Let's get busy"-style hero, in LiAfrik colors — checklist + email
@@ -818,24 +810,36 @@ export function LandingPage() {
 
             {/* Device mockup panel */}
             <div className="relative hidden lg:flex items-center justify-center p-12 overflow-hidden">
+              {/* Ambient glow behind the device */}
+              <div className="absolute w-72 h-72 bg-flow-400/30 rounded-full blur-3xl" aria-hidden="true" />
+
               <div className="relative w-full max-w-md" style={{ transform: 'perspective(1200px) rotateY(-18deg) rotateX(4deg)' }}>
                 {/* Monitor screen */}
-                <div className="rounded-xl bg-ink-950/90 border-4 border-ink-900 shadow-2xl p-4">
+                <div className="rounded-xl bg-ink-950/90 border-4 border-ink-900 shadow-2xl shadow-black/50 p-4">
                   <div className="grid grid-cols-4 gap-2 mb-3">
-                    {[0, 1, 2, 3].map((i) => (
-                      <div key={i} className="h-6 rounded bg-white/10" />
-                    ))}
+                    <div className="h-6 rounded bg-brand-400/40" />
+                    <div className="h-6 rounded bg-white/10" />
+                    <div className="h-6 rounded bg-white/10" />
+                    <div className="h-6 rounded bg-action-400/30" />
                   </div>
                   <div className="h-8 rounded bg-flow-500/40 mb-2" />
                   <div className="grid grid-cols-3 gap-2">
                     {Array.from({ length: 9 }).map((_, i) => (
-                      <div key={i} className="h-10 rounded bg-white/10" />
+                      <div key={i} className={`h-10 rounded ${i === 4 ? 'bg-brand-400/30' : 'bg-white/10'}`} />
                     ))}
                   </div>
                 </div>
                 {/* Stand */}
                 <div className="mx-auto w-4 h-10 bg-ink-800" />
                 <div className="mx-auto w-40 h-6 rounded-full bg-ink-900 shadow-xl" />
+                {/* Ground shadow */}
+                <div className="mx-auto w-48 h-3 rounded-full bg-black/40 blur-md -mt-1" />
+
+                {/* Floating live-status badge, echoing the hero demo's style */}
+                <div className="absolute -top-4 -right-6 flex items-center gap-2 rounded-full border border-white/10 bg-ink-900/95 backdrop-blur px-3 py-2 shadow-xl shadow-black/30">
+                  <span className="h-2 w-2 rounded-full bg-brand-400 animate-pulse" />
+                  <span className="text-xs font-medium text-white">{t('pLanding.busyHero.liveBadge')}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -843,16 +847,22 @@ export function LandingPage() {
       </section>
 
       {/* Why LiAfrik built this */}
-      <section className="py-20 px-4 lg:px-8 max-w-5xl mx-auto text-center">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-          {t('pLanding.why.title')}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left mt-10">
-          {(['point1', 'point2', 'point3'] as const).map((key) => (
-            <div key={key} className="flex items-start gap-3">
-              <Check className="w-5 h-5 text-brand-600 flex-shrink-0 mt-1" />
-              <p className="text-gray-600 dark:text-gray-300">{t(`pLanding.why.${key}`)}</p>
-            </div>
+      <section className="py-24 px-4 lg:px-8 max-w-6xl mx-auto">
+        <Reveal className="text-center mb-14">
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+            {t('pLanding.why.title')}
+          </h2>
+        </Reveal>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {(['point1', 'point2', 'point3'] as const).map((key, i) => (
+            <Reveal key={key} delay={i * 0.08}>
+              <div className="h-full rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/5">
+                <div className="w-11 h-11 rounded-xl bg-brand-500/10 flex items-center justify-center mb-5">
+                  <Check className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+                </div>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{t(`pLanding.why.${key}`)}</p>
+              </div>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -915,7 +925,7 @@ export function LandingPage() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_20%,rgba(20,181,148,0.18),transparent)]" />
         </div>
 
-        <div className="relative max-w-4xl mx-auto px-4 py-24 lg:px-8 text-center">
+        <Reveal className="relative max-w-4xl mx-auto px-4 py-24 lg:px-8 text-center">
           <div className="mb-6 inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 backdrop-blur">
             <Globe size={14} className="text-flow-400" />
             <span className="text-xs font-medium tracking-wide text-ink-200">{t('pLanding.secondHero.badge')}</span>
@@ -924,11 +934,11 @@ export function LandingPage() {
           <p className="text-lg text-ink-300 mb-10 max-w-xl mx-auto">{t('pLanding.finalCta.desc')}</p>
           <Link
             to="/signup"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-brand-500 text-white rounded-full font-semibold hover:bg-brand-600 transition shadow-lg shadow-brand-500/30"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-brand-500 text-white rounded-full font-semibold hover:bg-brand-600 active:scale-[0.98] transition-all shadow-lg shadow-brand-500/30 hover:shadow-brand-500/40"
           >
             {t('pLanding.finalCta.button')} <ArrowRight size={18} />
           </Link>
-        </div>
+        </Reveal>
       </section>
 
       {/* Let's work together section */}
@@ -967,52 +977,104 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Keep things flowing section */}
+      {/* Keep things flowing section — four real product mockups (stock
+          movement, day-open staff clock-in, a POS sale ticket using the same
+          generic retail demo items as the hero above, and a return/exchange
+          store-credit ticket). Every figure shown is illustrative UI, not a
+          marketing stat — no invented percentages or fabricated feature
+          (there is no loyalty/points system in this product; store credit,
+          via Returns/Exchange, is the real equivalent). */}
       <section className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-16">
-            {t('pLanding.keepFlowing.title') || 'Keep things flowing with\nthe all-in-one platform'}
-          </h2>
+          <Reveal>
+            <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-16 whitespace-pre-line">
+              {t('pLanding.keepFlowing.title')}
+            </h2>
+          </Reveal>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Stat Cards */}
-            <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg">
-              <div className="text-4xl font-bold text-brand-600 mb-2">+34%</div>
-              <p className="text-sm font-semibold text-ink-600 dark:text-ink-400 mb-4">Sales Increase</p>
-              <p className="text-sm text-ink-500 dark:text-ink-400">Average growth for our customers</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-ink-800 to-ink-900 p-8 rounded-xl shadow-lg text-white">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-flow-500 mb-4">
-                <span className="text-2xl">⏱️</span>
+            {/* Card 1 — stock/sales movement, generic categories, no invented % */}
+            <Reveal delay={0}>
+            <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+              <div className="flex items-end gap-2.5 h-24 mb-5">
+                {[
+                  { h: 55, up: true, Icon: Package },
+                  { h: 78, up: true, Icon: ShoppingCart },
+                  { h: 38, up: false, Icon: Receipt },
+                  { h: 92, up: true, Icon: Store },
+                  { h: 64, up: false, Icon: Wallet },
+                ].map(({ h, up, Icon }, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
+                    {up
+                      ? <TrendingUp size={12} className="text-brand-500" />
+                      : <TrendingUp size={12} className="text-ink-300 dark:text-ink-600 rotate-180" />}
+                    <div
+                      className={`w-full rounded-t-md ${up ? 'bg-brand-500' : 'bg-ink-200 dark:bg-ink-600'}`}
+                      style={{ height: `${h}%` }}
+                    />
+                    <Icon size={14} className="text-ink-400 dark:text-ink-500" />
+                  </div>
+                ))}
               </div>
-              <p className="text-sm font-semibold mb-2">Staff Clock-in</p>
-              <p className="text-xs text-white/70">Real-time employee tracking</p>
+              <p className="font-semibold text-ink-900 dark:text-white text-sm mb-1">{t('pLanding.keepFlowing.card1.title')}</p>
+              <p className="text-xs text-ink-500 dark:text-ink-400">{t('pLanding.keepFlowing.card1.desc')}</p>
             </div>
+            </Reveal>
 
-            <div className="bg-gradient-to-br from-action-50 to-flow-50 dark:from-ink-800 dark:to-ink-900 p-8 rounded-xl shadow-lg">
-              <div className="text-4xl mb-4">📊</div>
-              <p className="font-semibold text-ink-900 dark:text-white mb-2">Order #568</p>
+            {/* Card 2 — day-open staff clock-in (real module: petty cash + staff present) */}
+            <Reveal delay={0.08}>
+            <div className="bg-gradient-to-br from-ink-800 to-ink-900 p-8 rounded-xl shadow-lg text-white flex flex-col items-center text-center h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+              <div className="relative w-24 h-24 mb-5">
+                <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="6" strokeDasharray="2 8.5" strokeLinecap="round" />
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="#14B594" strokeWidth="6" strokeLinecap="round" strokeDasharray="264" strokeDashoffset="64" />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Clock size={26} className="text-flow-400" />
+                </div>
+              </div>
+              <p className="text-sm font-semibold">{t('pLanding.keepFlowing.card2.name')}</p>
+              <p className="text-xs text-white/70 mb-3">{t('pLanding.keepFlowing.card2.status')}</p>
+              <p className="text-sm font-semibold">{t('pLanding.keepFlowing.card2.title')}</p>
+              <p className="text-xs text-white/70">{t('pLanding.keepFlowing.card2.desc')}</p>
+            </div>
+            </Reveal>
+
+            {/* Card 3 — a real sale ticket, same generic demo items as the hero */}
+            <Reveal delay={0.16}>
+            <div className="bg-gradient-to-br from-action-50 to-flow-50 dark:from-ink-800 dark:to-ink-900 p-8 rounded-xl shadow-lg h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+              <div className="w-10 h-10 rounded-lg bg-white dark:bg-ink-900 shadow-sm flex items-center justify-center mb-4">
+                <Receipt size={18} className="text-action-500" />
+              </div>
+              <p className="font-semibold text-ink-900 dark:text-white mb-3">{t('pLanding.keepFlowing.card3.title')}</p>
               <div className="space-y-2">
-                <p className="text-sm text-ink-700 dark:text-ink-300">🍔 Classic Burger</p>
-                <p className="text-sm text-ink-700 dark:text-ink-300">🍟 Truffle Fries</p>
-                <p className="text-sm text-ink-700 dark:text-ink-300">🥤 Chocolate Shake</p>
+                {(['item1', 'item2', 'item3'] as const).map((key) => (
+                  <div key={key} className="flex items-center justify-between text-sm text-ink-700 dark:text-ink-300">
+                    <span>{t(`pLanding.hero.demo.${key}`)}</span>
+                    <div className="h-1.5 w-10 rounded-full bg-white/60 dark:bg-white/10" />
+                  </div>
+                ))}
               </div>
             </div>
+            </Reveal>
 
-            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700">
+            {/* Card 4 — store credit (real: issued by Returns/Exchange when the manager's refund policy is "credit ticket") */}
+            <Reveal delay={0.24}>
+            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700 h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-brand-600" />
+                <div className="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center">
+                  <CreditCard size={18} className="text-white" />
+                </div>
                 <div>
-                  <p className="font-semibold text-ink-900 dark:text-white text-sm">Sarah Johnson</p>
-                  <p className="text-xs text-ink-600 dark:text-ink-400">Member since 2022</p>
+                  <p className="font-semibold text-ink-900 dark:text-white text-sm">{t('pLanding.keepFlowing.card4.title')}</p>
+                  <p className="text-xs text-ink-600 dark:text-ink-400">{t('pLanding.keepFlowing.card4.desc')}</p>
                 </div>
               </div>
               <div className="bg-gray-100 dark:bg-ink-900 p-3 rounded-lg">
-                <p className="font-bold text-brand-600 text-2xl">3,247</p>
-                <p className="text-xs text-ink-600 dark:text-ink-400">Points Balance</p>
+                <p className="font-bold text-brand-600 text-xl">{t('pLanding.keepFlowing.card4.label')}</p>
               </div>
             </div>
+            </Reveal>
           </div>
 
           {/* CTA */}
@@ -1021,7 +1083,7 @@ export function LandingPage() {
               to="/pricing"
               className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
             >
-              {t('pLanding.keepFlowing.cta') || 'Explore Our Platform'} <ArrowRight size={18} />
+              {t('pLanding.keepFlowing.cta')} <ArrowRight size={18} />
             </Link>
           </div>
         </div>
