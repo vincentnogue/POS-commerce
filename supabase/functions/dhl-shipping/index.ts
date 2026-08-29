@@ -251,7 +251,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const url = new URL(req.url);
-    const action = url.searchParams.get("action") || "create_shipment";
+    const _action = url.searchParams.get("action") || "create_shipment";
 
     if (req.method === "POST") {
       const body = (await req.json()) as DhlShipmentRequest;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { UserCog, Plus, Trash2, Shield, Pencil } from 'lucide-react';
+import { UserCog, Plus, Trash2, Shield, Pencil, KeyRound } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -67,6 +67,32 @@ export function UsersPage() {
   const [invitePassword, setInvitePassword] = useState('');
   const [info, setInfo] = useState<string | null>(null);
   const [inviting, setInviting] = useState(false);
+
+  // Staff PIN modal (D365-style Staff ID + code: the admin sets this code,
+  // it's what proves a typed Staff ID on a shared terminal, e.g. transfers/RMS)
+  const [pinModalMember, setPinModalMember] = useState<Member | null>(null);
+  const [pinValue, setPinValue] = useState('');
+  const [pinSaving, setPinSaving] = useState(false);
+  const [pinErr, setPinErr] = useState<string | null>(null);
+
+  const openPinModal = (m: Member) => { setPinModalMember(m); setPinValue(''); setPinErr(null); };
+
+  const savePin = async () => {
+    if (!tenant || !pinModalMember) return;
+    if (!/^[0-9]{4,8}$/.test(pinValue)) { setPinErr(t('users.pinInvalid')); return; }
+    setPinSaving(true);
+    setPinErr(null);
+    const { error } = await supabase.rpc('set_staff_pin', {
+      p_tenant_id: tenant.id,
+      p_member_id: pinModalMember.id,
+      p_pin: pinValue,
+      p_user_id: member?.user_id,
+    });
+    setPinSaving(false);
+    if (error) { setPinErr(error.message); return; }
+    setInfo(t('users.pinSetSuccess', { name: pinModalMember.display_name ?? t('users.thisUser') }));
+    setPinModalMember(null);
+  };
 
   // Role editor modal
   const [roleModalOpen, setRoleModalOpen] = useState(false);
@@ -285,6 +311,9 @@ export function UsersPage() {
                         {customRole?.name ?? t(ROLE_LABELS[m.role]?.key ?? 'users.role.staff')}
                       </Badge>
                       {canManageRoles && m.role !== 'super_admin' && (
+                        <button onClick={() => openPinModal(m)} title={t('users.setPin')} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><KeyRound size={15} /></button>
+                      )}
+                      {canManageRoles && m.role !== 'super_admin' && (
                         <button onClick={() => remove(m)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
                       )}
                     </div>
@@ -421,6 +450,26 @@ export function UsersPage() {
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={() => setRoleModalOpen(false)} className="btn-ghost">{t('common.cancel')}</button>
           <button onClick={saveRole} className="btn-primary">{editingRole ? t('users.save') : t('users.createRoleBtn')}</button>
+        </div>
+      </Modal>
+
+      <Modal open={!!pinModalMember} onClose={() => setPinModalMember(null)} title={t('users.setPinFor', { name: pinModalMember?.display_name ?? t('users.thisUser') })}>
+        <p className="mb-3 text-sm text-ink-500 dark:text-ink-400">{t('users.pinExplain', { code: pinModalMember?.staff_code ?? '—' })}</p>
+        <Field label={t('users.pinLabel')}>
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={8}
+            value={pinValue}
+            onChange={(e) => setPinValue(e.target.value.replace(/[^0-9]/g, ''))}
+            placeholder="1234"
+            className="input tracking-widest"
+          />
+        </Field>
+        {pinErr && <p className="mt-2 text-sm text-error-600">{pinErr}</p>}
+        <div className="mt-6 flex justify-end gap-2">
+          <button onClick={() => setPinModalMember(null)} className="btn-ghost">{t('common.cancel')}</button>
+          <button onClick={savePin} disabled={pinSaving} className="btn-primary">{t('users.save')}</button>
         </div>
       </Modal>
     </div>

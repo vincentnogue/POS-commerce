@@ -65,6 +65,7 @@ export default {
       fontFamily: {
         sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
         display: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+        heading: ['Poppins', 'Plus Jakarta Sans', 'Inter', 'sans-serif'],
       },
       borderRadius: {
         xl2: '1.25rem',

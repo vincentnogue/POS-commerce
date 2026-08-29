@@ -44,7 +44,7 @@ export function SignupPage() {
           navigate('/onboarding', { replace: true });
           return;
         }
-      } catch (err) {
+      } catch (_err) {
         // Continue retrying
       }
       retries++;

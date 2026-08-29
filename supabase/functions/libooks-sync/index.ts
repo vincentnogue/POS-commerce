@@ -316,7 +316,7 @@ Deno.serve(async (req: Request) => {
     let result: any = { success: false };
 
     switch (body.action) {
-      case "sync_sales":
+      case "sync_sales": {
         if (!body.entries || body.entries.length === 0) {
           return new Response(
             JSON.stringify({ success: false, message: "No sales to sync" }),
@@ -351,8 +351,9 @@ Deno.serve(async (req: Request) => {
         );
         result = { success: true, synced: salesResult.synced };
         break;
+      }
 
-      case "sync_expenses":
+      case "sync_expenses": {
         if (!body.entries || body.entries.length === 0) {
           return new Response(
             JSON.stringify({ success: false, message: "No expenses to sync" }),
@@ -387,8 +388,9 @@ Deno.serve(async (req: Request) => {
         );
         result = { success: true, synced: expenseResult.synced };
         break;
+      }
 
-      case "sync_invoices":
+      case "sync_invoices": {
         if (!body.entries || body.entries.length === 0) {
           return new Response(
             JSON.stringify({ success: false, message: "No invoices to sync" }),
@@ -423,8 +425,9 @@ Deno.serve(async (req: Request) => {
         );
         result = { success: true, synced: invoiceResult.synced };
         break;
+      }
 
-      case "get_accounts":
+      case "get_accounts": {
         const accountsResult = await getAccountsFromLibooks(apiKey);
         if (accountsResult.error) {
           return new Response(
@@ -434,6 +437,7 @@ Deno.serve(async (req: Request) => {
         }
         result = { success: true, accounts: accountsResult.accounts };
         break;
+      }
 
       default:
         return new Response(

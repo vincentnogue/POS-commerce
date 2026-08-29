@@ -166,8 +166,8 @@ async function getSubscriptionStatus(
  * Get Stripe credentials
  */
 async function getStripeCredentials(
-  supabaseUrl: string,
-  serviceRoleKey: string
+  _supabaseUrl: string,
+  _serviceRoleKey: string
 ): Promise<{ secretKey?: string; publishableKey?: string; error?: string }> {
   try {
     // For SaaS subscriptions, use environment variables

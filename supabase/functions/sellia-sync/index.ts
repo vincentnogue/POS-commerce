@@ -273,7 +273,7 @@ Deno.serve(async (req: Request) => {
     let result: any = { success: false };
 
     switch (body.action) {
-      case "sync_products_push":
+      case "sync_products_push": {
         if (!body.products || body.products.length === 0) {
           return new Response(
             JSON.stringify({ success: false, message: "No products to sync" }),
@@ -312,8 +312,9 @@ Deno.serve(async (req: Request) => {
         );
         result = { success: true, synced: pushResult.synced };
         break;
+      }
 
-      case "sync_products_pull":
+      case "sync_products_pull": {
         const pullResult = await pullProductsFromSellia(apiKey);
         if (pullResult.error) {
           await logSyncOperation(
@@ -346,8 +347,9 @@ Deno.serve(async (req: Request) => {
         );
         result = { success: true, products: pullResult.products, count: pullResult.products?.length || 0 };
         break;
+      }
 
-      case "sync_inventory":
+      case "sync_inventory": {
         if (!body.products || body.products.length === 0) {
           return new Response(
             JSON.stringify({ success: false, message: "No inventory to sync" }),
@@ -386,6 +388,7 @@ Deno.serve(async (req: Request) => {
         );
         result = { success: true, updated: inventoryResult.updated };
         break;
+      }
 
       default:
         return new Response(

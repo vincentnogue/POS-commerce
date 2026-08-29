@@ -20,7 +20,7 @@ async function verifyTenantAccess(
   supabaseUrl: string,
   serviceRoleKey: string,
   tenantId: string,
-  module: string
+  _module: string
 ): Promise<{ allowed: boolean; reason?: string; trial?: boolean; requiresPayment?: boolean }> {
   try {
     // Check tenant trial status
@@ -91,7 +91,7 @@ async function verifyTenantAccess(
 /**
  * Log super admin activity for audit trail
  */
-async function logSuperAdminActivity(
+async function _logSuperAdminActivity(
   supabaseUrl: string,
   serviceRoleKey: string,
   superAdminId: string,
@@ -133,7 +133,7 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const authHeader = req.headers.get("Authorization");
+    const _authHeader = req.headers.get("Authorization");
 
     if (!supabaseUrl || !serviceRoleKey) {
       return new Response(

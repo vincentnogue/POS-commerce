@@ -136,7 +136,7 @@ async function refundFlutterwaveTransaction(
   secretKey: string,
   transactionId: string,
   amount?: number,
-  reason?: string
+  _reason?: string
 ): Promise<{ refundId?: string; status?: string; error?: string }> {
   try {
     const body: Record<string, unknown> = {
