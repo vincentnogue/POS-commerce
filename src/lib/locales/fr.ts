@@ -1368,6 +1368,7 @@ export const fr: Record<string, string> = {
   "nav.freeTrial": "Essai gratuit",
 
   // Public landing page (current, honest content — src/pages/LandingPage.tsx)
+  "pLanding.nav.products": "Produits",
   "pLanding.nav.productsFeatures": "Caisse, stock & facturation",
   "pLanding.nav.productsMarketplace": "Marketplace & intégrations",
   "pLanding.nav.pricing": "Tarifs",

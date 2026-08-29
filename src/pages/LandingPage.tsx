@@ -340,7 +340,7 @@ export function LandingPage() {
             <nav className="hidden md:flex items-center gap-8">
               <div className="relative group">
                 <button className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600 flex items-center gap-1">
-                  Produits <ChevronDown size={16} />
+                  {t('pLanding.nav.products')} <ChevronDown size={16} />
                 </button>
                 <div className="absolute left-0 mt-0 w-64 bg-white dark:bg-ink-900 border border-gray-200 dark:border-ink-700 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition">
                   <a href="#features" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">{t('pLanding.nav.productsFeatures')}</a>
@@ -396,6 +396,7 @@ export function LandingPage() {
               <a href="#pricing" onClick={scrollToPricing} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.pricing')}</a>
               <Link to="/about" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.about')}</Link>
               <Link to="/documentation" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.docs')}</Link>
+              <Link to="/resources" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.resources')}</Link>
               <Link to="/help" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.help')}</Link>
               <Link to="/login" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.login')}</Link>
               <Link to="/signup" className="block w-full px-6 py-2 bg-brand-600 text-white rounded-full font-medium text-center">{t('pLanding.nav.cta')}</Link>
@@ -802,6 +803,7 @@ export function LandingPage() {
             <div>
               <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.resources')}</p>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <li><Link to="/resources" className="hover:text-brand-600">{t('pLanding.footer.resources')}</Link></li>
                 <li><Link to="/help" className="hover:text-brand-600">{t('pLanding.footer.help')}</Link></li>
                 <li><Link to="/documentation" className="hover:text-brand-600">{t('pLanding.footer.docs')}</Link></li>
               </ul>
