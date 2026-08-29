@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '../lib/i18n';
+import { supabase } from '../lib/supabase';
 import { PricingCard, type PricingPlan } from '../components/PricingCard';
 import { PLANS as REAL_PLANS } from '../lib/plans';
 
@@ -35,21 +36,43 @@ const DEMO_ITEMS = [
   { key: 'item3', price: 1.5, qty: 3 },
 ] as const;
 
-// Swappable trust-marquee logos — real <img> files under /public/logos/.
-// IMPORTANT: these are intentionally generic "logo slot" placeholders, NOT
-// invented company names (an earlier version used made-up names like
-// "Retail Group Afrique", which a site visitor would read as real
-// customers — that's fabricated social proof and was correctly removed).
-// Swap the 6 files in /public/logos/ for real partner/customer logos (with
-// their permission) whenever they're available; no code change needed.
-const LOGO_PLACEHOLDERS = [
-  { src: '/logos/partner-1.svg', alt: 'Emplacement logo partenaire' },
-  { src: '/logos/partner-2.svg', alt: 'Emplacement logo partenaire' },
-  { src: '/logos/partner-3.svg', alt: 'Emplacement logo partenaire' },
-  { src: '/logos/partner-4.svg', alt: 'Emplacement logo partenaire' },
-  { src: '/logos/partner-5.svg', alt: 'Emplacement logo partenaire' },
-  { src: '/logos/partner-6.svg', alt: 'Emplacement logo partenaire' },
-];
+// Real national flags (flagcdn.com, ISO 3166-1 alpha-2 codes) — UAE-anchored
+// with a strong African footprint, then rest of world. Purely a visual
+// statement of geographic reach, not a claim of offices/customers per country.
+const FLAG_COUNTRIES = [
+  { code: 'ae', name: 'United Arab Emirates' },
+  { code: 'ng', name: 'Nigeria' },
+  { code: 'gh', name: 'Ghana' },
+  { code: 'ke', name: 'Kenya' },
+  { code: 'za', name: 'South Africa' },
+  { code: 'cm', name: 'Cameroon' },
+  { code: 'sn', name: 'Senegal' },
+  { code: 'ci', name: "Côte d'Ivoire" },
+  { code: 'ug', name: 'Uganda' },
+  { code: 'tz', name: 'Tanzania' },
+  { code: 'ma', name: 'Morocco' },
+  { code: 'eg', name: 'Egypt' },
+  { code: 'et', name: 'Ethiopia' },
+  { code: 'rw', name: 'Rwanda' },
+  { code: 'bw', name: 'Botswana' },
+  { code: 'fr', name: 'France' },
+  { code: 'gb', name: 'United Kingdom' },
+  { code: 'us', name: 'United States' },
+  { code: 'ca', name: 'Canada' },
+  { code: 'sa', name: 'Saudi Arabia' },
+  { code: 'qa', name: 'Qatar' },
+  { code: 'in', name: 'India' },
+  { code: 'au', name: 'Australia' },
+] as const;
+
+// Shape of a row from the real integration_providers table, used only for
+// the landing page's ecosystem strip (subset of columns, public-readable).
+type EcosystemProvider = {
+  provider_key: string;
+  provider_name: string;
+  logo_url: string;
+  category: string;
+};
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -311,6 +334,26 @@ export function LandingPage() {
   const { lang, setLang, t } = useI18n();
   const navigate = useNavigate();
   const heroReducedMotion = usePrefersReducedMotion();
+  const [ecosystemProviders, setEcosystemProviders] = useState<EcosystemProvider[]>([]);
+
+  // Real integrations only — pulled live from the same integration_providers
+  // table that powers /marketplace (public SELECT policy, no auth needed).
+  // Never hardcode brand names here: if a provider isn't actually in the
+  // marketplace yet, it must not appear as "compatible" on the landing page.
+  useEffect(() => {
+    let cancelled = false;
+    supabase
+      .from('integration_providers')
+      .select('provider_key, provider_name, logo_url, category')
+      .eq('is_active', true)
+      .not('logo_url', 'is', null)
+      .order('is_featured', { ascending: false })
+      .limit(14)
+      .then(({ data }) => {
+        if (!cancelled && data) setEcosystemProviders(data as EcosystemProvider[]);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const handleGetStarted = (e: React.FormEvent) => {
     e.preventDefault();
@@ -532,16 +575,71 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Real stats strip — international framing, animated count-up */}
+      {/* Global markets band — real national flags (flagcdn.com), a visual
+          statement of reach, not a claim of customers/offices in each
+          country. UAE + strong African presence + rest of world, per brand
+          positioning (Liafrik, Dubai & Africa). */}
+      <section className="bg-white dark:bg-ink-950 py-8 border-b border-gray-100 dark:border-ink-800 overflow-hidden" aria-label="Global markets">
+        <p className="text-center text-xs font-semibold tracking-wide text-gray-500 dark:text-ink-400 mb-5 px-4">
+          {t('pLanding.flags.heading')}
+        </p>
+        <div className="flex w-max animate-[flagscroll_46s_linear_infinite] hover:[animation-play-state:paused] gap-5">
+          {[...FLAG_COUNTRIES, ...FLAG_COUNTRIES].map((c, i) => (
+            <div
+              key={`${c.code}-${i}`}
+              className="h-14 w-14 shrink-0 rounded-full overflow-hidden border border-gray-200 dark:border-ink-700 shadow-sm bg-gray-100"
+              title={c.name}
+            >
+              <img
+                src={`https://flagcdn.com/w160/${c.code}.png`}
+                alt={i < FLAG_COUNTRIES.length ? c.name : ''}
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Real integrations ecosystem — live from the marketplace's own
+          integration_providers table (same data /marketplace uses). Only
+          providers actually seeded there (real logo_url) appear here, so
+          this can never overstate what's actually connectable today. */}
+      {ecosystemProviders.length > 0 && (
+        <section className="bg-gray-50 dark:bg-ink-900 py-10 border-b border-gray-200 dark:border-ink-800 overflow-hidden" aria-label="Integration ecosystem">
+          <p className="text-center text-xs font-semibold tracking-wide text-gray-500 dark:text-ink-400 mb-6 px-4">
+            {t('pLanding.ecosystem.heading')}
+          </p>
+          <div className="flex w-max animate-[flagscroll_34s_linear_infinite] hover:[animation-play-state:paused] gap-3">
+            {[...ecosystemProviders, ...ecosystemProviders].map((p, i) => (
+              <div
+                key={`${p.provider_key}-${i}`}
+                className="flex items-center gap-2.5 h-[62px] min-w-[160px] px-5 rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-sm shrink-0"
+              >
+                <img src={p.logo_url} alt="" loading="lazy" className="h-7 w-7 object-contain" />
+                <span className="text-sm font-semibold text-gray-700 dark:text-ink-200 whitespace-nowrap">{p.provider_name}</span>
+              </div>
+            ))}
+          </div>
+          <div className="text-center mt-6">
+            <Link to="/marketplace" className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700">
+              {t('pLanding.ecosystem.cta')} <ArrowRight size={14} />
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* Real, verifiable stats only — 30+ currencies (src/lib/currency.ts)
+          and 9+ payment processors (seeded integration_providers) are both
+          counted from actual code/data. No customer/merchant count is shown
+          here: there is no real, verifiable number for that yet — showing
+          one (a fabricated "1850+ merchants trust us" briefly existed here)
+          would be exactly the fake social proof this product's landing page
+          explicitly must never contain. Add it back only when there's a
+          real, sourced count to show. */}
       <section className="bg-gray-50 dark:bg-ink-900 py-12 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                <CountUp value={1850} suffix="+" />
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.clients')}</p>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             <div className="text-center">
               <p className="text-3xl font-bold text-gray-900 dark:text-white">
                 <CountUp value={30} suffix="+" />
@@ -558,29 +656,6 @@ export function LandingPage() {
               <p className="text-3xl font-bold text-gray-900 dark:text-white">{t('pLanding.stats.internationalValue')}</p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.international')}</p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Trust marquee — scrolling logo band. Generic placeholder logo
-          slots (see LOGO_PLACEHOLDERS above) — not fabricated company
-          names, ready to swap for real partner/customer logos. */}
-      <section className="bg-white dark:bg-ink-950 py-10 border-b border-gray-200 dark:border-ink-800 overflow-hidden">
-        <p className="text-center text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-ink-500 mb-6">
-          {t('pLanding.trust.title')}
-        </p>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white dark:from-ink-950 to-transparent z-10" />
-          <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white dark:from-ink-950 to-transparent z-10" />
-          <div className="flex w-max animate-marquee gap-16 px-8">
-            {[...LOGO_PLACEHOLDERS, ...LOGO_PLACEHOLDERS].map((logo, i) => (
-              <img
-                key={`${logo.src}-${i}`}
-                src={logo.src}
-                alt={logo.alt}
-                className="h-10 shrink-0 opacity-90 dark:opacity-80"
-              />
-            ))}
           </div>
         </div>
       </section>
@@ -609,6 +684,50 @@ export function LandingPage() {
               <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{t(`pLanding.feature.${f.key}.desc`)}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Industries + Hardware teaser — links to the real dedicated pages
+          (IndustrySolutionsPage, HardwarePage) rather than duplicating their
+          content here. Only the 3 verticals that page actually documents
+          today (post restaurant-claims cleanup). */}
+      <section className="py-16 px-4 lg:px-8 max-w-7xl mx-auto">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3">
+            {t('pLanding.industries.title')}
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            {t('pLanding.industries.desc')}
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          {[
+            { icon: Store, key: 'retail' },
+            { icon: Smartphone, key: 'services' },
+            { icon: BarChart3, key: 'professional' },
+          ].map((ind) => (
+            <Link
+              key={ind.key}
+              to="/industry-solutions"
+              className="group rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-7 hover:border-brand-500/50 hover:shadow-lg transition"
+            >
+              <div className="w-11 h-11 rounded-lg bg-brand-500/10 flex items-center justify-center mb-4">
+                <ind.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+              </div>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-1.5">{t(`pLanding.industries.${ind.key}.title`)}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-3">{t(`pLanding.industries.${ind.key}.desc`)}</p>
+              <span className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 group-hover:gap-2 transition-all">
+                {t('pLanding.industries.link')} <ArrowRight size={14} />
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-gray-200 dark:border-ink-700 bg-gray-50 dark:bg-ink-900 px-7 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-gray-700 dark:text-gray-300">{t('pLanding.hardwareTeaser.text')}</p>
+          <Link to="/hardware" className="inline-flex items-center gap-1.5 shrink-0 text-sm font-semibold text-brand-600 hover:text-brand-700">
+            {t('pLanding.hardwareTeaser.cta')} <ArrowRight size={14} />
+          </Link>
         </div>
       </section>
 
@@ -779,132 +898,135 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Let's work together section - REAL & SIMPLE */}
+      {/* Let's work together section */}
       <section className="py-20 px-4 lg:px-8 bg-white dark:bg-ink-900">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left content */}
             <div>
-              <h2 className="text-5xl lg:text-6xl font-bold text-ink-900 dark:text-white mb-6 leading-tight">
-                Let's work together<br />to find the right<br />system for your<br />business
+              <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-6 leading-tight">
+                {t('pLanding.workTogether.title') || 'Let\'s work together\nto find the right\nsystem for your\nbusiness'}
               </h2>
-              
               <p className="text-lg text-ink-700 dark:text-ink-300 mb-8 leading-relaxed">
-                Our business consultants are available in person or by phone to help you find the right system. We'll help you get up and running, and then we're available 24/7/365 for troubleshooting and support.<br /><br />We're here to help—always.
+                {t('pLanding.workTogether.desc') || 'Our business consultants are available in person or by phone to help you find the right system. We\'ll help you get up and running, and then we\'re available 24/7/365 for troubleshooting and support.\n\nWe\'re here to help—always.'}
               </p>
 
+              <div className="space-y-4 mb-8">
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-1 text-white text-sm font-bold">✓</div>
+                  <div>
+                    <p className="font-semibold text-ink-900 dark:text-white">Free Business Assessment</p>
+                    <p className="text-sm text-ink-600 dark:text-ink-400">Understand your needs and challenges</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-1 text-white text-sm font-bold">✓</div>
+                  <div>
+                    <p className="font-semibold text-ink-900 dark:text-white">Personalized Recommendation</p>
+                    <p className="text-sm text-ink-600 dark:text-ink-400">Custom solution for your industry & budget</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-1 text-white text-sm font-bold">✓</div>
+                  <div>
+                    <p className="font-semibold text-ink-900 dark:text-white">Implementation Support</p>
+                    <p className="text-sm text-ink-600 dark:text-ink-400">Dedicated specialist guides your setup</p>
+                  </div>
+                </div>
+              </div>
+              
               <div className="mb-8">
-                <p className="text-sm font-bold text-ink-900 dark:text-white mb-2">Call now</p>
+                <p className="text-sm font-bold text-ink-600 dark:text-ink-400 mb-2">{t('pLanding.workTogether.callLabel') || 'Call now'}</p>
                 <p className="text-3xl font-bold text-brand-600 dark:text-brand-400 mb-6">+971XXXXXXXX</p>
               </div>
 
               <Link
                 to="/contact"
-                className="inline-block px-8 py-3 border-2 border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400 rounded-lg font-semibold hover:bg-brand-50 dark:hover:bg-brand-600/10 transition"
+                className="inline-flex items-center gap-2 px-6 py-3 border-2 border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400 rounded-lg font-semibold hover:bg-brand-50 dark:hover:bg-brand-600/10 transition"
               >
-                Schedule a call
+                {t('pLanding.workTogether.cta') || 'Schedule a call'}
               </Link>
             </div>
 
-            <div className="relative h-96 rounded-xl overflow-hidden shadow-2xl bg-gradient-to-br from-brand-100 via-flow-100 to-action-100 dark:from-ink-800 dark:via-ink-700 dark:to-ink-600 flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-7xl mb-4">👩‍💼</div>
-                <p className="text-lg font-bold text-ink-900 dark:text-white">Expert Consultation</p>
+            {/* Right image (placeholder gradient) */}
+            <div className="relative h-96 rounded-xl overflow-hidden shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-100 to-flow-100 dark:from-ink-800 dark:to-ink-700 flex items-center justify-center">
+                <div className="text-6xl">👩‍💼</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Keep things flowing section - REAL DASHBOARD */}
-      <section className="py-20 px-4 lg:px-8 bg-gradient-to-b from-gray-50 to-white dark:from-ink-950 dark:to-ink-900 border-t border-gray-200 dark:border-ink-800">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl lg:text-6xl font-bold text-ink-900 dark:text-white mb-6 leading-tight">
-            Keep things flowing with the all-in-one platform
+      {/* Keep things flowing section */}
+      <section className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-16">
+            {t('pLanding.keepFlowing.title') || 'Keep things flowing with\nthe all-in-one platform'}
           </h2>
-          
-          <p className="text-lg text-ink-600 dark:text-ink-400 mb-16 max-w-2xl">
-            Transform your business with integrated software designed to streamline operations, enhance customer experiences, and boost profitability through insights.
-          </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {/* Revenue Card */}
-            <div className="bg-white dark:bg-ink-800 p-8 rounded-lg border border-gray-200 dark:border-ink-700 shadow-md">
-              <p className="text-sm text-ink-600 dark:text-ink-400 font-medium mb-2">Daily Revenue</p>
-              <p className="text-4xl font-bold text-brand-600 dark:text-brand-400 mb-3">AED 15,240</p>
-              <p className="text-sm text-green-600 dark:text-green-400 mb-6">↑ 32% vs yesterday</p>
-              <div className="flex items-end gap-2 h-16">
-                <div className="flex-1 bg-brand-500 rounded h-1/3" />
-                <div className="flex-1 bg-brand-600 rounded h-1/2" />
-                <div className="flex-1 bg-brand-700 rounded h-3/4" />
-                <div className="flex-1 bg-brand-800 rounded h-full" />
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Stat Cards */}
+            <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg">
+              <div className="text-3xl font-bold text-brand-600 mb-2">AED 15,240</div>
+              <p className="text-sm font-semibold text-ink-600 dark:text-ink-400 mb-4">Today's Revenue</p>
+              <div className="h-12 flex items-end gap-1 mt-3">
+                <div className="flex-1 bg-green-400 rounded h-1/3"></div>
+                <div className="flex-1 bg-green-500 rounded h-2/3"></div>
+                <div className="flex-1 bg-green-600 rounded h-full"></div>
+                <div className="flex-1 bg-green-500 rounded h-3/4"></div>
+              </div>
+              <p className="text-xs text-green-600 dark:text-green-400 mt-3">↑ 32% vs yesterday</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-ink-800 to-ink-900 p-8 rounded-xl shadow-lg text-white">
+              <p className="text-xs text-blue-300 mb-2">Chris L. - Manager</p>
+              <div className="relative w-20 h-20 mx-auto mb-4">
+                <svg className="w-full h-full" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="2"/>
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#22c55e" strokeWidth="3" strokeDasharray="125.6 125.6" strokeDashoffset="-31.4"/>
+                  <text x="50" y="55" textAnchor="middle" fill="white" fontSize="20" fontWeight="bold">9:07</text>
+                </svg>
+              </div>
+              <p className="text-sm font-semibold text-center">Clocked in</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-action-50 to-flow-50 dark:from-ink-800 dark:to-ink-900 p-8 rounded-xl shadow-lg">
+              <div className="text-4xl mb-4">📊</div>
+              <p className="font-semibold text-ink-900 dark:text-white mb-2">Order #568 - Ready</p>
+              <div className="space-y-2">
+                <p className="text-sm text-ink-700 dark:text-ink-300">🍔 Classic Burger</p>
+                <p className="text-sm text-ink-700 dark:text-ink-300">🍟 Truffle Fries</p>
+                <p className="text-sm text-ink-700 dark:text-ink-300">🥤 Chocolate Shake</p>
               </div>
             </div>
 
-            {/* Clock In Card */}
-            <div className="bg-gradient-to-br from-ink-800 to-ink-900 dark:from-ink-700 dark:to-ink-800 p-8 rounded-lg shadow-md flex flex-col items-center justify-center text-white">
-              <div className="relative w-32 h-32 mb-6">
-                <div className="absolute inset-0 border-4 border-green-500 rounded-full" />
-                <div className="absolute inset-2 border-2 border-ink-600 rounded-full" />
-                <div className="absolute inset-4 flex flex-col items-center justify-center">
-                  <p className="text-sm font-semibold">Chris L.</p>
-                  <p className="text-xs text-gray-300">Clocked in</p>
-                  <p className="text-xs text-green-400 font-bold">9:07 AM</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Order Card */}
-            <div className="bg-gradient-to-br from-green-400 to-green-500 p-8 rounded-lg shadow-md text-white">
-              <p className="text-lg font-bold mb-6">Order #568</p>
-              <div className="space-y-3">
-                <div className="bg-white/20 backdrop-blur p-3 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">🍔</span>
-                    <p className="font-medium">Classic Burger</p>
-                  </div>
-                </div>
-                <div className="bg-white/20 backdrop-blur p-3 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">🍟</span>
-                    <p className="font-medium">Truffle Fries</p>
-                  </div>
-                </div>
-                <div className="bg-white/20 backdrop-blur p-3 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">🥤</span>
-                    <p className="font-medium">Chocolate Shake</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Loyalty Card */}
-            <div className="bg-gradient-to-br from-gray-800 to-gray-900 dark:from-ink-800 dark:to-ink-900 p-8 rounded-lg shadow-md border border-gray-700 dark:border-ink-700">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm">SR</div>
+            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-brand-600" />
                 <div>
-                  <p className="font-semibold text-white text-sm">Shannon Rodgers</p>
-                  <p className="text-xs text-gray-400">Member since 2018</p>
+                  <p className="font-semibold text-ink-900 dark:text-white text-sm">Sarah Johnson</p>
+                  <p className="text-xs text-ink-600 dark:text-ink-400">Member since 2022</p>
                 </div>
               </div>
-              <div className="bg-white dark:bg-ink-900 p-4 rounded-lg">
-                <p className="font-bold text-brand-600 dark:text-brand-400 text-3xl">2,817</p>
+              <div className="bg-gray-100 dark:bg-ink-900 p-3 rounded-lg">
+                <p className="font-bold text-brand-600 text-2xl">3,247</p>
                 <p className="text-xs text-ink-600 dark:text-ink-400">Points Balance</p>
               </div>
             </div>
           </div>
 
-          <div className="text-center">
+          {/* CTA */}
+          <div className="mt-16 text-center">
             <Link
               to="/pricing"
-              className="inline-block px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition shadow-lg"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
             >
-              Explore Food & Beverage →
+              {t('pLanding.keepFlowing.cta') || 'Explore Our Platform'} <ArrowRight size={18} />
             </Link>
           </div>
         </div>
       </section>
-
 
       {/* Footer */}
       <footer className="border-t border-gray-200 dark:border-ink-800 bg-white dark:bg-ink-950">
