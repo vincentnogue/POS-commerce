@@ -58,8 +58,8 @@ export function SignupPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-ink-50 dark:bg-ink-900 lg:grid lg:grid-cols-2">
-      <div className="relative hidden overflow-hidden bg-gradient-to-br from-flow-600 to-brand-600 lg:block">
-        <div className="absolute inset-0 bg-grid opacity-10" />
+      <div className="relative hidden overflow-hidden lg:block" style={{backgroundImage: 'url(/auth-bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center'}}>
+        <div className="absolute inset-0 bg-black/40" />
         <div className="relative flex h-full flex-col justify-between p-12 text-white">
           <Logo size="lg" clickable />
           <div>

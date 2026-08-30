@@ -1,10 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Heart, Briefcase, TrendingUp, Check, ArrowRight, ArrowLeft } from 'lucide-react';
+import { TrendingUp, Check, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface Industry {
   id: string;
   name: string;
-  icon: React.ReactNode;
+  icon: string;
   description: string;
   challenges: string[];
   solutions: string[];
@@ -17,7 +17,7 @@ const INDUSTRIES: Industry[] = [
   {
     id: 'retail',
     name: 'Retail & Boutiques',
-    icon: <ShoppingBag size={40} />,
+    icon: '/icon-shop-now.png',
     description: 'Streamline inventory, boost sales, and delight customers.',
     challenges: [
       'Managing multiple store locations',
@@ -45,7 +45,7 @@ const INDUSTRIES: Industry[] = [
   {
     id: 'services',
     name: 'Salons, Spas & Services',
-    icon: <Heart size={40} />,
+    icon: '/icon-scissors.png',
     description: 'Manage appointments, staff, and client relationships effortlessly.',
     challenges: [
       'Appointment scheduling conflicts',
@@ -74,7 +74,7 @@ const INDUSTRIES: Industry[] = [
   {
     id: 'professional',
     name: 'Professional Services',
-    icon: <Briefcase size={40} />,
+    icon: '/icon-professional-services.png',
     description: 'Handle client billing, project tracking, and professional reporting.',
     challenges: [
       'Project-based invoicing',
@@ -154,12 +154,26 @@ export function IndustrySolutionsPage() {
                 <div className="grid md:grid-cols-2 gap-8 p-8 md:p-12">
                   {/* Left: Icon & Intro */}
                   <div className={`flex flex-col justify-center bg-gradient-to-br ${colorMap[industry.color]} text-white p-8 rounded-lg`}>
-                    <div className="mb-6">{industry.icon}</div>
+                    <div className="mb-6">
+                      <div
+                        className="w-11 h-11 bg-white"
+                        style={{
+                          WebkitMaskImage: `url(${industry.icon})`,
+                          maskImage: `url(${industry.icon})`,
+                          WebkitMaskSize: 'contain',
+                          maskSize: 'contain',
+                          WebkitMaskRepeat: 'no-repeat',
+                          maskRepeat: 'no-repeat',
+                          WebkitMaskPosition: 'center',
+                          maskPosition: 'center',
+                        }}
+                      />
+                    </div>
                     <h2 className="text-3xl font-bold mb-4">{industry.name}</h2>
                     <p className="text-lg mb-6 text-white/95">{industry.description}</p>
                     <Link
                       to="/pricing"
-                      className="inline-block px-6 py-3 bg-white text-brand-600 font-semibold rounded-lg hover:bg-gray-100 transition w-fit"
+                      className="inline-block px-6 py-3 bg-white text-brand-600 font-semibold rounded-full hover:bg-gray-100 transition w-fit"
                     >
                       {industry.cta} <ArrowRight size={16} className="inline ml-2" />
                     </Link>
@@ -226,7 +240,7 @@ export function IndustrySolutionsPage() {
           </p>
           <Link
             to="/signup"
-            className="inline-block px-8 py-3 bg-white text-brand-600 font-semibold rounded-lg hover:bg-gray-100 transition"
+            className="inline-block px-8 py-3 bg-white text-brand-600 font-semibold rounded-full hover:bg-gray-100 transition"
           >
             Start Free Trial
           </Link>

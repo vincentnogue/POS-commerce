@@ -58,7 +58,7 @@ const FAQ_ITEMS: FAQItem[] = [
     id: 'trial',
     category: 'Trial & Subscription',
     question: 'How long is the trial period?',
-    answer: 'Our trial period is 7 days. You don\'t need to enter credit card details to start your trial. After 7 days, you can upgrade to a paid plan or your account will remain in limited mode.',
+    answer: 'Our trial period is 14 days. You don\'t need to enter credit card details to start your trial. After 14 days, you can upgrade to a paid plan or your account will remain in limited mode.',
     icon: Zap,
   },
   {
@@ -330,27 +330,18 @@ export function HelpCenterPage() {
         <div className="rounded-lg bg-gradient-to-r from-brand-500/10 to-flow-500/10 border border-brand-500/30 p-8">
           <h2 className="text-2xl font-bold text-ink-900 dark:text-white mb-6">Didn't find what you're looking for?</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <a
-              href="mailto:support@pos.liafrik.com"
+              href="mailto:support@liafrik.com"
               className="p-4 rounded-lg bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 hover:border-flow-500/50 transition"
             >
               <p className="font-semibold text-ink-900 dark:text-white mb-2">Email Support</p>
-              <p className="text-sm text-ink-600 dark:text-ink-300">support@pos.liafrik.com</p>
+              <p className="text-sm text-ink-600 dark:text-ink-300">support@liafrik.com</p>
               <p className="text-xs text-ink-400 dark:text-ink-400 mt-2">Response time: 24 hours</p>
             </a>
 
             <a
-              href="tel:+97143221234"
-              className="p-4 rounded-lg bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 hover:border-flow-500/50 transition"
-            >
-              <p className="font-semibold text-ink-900 dark:text-white mb-2">Phone Support</p>
-              <p className="text-sm text-ink-600 dark:text-ink-300">+971 4 XXX XXXX</p>
-              <p className="text-xs text-ink-400 dark:text-ink-400 mt-2">Available: 9AM-6PM GST</p>
-            </a>
-
-            <a
-              href="/api-documentation"
+              href="/documentation"
               className="p-4 rounded-lg bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 hover:border-flow-500/50 transition"
             >
               <p className="font-semibold text-ink-900 dark:text-white mb-2">API Documentation</p>
