@@ -1144,11 +1144,14 @@ export function LandingPage() {
       </section>
 
       {/* Let's work together section */}
-      <section className="py-20 px-4 lg:px-8 bg-white dark:bg-ink-900">
+      <section className="py-24 px-4 lg:px-8 bg-white dark:bg-ink-900">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Left content */}
             <div>
+              <span className="inline-block text-xs font-semibold tracking-wider text-brand-600 dark:text-brand-400 uppercase mb-4">
+                {t('pLanding.workTogether.eyebrow')}
+              </span>
               <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-6 leading-tight">
                 {t('pLanding.workTogether.title')}
               </h2>
@@ -1168,25 +1171,45 @@ export function LandingPage() {
                 ))}
               </div>
 
-              <div className="mb-8">
-                <p className="text-sm font-bold text-ink-600 dark:text-ink-400 mb-2">{t('pLanding.workTogether.emailLabel')}</p>
-                <a href="mailto:support@liafrik.com" className="text-2xl font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition">
-                  support@liafrik.com
-                </a>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                <div>
+                  <p className="text-sm font-bold text-ink-600 dark:text-ink-400 mb-1">{t('pLanding.workTogether.emailLabel')}</p>
+                  <a href="mailto:support@liafrik.com" className="text-2xl font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition">
+                    support@liafrik.com
+                  </a>
+                </div>
+                <Link
+                  to="/contact"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 shadow-lg shadow-brand-500/30 transition sm:ml-auto"
+                >
+                  {t('pLanding.workTogether.cta')} <ArrowRight size={16} />
+                </Link>
               </div>
-
-              <Link
-                to="/contact"
-                className="inline-flex items-center gap-2 px-6 py-3 border-2 border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400 rounded-lg font-semibold hover:bg-brand-50 dark:hover:bg-brand-600/10 transition"
-              >
-                {t('pLanding.workTogether.cta')}
-              </Link>
             </div>
 
-            {/* Right image */}
-            <div className="relative h-96 rounded-xl overflow-hidden shadow-xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-500 to-flow-500 flex items-center justify-center">
-                <div className="text-6xl">👩‍💼</div>
+            {/* Right image — real merchant photo, with a floating
+                credibility card. No invented stat: the card reflects the
+                same real support channel (email) shown on the left. */}
+            <div>
+              <div className="relative">
+                <div className="relative h-[420px] rounded-2xl overflow-hidden shadow-2xl">
+                  <img
+                    src="/work-together-merchant.jpg"
+                    alt={t('pLanding.workTogether.photoAlt')}
+                    loading="lazy"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink-950/40 via-transparent to-transparent" />
+                </div>
+                <div className="absolute -bottom-6 -left-6 hidden sm:flex items-center gap-3 rounded-xl bg-white dark:bg-ink-800 border border-gray-100 dark:border-ink-700 shadow-xl px-5 py-4">
+                  <div className="w-10 h-10 rounded-full bg-brand-500/10 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-ink-900 dark:text-white">{t('pLanding.workTogether.card.title')}</p>
+                    <p className="text-xs text-ink-500 dark:text-ink-400">{t('pLanding.workTogether.card.desc')}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
