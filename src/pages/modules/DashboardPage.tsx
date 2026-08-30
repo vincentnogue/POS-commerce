@@ -161,7 +161,7 @@ export function DashboardPage() {
                 <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#748478' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 12, fill: '#748478' }} axisLine={false} tickLine={false} width={60} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
                 <Tooltip
-                  formatter={(v: any) => [formatMoney(Number(v), currency), t('dashboard.chart.tooltipSales')]}
+                  formatter={(v: number | string) => [formatMoney(Number(v), currency), t('dashboard.chart.tooltipSales')]}
                   contentStyle={{ borderRadius: 12, border: '1px solid #DCE2DD', fontSize: 12 }}
                 />
                 <Area type="monotone" dataKey="value" stroke="#2E8C66" strokeWidth={2.5} fill="url(#salesGradient)" />

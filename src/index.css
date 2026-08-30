@@ -154,7 +154,7 @@
     @apply inline-flex items-center justify-center gap-2 rounded-full bg-flow-500 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition-all hover:bg-flow-600 hover:shadow-float active:scale-[0.98];
   }
   .card {
-    @apply rounded-2xl2 border border-ink-200 bg-white;
+    @apply rounded-2xl2 border border-ink-200 bg-white shadow-soft;
   }
   .input {
     @apply w-full rounded-xl border border-ink-200 bg-white px-3.5 py-2.5 text-sm text-ink-900 placeholder:text-ink-400 transition-colors focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100;
