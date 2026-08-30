@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  Menu, X, Globe, ChevronDown, ArrowRight, ArrowRightLeft, MapPin,
+  Menu, X, Globe, ChevronDown, ArrowRight, MapPin,
   ShoppingCart, Package, Store, Plug, FileText, BarChart3,
   ShieldCheck, Wallet, Check, CheckCircle2, Smartphone, TrendingUp, Receipt, Moon, Sun,
-  Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent, Users,
+  Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent, MessageCircle, Users,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer } from 'recharts';
@@ -1425,14 +1425,15 @@ export function LandingPage() {
           capture on a solid brand panel, stylized POS device mockup on a
           gradient panel (no stock photo — the product's own UI, styled as
           hardware, stays consistent with the rest of this page). */}
-      <section className="px-4 lg:px-8 max-w-7xl mx-auto py-4">
-        <div className="relative rounded-3xl overflow-hidden">
+      <section className="overflow-hidden">
+        <div className="relative">
           {/* Right-side gradient backdrop (spans full width, dark panel sits on top of it on the left) */}
           <div className="absolute inset-0 bg-gradient-to-r from-brand-800 via-flow-600 to-flow-400" />
 
           <div className="relative grid grid-cols-1 lg:grid-cols-2 min-h-[560px]">
             {/* Dark content panel */}
-            <div className="relative bg-brand-900/95 px-8 py-14 lg:px-14 lg:py-16 flex flex-col justify-center">
+            <div className="relative bg-brand-900/95 px-8 py-14 lg:px-14 lg:py-16 xl:pl-24 flex flex-col justify-center">
+              <div className="max-w-xl">
               <h2 className="text-4xl lg:text-5xl font-bold text-white leading-tight mb-8">
                 {t('pLanding.busyHero.titleBefore')}{' '}
                 <span className="relative inline-block">
@@ -1473,6 +1474,7 @@ export function LandingPage() {
                   {t('pLanding.busyHero.cta')}
                 </button>
               </form>
+              </div>
             </div>
 
             {/* Device mockup panel — a realistic POS checkout screen: search
@@ -1642,159 +1644,193 @@ export function LandingPage() {
       </section>
 
       {/* Let's work together section */}
-      <section className="py-24 px-4 lg:px-8 bg-white dark:bg-ink-900">
+      <section className="py-24 px-4 lg:px-8 bg-white dark:bg-ink-900 overflow-hidden">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Left content */}
             <div>
-              <span className="inline-block text-xs font-semibold tracking-wider text-brand-600 dark:text-brand-400 uppercase mb-4">
+              <span className="inline-block text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-4">
                 {t('pLanding.workTogether.eyebrow')}
               </span>
               <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-6 leading-tight">
                 {t('pLanding.workTogether.title')}
               </h2>
-              <p className="text-lg text-ink-700 dark:text-ink-300 mb-8 leading-relaxed whitespace-pre-line">
+              <p className="text-lg text-ink-700 dark:text-ink-300 mb-10 leading-relaxed whitespace-pre-line">
                 {t('pLanding.workTogether.desc')}
               </p>
 
-              <div className="space-y-4 mb-8">
+              <div className="space-y-6">
                 {(['assessment', 'recommendation', 'support'] as const).map((key) => (
-                  <div key={key} className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full bg-brand-500 flex items-center justify-center flex-shrink-0 mt-1 text-white text-sm font-bold">✓</div>
+                  <div key={key} className="flex items-start gap-4">
+                    <div className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center flex-shrink-0 text-white text-base font-bold shadow-sm shadow-brand-500/40">✓</div>
                     <div>
                       <p className="font-semibold text-ink-900 dark:text-white">{t(`pLanding.workTogether.point.${key}.title`)}</p>
-                      <p className="text-sm text-ink-600 dark:text-ink-400">{t(`pLanding.workTogether.point.${key}.desc`)}</p>
+                      <p className="text-sm text-ink-600 dark:text-ink-400 mt-0.5">{t(`pLanding.workTogether.point.${key}.desc`)}</p>
                     </div>
                   </div>
                 ))}
               </div>
-
-              <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-                <div>
-                  <p className="text-sm font-bold text-ink-600 dark:text-ink-400 mb-1">{t('pLanding.workTogether.emailLabel')}</p>
-                  <a href="mailto:support@liafrik.com" className="text-2xl font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition">
-                    support@liafrik.com
-                  </a>
-                </div>
-                <Link
-                  to="/contact"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 text-white rounded-full font-semibold hover:bg-brand-700 shadow-lg shadow-brand-500/30 transition sm:ml-auto"
-                >
-                  {t('pLanding.workTogether.cta')} <ArrowRight size={16} />
-                </Link>
-              </div>
             </div>
 
-            {/* Right image — the actual real photo the user provided for
-                this section (a merchant at her own checkout counter,
-                matching what POS Flow is actually for), with a subtle
-                cinematic zoom (Ken Burns) and a floating credibility card.
-                Deliberately does NOT reuse the old "54 countries" figure
-                (landing.africa.countries.title) — that key undersold the
-                product's real international reach and has been removed;
-                the badge below uses the real 24/7 support claim instead. */}
-            <div className="relative">
-              <div className="relative h-[420px] rounded-2xl overflow-hidden shadow-2xl">
-                <motion.img
-                  src="/work-together-merchant.jpg"
-                  alt={t('pLanding.workTogether.photoAlt')}
-                  loading="lazy"
-                  className="absolute inset-0 h-full w-full object-cover"
-                  initial={false}
-                  animate={heroReducedMotion ? { scale: 1 } : { scale: [1, 1.06, 1] }}
-                  transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-ink-950/40 via-transparent to-transparent" />
-              </div>
-              <div className="absolute -bottom-6 -left-6 hidden sm:flex items-center gap-3 rounded-xl bg-white dark:bg-ink-800 border border-gray-100 dark:border-ink-700 shadow-xl px-5 py-4">
-                <div className="w-10 h-10 rounded-full bg-brand-500/10 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-5 h-5 text-brand-600 dark:text-brand-400" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-ink-900 dark:text-white">{t('pLanding.workTogether.card.title')}</p>
-                  <p className="text-xs text-ink-500 dark:text-ink-400">{t('pLanding.workTogether.card.desc')}</p>
-                </div>
-              </div>
+            {/* Right image — the real photo provided for this section (a
+                merchant at her own checkout counter, matching what POS Flow
+                is actually for), with a subtle cinematic zoom (Ken Burns)
+                and a single "Contact us" card anchored to the bottom-left
+                corner — no separate email/button block in the text column. */}
+            <div className="relative h-[420px] rounded-2xl overflow-hidden shadow-2xl">
+              <motion.img
+                src="/work-together-merchant.jpg"
+                alt={t('pLanding.workTogether.photoAlt')}
+                loading="lazy"
+                className="absolute inset-0 h-full w-full object-cover"
+                initial={false}
+                animate={heroReducedMotion ? { scale: 1 } : { scale: [1, 1.06, 1] }}
+                transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-ink-950/40 via-transparent to-transparent" />
+
+              <Link
+                to="/contact"
+                className="absolute bottom-5 left-5 inline-flex items-center gap-2.5 bg-white dark:bg-ink-800 text-ink-900 dark:text-white pl-3 pr-5 py-3 rounded-2xl shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all"
+              >
+                <span className="w-9 h-9 rounded-xl bg-brand-500/10 flex items-center justify-center">
+                  <MessageCircle size={17} className="text-brand-600 dark:text-brand-400" />
+                </span>
+                <span className="font-semibold text-sm">{t('pLanding.workTogether.cta')}</span>
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Keep things flowing section — real feature illustrations only:
-          today's revenue (real sales tracking), a staff clocked in via the
-          real day-open/day-close module, a real stock transfer received
-          notification, and a real multi-currency conversion. No fictional
-          food-service/loyalty-points content — POS Flow has neither a
-          kitchen module nor a loyalty-points program. */}
-      <section className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
+      {/* One connected platform section — a single dashboard-style mockup
+          (not 4 disconnected cards), matching the requested reference
+          layout: app chrome, KPI row, chart + top-stores row. Every figure
+          is a clearly illustrative example built from POS Flow's real
+          feature set (sales, staff day-sessions, multi-store, purchases) —
+          no fictional kitchen orders, no loyalty-points program, no named
+          "customers" standing in for real testimonials. */}
+      <section className="py-24 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-16 whitespace-pre-line">
-            {t('pLanding.keepFlowing.title')}
-          </h2>
+          <div className="text-center mb-14">
+            <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-4">
+              {t('pLanding.keepFlowing.title')}
+            </h2>
+            <p className="text-lg text-ink-600 dark:text-ink-400 max-w-2xl mx-auto">
+              {t('pLanding.keepFlowing.subtitle')}
+            </p>
+          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg">
-              <div className="text-3xl font-bold text-brand-600 dark:text-brand-400 mb-2">$2,450</div>
-              <p className="text-sm font-semibold text-ink-600 dark:text-ink-400 mb-4">{t('pLanding.keepFlowing.card.revenue')}</p>
-              {/* BUG FIX: this used to be 4 fixed-height <div>s faking a bar
-                  chart. Now a real recharts AreaChart, same component and
-                  gradient style the real Dashboard module uses for its own
-                  sales-trend chart (src/pages/modules/DashboardPage.tsx). */}
-              <div className="h-16 mt-3">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={REVENUE_TREND_SAMPLE} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="landingRevenueGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#2E8C66" stopOpacity={0.35} />
-                        <stop offset="100%" stopColor="#2E8C66" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <Area type="monotone" dataKey="value" stroke="#2E8C66" strokeWidth={2.5} fill="url(#landingRevenueGradient)" />
-                  </AreaChart>
-                </ResponsiveContainer>
+          {/* Dashboard window */}
+          <div className="rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 shadow-2xl overflow-hidden">
+            {/* App top bar */}
+            <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-ink-800">
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <img src="/logo-pos-icon.png" alt="" className="h-6 w-6" />
+                  <span className="font-bold text-ink-900 dark:text-white text-sm">POS Flow</span>
+                </div>
+                <nav className="hidden md:flex items-center gap-1">
+                  {['dashboard', 'pos', 'stock', 'reports'].map((k) => (
+                    <span key={k} className={`px-3 py-1.5 rounded-lg text-xs font-medium ${k === 'dashboard' ? 'bg-brand-500 text-white' : 'text-ink-500 dark:text-ink-400'}`}>
+                      {t(`pLanding.keepFlowing.nav.${k}`)}
+                    </span>
+                  ))}
+                </nav>
               </div>
-              <p className="text-xs text-flow-600 dark:text-flow-400 mt-3">↑ 32% {t('pLanding.keepFlowing.card.vsYesterday')}</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-ink-800 to-ink-900 p-8 rounded-xl shadow-lg text-white">
-              <p className="text-xs text-brand-300 mb-2">{t('pLanding.keepFlowing.card.staffName')}</p>
-              <div className="relative w-20 h-20 mx-auto mb-4">
-                <svg className="w-full h-full" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(46, 140, 102, 0.3)" strokeWidth="2"/>
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="#2E8C66" strokeWidth="3" strokeDasharray="125.6 125.6" strokeDashoffset="-31.4"/>
-                  <text x="50" y="55" textAnchor="middle" fill="white" fontSize="20" fontWeight="bold">08:02</text>
-                </svg>
-              </div>
-              <p className="text-sm font-semibold text-center">{t('pLanding.keepFlowing.card.clockedIn')}</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-brand-50 to-flow-50 dark:from-ink-800 dark:to-ink-900 p-8 rounded-xl shadow-lg">
-              <div className="w-10 h-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4">
-                <ArrowRightLeft className="w-5 h-5 text-brand-600 dark:text-brand-400" />
-              </div>
-              <p className="font-semibold text-ink-900 dark:text-white mb-2">{t('pLanding.keepFlowing.card.transferTitle')}</p>
-              <p className="text-sm text-ink-700 dark:text-ink-300 mb-4">{t('pLanding.keepFlowing.card.transferDesc')}</p>
-              {/* Real performance-by-category illustration (recharts
-                  BarChart), same idea as the real Reports module's
-                  category breakdowns. */}
-              <div className="h-14">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={CATEGORY_PERFORMANCE_SAMPLE} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                    <Bar dataKey="value" radius={[3, 3, 0, 0]} fill="#2E8C66" fillOpacity={0.75} />
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-brand-500/15 flex items-center justify-center">
+                  <Users size={14} className="text-brand-600 dark:text-brand-400" />
+                </div>
+                <div className="text-right hidden sm:block">
+                  <p className="text-xs font-semibold text-ink-900 dark:text-white leading-none">STF-001</p>
+                  <p className="text-[11px] text-ink-500 dark:text-ink-400 leading-none mt-0.5">{t('pLanding.keepFlowing.nav.role')}</p>
+                </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700">
-              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 mb-4">{t('pLanding.keepFlowing.card.currencyLabel')}</p>
-              <p className="font-bold text-ink-900 dark:text-white text-xl mb-1">$1,000 USD</p>
-              <div className="flex items-center gap-2 my-2 text-ink-400">
-                <div className="h-px flex-1 bg-gray-200 dark:bg-ink-700" />
-                <ArrowRight size={14} />
-                <div className="h-px flex-1 bg-gray-200 dark:bg-ink-700" />
+            <div className="p-6 lg:p-8">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <div>
+                  <p className="text-lg font-bold text-ink-900 dark:text-white">{t('pLanding.keepFlowing.overview.title')}</p>
+                  <p className="text-sm text-ink-500 dark:text-ink-400">{t('pLanding.keepFlowing.overview.subtitle')}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 dark:border-ink-700 text-ink-600 dark:text-ink-300">{t('pLanding.keepFlowing.overview.today')}</span>
+                  <span className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 dark:border-ink-700 text-ink-600 dark:text-ink-300">{t('pLanding.keepFlowing.overview.export')}</span>
+                </div>
               </div>
-              <p className="font-bold text-brand-600 dark:text-brand-400 text-xl">3,672.50 AED</p>
+
+              {/* KPI row */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="rounded-xl bg-brand-900 p-5 text-white">
+                  <p className="text-xs text-brand-200 mb-2">{t('pLanding.keepFlowing.kpi.sales')}</p>
+                  <p className="text-2xl font-bold mb-1">48,2M FCFA</p>
+                  <p className="text-xs text-flow-300">↑ 18% {t('pLanding.keepFlowing.card.vsYesterday')}</p>
+                </div>
+                <div className="rounded-xl border border-gray-200 dark:border-ink-700 p-5">
+                  <p className="text-xs text-ink-500 dark:text-ink-400 mb-2">{t('pLanding.keepFlowing.kpi.purchases')}</p>
+                  <p className="text-2xl font-bold text-ink-900 dark:text-white mb-1">21,6M FCFA</p>
+                  <p className="text-xs text-flow-600 dark:text-flow-400">↑ 6% {t('pLanding.keepFlowing.card.vsYesterday')}</p>
+                </div>
+                <div className="rounded-xl border border-gray-200 dark:border-ink-700 p-5 col-span-2 sm:col-span-1">
+                  <p className="text-xs text-ink-500 dark:text-ink-400 mb-2">{t('pLanding.keepFlowing.kpi.staff')}</p>
+                  <p className="text-2xl font-bold text-ink-900 dark:text-white mb-2">24</p>
+                  <div className="h-1.5 w-full bg-gray-100 dark:bg-ink-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-brand-500 rounded-full" style={{ width: '78%' }} />
+                  </div>
+                </div>
+                <div className="rounded-xl border border-gray-200 dark:border-ink-700 p-5 flex items-center gap-4">
+                  <div className="relative w-14 h-14 shrink-0">
+                    <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                      <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" strokeWidth="3" className="text-gray-100 dark:text-ink-800" />
+                      <circle cx="18" cy="18" r="15.5" fill="none" stroke="#2E8C66" strokeWidth="3" strokeDasharray="97.4" strokeDashoffset="24.4" strokeLinecap="round" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold text-ink-900 dark:text-white leading-none">87</p>
+                    <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">{t('pLanding.keepFlowing.kpi.newCustomers')}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Chart + top stores row — real recharts components, same
+                  pattern the actual Dashboard/Reports modules use for their
+                  own trend and category charts (src/pages/modules/
+                  DashboardPage.tsx), not static faked bars. */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="rounded-xl border border-gray-200 dark:border-ink-700 p-5">
+                  <p className="text-sm font-semibold text-ink-900 dark:text-white mb-4">{t('pLanding.keepFlowing.chart.title')}</p>
+                  <div className="h-28">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={CATEGORY_PERFORMANCE_SAMPLE} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                        <Bar dataKey="value" radius={[3, 3, 0, 0]} fill="#2E8C66" fillOpacity={0.85} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex justify-between mt-2 text-[10px] text-ink-400">
+                    {(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const).map((d) => (
+                      <span key={d}>{t(`pLanding.keepFlowing.day.${d}`)}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-xl border border-gray-200 dark:border-ink-700 p-5">
+                  <p className="text-sm font-semibold text-ink-900 dark:text-white mb-4">{t('pLanding.keepFlowing.stores.title')}</p>
+                  <div className="space-y-3">
+                    {[
+                      { code: 'ae', name: 'Dubaï', amount: '18,4M FCFA' },
+                      { code: 'ci', name: 'Abidjan', amount: '14,1M FCFA' },
+                      { code: 'gh', name: 'Accra', amount: '9,7M FCFA' },
+                    ].map((s) => (
+                      <div key={s.code} className="flex items-center gap-3">
+                        <img src={`https://flagcdn.com/w40/${s.code}.png`} alt="" className="h-5 w-5 rounded-full object-cover" />
+                        <span className="text-sm text-ink-700 dark:text-ink-300 flex-1">{s.name}</span>
+                        <span className="text-sm font-semibold text-ink-900 dark:text-white">{s.amount}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1803,6 +1839,14 @@ export function LandingPage() {
             <Link
               to="/pricing"
               className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-full font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
+            >
+              {t('pLanding.keepFlowing.cta')} <ArrowRight size={18} />
+            </Link>
+          </div>
+          <div className="mt-16 text-center">
+            <Link
+              to="/pricing"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
             >
               {t('pLanding.keepFlowing.cta')} <ArrowRight size={18} />
             </Link>
