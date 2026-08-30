@@ -362,7 +362,6 @@ export function PricingPage() {
           <CountryFlagsMarquee
             title="Fonctionne partout où vous faites du commerce"
             lang="fr"
-            shape="circle"
             speed="slow"
           />
         </div>
