@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  Menu, X, Globe, ChevronDown, ArrowRight, ArrowRightLeft, MapPin,
+  Menu, X, Globe, ChevronDown, ArrowRight, MapPin,
   ShoppingCart, Package, Store, Plug, FileText, BarChart3,
   ShieldCheck, Wallet, Check, CheckCircle2, Smartphone, TrendingUp, Receipt, Moon, Sun,
   Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent,
@@ -574,6 +574,8 @@ export function LandingPage() {
 
               <Link to="/about" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600">{t('pLanding.nav.about')}</Link>
 
+              <Link to="/contact" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600">{t('pLanding.nav.contact')}</Link>
+
               <div className="relative group">
                 <Link to="/resources" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600 flex items-center gap-1">
                   {t('pLanding.nav.resources')} <ChevronDown size={16} />
@@ -625,6 +627,7 @@ export function LandingPage() {
               <a href="#features" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.footer.features')}</a>
               <a href="#pricing" onClick={scrollToPricing} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.pricing')}</a>
               <Link to="/about" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.about')}</Link>
+              <Link to="/contact" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.contact')}</Link>
               <Link to="/documentation" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.docs')}</Link>
               <Link to="/resources" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.resources')}</Link>
               <Link to="/help" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.help')}</Link>
@@ -883,21 +886,21 @@ export function LandingPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           {[
-            { icon: Store, key: 'retail' },
-            { icon: Smartphone, key: 'services' },
-            { icon: BarChart3, key: 'professional' },
+            { icon: '/icon-shop-now.png', key: 'retail' },
+            { icon: '/icon-scissors.png', key: 'services' },
+            { icon: '/icon-professional-services.png', key: 'professional' },
           ].map((ind) => (
             <Link
               key={ind.key}
               to="/industry-solutions"
               className="group rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-7 hover:border-brand-500/50 hover:shadow-lg transition"
             >
-              <div className="w-11 h-11 rounded-lg bg-brand-500/10 flex items-center justify-center mb-4">
-                <ind.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+              <div className="w-12 h-12 rounded-full bg-brand-500/10 flex items-center justify-center mb-4">
+                <img src={ind.icon} alt="" className="w-6 h-6 object-contain" style={{ filter: 'invert(35%) sepia(70%) saturate(500%) hue-rotate(190deg) brightness(95%)' }} />
               </div>
               <h3 className="font-semibold text-gray-900 dark:text-white mb-1.5">{t(`pLanding.industries.${ind.key}.title`)}</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-3">{t(`pLanding.industries.${ind.key}.desc`)}</p>
-              <span className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 group-hover:gap-2 transition-all">
+              <span className="inline-flex items-center gap-1 rounded-full border border-brand-200 dark:border-brand-800 px-3 py-1 text-sm font-medium text-brand-600 group-hover:bg-brand-50 dark:group-hover:bg-brand-900/20 transition-all">
                 {t('pLanding.industries.link')} <ArrowRight size={14} />
               </span>
             </Link>
@@ -1223,78 +1226,57 @@ export function LandingPage() {
               </Link>
             </div>
 
-            {/* Right image */}
-            <div className="relative h-96 rounded-xl overflow-hidden shadow-xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-500 to-flow-500 flex items-center justify-center">
-                <div className="text-6xl">👩‍💼</div>
-              </div>
+            {/* Right image — real photo (was an emoji on a gradient
+                placeholder). "Contact us" now floats as an animated badge
+                over the photo itself, in addition to the button in the text
+                column, since that's the actual point of showing a person
+                picking up the phone. */}
+            <div className="relative h-96 rounded-xl overflow-hidden shadow-xl group">
+              <img
+                src="/work-together-photo.jpg"
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-ink-950/50 via-transparent to-transparent" />
+              <Link
+                to="/contact"
+                className="absolute bottom-6 left-1/2 -translate-x-1/2 inline-flex items-center gap-2 px-6 py-3 bg-white text-ink-900 rounded-full font-semibold shadow-lg shadow-black/20 transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-105 animate-pulse-slow"
+              >
+                {t('pLanding.workTogether.cta')}
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Keep things flowing section — real feature illustrations only:
-          today's revenue (real sales tracking), a staff clocked in via the
-          real day-open/day-close module, a real stock transfer received
-          notification, and a real multi-currency conversion. No fictional
-          food-service/loyalty-points content — POS Flow has neither a
-          kitchen module nor a loyalty-points program. */}
+      {/* Keep things flowing section — the real dashboard, not mock cards.
+          A previous version of this section showed four illustrative cards
+          with made-up example figures ($2,450, "+32% vs yesterday",
+          $1,000 -> 3,672.50 AED) as if they were live data; none of it came
+          from an actual account. Replaced with an actual screenshot of the
+          real, running dashboard (public/dashboard-screenshot.png). */}
       <section className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-16 whitespace-pre-line">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-6 whitespace-pre-line">
             {t('pLanding.keepFlowing.title')}
           </h2>
+          <p className="text-lg text-ink-600 dark:text-ink-300 mb-12 max-w-2xl mx-auto">
+            {t('pLanding.keepFlowing.desc')}
+          </p>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg">
-              <div className="text-3xl font-bold text-brand-600 dark:text-brand-400 mb-2">$2,450</div>
-              <p className="text-sm font-semibold text-ink-600 dark:text-ink-400 mb-4">{t('pLanding.keepFlowing.card.revenue')}</p>
-              <div className="h-12 flex items-end gap-1 mt-3">
-                <div className="flex-1 bg-flow-300 rounded h-1/3"></div>
-                <div className="flex-1 bg-flow-400 rounded h-2/3"></div>
-                <div className="flex-1 bg-flow-500 rounded h-full"></div>
-                <div className="flex-1 bg-flow-400 rounded h-3/4"></div>
-              </div>
-              <p className="text-xs text-flow-600 dark:text-flow-400 mt-3">↑ 32% {t('pLanding.keepFlowing.card.vsYesterday')}</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-ink-800 to-ink-900 p-8 rounded-xl shadow-lg text-white">
-              <p className="text-xs text-brand-300 mb-2">{t('pLanding.keepFlowing.card.staffName')}</p>
-              <div className="relative w-20 h-20 mx-auto mb-4">
-                <svg className="w-full h-full" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(46, 140, 102, 0.3)" strokeWidth="2"/>
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="#2E8C66" strokeWidth="3" strokeDasharray="125.6 125.6" strokeDashoffset="-31.4"/>
-                  <text x="50" y="55" textAnchor="middle" fill="white" fontSize="20" fontWeight="bold">08:02</text>
-                </svg>
-              </div>
-              <p className="text-sm font-semibold text-center">{t('pLanding.keepFlowing.card.clockedIn')}</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-brand-50 to-flow-50 dark:from-ink-800 dark:to-ink-900 p-8 rounded-xl shadow-lg">
-              <div className="w-10 h-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4">
-                <ArrowRightLeft className="w-5 h-5 text-brand-600 dark:text-brand-400" />
-              </div>
-              <p className="font-semibold text-ink-900 dark:text-white mb-2">{t('pLanding.keepFlowing.card.transferTitle')}</p>
-              <p className="text-sm text-ink-700 dark:text-ink-300">{t('pLanding.keepFlowing.card.transferDesc')}</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700">
-              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 mb-4">{t('pLanding.keepFlowing.card.currencyLabel')}</p>
-              <p className="font-bold text-ink-900 dark:text-white text-xl mb-1">$1,000 USD</p>
-              <div className="flex items-center gap-2 my-2 text-ink-400">
-                <div className="h-px flex-1 bg-gray-200 dark:bg-ink-700" />
-                <ArrowRight size={14} />
-                <div className="h-px flex-1 bg-gray-200 dark:bg-ink-700" />
-              </div>
-              <p className="font-bold text-brand-600 dark:text-brand-400 text-xl">3,672.50 AED</p>
-            </div>
+          <div className="mx-auto max-w-4xl p-3 rounded-3xl bg-[#172B3A] border border-white/10 shadow-2xl">
+            <img
+              src="/dashboard-screenshot.png"
+              alt={t('pLanding.keepFlowing.screenshotAlt')}
+              className="w-full h-auto rounded-2xl"
+            />
           </div>
 
           {/* CTA */}
-          <div className="mt-16 text-center">
+          <div className="mt-12">
             <Link
               to="/pricing"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-full font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
             >
               {t('pLanding.keepFlowing.cta')} <ArrowRight size={18} />
             </Link>
