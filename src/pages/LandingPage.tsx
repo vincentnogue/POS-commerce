@@ -772,12 +772,12 @@ export function LandingPage() {
                   placeholder={t('pLanding.hero.emailPlaceholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 px-5 py-3.5 rounded-xl bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="flex-1 px-5 py-3.5 rounded-full bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   required
                 />
                 <button
                   type="submit"
-                  className="group px-7 py-3.5 bg-brand-500 text-white rounded-xl font-semibold hover:bg-brand-600 active:scale-[0.98] transition-all whitespace-nowrap inline-flex items-center justify-center gap-2"
+                  className="group px-7 py-3.5 bg-brand-500 text-white rounded-full font-semibold hover:bg-brand-600 active:scale-[0.98] transition-all whitespace-nowrap inline-flex items-center justify-center gap-2"
                 >
                   {t('pLanding.hero.start')}
                   <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
