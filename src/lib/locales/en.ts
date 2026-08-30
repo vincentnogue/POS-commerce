@@ -1638,7 +1638,6 @@ export const en: Record<string, string> = {
   "pLanding.workTogether.point.recommendation.desc": "A solution tailored to your industry and budget",
   "pLanding.workTogether.point.support.title": "Setup support",
   "pLanding.workTogether.point.support.desc": "A specialist guides your configuration",
-  "pLanding.workTogether.emailLabel": "Email us",
   "pLanding.workTogether.cta": "Contact us",
   "pLanding.keepFlowing.title": "One connected platform to run your business",
   "pLanding.keepFlowing.desc": "This is the real dashboard, not a mockup: sales, day-open, transfers and stock, all in one place.",

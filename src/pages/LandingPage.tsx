@@ -970,14 +970,14 @@ export function LandingPage() {
           capture on a solid brand panel, stylized POS device mockup on a
           gradient panel (no stock photo — the product's own UI, styled as
           hardware, stays consistent with the rest of this page). */}
-      <section className="px-4 lg:px-8 max-w-7xl mx-auto py-4">
-        <div className="relative rounded-3xl overflow-hidden">
+      <section className="relative overflow-hidden">
+        <div className="relative">
           {/* Right-side gradient backdrop (spans full width, dark panel sits on top of it on the left) */}
           <div className="absolute inset-0 bg-gradient-to-r from-brand-800 via-flow-600 to-flow-400" />
 
-          <div className="relative grid grid-cols-1 lg:grid-cols-2 min-h-[560px]">
+          <div className="relative grid grid-cols-1 lg:grid-cols-2 min-h-[560px] max-w-[1800px] mx-auto">
             {/* Dark content panel */}
-            <div className="relative bg-brand-900/95 px-8 py-14 lg:px-14 lg:py-16 flex flex-col justify-center">
+            <div className="relative bg-brand-900/95 px-6 sm:px-10 lg:px-16 py-14 lg:py-20 flex flex-col justify-center">
               <h2 className="text-4xl lg:text-5xl font-bold text-white leading-tight mb-8">
                 {t('pLanding.busyHero.titleBefore')}{' '}
                 <span className="relative inline-block">
@@ -1024,8 +1024,8 @@ export function LandingPage() {
                 bar, category tabs, an icon-coded product grid, and a full
                 cart panel with line items, tax and payment methods. Mirrors
                 the real checkout layout in POSPage.tsx, no stock photo. */}
-            <div className="relative hidden lg:flex items-center justify-center p-10 overflow-hidden">
-              <div className="relative w-full max-w-lg" style={{ transform: 'perspective(1400px) rotateY(-12deg) rotateX(2deg)' }}>
+            <div className="relative hidden lg:flex items-center justify-center p-4 overflow-hidden">
+              <div className="relative w-full" style={{ transform: 'perspective(1400px) rotateY(-10deg) rotateX(2deg)' }}>
                 <div className="rounded-2xl bg-white border-4 border-ink-900 shadow-2xl overflow-hidden">
                   {/* Screen top bar */}
                   <div className="flex items-center justify-between bg-ink-950 px-4 py-2.5">
@@ -1210,27 +1210,13 @@ export function LandingPage() {
                   </div>
                 ))}
               </div>
-
-              <div className="mb-8">
-                <p className="text-sm font-bold text-ink-600 dark:text-ink-400 mb-2">{t('pLanding.workTogether.emailLabel')}</p>
-                <a href="mailto:support@liafrik.com" className="text-2xl font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition">
-                  support@liafrik.com
-                </a>
-              </div>
-
-              <Link
-                to="/contact"
-                className="inline-flex items-center gap-2 px-6 py-3 border-2 border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400 rounded-lg font-semibold hover:bg-brand-50 dark:hover:bg-brand-600/10 transition"
-              >
-                {t('pLanding.workTogether.cta')}
-              </Link>
             </div>
 
             {/* Right image — real photo (was an emoji on a gradient
-                placeholder). "Contact us" now floats as an animated badge
-                over the photo itself, in addition to the button in the text
-                column, since that's the actual point of showing a person
-                picking up the phone. */}
+                placeholder). "Contact us" floats as a pill badge anchored at
+                the photo's bottom-left corner — the only CTA for this
+                section (no separate email block/button in the text column,
+                to avoid repeating the same action twice). */}
             <div className="relative h-96 rounded-xl overflow-hidden shadow-xl group">
               <img
                 src="/work-together-photo.jpg"
@@ -1240,7 +1226,7 @@ export function LandingPage() {
               <div className="absolute inset-0 bg-gradient-to-t from-ink-950/50 via-transparent to-transparent" />
               <Link
                 to="/contact"
-                className="absolute bottom-6 left-1/2 -translate-x-1/2 inline-flex items-center gap-2 px-6 py-3 bg-white text-ink-900 rounded-full font-semibold shadow-lg shadow-black/20 transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-105 animate-pulse-slow"
+                className="absolute bottom-6 left-6 inline-flex items-center gap-2 px-6 py-3 bg-white text-ink-900 rounded-full font-semibold shadow-lg shadow-black/20 transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-105 animate-pulse-slow"
               >
                 {t('pLanding.workTogether.cta')}
               </Link>

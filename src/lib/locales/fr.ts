@@ -1638,7 +1638,6 @@ export const fr: Record<string, string> = {
   "pLanding.workTogether.point.recommendation.desc": "Une solution adaptée à votre secteur et votre budget",
   "pLanding.workTogether.point.support.title": "Accompagnement à la mise en route",
   "pLanding.workTogether.point.support.desc": "Un spécialiste vous guide dans la configuration",
-  "pLanding.workTogether.emailLabel": "Écrivez-nous",
   "pLanding.workTogether.cta": "Nous contacter",
   "pLanding.keepFlowing.title": "Une plateforme unique pour faire tourner votre commerce",
   "pLanding.keepFlowing.desc": "Voici le vrai tableau de bord, pas une maquette : ventes, ouverture de journée, transferts et stock, au même endroit.",
