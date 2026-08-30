@@ -1654,6 +1654,7 @@ export const en: Record<string, string> = {
   "pLanding.hero.demo.statSalesToday": "Today's sales",
   "pLanding.hero.demo.dashboardLabel": "Dashboard",
   "pLanding.hero.demo.caption": "Simplified preview of the POS Flow checkout interface — not a live capture.",
+  "pLanding.footer.tagline": "The commerce management platform built for the field, designed for the world.",
   "pLanding.footer.product": "Product",
   "pLanding.footer.features": "Features",
   "pLanding.footer.marketplace": "Marketplace",

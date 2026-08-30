@@ -1035,10 +1035,10 @@ function SuperPerformance() {
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
-        <button onClick={() => setView('staff')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${view === 'staff' ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`}>
+        <button onClick={() => setView('staff')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${view === 'staff' ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'}`}>
           {t('super.perf.staffPerf')}
         </button>
-        <button onClick={() => setView('commercials')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${view === 'commercials' ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`}>
+        <button onClick={() => setView('commercials')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${view === 'commercials' ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'}`}>
           {t('super.perf.commercialPerf')}
         </button>
       </div>
@@ -1210,8 +1210,8 @@ function SuperAudit() {
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
-        <button onClick={() => setView('audit')} className={`rounded-full px-4 py-2 text-sm font-medium ${view === 'audit' ? 'bg-brand-500 text-white' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200'}`}>{t('admin.tab.audit')}</button>
-        <button onClick={() => setView('access')} className={`rounded-full px-4 py-2 text-sm font-medium ${view === 'access' ? 'bg-brand-500 text-white' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200'}`}>{t('super.audit.accessAttempts')}</button>
+        <button onClick={() => setView('audit')} className={`rounded-full px-4 py-2 text-sm font-medium transition ${view === 'audit' ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'}`}>{t('admin.tab.audit')}</button>
+        <button onClick={() => setView('access')} className={`rounded-full px-4 py-2 text-sm font-medium transition ${view === 'access' ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'}`}>{t('super.audit.accessAttempts')}</button>
       </div>
       <div className="card p-5">
         {view === 'audit' ? (
@@ -1361,10 +1361,10 @@ function SuperMessages() {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <div className="flex gap-2">
-          <button onClick={() => setFilter('unhandled')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${filter === 'unhandled' ? 'bg-brand-500 text-white' : 'border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300'}`}>
+          <button onClick={() => setFilter('unhandled')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${filter === 'unhandled' ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'}`}>
             {t('super.messages.unhandled', { count: unhandledCount })}
           </button>
-          <button onClick={() => setFilter('all')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${filter === 'all' ? 'bg-brand-500 text-white' : 'border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300'}`}>
+          <button onClick={() => setFilter('all')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${filter === 'all' ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'}`}>
             {t('super.messages.all', { count: messages.length })}
           </button>
         </div>

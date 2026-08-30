@@ -1654,6 +1654,7 @@ export const fr: Record<string, string> = {
   "pLanding.hero.demo.statSalesToday": "Ventes du jour",
   "pLanding.hero.demo.dashboardLabel": "Tableau de bord",
   "pLanding.hero.demo.caption": "Aperçu simplifié de l'interface de caisse POS Flow — pas une capture en direct.",
+  "pLanding.footer.tagline": "La plateforme de gestion commerciale conçue pour le terrain, pensée pour le monde.",
   "pLanding.footer.product": "Produit",
   "pLanding.footer.features": "Fonctionnalités",
   "pLanding.footer.marketplace": "Marketplace",
