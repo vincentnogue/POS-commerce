@@ -391,7 +391,7 @@ function IntegrationCard({ provider, connection, isLocked, onConnect, viewMode }
           <button
             onClick={onConnect}
             disabled={isLocked}
-            className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
+            className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
               isConnected
                 ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300'
                 : isLocked
@@ -407,82 +407,70 @@ function IntegrationCard({ provider, connection, isLocked, onConnect, viewMode }
   }
 
   return (
-    <div className="group rounded-lg border border-slate-200 bg-white p-6 transition-all hover:border-blue-300 hover:shadow-lg dark:border-slate-700 dark:bg-slate-800 dark:hover:border-blue-600">
-      {/* Logo */}
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700">
-        {provider.logo_url ? (
-          <img
-            src={provider.logo_url}
-            alt={provider.provider_name}
-            className="h-8 w-8 object-contain"
-          />
-        ) : (
-          <Plus className="h-6 w-6 text-slate-400" />
-        )}
-      </div>
-
-      {/* Name & Status */}
-      <div className="mb-2 flex items-start justify-between">
-        <div>
-          <h3 className="font-bold text-slate-900 dark:text-white">{provider.provider_name}</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{provider.subcategory}</p>
+    <div className="group rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-blue-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-blue-600">
+      {/* Icon + name + category — compact header, no logo/name mismatch
+          risk since both come straight from the same provider row. */}
+      <div className="mb-3 flex items-center gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700">
+          {provider.logo_url ? (
+            <img src={provider.logo_url} alt={provider.provider_name} className="h-7 w-7 object-contain" />
+          ) : (
+            <Plus className="h-5 w-5 text-slate-400" />
+          )}
         </div>
-        {isConnected && (
-          <div className="rounded-full bg-green-100 p-1 dark:bg-green-900">
-            <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-          </div>
-        )}
-      </div>
-
-      {/* Description */}
-      <p className="mb-4 text-sm text-slate-600 dark:text-slate-400">{provider.description}</p>
-
-      {/* Capabilities */}
-      <div className="mb-4 flex flex-wrap gap-1">
-        {provider.capabilities.slice(0, 3).map(cap => (
-          <span
-            key={cap}
-            className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-          >
-            {cap}
-          </span>
-        ))}
-      </div>
-
-      {/* Footer */}
-      <div className="flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-700">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => navigate(`/integration/${provider.provider_key.toLowerCase()}`)}
-            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-          >
-            More →
-          </button>
-          <a
-            href={provider.documentation_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 text-xs text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
-          >
-            Docs
-            <ExternalLink className="h-3 w-3" />
-          </a>
+        <div className="min-w-0">
+          <h3 className="truncate font-bold text-slate-900 dark:text-white">{provider.provider_name}</h3>
+          <p className="truncate text-xs text-slate-500 dark:text-slate-400">{provider.subcategory || provider.category}</p>
         </div>
+      </div>
 
-        <button
-          onClick={onConnect}
-          disabled={isLocked}
-          className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
-            isConnected
-              ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300'
-              : isLocked
-                ? 'cursor-not-allowed bg-slate-100 text-slate-400 dark:bg-slate-700'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-          }`}
+      {/* Auth type + docs — same two facts the old description/capability
+          pills conveyed (how you connect, where to read more), in one
+          line instead of a paragraph plus a row of pills. */}
+      <div className="mb-3 flex items-center gap-2 text-xs">
+        <span className="rounded-full bg-slate-100 px-2 py-0.5 font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+          {provider.auth_type === 'oauth2' || provider.auth_type === 'oauth' ? 'OAuth' : provider.auth_type === 'api_key' ? 'API Key' : provider.auth_type}
+        </span>
+        <a
+          href={provider.documentation_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="flex items-center gap-0.5 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
         >
-          {isConnected ? 'Manage' : isLocked ? 'Upgrade' : 'Connect'}
-        </button>
+          Docs <ExternalLink className="h-3 w-3" />
+        </a>
+        {isConnected && (
+          <span className="ml-auto flex items-center gap-1 text-green-600 dark:text-green-400">
+            <CheckCircle className="h-3.5 w-3.5" />
+          </span>
+        )}
       </div>
+
+      <button
+        onClick={onConnect}
+        disabled={isLocked}
+        className={`w-full rounded-full py-2 text-sm font-medium transition-colors ${
+          isConnected
+            ? 'bg-green-600 text-white hover:bg-green-700'
+            : isLocked
+              ? 'cursor-not-allowed bg-slate-100 text-slate-400 dark:bg-slate-700'
+              : 'border border-slate-200 text-slate-700 hover:border-blue-300 hover:text-blue-700 dark:border-slate-600 dark:text-slate-200 dark:hover:border-blue-500'
+        }`}
+      >
+        {isConnected ? (
+          <span className="flex items-center justify-center gap-1.5"><CheckCircle className="h-4 w-4" /> Connected</span>
+        ) : isLocked ? 'Upgrade' : (
+          <span className="flex items-center justify-center gap-1.5"><Plus className="h-4 w-4" /> Connect</span>
+        )}
+      </button>
+
+      <button
+        onClick={() => navigate(`/integration/${provider.provider_key.toLowerCase()}`)}
+        className="mt-2 w-full text-center text-xs text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
+      >
+        More details
+      </button>
 
       {/* Lock Badge */}
       {isLocked && provider.minimum_plan && (
