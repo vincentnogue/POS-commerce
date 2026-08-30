@@ -398,7 +398,7 @@ function IntegrationCard({ provider, connection, isLocked, onConnect, viewMode }
   }
 
   return (
-    <div className="group rounded-lg border border-slate-200 bg-white p-6 transition-all hover:border-blue-300 hover:shadow-lg dark:border-slate-700 dark:bg-slate-800 dark:hover:border-blue-600">
+    <div className="group flex flex-col rounded-lg border border-slate-200 bg-white p-6 transition-all hover:border-blue-300 hover:shadow-lg dark:border-slate-700 dark:bg-slate-800 dark:hover:border-blue-600">
       {/* Logo */}
       <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700">
         {provider.logo_url ? (
@@ -440,56 +440,70 @@ function IntegrationCard({ provider, connection, isLocked, onConnect, viewMode }
         ))}
       </div>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-700">
-        <div className="flex items-center gap-2">
+      {/* BUG FIX: this card used to be a plain block div, so in a CSS
+          grid row (which stretches every card to the tallest card's
+          height by default), the Connect/Upgrade button sat wherever
+          normal document flow put it — right after however much
+          description/capability-tag text came before it. Cards with a
+          longer description, more capability tags, or (since the plan-
+          gating fix) a Lock Badge that only some cards show, ended up
+          with their buttons at visibly different vertical positions in
+          the same row — "les boutons ont glissé". flex flex-col above +
+          mt-auto here pins this footer to the bottom of every card
+          regardless of how much content is above it, so buttons always
+          line up across a row. */}
+      <div className="mt-auto">
+        {/* Footer */}
+        <div className="flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-700">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate(`/integration/${provider.provider_key.toLowerCase()}`)}
+              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+            >
+              More →
+            </button>
+            <a
+              href={provider.documentation_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-xs text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
+            >
+              Docs
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+
           <button
-            onClick={() => navigate(`/integration/${provider.provider_key.toLowerCase()}`)}
-            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+            onClick={onConnect}
+            disabled={isLocked}
+            className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
+              isConnected
+                ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300'
+                : isLocked
+                  ? 'cursor-not-allowed bg-slate-100 text-slate-400 dark:bg-slate-700'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}
           >
-            More →
+            {isConnected ? 'Manage' : isLocked ? 'Upgrade' : 'Connect'}
           </button>
-          <a
-            href={provider.documentation_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 text-xs text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
-          >
-            Docs
-            <ExternalLink className="h-3 w-3" />
-          </a>
         </div>
 
-        <button
-          onClick={onConnect}
-          disabled={isLocked}
-          className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
-            isConnected
-              ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300'
-              : isLocked
-                ? 'cursor-not-allowed bg-slate-100 text-slate-400 dark:bg-slate-700'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-          }`}
-        >
-          {isConnected ? 'Manage' : isLocked ? 'Upgrade' : 'Connect'}
-        </button>
+        {/* Lock Badge */}
+        {isLocked && provider.minimum_plan && (
+          <div className="mt-2 rounded bg-amber-50 p-2 text-center dark:bg-amber-900 dark:bg-opacity-30">
+            <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
+              {/* Real plan display names — never show the raw DB code
+                  ('basic' has no matching plan; the real lowest tier is
+                  'Starter'). Keep in sync with src/lib/plans.ts. */}
+              Upgrade to {(
+                { basic: 'Starter', starter: 'Starter', pro: 'Pro', premium: 'Premium', entreprise: 'Entreprise' }[
+                  provider.minimum_plan.toLowerCase()
+                ] ?? provider.minimum_plan
+              )}
+            </p>
+          </div>
+        )}
       </div>
-
-      {/* Lock Badge */}
-      {isLocked && provider.minimum_plan && (
-        <div className="mt-2 rounded bg-amber-50 p-2 text-center dark:bg-amber-900 dark:bg-opacity-30">
-          <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
-            {/* Real plan display names — never show the raw DB code
-                ('basic' has no matching plan; the real lowest tier is
-                'Starter'). Keep in sync with src/lib/plans.ts. */}
-            Upgrade to {(
-              { basic: 'Starter', starter: 'Starter', pro: 'Pro', premium: 'Premium', entreprise: 'Entreprise' }[
-                provider.minimum_plan.toLowerCase()
-              ] ?? provider.minimum_plan
-            )}
-          </p>
-        </div>
-      )}
     </div>
   );
 }

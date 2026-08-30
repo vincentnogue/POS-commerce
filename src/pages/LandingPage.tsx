@@ -7,7 +7,7 @@ import {
   Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AreaChart, Area, BarChart, Bar, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { useI18n } from '../lib/i18n';
 import { useTheme } from '../lib/theme';
 import { supabase } from '../lib/supabase';
@@ -18,19 +18,12 @@ import { PLANS as REAL_PLANS } from '../lib/plans';
 // in this app (see src/pages/modules/*), not aspirational copy. Titles/descriptions
 // come from i18n (pLanding.feature.*) so the EN toggle translates this grid too.
 
-// Sample data for the landing page's "revenue" / "performance" chart
-// illustrations. These are marketing mockups (same as the static
-// "$2,450" figure and the old CSS-bar chart they replace) — not live
-// data — but they now render through the same recharts components the
-// real Dashboard/Reports modules use, instead of four fixed-height <div>s.
+// Sample data for the hero section's dashboard preview card (real
+// recharts component, not live data — see PosLiveDemo below).
 const REVENUE_TREND_SAMPLE = [
   { day: 'Lun', value: 1180 }, { day: 'Mar', value: 1420 }, { day: 'Mer', value: 1290 },
   { day: 'Jeu', value: 1610 }, { day: 'Ven', value: 1980 }, { day: 'Sam', value: 2260 },
   { day: 'Dim', value: 2450 },
-];
-const CATEGORY_PERFORMANCE_SAMPLE = [
-  { name: 'Boissons', value: 820 }, { name: 'Alim.', value: 640 },
-  { name: 'Hygiène', value: 410 }, { name: 'Access.', value: 580 },
 ];
 
 const FEATURE_KEYS = [
@@ -1214,64 +1207,27 @@ export function LandingPage() {
                   </div>
                 ))}
               </div>
+
+              <div className="mb-8">
+                <p className="text-sm font-bold text-ink-600 dark:text-ink-400 mb-2">{t('pLanding.workTogether.emailLabel')}</p>
+                <a href="mailto:support@liafrik.com" className="text-2xl font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition">
+                  support@liafrik.com
+                </a>
+              </div>
+
+              <Link
+                to="/contact"
+                className="inline-flex items-center gap-2 px-6 py-3 border-2 border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400 rounded-lg font-semibold hover:bg-brand-50 dark:hover:bg-brand-600/10 transition"
+              >
+                {t('pLanding.workTogether.cta')}
+              </Link>
             </div>
 
-            {/* Right visual — user feedback: the previous animated
-                illustration (emoji cashier + abstract blurred shapes)
-                read as a fictional cartoon, not something real. Then
-                replaced again with a real, user-provided photo (the
-                actual asset the person meant by "image" all along):
-                public/images/partnership-handshake.jpg — animated with a
-                slow cinematic zoom (Ken Burns effect) plus a pulsing glow
-                ring aligned on the photo's own digital-globe overlay, and
-                floating international-reach badges using the real "54
-                pays" figure already used elsewhere on this page
-                (landing.africa.countries.title) rather than an invented
-                number. Respects heroReducedMotion throughout. */}
+            {/* Right image */}
             <div className="relative h-96 rounded-xl overflow-hidden shadow-xl">
-              <motion.img
-                src="/images/partnership-handshake.jpg"
-                alt="Partenariat international POS Flow"
-                className="absolute inset-0 h-full w-full object-cover"
-                initial={false}
-                animate={heroReducedMotion ? { scale: 1 } : { scale: [1, 1.08, 1] }}
-                transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-ink-900/70 via-ink-900/10 to-transparent" />
-
-              {/* Pulsing glow aligned on the photo's own digital-globe
-                  overlay, to make it feel alive rather than a static
-                  photo */}
-              <motion.div
-                initial={false}
-                animate={heroReducedMotion ? { opacity: 0.35 } : { opacity: [0.15, 0.4, 0.15], scale: [1, 1.06, 1] }}
-                transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
-                className="absolute left-1/2 top-[38%] h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-flow-300/40 blur-2xl"
-              />
-
-              {/* Floating international-reach badge — real figure reused
-                  from elsewhere on this page */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-40px' }}
-                transition={{ duration: 0.6, delay: 0.15 }}
-                className="absolute top-5 left-5 flex items-center gap-2 rounded-full bg-white/95 dark:bg-ink-900/90 backdrop-blur px-4 py-2 shadow-lg"
-              >
-                <Globe size={16} className="text-brand-600 dark:text-brand-400" />
-                <span className="text-sm font-bold text-ink-900 dark:text-white">{t('landing.africa.countries.title')}</span>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-40px' }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="absolute bottom-5 right-5 flex items-center gap-2 rounded-full bg-white/95 dark:bg-ink-900/90 backdrop-blur px-4 py-2 shadow-lg"
-              >
-                <CheckCircle2 size={16} className="text-success-500" />
-                <span className="text-sm font-semibold text-ink-900 dark:text-white">{t('plan.feat.support247')}</span>
-              </motion.div>
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-500 to-flow-500 flex items-center justify-center">
+                <div className="text-6xl">👩‍💼</div>
+              </div>
             </div>
           </div>
         </div>
@@ -1293,22 +1249,11 @@ export function LandingPage() {
             <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg">
               <div className="text-3xl font-bold text-brand-600 dark:text-brand-400 mb-2">$2,450</div>
               <p className="text-sm font-semibold text-ink-600 dark:text-ink-400 mb-4">{t('pLanding.keepFlowing.card.revenue')}</p>
-              {/* BUG FIX: this used to be 4 fixed-height <div>s faking a bar
-                  chart. Now a real recharts AreaChart, same component and
-                  gradient style the real Dashboard module uses for its own
-                  sales-trend chart (src/pages/modules/DashboardPage.tsx). */}
-              <div className="h-16 mt-3">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={REVENUE_TREND_SAMPLE} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="landingRevenueGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#2E8C66" stopOpacity={0.35} />
-                        <stop offset="100%" stopColor="#2E8C66" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <Area type="monotone" dataKey="value" stroke="#2E8C66" strokeWidth={2.5} fill="url(#landingRevenueGradient)" />
-                  </AreaChart>
-                </ResponsiveContainer>
+              <div className="h-12 flex items-end gap-1 mt-3">
+                <div className="flex-1 bg-flow-300 rounded h-1/3"></div>
+                <div className="flex-1 bg-flow-400 rounded h-2/3"></div>
+                <div className="flex-1 bg-flow-500 rounded h-full"></div>
+                <div className="flex-1 bg-flow-400 rounded h-3/4"></div>
               </div>
               <p className="text-xs text-flow-600 dark:text-flow-400 mt-3">↑ 32% {t('pLanding.keepFlowing.card.vsYesterday')}</p>
             </div>
@@ -1330,17 +1275,7 @@ export function LandingPage() {
                 <ArrowRightLeft className="w-5 h-5 text-brand-600 dark:text-brand-400" />
               </div>
               <p className="font-semibold text-ink-900 dark:text-white mb-2">{t('pLanding.keepFlowing.card.transferTitle')}</p>
-              <p className="text-sm text-ink-700 dark:text-ink-300 mb-4">{t('pLanding.keepFlowing.card.transferDesc')}</p>
-              {/* Real performance-by-category illustration (recharts
-                  BarChart), same idea as the real Reports module's
-                  category breakdowns. */}
-              <div className="h-14">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={CATEGORY_PERFORMANCE_SAMPLE} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                    <Bar dataKey="value" radius={[3, 3, 0, 0]} fill="#2E8C66" fillOpacity={0.75} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <p className="text-sm text-ink-700 dark:text-ink-300">{t('pLanding.keepFlowing.card.transferDesc')}</p>
             </div>
 
             <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700">
