@@ -48,7 +48,7 @@ export function TermsPage() {
 
       <section>
         <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('terms.s8.title')}</h2>
-        <p>{t('terms.s8.text')} <a href="mailto:legal@liafrik.com" className="text-brand-600 hover:underline">legal@liafrik.com</a>.</p>
+        <p>{t('terms.s8.text')} <a href="mailto:support@liafrik.com" className="text-brand-600 hover:underline">support@liafrik.com</a>.</p>
       </section>
     </FooterPageLayout>
   );

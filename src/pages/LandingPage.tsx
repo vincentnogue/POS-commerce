@@ -1767,49 +1767,71 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 dark:border-ink-800 bg-white dark:bg-ink-950">
-        <div className="max-w-7xl mx-auto px-4 py-12 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+      {/* Footer — always dark (not light/dark-toggled like the rest of the
+          page) for a deliberate "premium" close to the page, matching the
+          video-hero sections above. Added a brand column (logo, one-line
+          description already used elsewhere on this page, and the two real
+          support addresses) beside the existing four link columns, plus a
+          subtle top gradient line and ambient glow consistent with the
+          "high-tech" treatment used in the hero. Nothing in the four
+          existing link columns was removed or reordered. */}
+      <footer className="relative overflow-hidden bg-ink-950 border-t border-white/10">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-500/60 to-transparent" aria-hidden="true" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_15%_0%,rgba(46,140,102,0.12),transparent)]" aria-hidden="true" />
+        <div className="relative max-w-7xl mx-auto px-4 py-16 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-10 mb-10">
+            <div className="md:col-span-1">
+              <div className="flex items-center gap-2 mb-4">
+                <img src="/logo-pos-icon.png" alt="" className="w-8 h-8 rounded-lg" />
+                <span className="text-lg font-semibold tracking-tight text-white">POS Flow</span>
+              </div>
+              <p className="text-sm text-ink-400 mb-5 max-w-[220px]">
+                {t('pLanding.footer.tagline')}
+              </p>
+              <div className="space-y-1.5 text-sm">
+                <a href="mailto:support@liafrik.com" className="block text-ink-300 hover:text-brand-400 transition">support@liafrik.com</a>
+                <a href="mailto:cs@liafrik.com" className="block text-ink-300 hover:text-brand-400 transition">cs@liafrik.com</a>
+              </div>
+            </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.product')}</p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><a href="#features" className="hover:text-brand-600">{t('pLanding.footer.features')}</a></li>
-                <li><Link to="/pricing" className="hover:text-brand-600">{t('pLanding.nav.pricing')}</Link></li>
-                <li><Link to="/marketplace" className="hover:text-brand-600">{t('pLanding.footer.marketplace')}</Link></li>
+              <p className="font-semibold text-white mb-4">{t('pLanding.footer.product')}</p>
+              <ul className="space-y-2 text-sm text-ink-400">
+                <li><a href="#features" className="hover:text-brand-400 transition">{t('pLanding.footer.features')}</a></li>
+                <li><a href="#pricing" onClick={scrollToPricing} className="hover:text-brand-400 transition">{t('pLanding.nav.pricing')}</a></li>
+                <li><Link to="/marketplace" className="hover:text-brand-400 transition">{t('pLanding.footer.marketplace')}</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.company')}</p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><Link to="/about" className="hover:text-brand-600">{t('pLanding.footer.about')}</Link></li>
-                <li><Link to="/careers" className="hover:text-brand-600">{t('pLanding.footer.careers')}</Link></li>
-                <li><Link to="/blog" className="hover:text-brand-600">{t('pLanding.footer.blog')}</Link></li>
-                <li><Link to="/contact" className="hover:text-brand-600">{t('pLanding.footer.contact')}</Link></li>
+              <p className="font-semibold text-white mb-4">{t('pLanding.footer.company')}</p>
+              <ul className="space-y-2 text-sm text-ink-400">
+                <li><Link to="/about" className="hover:text-brand-400 transition">{t('pLanding.footer.about')}</Link></li>
+                <li><Link to="/careers" className="hover:text-brand-400 transition">{t('pLanding.footer.careers')}</Link></li>
+                <li><Link to="/blog" className="hover:text-brand-400 transition">{t('pLanding.footer.blog')}</Link></li>
+                <li><Link to="/contact" className="hover:text-brand-400 transition">{t('pLanding.footer.contact')}</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.resources')}</p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><Link to="/resources" className="hover:text-brand-600">{t('pLanding.footer.resources')}</Link></li>
-                <li><Link to="/help" className="hover:text-brand-600">{t('pLanding.footer.help')}</Link></li>
-                <li><Link to="/documentation" className="hover:text-brand-600">{t('pLanding.footer.docs')}</Link></li>
+              <p className="font-semibold text-white mb-4">{t('pLanding.footer.resources')}</p>
+              <ul className="space-y-2 text-sm text-ink-400">
+                <li><Link to="/resources" className="hover:text-brand-400 transition">{t('pLanding.footer.resources')}</Link></li>
+                <li><Link to="/help" className="hover:text-brand-400 transition">{t('pLanding.footer.help')}</Link></li>
+                <li><Link to="/documentation" className="hover:text-brand-400 transition">{t('pLanding.footer.docs')}</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.legal')}</p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><Link to="/privacy" className="hover:text-brand-600">{t('pLanding.footer.privacy')}</Link></li>
-                <li><Link to="/terms" className="hover:text-brand-600">{t('pLanding.footer.terms')}</Link></li>
-                <li><Link to="/legal" className="hover:text-brand-600">{t('pLanding.footer.legalNotice')}</Link></li>
+              <p className="font-semibold text-white mb-4">{t('pLanding.footer.legal')}</p>
+              <ul className="space-y-2 text-sm text-ink-400">
+                <li><Link to="/privacy" className="hover:text-brand-400 transition">{t('pLanding.footer.privacy')}</Link></li>
+                <li><Link to="/terms" className="hover:text-brand-400 transition">{t('pLanding.footer.terms')}</Link></li>
+                <li><Link to="/legal" className="hover:text-brand-400 transition">{t('pLanding.footer.legalNotice')}</Link></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-200 dark:border-ink-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-ink-500">
               {t('pLanding.footer.rights', { year: new Date().getFullYear() })}
             </p>
-            <button onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')} className="text-sm text-gray-600 dark:text-gray-400 hover:text-brand-600">
+            <button onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')} className="text-sm text-ink-400 hover:text-brand-400 transition">
               {lang.toUpperCase()}
             </button>
           </div>

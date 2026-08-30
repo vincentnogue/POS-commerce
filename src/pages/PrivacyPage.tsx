@@ -9,7 +9,7 @@ export function PrivacyPage() {
 
       <section>
         <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('privacy.s1.title')}</h2>
-        <p>{t('privacy.s1.text')} <a href="mailto:dpo@liafrik.com" className="text-brand-600 hover:underline">dpo@liafrik.com</a>.</p>
+        <p>{t('privacy.s1.text')} <a href="mailto:support@liafrik.com" className="text-brand-600 hover:underline">support@liafrik.com</a>.</p>
       </section>
 
       <section>
@@ -35,7 +35,7 @@ export function PrivacyPage() {
 
       <section>
         <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('privacy.s5.title')}</h2>
-        <p>{t('privacy.s5.text')} <a href="mailto:privacy@liafrik.com" className="text-brand-600 hover:underline">privacy@liafrik.com</a>.</p>
+        <p>{t('privacy.s5.text')} <a href="mailto:support@liafrik.com" className="text-brand-600 hover:underline">support@liafrik.com</a>.</p>
       </section>
 
       <section>
