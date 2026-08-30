@@ -674,7 +674,7 @@ export function LandingPage() {
             <img
               src="https://assets.mixkit.co/videos/15914/15914-thumb-360-1.jpg"
               alt=""
-              className="w-full h-full object-cover opacity-80"
+              className="w-full h-full object-cover"
             />
           ) : (
             <video
@@ -683,12 +683,17 @@ export function LandingPage() {
               loop
               playsInline
               poster="https://assets.mixkit.co/videos/15914/15914-thumb-360-1.jpg"
-              className="w-full h-full object-cover opacity-80"
+              className="w-full h-full object-cover"
             >
               <source src="https://assets.mixkit.co/videos/15914/15914-360.mp4" type="video/mp4" />
             </video>
           )}
-          <div className="absolute inset-0 bg-ink-950/55" />
+          {/* Lighter, uneven overlay: darker over the copy column (left) to
+              keep text legible, much lighter elsewhere so the video is
+              actually visible instead of being washed out by a flat 55%
+              black layer across the whole section. */}
+          <div className="absolute inset-0 bg-ink-950/25" />
+          <div className="absolute inset-0 bg-gradient-to-r from-ink-950/85 via-ink-950/50 to-ink-950/15 lg:to-ink-950/5" />
         </div>
 
         {/* Ambient gradient + tech effects, layered above the video */}
@@ -877,18 +882,35 @@ export function LandingPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {FEATURE_KEYS.map((f) => (
-            <div
-              key={f.key}
-              className="rounded-xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 hover:border-brand-500/50 hover:shadow-lg transition"
-            >
-              <div className="w-11 h-11 rounded-lg bg-brand-500/10 flex items-center justify-center mb-4">
-                <f.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
-              </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t(`pLanding.feature.${f.key}.title`)}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{t(`pLanding.feature.${f.key}.desc`)}</p>
-            </div>
-          ))}
+          {FEATURE_KEYS.map((f, i) => {
+            // Static class strings, not interpolated — Tailwind's build-time
+            // scanner can't see dynamically-built class names like
+            // `bg-${color}-500/10`, so those would silently vanish from the
+            // production CSS bundle. This lookup keeps the varied per-card
+            // tint while staying scanner-safe.
+            const tints = [
+              { bg: 'bg-brand-500/10', icon: 'text-brand-600 dark:text-brand-400' },
+              { bg: 'bg-flow-500/10', icon: 'text-flow-600 dark:text-flow-400' },
+              { bg: 'bg-action-500/10', icon: 'text-action-600 dark:text-action-400' },
+            ];
+            const tint = tints[i % tints.length];
+            return (
+              <motion.div
+                key={f.key}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.45, delay: (i % 4) * 0.08, ease: 'easeOut' }}
+                className="rounded-xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 hover:border-brand-500/50 hover:shadow-lg hover:-translate-y-1 transition-all"
+              >
+                <div className={`w-11 h-11 rounded-lg ${tint.bg} flex items-center justify-center mb-4`}>
+                  <f.icon className={`w-5 h-5 ${tint.icon}`} />
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t(`pLanding.feature.${f.key}.title`)}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{t(`pLanding.feature.${f.key}.desc`)}</p>
+              </motion.div>
+            );
+          })}
         </div>
       </section>
 
@@ -977,7 +999,7 @@ export function LandingPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${
                     activeTab === tab.id
                       ? 'text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-400'
                       : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -1547,7 +1569,7 @@ export function LandingPage() {
             <img
               src="https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg"
               alt=""
-              className="w-full h-full object-cover opacity-80"
+              className="w-full h-full object-cover"
             />
           ) : (
             <video
@@ -1556,12 +1578,12 @@ export function LandingPage() {
               loop
               playsInline
               poster="https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg"
-              className="w-full h-full object-cover opacity-80"
+              className="w-full h-full object-cover"
             >
               <source src="https://assets.mixkit.co/videos/49137/49137-360.mp4" type="video/mp4" />
             </video>
           )}
-          <div className="absolute inset-0 bg-ink-950/60" />
+          <div className="absolute inset-0 bg-ink-950/40" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_20%,rgba(20,181,148,0.18),transparent)]" />
         </div>
 
@@ -1618,7 +1640,7 @@ export function LandingPage() {
                 </div>
                 <Link
                   to="/contact"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 shadow-lg shadow-brand-500/30 transition sm:ml-auto"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 text-white rounded-full font-semibold hover:bg-brand-700 shadow-lg shadow-brand-500/30 transition sm:ml-auto"
                 >
                   {t('pLanding.workTogether.cta')} <ArrowRight size={16} />
                 </Link>
@@ -1742,7 +1764,7 @@ export function LandingPage() {
           <div className="mt-16 text-center">
             <Link
               to="/pricing"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-full font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
             >
               {t('pLanding.keepFlowing.cta')} <ArrowRight size={18} />
             </Link>

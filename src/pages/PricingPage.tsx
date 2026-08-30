@@ -293,7 +293,7 @@ export function PricingPage() {
                     <td key={plan.id} className="px-4 py-4 text-center">
                       <Link
                         to={plan.cta.href}
-                        className={`inline-flex items-center justify-center px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                        className={`inline-flex items-center justify-center px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
                           plan.popular
                             ? 'bg-brand-500 text-white hover:bg-brand-600 shadow-md shadow-brand-500/30'
                             : 'bg-flow-500/10 text-flow-700 dark:text-flow-300 hover:bg-flow-500/20 border border-flow-500/30'
@@ -435,7 +435,7 @@ export function PricingPage() {
         <p className="text-xl text-ink-600 dark:text-ink-300 mb-8">
           Démarrez votre essai gratuit de 14 jours dès aujourd'hui. Aucune carte bancaire requise.
         </p>
-        <button className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/30">
+        <button className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/30">
           Démarrer l'essai gratuit
           <ArrowRight className="w-5 h-5" />
         </button>
