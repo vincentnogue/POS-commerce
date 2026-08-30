@@ -973,8 +973,8 @@ export function LandingPage() {
 
           {/* Tab Content */}
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left: Image/Visual */}
-            <div className="relative">
+            {/* Left: Image/Visual - Uniform sizing */}
+            <div className="relative h-96 lg:h-[500px] overflow-hidden rounded-xl shadow-lg bg-gray-200 dark:bg-ink-800">
               <img
                 src={
                   activeTab === 'pos' ? '/feature-pos.jpg' :
@@ -987,7 +987,7 @@ export function LandingPage() {
                   '/feature-integrations.jpg'
                 }
                 alt={`${activeTab} interface preview`}
-                className="w-full rounded-xl shadow-lg object-cover"
+                className="w-full h-full object-cover"
               />
             </div>
 
