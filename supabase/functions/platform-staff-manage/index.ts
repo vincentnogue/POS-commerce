@@ -10,7 +10,7 @@ const corsHeaders = {
 // excluded — that section can never be delegated to staff.
 const GRANTABLE_SECTIONS = [
   'overview', 'tenants', 'employees', 'subscriptions', 'plans', 'codes',
-  'performance', 'audit', 'monitoring', 'comms', 'cms',
+  'performance', 'audit', 'monitoring', 'comms', 'messages',
 ];
 
 async function sb(supabaseUrl: string, key: string, path: string, init: RequestInit = {}) {
