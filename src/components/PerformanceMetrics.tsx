@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { TrendingUp, Activity } from 'lucide-react';
+import { TrendingUp, Activity, ShoppingCart, Package, BarChart3, CreditCard, Sparkles, type LucideIcon } from 'lucide-react';
 
 interface ModulePerformance {
   module: string;
-  icon: React.ReactNode;
+  icon: LucideIcon;
   usage: number;
   trend: number;
   performance: number;
@@ -16,7 +16,7 @@ interface ModulePerformance {
 const MODULES_DATA: ModulePerformance[] = [
   {
     module: 'Point of Sale',
-    icon: '🛒',
+    icon: ShoppingCart,
     usage: 94,
     trend: 12,
     performance: 98,
@@ -34,7 +34,7 @@ const MODULES_DATA: ModulePerformance[] = [
   },
   {
     module: 'Inventory',
-    icon: '📦',
+    icon: Package,
     usage: 87,
     trend: 8,
     performance: 95,
@@ -52,7 +52,7 @@ const MODULES_DATA: ModulePerformance[] = [
   },
   {
     module: 'Reports',
-    icon: '📊',
+    icon: BarChart3,
     usage: 76,
     trend: 15,
     performance: 92,
@@ -70,7 +70,7 @@ const MODULES_DATA: ModulePerformance[] = [
   },
   {
     module: 'Payments',
-    icon: '💳',
+    icon: CreditCard,
     usage: 99,
     trend: 22,
     performance: 99,
@@ -105,36 +105,57 @@ export function PerformanceMetrics() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Module Performance</h3>
-        <p className="text-gray-600 dark:text-gray-400">Real-time metrics across your business modules</p>
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-flow-600 flex items-center justify-center shrink-0 shadow-lg shadow-brand-500/30">
+          <Sparkles size={18} className="text-white" />
+        </div>
+        <div>
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Module Performance</h3>
+          <p className="text-gray-600 dark:text-gray-400 text-sm">Real-time metrics across your business modules</p>
+        </div>
       </div>
 
       {/* Top Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {MODULES_DATA.map((module) => (
-          <div 
-            key={module.module}
-            className="bg-gradient-to-br from-white to-gray-50 dark:from-ink-800 dark:to-ink-900 border border-gray-200 dark:border-ink-700 rounded-xl p-4 hover:shadow-lg transition"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-2xl">{module.icon}</span>
-              <div className={`flex items-center gap-1 text-sm font-semibold ${module.trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                <TrendingUp size={16} />
-                {module.trend}%
+        {MODULES_DATA.map((module) => {
+          const Icon = module.icon;
+          const isTop = module.module === topModule.module;
+          return (
+            <div
+              key={module.module}
+              className={`relative overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:-translate-y-0.5 ${
+                isTop
+                  ? 'bg-gradient-to-br from-brand-600 to-flow-700 text-white shadow-xl shadow-brand-600/25'
+                  : 'bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 hover:shadow-lg'
+              }`}
+            >
+              {isTop && (
+                <span className="absolute top-3 right-3 text-[9px] font-bold uppercase tracking-wider bg-white/20 rounded-full px-2 py-0.5">Top</span>
+              )}
+              <div className="flex items-center justify-between mb-4">
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${isTop ? 'bg-white/15' : ''}`}
+                  style={!isTop ? { backgroundColor: `${module.color}18` } : undefined}
+                >
+                  <Icon size={18} className={isTop ? 'text-white' : ''} style={!isTop ? { color: module.color } : undefined} />
+                </div>
+                <div className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${isTop ? 'bg-white/15 text-white' : 'bg-flow-50 dark:bg-flow-500/10 text-flow-700 dark:text-flow-400'}`}>
+                  <TrendingUp size={12} />
+                  +{module.trend}%
+                </div>
               </div>
+              <h4 className={`text-sm font-semibold mb-1 ${isTop ? 'text-white/90' : 'text-gray-900 dark:text-white'}`}>{module.module}</h4>
+              <p className={`text-3xl font-bold ${isTop ? 'text-white' : 'text-gray-900 dark:text-white'}`}>{module.usage}%</p>
+              <p className={`text-xs mt-2 ${isTop ? 'text-white/70' : 'text-gray-500'}`}>{module.activeUsers.toLocaleString()} active users</p>
             </div>
-            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{module.module}</h4>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{module.usage}%</p>
-            <p className="text-xs text-gray-500 mt-2">{module.activeUsers.toLocaleString()} active users</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Line Chart - Usage Trends */}
-        <div className="bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 rounded-xl p-6">
+        <div className="bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
           <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Usage Trends</h4>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={MODULES_DATA[0].data}>
@@ -164,7 +185,7 @@ export function PerformanceMetrics() {
         </div>
 
         {/* Bar Chart - Performance Score */}
-        <div className="bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 rounded-xl p-6">
+        <div className="bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
           <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Performance Score</h4>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={MODULES_DATA}>
@@ -192,7 +213,7 @@ export function PerformanceMetrics() {
         </div>
 
         {/* Area Chart - Efficiency */}
-        <div className="bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 rounded-xl p-6">
+        <div className="bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
           <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Efficiency Rate</h4>
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={MODULES_DATA[0].data}>
@@ -226,7 +247,7 @@ export function PerformanceMetrics() {
         </div>
 
         {/* Radar Chart - Module Comparison */}
-        <div className="bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 rounded-xl p-6">
+        <div className="bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
           <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Module Comparison</h4>
           <ResponsiveContainer width="100%" height={300}>
             <RadarChart data={radarData}>
@@ -250,12 +271,14 @@ export function PerformanceMetrics() {
       </div>
 
       {/* Insights */}
-      <div className="bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-xl p-6">
+      <div className="relative overflow-hidden bg-gradient-to-r from-brand-50 to-flow-50 dark:from-brand-900/20 dark:to-flow-900/20 border border-brand-200/60 dark:border-brand-800/40 rounded-2xl p-6 shadow-sm">
         <div className="flex gap-4">
-          <Activity className="text-blue-600 dark:text-blue-400 flex-shrink-0" size={24} />
+          <div className="w-11 h-11 rounded-xl bg-white dark:bg-ink-800 shadow-sm flex items-center justify-center shrink-0">
+            <Activity className="text-brand-600 dark:text-brand-400" size={20} />
+          </div>
           <div>
-            <h4 className="font-semibold text-blue-900 dark:text-blue-200 mb-1">Performance Insights</h4>
-            <p className="text-sm text-blue-800 dark:text-blue-300">
+            <h4 className="font-semibold text-ink-900 dark:text-brand-200 mb-1">Performance Insights</h4>
+            <p className="text-sm text-ink-700 dark:text-brand-300/90">
               {topModule.module} is your top module with {topModule.usage}% usage and {topModule.trend}% growth. 
               {topModule.performance >= 95 
                 ? ' Excellent performance across all metrics.' 
