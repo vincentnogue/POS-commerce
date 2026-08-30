@@ -1,12 +1,12 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Download, TrendingUp, TrendingDown, ShoppingCart, Wallet } from 'lucide-react';
+import { Download, TrendingUp, TrendingDown, ShoppingCart, Wallet, ArrowUpDown } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from 'recharts';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
-import { PageHeader, StatCard } from '../../components/ui';
-import { Select, exportCSV } from '../../components/DataTable';
+import { PageHeader, StatCard, Modal } from '../../components/ui';
+import { Select, SearchInput, exportCSV } from '../../components/DataTable';
 import type { Sale, Expense, Store, Product, Category } from '../../lib/types';
 
 const PERIODS = [
@@ -28,6 +28,17 @@ export function ReportsPage() {
   const [stores, setStores] = useState<Store[]>([]);
   const [period, setPeriod] = useState('30');
   const [storeFilter, setStoreFilter] = useState('');
+  // Sales register (Dynamics-365-style transaction list) — search,
+  // payment-method filter, sortable columns, and a line-item drill-down,
+  // on top of the aggregate charts above rather than replacing them.
+  const [staffNames, setStaffNames] = useState<Record<string, string>>({});
+  const [registerSearch, setRegisterSearch] = useState('');
+  const [paymentFilter, setPaymentFilter] = useState('');
+  const [sortKey, setSortKey] = useState<'sale_date' | 'total' | 'reference'>('sale_date');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [detailSale, setDetailSale] = useState<Sale | null>(null);
+  const [detailItems, setDetailItems] = useState<{ name: string; quantity: number; unit_price: number; total: number }[]>([]);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   const currency = tenant?.currency ?? 'XOF';
 
@@ -47,6 +58,10 @@ export function ReportsPage() {
     setProducts((p.data as any[]) ?? []);
     setCategories((c.data as Category[]) ?? []);
     setStores((st.data as Store[]) ?? []);
+    const { data: members } = await supabase.from('tenant_members').select('user_id, display_name').eq('tenant_id', tenant.id);
+    const staffMap: Record<string, string> = {};
+    (members ?? []).forEach((m: any) => { if (m.user_id) staffMap[m.user_id] = m.display_name ?? t('reports.unknownStaff'); });
+    setStaffNames(staffMap);
   })(); }, [tenant]);
 
   const sinceDate = Date.now() - Number(period) * 86400000;
@@ -103,6 +118,38 @@ export function ReportsPage() {
     name: c.name,
     value: products.filter((p) => p.category_id === c.id).length,
   })).filter((x) => x.value > 0);
+
+  const registerRows = useMemo(() => {
+    const q = registerSearch.toLowerCase().trim();
+    let rows = filteredSales.filter((s) =>
+      (!q || s.reference.toLowerCase().includes(q)) &&
+      (!paymentFilter || s.payment_method === paymentFilter)
+    );
+    rows = [...rows].sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === 'sale_date') cmp = new Date(a.sale_date).getTime() - new Date(b.sale_date).getTime();
+      else if (sortKey === 'total') cmp = Number(a.total) - Number(b.total);
+      else cmp = a.reference.localeCompare(b.reference);
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return rows;
+  }, [filteredSales, registerSearch, paymentFilter, sortKey, sortDir]);
+
+  const toggleSort = (key: typeof sortKey) => {
+    if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    else { setSortKey(key); setSortDir('desc'); }
+  };
+
+  const openSaleDetail = async (s: Sale) => {
+    setDetailSale(s);
+    setDetailLoading(true);
+    const { data } = await supabase.from('sale_items').select('name, quantity, unit_price, total').eq('sale_id', s.id);
+    setDetailItems((data as any[]) ?? []);
+    setDetailLoading(false);
+  };
+
+  const paymentMethodLabel = (m: string | null) =>
+    m === 'cash' ? t('pos.pay.cash') : m === 'card' ? t('pos.pay.cardLabel') : m === 'mobile_money' ? t('pos.pay.mobileMoney') : (m ?? '—');
 
   return (
     <div>
@@ -183,6 +230,116 @@ export function ReportsPage() {
           )}
         </div>
       </div>
+
+      {/* Sales register — full transaction-level detail (reference, date,
+          store, staff, payment method, total), searchable/sortable/
+          filterable and with a line-item drill-down per sale, on top of
+          the aggregate charts above. Reprinting a receipt or generating
+          an invoice for a sale stays in POS -> Historique
+          (src/pages/modules/SaleHistoryTab.tsx) rather than being
+          duplicated here with a second code path that could drift out of
+          sync with it — this view is for visibility and analysis. */}
+      <div className="card mt-6 p-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t('reports.register.title')}</h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <SearchInput value={registerSearch} onChange={setRegisterSearch} placeholder={t('reports.register.searchPlaceholder')} />
+            <Select
+              value={paymentFilter}
+              onChange={setPaymentFilter}
+              placeholder={t('reports.register.allPayments')}
+              options={[
+                { value: 'cash', label: t('pos.pay.cash') },
+                { value: 'card', label: t('pos.pay.cardLabel') },
+                { value: 'mobile_money', label: t('pos.pay.mobileMoney') },
+              ]}
+            />
+            <button
+              onClick={() => exportCSV('registre-ventes.csv', registerRows.map((s) => ({
+                reference: s.reference, date: s.sale_date, magasin: (s as any).store?.name ?? '', paiement: s.payment_method, statut: s.sale_status, total: s.total,
+              })))}
+              className="btn-ghost"
+            ><Download size={16} /> {t('common.export')}</button>
+          </div>
+        </div>
+
+        {registerRows.length === 0 ? (
+          <p className="py-12 text-center text-sm text-ink-400 dark:text-ink-500">{t('common.empty')}</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">
+                  <th className="pb-2.5 font-medium">
+                    <button onClick={() => toggleSort('reference')} className="flex items-center gap-1 hover:text-brand-600">{t('reports.register.col.reference')} <ArrowUpDown size={11} /></button>
+                  </th>
+                  <th className="pb-2.5 font-medium">
+                    <button onClick={() => toggleSort('sale_date')} className="flex items-center gap-1 hover:text-brand-600">{t('common.date')} <ArrowUpDown size={11} /></button>
+                  </th>
+                  <th className="pb-2.5 font-medium">{t('reports.register.col.store')}</th>
+                  <th className="pb-2.5 font-medium">{t('reports.register.col.staff')}</th>
+                  <th className="pb-2.5 font-medium">{t('reports.register.col.payment')}</th>
+                  <th className="pb-2.5 font-medium">{t('common.status')}</th>
+                  <th className="pb-2.5 text-right font-medium">
+                    <button onClick={() => toggleSort('total')} className="ml-auto flex items-center gap-1 hover:text-brand-600">{t('reports.register.col.total')} <ArrowUpDown size={11} /></button>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {registerRows.slice(0, 200).map((s) => (
+                  <tr key={s.id} onClick={() => openSaleDetail(s)} className="cursor-pointer border-b border-ink-50 dark:border-ink-800 last:border-0 hover:bg-brand-50/30 dark:hover:bg-brand-900/25">
+                    <td className="py-2.5 font-medium text-ink-900 dark:text-ink-50">{s.reference}</td>
+                    <td className="py-2.5 text-ink-600 dark:text-ink-300">{new Date(s.sale_date).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-US')}</td>
+                    <td className="py-2.5 text-ink-600 dark:text-ink-300">{(s as any).store?.name ?? '—'}</td>
+                    <td className="py-2.5 text-ink-600 dark:text-ink-300">{s.user_id ? staffNames[s.user_id] ?? '—' : '—'}</td>
+                    <td className="py-2.5 text-ink-600 dark:text-ink-300">{paymentMethodLabel(s.payment_method)}</td>
+                    <td className="py-2.5">
+                      <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${s.sale_status === 'completed' ? 'bg-success-50 text-success-700 dark:bg-success-900/25' : 'bg-warning-50 text-warning-700 dark:bg-warning-900/25'}`}>
+                        {s.sale_status}
+                      </span>
+                    </td>
+                    <td className="py-2.5 text-right font-medium text-ink-900 dark:text-ink-50">{formatMoney(Number(s.total), currency)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {registerRows.length > 200 && (
+              <p className="mt-3 text-center text-xs text-ink-400 dark:text-ink-500">{t('reports.register.truncated', { shown: '200', total: String(registerRows.length) })}</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Sale line-item drill-down */}
+      <Modal open={!!detailSale} onClose={() => setDetailSale(null)} title={detailSale?.reference ?? ''} maxWidth="max-w-lg">
+        {detailSale && (
+          <div>
+            {detailLoading ? (
+              <p className="py-8 text-center text-sm text-ink-400 dark:text-ink-500">{t('common.loading')}</p>
+            ) : (
+              <table className="w-full text-sm">
+                <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-400 dark:text-ink-500">
+                  <th className="py-2">{t('pos.receipt.designation')}</th><th className="py-2 text-right">{t('pos.receipt.qty')}</th><th className="py-2 text-right">{t('pos.receipt.price')}</th><th className="py-2 text-right">{t('pos.receipt.total')}</th>
+                </tr></thead>
+                <tbody>
+                  {detailItems.map((it, i) => (
+                    <tr key={i} className="border-b border-ink-50 dark:border-ink-800 last:border-0">
+                      <td className="py-2 text-ink-900 dark:text-ink-50">{it.name}</td>
+                      <td className="py-2 text-right text-ink-600 dark:text-ink-300">{it.quantity}</td>
+                      <td className="py-2 text-right text-ink-600 dark:text-ink-300">{formatMoney(Number(it.unit_price), currency)}</td>
+                      <td className="py-2 text-right font-medium text-ink-900 dark:text-ink-50">{formatMoney(Number(it.total), currency)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            <div className="mt-4 flex justify-between border-t border-ink-100 dark:border-ink-800 pt-3">
+              <span className="text-sm text-ink-500 dark:text-ink-400">{t('reports.register.col.total')}</span>
+              <span className="text-base font-bold text-ink-900 dark:text-white">{formatMoney(Number(detailSale.total), currency)}</span>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

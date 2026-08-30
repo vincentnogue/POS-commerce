@@ -16,6 +16,13 @@ const STATUS_LABELS: Record<string, { key: string; tone: any }> = {
   cancelled: { key: 'delivery.status.cancelled', tone: 'error' },
 };
 
+// BUG FIX: the status dropdown used to offer every status at all times,
+// including from a terminal state (delivered/cancelled could be flipped
+// back to pending, etc.) — now enforced server-side too (migration 0056,
+// enforce_delivery_status_transition trigger). 'delivered' and
+// 'cancelled' are final: once set, no further status change is offered.
+const TERMINAL_STATUSES = new Set(['delivered', 'cancelled']);
+
 export function DeliveriesPage() {
   const { tenant } = useAuth();
   const { t, formatDate } = useI18n();
@@ -67,6 +74,10 @@ export function DeliveriesPage() {
   };
 
   const updateStatus = async (d: Delivery, status: string) => {
+    if (TERMINAL_STATUSES.has(d.status)) {
+      toast('error', t('delivery.statusFinal'));
+      return;
+    }
     const patch: any = { status };
     if (status === 'delivered') patch.delivered_at = new Date().toISOString();
     const { error } = await supabase.from('deliveries').update(patch).eq('id', d.id);
@@ -143,9 +154,13 @@ export function DeliveriesPage() {
               { key: 'actions', label: '', className: 'text-right', render: (d) => (
                 <div className="flex justify-end gap-2">
                   <button onClick={() => openDetail(d)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Eye size={15} /></button>
-                  <select value={d.status} onChange={(e) => updateStatus(d, e.target.value)} className="input max-w-[140px]">
-                    {Object.entries(STATUS_LABELS).map(([v, s]) => <option key={v} value={v}>{t(s.key)}</option>)}
-                  </select>
+                  {TERMINAL_STATUSES.has(d.status) ? (
+                    <span className="text-xs text-ink-400 dark:text-ink-500 italic px-1">{t('delivery.statusFinal')}</span>
+                  ) : (
+                    <select value={d.status} onChange={(e) => updateStatus(d, e.target.value)} className="input max-w-[140px]">
+                      {Object.entries(STATUS_LABELS).map(([v, s]) => <option key={v} value={v}>{t(s.key)}</option>)}
+                    </select>
+                  )}
                 </div>
               )},
             ]}

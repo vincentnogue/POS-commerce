@@ -5,6 +5,7 @@ import { useAuth } from '../../lib/auth';
 import { useTenant } from '../../lib/tenant';
 import { Search, Grid, List, Plus, CheckCircle, AlertCircle, ExternalLink, Trash2 } from 'lucide-react';
 import { IntegrationCredentialForm } from '../../components/IntegrationCredentialForm';
+import { IntegrationStats } from '../../components/IntegrationStats';
 
 interface IntegrationProvider {
   id: string;
@@ -37,6 +38,7 @@ interface IntegrationConnection {
 const CATEGORIES = [
   { key: 'all', label: 'All' },
   { key: 'payments', label: 'Payments' },
+  { key: 'ai', label: 'AI' },
   { key: 'liafrik', label: 'Liafrik' },
   { key: 'logistics', label: 'Logistics' },
   { key: 'communication', label: 'Communication' },
@@ -204,14 +206,22 @@ export function MarketplacePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-white">Marketplace</h1>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Marketplace</h1>
           <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">
             Connect external services and extend POS Flow with powerful integrations
           </p>
         </div>
+
+        {/* Integration Stats */}
+        <IntegrationStats 
+          totalIntegrations={providers.length}
+          connectedIntegrations={activeIntegrations}
+          integrationLimit={integrationLimit || 5}
+          activeConnections={Math.min(activeIntegrations, 10)}
+        />
 
         {/* Plan usage banner */}
         {integrationLimit !== null && (
@@ -231,7 +241,7 @@ export function MarketplacePage() {
         )}
 
         {/* Search & Filters */}
-        <div className="mb-8 space-y-4">
+        <div className="mb-6 space-y-3">
           {/* Search Bar */}
           <div className="relative">
             <Search className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
@@ -286,8 +296,8 @@ export function MarketplacePage() {
           <>
             {/* Featured Integrations (only in "all" view) */}
             {selectedCategory === 'all' && featured.length > 0 && (
-              <div className="mb-12">
-                <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">Featured</h2>
+              <div className="mb-8">
+                <h2 className="mb-3 text-xl font-bold text-slate-900 dark:text-white">Featured</h2>
                 <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' : ''}`}>
                   {featured.map(provider => (
                     <IntegrationCard
@@ -305,7 +315,7 @@ export function MarketplacePage() {
 
             {/* All Integrations */}
             <div>
-              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
+              <h2 className="mb-3 text-xl font-bold text-slate-900 dark:text-white">
                 {selectedCategory === 'all' ? 'All Integrations' : 'Integrations'}
               </h2>
               {regular.length === 0 ? (
@@ -313,7 +323,7 @@ export function MarketplacePage() {
                   <p className="text-slate-600 dark:text-slate-400">No integrations found</p>
                 </div>
               ) : (
-                <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : ''}`}>
+                <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' : ''}`}>
                   {regular.map(provider => (
                     <IntegrationCard
                       key={provider.id}

@@ -10,9 +10,14 @@ import { COUNTRIES } from '../lib/countries';
  *
  * The list is duplicated once so the CSS marquee can loop seamlessly at
  * -50% translateX with no visible seam.
+ *
+ * `shape="pill"` (default): rounded chip with flag + country name.
+ * `shape="circle"`: circular flag badge only (name in a tooltip via title
+ * attribute) — used under the full currency matrix on /pricing.
  */
-export function CountryFlagsMarquee({ title }: { title: string; lang?: 'fr' | 'en' }) {
+export function CountryFlagsMarquee({ title, speed = 'normal' }: { title: string; lang?: 'fr' | 'en'; speed?: 'normal' | 'slow' }) {
   const loop = [...COUNTRIES, ...COUNTRIES];
+  const animationClass = speed === 'slow' ? 'animate-marquee-slow' : 'animate-marquee';
 
   return (
     <div className="py-14">
@@ -24,7 +29,7 @@ export function CountryFlagsMarquee({ title }: { title: string; lang?: 'fr' | 'e
         role="list"
         aria-label={title}
       >
-        <div className="flex w-max animate-marquee gap-5 hover:[animation-play-state:paused]">
+        <div className={`flex w-max ${animationClass} gap-5 hover:[animation-play-state:paused]`}>
           {loop.map((c, i) => (
             <div
               key={`${c.code}-${i}`}

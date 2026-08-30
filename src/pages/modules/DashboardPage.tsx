@@ -13,6 +13,7 @@ import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { formatMoney, getCountry } from '../../lib/localization';
 import { StatCard, PageHeader } from '../../components/ui';
+import { PerformanceMetrics } from '../../components/PerformanceMetrics';
 import type { Sale } from '../../lib/types';
 
 const WEEKDAYS_FR = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
@@ -250,6 +251,16 @@ export function DashboardPage() {
             </table>
           </div>
         )}
+      </motion.div>
+
+      {/* Performance Metrics Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 0.5 }}
+        className="mt-12"
+      >
+        <PerformanceMetrics />
       </motion.div>
     </div>
   );

@@ -183,6 +183,17 @@
   background-size: 32px 32px;
 }
 
+/* Slow ambient pulse for premium "high-tech" decorative backgrounds
+   (schematic circuit motifs, glow accents) — gentler than Tailwind's
+   default animate-pulse so it reads as ambient, not a loading state. */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.35; }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 6s ease-in-out infinite;
+}
+
 /* Gradient text */
 .text-gradient-flow {
   background: linear-gradient(120deg, #2E8C66 0%, #14B594 100%);
@@ -216,13 +227,16 @@
 .animate-marquee {
   animation: marquee 50s linear infinite;
 }
-
-/* Same infinite duplicated-list scroll, used by the partner-logo and
-   country-flag bands on the landing page via Tailwind's arbitrary
-   animate-[flagscroll_Ns_linear_infinite] syntax. Without this
-   @keyframes rule the animation name resolves to nothing and the two
-   bands render static instead of scrolling. */
+/* Landing page: flags band + real-partner-logo band (LandingPage.tsx uses
+   the arbitrary Tailwind class animate-[flagscroll_Ns_linear_infinite] with
+   different durations for each band — this single keyframe drives both).
+   Each band renders its list twice back-to-back, so translating exactly
+   -50% loops seamlessly. Without this rule the animation name resolved to
+   nothing and both bands rendered static instead of scrolling. */
 @keyframes flagscroll {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
+}
+.animate-marquee-slow {
+  animation: marquee 55s linear infinite;
 }

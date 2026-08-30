@@ -368,7 +368,7 @@ export function PricingPage() {
           full comparison at a glance. */}
 
       <div className="border-t border-ink-200 dark:border-ink-800/50">
-        <CountryFlagsMarquee title="Conçu pour fonctionner partout dans le monde" lang="fr" />
+        <CountryFlagsMarquee title="Conçu pour fonctionner partout dans le monde" lang="fr" speed="slow" />
       </div>
 
       {/* FAQ Section */}
