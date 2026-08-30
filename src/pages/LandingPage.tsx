@@ -423,6 +423,36 @@ function PosLiveDemo() {
         </div>
       </div>
 
+      {/* Floating card — mini dashboard preview, using the same real
+          recharts component (and sample data) as the "keepFlowing"
+          section below and the real Dashboard module itself
+          (src/pages/modules/DashboardPage.tsx). Added per product
+          request without touching the existing panel/cards above. */}
+      <motion.div
+        initial={reducedMotion ? false : { opacity: 0, y: -10 }}
+        animate={reducedMotion ? { opacity: 1 } : { opacity: 1, y: [0, 6, 0] }}
+        transition={reducedMotion ? { duration: 0.4 } : { duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+        className="hidden sm:flex absolute -top-6 -left-6 w-36 flex-col gap-1.5 rounded-2xl border border-ink-700/80 bg-ink-900/95 backdrop-blur px-3 py-2.5 shadow-xl shadow-black/30"
+      >
+        <div className="flex items-center gap-1.5">
+          <BarChart3 size={12} className="text-brand-400" />
+          <span className="text-[10px] font-semibold text-ink-300">{t('pLanding.hero.demo.dashboardLabel')}</span>
+        </div>
+        <div className="h-8">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={REVENUE_TREND_SAMPLE} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="heroDashboardGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#2E8C66" stopOpacity={0.5} />
+                  <stop offset="100%" stopColor="#2E8C66" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Area type="monotone" dataKey="value" stroke="#2E8C66" strokeWidth={2} fill="url(#heroDashboardGradient)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </motion.div>
+
       {/* Floating card — today's sales, subtle live-count feel */}
       <motion.div
         initial={reducedMotion ? false : { opacity: 0, y: 10 }}
@@ -1184,111 +1214,63 @@ export function LandingPage() {
                   </div>
                 ))}
               </div>
-
-              <div className="mb-8">
-                <p className="text-sm font-bold text-ink-600 dark:text-ink-400 mb-2">{t('pLanding.workTogether.emailLabel')}</p>
-                <a href="mailto:support@liafrik.com" className="text-2xl font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition">
-                  support@liafrik.com
-                </a>
-              </div>
-
-              <Link
-                to="/contact"
-                className="inline-flex items-center gap-2 px-6 py-3 border-2 border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400 rounded-lg font-semibold hover:bg-brand-50 dark:hover:bg-brand-600/10 transition"
-              >
-                {t('pLanding.workTogether.cta')}
-              </Link>
             </div>
 
             {/* Right visual — user feedback: the previous animated
                 illustration (emoji cashier + abstract blurred shapes)
-                read as a fictional cartoon, not something real. Replaced
-                with an actual screenshot-style preview of the real POS
-                checkout screen: same cart/payment terminology and icons
-                as src/pages/modules/POSPage.tsx (ShoppingCart, Receipt,
-                CreditCard, Smartphone for mobile money, Banknote for
-                cash), with real, internally-consistent arithmetic
-                (subtotal + tax = total, no made-up numbers) rather than
-                an invented scene. Framed like a real browser/app window
-                instead of a stock photo, since we can't license one. */}
-            <div className="relative h-96 rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-brand-600 to-flow-600 p-4 sm:p-6 flex items-center justify-center">
-              <div className="w-full max-w-sm rounded-xl bg-white dark:bg-ink-900 shadow-2xl overflow-hidden">
-                {/* App window chrome */}
-                <div className="flex items-center gap-1.5 px-3 py-2 bg-ink-100 dark:bg-ink-800 border-b border-ink-200 dark:border-ink-700">
-                  <span className="w-2.5 h-2.5 rounded-full bg-error-500/70" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-warning-500/70" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-success-500/70" />
-                  <span className="ml-2 text-[10px] text-ink-400 dark:text-ink-500 font-mono">app.posflow.io/pos</span>
-                </div>
+                read as a fictional cartoon, not something real. Then
+                replaced again with a real, user-provided photo (the
+                actual asset the person meant by "image" all along):
+                public/images/partnership-handshake.jpg — animated with a
+                slow cinematic zoom (Ken Burns effect) plus a pulsing glow
+                ring aligned on the photo's own digital-globe overlay, and
+                floating international-reach badges using the real "54
+                pays" figure already used elsewhere on this page
+                (landing.africa.countries.title) rather than an invented
+                number. Respects heroReducedMotion throughout. */}
+            <div className="relative h-96 rounded-xl overflow-hidden shadow-xl">
+              <motion.img
+                src="/images/partnership-handshake.jpg"
+                alt="Partenariat international POS Flow"
+                className="absolute inset-0 h-full w-full object-cover"
+                initial={false}
+                animate={heroReducedMotion ? { scale: 1 } : { scale: [1, 1.08, 1] }}
+                transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-ink-900/70 via-ink-900/10 to-transparent" />
 
-                <div className="p-4">
-                  <div className="flex items-center gap-2 mb-3 text-ink-500 dark:text-ink-400">
-                    <ShoppingCart size={14} />
-                    <span className="text-xs font-semibold">Panier (3)</span>
-                  </div>
-
-                  {/* Cart lines — real, consistent totals */}
-                  <div className="space-y-2 mb-3">
-                    {[
-                      { name: 'Café Arabica 250g', qty: 2, price: 6.5 },
-                      { name: 'Jus d\u2019orange 1L', qty: 1, price: 3.2 },
-                      { name: 'Pain complet', qty: 3, price: 2.1 },
-                    ].map((item) => (
-                      <div key={item.name} className="flex items-center justify-between text-xs">
-                        <span className="text-ink-700 dark:text-ink-200">{item.qty}× {item.name}</span>
-                        <span className="font-medium text-ink-900 dark:text-white tabular-nums">${(item.qty * item.price).toFixed(2)}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="border-t border-dashed border-ink-200 dark:border-ink-700 pt-2 space-y-1 text-xs">
-                    <div className="flex justify-between text-ink-500 dark:text-ink-400">
-                      <span>Sous-total</span><span className="tabular-nums">$22.50</span>
-                    </div>
-                    <div className="flex justify-between text-ink-500 dark:text-ink-400">
-                      <span>TVA (5%)</span><span className="tabular-nums">$1.13</span>
-                    </div>
-                    <div className="flex justify-between text-sm font-bold text-ink-900 dark:text-white pt-1">
-                      <span>Total</span><span className="tabular-nums">$23.63</span>
-                    </div>
-                  </div>
-
-                  {/* Payment methods — mirrors POSPage's real options */}
-                  <div className="flex items-center gap-2 mt-4">
-                    {[
-                      { icon: CreditCard, label: 'Carte' },
-                      { icon: Smartphone, label: 'Mobile Money' },
-                      { icon: Banknote, label: 'Espèces' },
-                    ].map(({ icon: Icon, label }, i) => (
-                      <div
-                        key={label}
-                        className={`flex-1 flex flex-col items-center gap-1 rounded-lg border py-2 text-[10px] font-medium ${
-                          i === 0
-                            ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-300'
-                            : 'border-ink-200 dark:border-ink-700 text-ink-500 dark:text-ink-400'
-                        }`}
-                      >
-                        <Icon size={14} /> {label}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment confirmed toast — subtle, grounded animation
-                  instead of a cartoon success burst */}
+              {/* Pulsing glow aligned on the photo's own digital-globe
+                  overlay, to make it feel alive rather than a static
+                  photo */}
               <motion.div
                 initial={false}
-                animate={
-                  heroReducedMotion
-                    ? { opacity: 1, y: 0 }
-                    : { opacity: [0, 1, 1, 0], y: [8, 0, 0, -4] }
-                }
-                transition={{ duration: 3, repeat: Infinity, repeatDelay: 1.2, ease: 'easeInOut' }}
-                className="absolute bottom-5 right-5 flex items-center gap-2 rounded-lg bg-white dark:bg-ink-800 shadow-lg px-3 py-2 text-xs font-medium text-ink-900 dark:text-white"
+                animate={heroReducedMotion ? { opacity: 0.35 } : { opacity: [0.15, 0.4, 0.15], scale: [1, 1.06, 1] }}
+                transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute left-1/2 top-[38%] h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-flow-300/40 blur-2xl"
+              />
+
+              {/* Floating international-reach badge — real figure reused
+                  from elsewhere on this page */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ duration: 0.6, delay: 0.15 }}
+                className="absolute top-5 left-5 flex items-center gap-2 rounded-full bg-white/95 dark:bg-ink-900/90 backdrop-blur px-4 py-2 shadow-lg"
               >
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-success-500 text-white text-[10px]">✓</span>
-                Paiement accepté
+                <Globe size={16} className="text-brand-600 dark:text-brand-400" />
+                <span className="text-sm font-bold text-ink-900 dark:text-white">{t('landing.africa.countries.title')}</span>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="absolute bottom-5 right-5 flex items-center gap-2 rounded-full bg-white/95 dark:bg-ink-900/90 backdrop-blur px-4 py-2 shadow-lg"
+              >
+                <CheckCircle2 size={16} className="text-success-500" />
+                <span className="text-sm font-semibold text-ink-900 dark:text-white">{t('plan.feat.support247')}</span>
               </motion.div>
             </div>
           </div>

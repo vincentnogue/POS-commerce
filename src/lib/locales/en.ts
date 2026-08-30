@@ -1517,6 +1517,7 @@ export const en: Record<string, string> = {
   "pLanding.hero.demo.paid": "Payment confirmed",
   "pLanding.hero.demo.viaMobileMoney": "via Mobile Money",
   "pLanding.hero.demo.statSalesToday": "Today's sales",
+  "pLanding.hero.demo.dashboardLabel": "Dashboard",
   "pLanding.hero.demo.caption": "Simplified preview of the POS Flow checkout interface — not a live capture.",
   "pLanding.footer.product": "Product",
   "pLanding.footer.features": "Features",

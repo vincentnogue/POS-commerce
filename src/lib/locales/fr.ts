@@ -1517,6 +1517,7 @@ export const fr: Record<string, string> = {
   "pLanding.hero.demo.paid": "Paiement validé",
   "pLanding.hero.demo.viaMobileMoney": "via Mobile Money",
   "pLanding.hero.demo.statSalesToday": "Ventes du jour",
+  "pLanding.hero.demo.dashboardLabel": "Tableau de bord",
   "pLanding.hero.demo.caption": "Aperçu simplifié de l'interface de caisse POS Flow — pas une capture en direct.",
   "pLanding.footer.product": "Produit",
   "pLanding.footer.features": "Fonctionnalités",
