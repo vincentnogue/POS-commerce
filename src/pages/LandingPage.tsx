@@ -4,7 +4,7 @@ import {
   Menu, X, Globe, ChevronDown, ArrowRight, ArrowRightLeft, MapPin,
   ShoppingCart, Package, Store, Plug, FileText, BarChart3,
   ShieldCheck, Wallet, Check, CheckCircle2, Smartphone, TrendingUp, Receipt, Moon, Sun,
-  Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent,
+  Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent, Users,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer } from 'recharts';
@@ -280,6 +280,24 @@ function CountUp({ value, suffix = '', duration = 1400 }: { value: number; suffi
   return <span ref={ref}>{display}{suffix}</span>;
 }
 
+// Reusable scroll-triggered reveal (fade + rise), fires once per element.
+// Instant (no motion) when the user prefers reduced motion.
+function Reveal({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const reducedMotion = usePrefersReducedMotion();
+  if (reducedMotion) return <div className={className}>{children}</div>;
+  return (
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y: 22 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-80px' }}
+      transition={{ duration: 0.55, delay, ease: 'easeOut' }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 function formatUSD(n: number): string {
   return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
@@ -522,6 +540,22 @@ export function LandingPage() {
   const heroReducedMotion = usePrefersReducedMotion();
   const [ecosystemProviders, setEcosystemProviders] = useState<EcosystemProvider[]>([]);
   const [activeTab, setActiveTab] = useState<'pos' | 'payments' | 'inventory' | 'analytics' | 'employees' | 'crm' | 'stores' | 'integrations'>('pos');
+
+  // Real, live merchant count — see supabase/functions/platform-stats. No
+  // hardcoded fallback number: if the fetch fails, the stat card simply
+  // doesn't render rather than showing an unverifiable placeholder.
+  const [merchantCount, setMerchantCount] = useState<number | null>(null);
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('platform-stats');
+        if (error) throw error;
+        if (typeof data?.merchantCount === 'number') setMerchantCount(data.merchantCount);
+      } catch (error) {
+        console.error('platform-stats fetch failed:', error);
+      }
+    })();
+  }, []);
 
   // Real integrations only — pulled live from the same integration_providers
   // table that powers /marketplace (public SELECT policy, no auth needed).
@@ -871,50 +905,19 @@ export function LandingPage() {
               {t('pLanding.ecosystem.cta')} <ArrowRight size={14} />
             </Link>
           </div>
-        </section>
-      )}
-
-      {/* Real, verifiable stats only — 30+ currencies (src/lib/currency.ts)
-          and 9+ payment processors (seeded integration_providers) are both
-          counted from actual code/data. No customer/merchant count is shown
-          here: there is no real, verifiable number for that yet — showing
-          one (a fabricated "1850+ merchants trust us" briefly existed here)
-          would be exactly the fake social proof this product's landing page
-          explicitly must never contain. Add it back only when there's a
-          real, sourced count to show. */}
-      <section className="bg-gray-50 dark:bg-ink-900 py-12 border-y border-gray-200 dark:border-ink-800">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                <CountUp value={30} suffix="+" />
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.currencies')}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                <CountUp value={9} suffix="+" />
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.processors')}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">{t('pLanding.stats.internationalValue')}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.international')}</p>
-            </div>
-          </div>
         </div>
       </section>
 
       {/* Features */}
-      <section id="features" className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-14">
+      <section id="features" className="py-24 px-4 lg:px-8 max-w-7xl mx-auto">
+        <Reveal className="text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
             {t('pLanding.features.title')}
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             {t('pLanding.features.desc')}
           </p>
-        </div>
+        </Reveal>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {FEATURE_KEYS.map((f, i) => {
