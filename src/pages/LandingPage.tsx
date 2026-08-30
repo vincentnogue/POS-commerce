@@ -7,6 +7,7 @@ import {
   Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AreaChart, Area, BarChart, Bar, ResponsiveContainer } from 'recharts';
 import { useI18n } from '../lib/i18n';
 import { useTheme } from '../lib/theme';
 import { supabase } from '../lib/supabase';
@@ -16,6 +17,22 @@ import { PLANS as REAL_PLANS } from '../lib/plans';
 // Real feature set — every entry below maps to an actual module that ships
 // in this app (see src/pages/modules/*), not aspirational copy. Titles/descriptions
 // come from i18n (pLanding.feature.*) so the EN toggle translates this grid too.
+
+// Sample data for the landing page's "revenue" / "performance" chart
+// illustrations. These are marketing mockups (same as the static
+// "$2,450" figure and the old CSS-bar chart they replace) — not live
+// data — but they now render through the same recharts components the
+// real Dashboard/Reports modules use, instead of four fixed-height <div>s.
+const REVENUE_TREND_SAMPLE = [
+  { day: 'Lun', value: 1180 }, { day: 'Mar', value: 1420 }, { day: 'Mer', value: 1290 },
+  { day: 'Jeu', value: 1610 }, { day: 'Ven', value: 1980 }, { day: 'Sam', value: 2260 },
+  { day: 'Dim', value: 2450 },
+];
+const CATEGORY_PERFORMANCE_SAMPLE = [
+  { name: 'Boissons', value: 820 }, { name: 'Alim.', value: 640 },
+  { name: 'Hygiène', value: 410 }, { name: 'Access.', value: 580 },
+];
+
 const FEATURE_KEYS = [
   { icon: ShoppingCart, key: 'pos' },
   { icon: Package, key: 'stock' },
@@ -1183,10 +1200,85 @@ export function LandingPage() {
               </Link>
             </div>
 
-            {/* Right image */}
+            {/* Right visual — was a flat gradient rectangle with a single
+                emoji. Now a proper animated illustration: a blurred
+                "storefront" backdrop (depth-of-field business environment,
+                built from layered blurred shapes — no hotlinked stock
+                photo, so nothing to break or license) behind an animated
+                cashier-at-the-register scene using the same iconography
+                language as the rest of the site. */}
             <div className="relative h-96 rounded-xl overflow-hidden shadow-xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-500 to-flow-500 flex items-center justify-center">
-                <div className="text-6xl">👩‍💼</div>
+              {/* Blurred business backdrop */}
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-600 via-brand-500 to-flow-500" />
+              <div className="absolute inset-0 opacity-40 blur-2xl">
+                <div className="absolute top-4 left-6 w-28 h-40 bg-white/30 rounded-lg rotate-6" />
+                <div className="absolute top-10 left-40 w-20 h-52 bg-white/20 rounded-lg -rotate-3" />
+                <div className="absolute bottom-6 right-10 w-36 h-24 bg-ink-900/30 rounded-lg rotate-2" />
+                <div className="absolute top-1/3 right-1/4 w-24 h-24 bg-flow-200/40 rounded-full" />
+              </div>
+              <div className="absolute inset-0 bg-ink-900/10" />
+
+              {/* Foreground scene */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="relative w-64">
+                  {/* Cashier + counter */}
+                  <motion.div
+                    initial={false}
+                    animate={heroReducedMotion ? { y: 0 } : { y: [6, -2, 6] }}
+                    transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+                    className="relative mx-auto w-20 h-20 rounded-full bg-white/95 shadow-lg flex items-center justify-center text-4xl"
+                  >
+                    👩‍💼
+                  </motion.div>
+
+                  {/* POS terminal */}
+                  <div className="mt-4 mx-auto w-56 rounded-xl bg-white/95 dark:bg-ink-800/95 shadow-2xl p-3">
+                    <div className="rounded-lg bg-ink-900 dark:bg-ink-950 px-3 py-2 mb-2">
+                      <p className="text-[10px] text-flow-400 font-mono">TOTAL</p>
+                      <p className="text-lg font-bold text-white font-mono">$48.90</p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex gap-1">
+                        <div className="w-6 h-4 rounded-sm bg-brand-200 dark:bg-brand-500/30" />
+                        <div className="w-6 h-4 rounded-sm bg-flow-200 dark:bg-flow-500/30" />
+                        <div className="w-6 h-4 rounded-sm bg-ink-200 dark:bg-ink-600" />
+                      </div>
+                      <motion.div
+                        animate={heroReducedMotion ? { opacity: 1 } : { opacity: [0.4, 1, 0.4] }}
+                        transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                        className="w-2 h-2 rounded-full bg-brand-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Payment card tapping animation, floating toward terminal */}
+                  <motion.div
+                    initial={false}
+                    animate={
+                      heroReducedMotion
+                        ? { x: 0, y: -30, rotate: 0, opacity: 1 }
+                        : { x: [-70, 0, -70], y: -30, rotate: [-8, 0, -8], opacity: 1 }
+                    }
+                    transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                    className="absolute -top-2 -right-4 w-16 h-10 rounded-md bg-gradient-to-br from-flow-400 to-flow-600 shadow-lg flex items-center px-2"
+                  >
+                    <div className="w-4 h-3 rounded-sm bg-white/70" />
+                  </motion.div>
+
+                  {/* Success checkmark pulse */}
+                  <motion.div
+                    initial={false}
+                    animate={
+                      heroReducedMotion
+                        ? { scale: 1, opacity: 1 }
+                        : { scale: [0.6, 1, 1], opacity: [0, 1, 0] }
+                    }
+                    transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 0.6, ease: 'easeInOut' }}
+                    className="absolute -right-6 bottom-6 w-9 h-9 rounded-full bg-success-500 shadow-lg flex items-center justify-center text-white text-sm font-bold"
+                  >
+                    ✓
+                  </motion.div>
+                </div>
               </div>
             </div>
           </div>
@@ -1209,11 +1301,22 @@ export function LandingPage() {
             <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg">
               <div className="text-3xl font-bold text-brand-600 dark:text-brand-400 mb-2">$2,450</div>
               <p className="text-sm font-semibold text-ink-600 dark:text-ink-400 mb-4">{t('pLanding.keepFlowing.card.revenue')}</p>
-              <div className="h-12 flex items-end gap-1 mt-3">
-                <div className="flex-1 bg-flow-300 rounded h-1/3"></div>
-                <div className="flex-1 bg-flow-400 rounded h-2/3"></div>
-                <div className="flex-1 bg-flow-500 rounded h-full"></div>
-                <div className="flex-1 bg-flow-400 rounded h-3/4"></div>
+              {/* BUG FIX: this used to be 4 fixed-height <div>s faking a bar
+                  chart. Now a real recharts AreaChart, same component and
+                  gradient style the real Dashboard module uses for its own
+                  sales-trend chart (src/pages/modules/DashboardPage.tsx). */}
+              <div className="h-16 mt-3">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={REVENUE_TREND_SAMPLE} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="landingRevenueGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#2E8C66" stopOpacity={0.35} />
+                        <stop offset="100%" stopColor="#2E8C66" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <Area type="monotone" dataKey="value" stroke="#2E8C66" strokeWidth={2.5} fill="url(#landingRevenueGradient)" />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
               <p className="text-xs text-flow-600 dark:text-flow-400 mt-3">↑ 32% {t('pLanding.keepFlowing.card.vsYesterday')}</p>
             </div>
@@ -1235,7 +1338,17 @@ export function LandingPage() {
                 <ArrowRightLeft className="w-5 h-5 text-brand-600 dark:text-brand-400" />
               </div>
               <p className="font-semibold text-ink-900 dark:text-white mb-2">{t('pLanding.keepFlowing.card.transferTitle')}</p>
-              <p className="text-sm text-ink-700 dark:text-ink-300">{t('pLanding.keepFlowing.card.transferDesc')}</p>
+              <p className="text-sm text-ink-700 dark:text-ink-300 mb-4">{t('pLanding.keepFlowing.card.transferDesc')}</p>
+              {/* Real performance-by-category illustration (recharts
+                  BarChart), same idea as the real Reports module's
+                  category breakdowns. */}
+              <div className="h-14">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={CATEGORY_PERFORMANCE_SAMPLE} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                    <Bar dataKey="value" radius={[3, 3, 0, 0]} fill="#2E8C66" fillOpacity={0.75} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
             <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700">
