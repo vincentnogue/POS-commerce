@@ -154,6 +154,7 @@ export type Sale = {
   payment_status: string;
   sale_status: string;
   notes: string | null;
+  user_id: string | null;
   sale_date: string;
   created_at: string;
 };
@@ -375,16 +376,6 @@ export type JobPosting = {
   requirements: string | null;
   salary_range: string | null;
   published: boolean;
-};
-
-export type ContactMessage = {
-  id: string;
-  name: string;
-  email: string;
-  subject: string | null;
-  message: string;
-  handled: boolean;
-  created_at: string;
 };
 
 export const MODULES = [

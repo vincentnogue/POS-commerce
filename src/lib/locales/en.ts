@@ -561,6 +561,16 @@ export const en: Record<string, string> = {
   "reports.productsByCategory": "Products by category",
   "reports.topProducts": "Top products",
   "reports.unknownProduct": "Unknown",
+  "reports.unknownStaff": "Staff",
+  "reports.register.title": "Sales register",
+  "reports.register.searchPlaceholder": "Search a reference…",
+  "reports.register.allPayments": "All payment methods",
+  "reports.register.col.reference": "Reference",
+  "reports.register.col.store": "Store",
+  "reports.register.col.staff": "Staff",
+  "reports.register.col.payment": "Payment",
+  "reports.register.col.total": "Total",
+  "reports.register.truncated": "Showing {shown} of {total} — narrow the search to see the rest.",
 
   // Deliveries module
   "delivery.title": "Deliveries",

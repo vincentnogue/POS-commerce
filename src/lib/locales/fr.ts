@@ -561,6 +561,16 @@ export const fr: Record<string, string> = {
   "reports.productsByCategory": "Produits par catégorie",
   "reports.topProducts": "Top produits",
   "reports.unknownProduct": "Inconnu",
+  "reports.unknownStaff": "Employé",
+  "reports.register.title": "Registre des ventes",
+  "reports.register.searchPlaceholder": "Rechercher une référence…",
+  "reports.register.allPayments": "Tous les paiements",
+  "reports.register.col.reference": "Référence",
+  "reports.register.col.store": "Magasin",
+  "reports.register.col.staff": "Vendeur",
+  "reports.register.col.payment": "Paiement",
+  "reports.register.col.total": "Total",
+  "reports.register.truncated": "{shown} affichées sur {total} — affinez la recherche pour voir le reste.",
 
   // Deliveries module
   "delivery.title": "Livraisons",
