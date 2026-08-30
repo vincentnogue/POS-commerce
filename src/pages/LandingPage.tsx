@@ -976,9 +976,18 @@ export function LandingPage() {
             {/* Left: Image/Visual */}
             <div className="relative">
               <img
-                src="/pos-features-showcase.png"
+                src={
+                  activeTab === 'pos' ? '/feature-pos.jpg' :
+                  activeTab === 'payments' ? '/feature-payments.jpg' :
+                  activeTab === 'inventory' ? '/feature-inventory.jpg' :
+                  activeTab === 'analytics' ? '/feature-analytics.jpg' :
+                  activeTab === 'employees' ? '/feature-employees.jpg' :
+                  activeTab === 'crm' ? '/feature-crm.jpg' :
+                  activeTab === 'stores' ? '/feature-multistore.jpg' :
+                  '/feature-integrations.jpg'
+                }
                 alt={`${activeTab} interface preview`}
-                className="w-full rounded-xl shadow-lg"
+                className="w-full rounded-xl shadow-lg object-cover"
               />
             </div>
 
