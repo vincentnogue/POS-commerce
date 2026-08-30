@@ -7,7 +7,7 @@ import {
   Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent, MessageCircle, Users,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AreaChart, Area, BarChart, Bar, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { useI18n } from '../lib/i18n';
 import { useTheme } from '../lib/theme';
 import { supabase } from '../lib/supabase';
@@ -27,10 +27,6 @@ const REVENUE_TREND_SAMPLE = [
   { day: 'Lun', value: 1180 }, { day: 'Mar', value: 1420 }, { day: 'Mer', value: 1290 },
   { day: 'Jeu', value: 1610 }, { day: 'Ven', value: 1980 }, { day: 'Sam', value: 2260 },
   { day: 'Dim', value: 2450 },
-];
-const CATEGORY_PERFORMANCE_SAMPLE = [
-  { name: 'Boissons', value: 820 }, { name: 'Alim.', value: 640 },
-  { name: 'Hygiène', value: 410 }, { name: 'Access.', value: 580 },
 ];
 
 const FEATURE_KEYS = [
@@ -1721,149 +1717,42 @@ export function LandingPage() {
             </p>
           </div>
 
-          {/* Dashboard window */}
+          {/* Dashboard window — the actual real POS Flow dashboard,
+              screenshotted from the live app (not a recreated mockup), so
+              every number and label here is exactly what a merchant really
+              sees after logging in. */}
           <div className="relative">
             <div className="absolute -inset-1 rounded-[20px] bg-gradient-to-r from-brand-500/30 via-flow-500/20 to-brand-500/30 blur-xl opacity-60" aria-hidden="true" />
-            <div className="relative rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 shadow-2xl overflow-hidden">
-            {/* App top bar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-ink-800">
-              <div className="flex items-center gap-6">
-                <div className="hidden sm:flex items-center gap-1.5 mr-1">
-                  <span className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-yellow-400/70" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-flow-400" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <img src="/logo-pos-icon.png" alt="" className="h-6 w-6" />
-                  <span className="font-bold text-ink-900 dark:text-white text-sm">POS Flow</span>
-                </div>
-                <nav className="hidden md:flex items-center gap-1">
-                  {['dashboard', 'pos', 'stock', 'reports'].map((k) => (
-                    <span key={k} className={`px-3 py-1.5 rounded-lg text-xs font-medium ${k === 'dashboard' ? 'bg-brand-500 text-white' : 'text-ink-500 dark:text-ink-400'}`}>
-                      {t(`pLanding.keepFlowing.nav.${k}`)}
-                    </span>
-                  ))}
-                </nav>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-brand-500/15 flex items-center justify-center">
-                  <Users size={14} className="text-brand-600 dark:text-brand-400" />
-                </div>
-                <div className="text-right hidden sm:block">
-                  <p className="text-xs font-semibold text-ink-900 dark:text-white leading-none">STF-001</p>
-                  <p className="text-[11px] text-ink-500 dark:text-ink-400 leading-none mt-0.5">{t('pLanding.keepFlowing.nav.role')}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 lg:p-8">
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-                <div>
-                  <p className="text-lg font-bold text-ink-900 dark:text-white">{t('pLanding.keepFlowing.overview.title')}</p>
-                  <p className="text-sm text-ink-500 dark:text-ink-400">{t('pLanding.keepFlowing.overview.subtitle')}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 dark:border-ink-700 text-ink-600 dark:text-ink-300">{t('pLanding.keepFlowing.overview.today')}</span>
-                  <span className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 dark:border-ink-700 text-ink-600 dark:text-ink-300">{t('pLanding.keepFlowing.overview.export')}</span>
-                </div>
-              </div>
-
-              {/* KPI row */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div className="rounded-xl bg-brand-900 p-5 text-white">
-                  <p className="text-xs text-brand-200 mb-2">{t('pLanding.keepFlowing.kpi.sales')}</p>
-                  <p className="text-2xl font-bold mb-1">$482K</p>
-                  <p className="text-xs text-flow-300">↑ 18% {t('pLanding.keepFlowing.card.vsYesterday')}</p>
-                </div>
-                <div className="rounded-xl border border-gray-200 dark:border-ink-700 p-5">
-                  <p className="text-xs text-ink-500 dark:text-ink-400 mb-2">{t('pLanding.keepFlowing.kpi.purchases')}</p>
-                  <p className="text-2xl font-bold text-ink-900 dark:text-white mb-1">$216K</p>
-                  <p className="text-xs text-flow-600 dark:text-flow-400">↑ 6% {t('pLanding.keepFlowing.card.vsYesterday')}</p>
-                </div>
-                <div className="rounded-xl border border-gray-200 dark:border-ink-700 p-5 col-span-2 sm:col-span-1">
-                  <p className="text-xs text-ink-500 dark:text-ink-400 mb-2">{t('pLanding.keepFlowing.kpi.staff')}</p>
-                  <p className="text-2xl font-bold text-ink-900 dark:text-white mb-2">24</p>
-                  <div className="h-1.5 w-full bg-gray-100 dark:bg-ink-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-brand-500 rounded-full" style={{ width: '78%' }} />
-                  </div>
-                </div>
-                <div className="rounded-xl border border-gray-200 dark:border-ink-700 p-5 flex items-center gap-4">
-                  <div className="relative w-14 h-14 shrink-0">
-                    <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                      <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" strokeWidth="3" className="text-gray-100 dark:text-ink-800" />
-                      <circle cx="18" cy="18" r="15.5" fill="none" stroke="#2E8C66" strokeWidth="3" strokeDasharray="97.4" strokeDashoffset="24.4" strokeLinecap="round" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold text-ink-900 dark:text-white leading-none">87</p>
-                    <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">{t('pLanding.keepFlowing.kpi.newCustomers')}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Chart + top stores row — real recharts components, same
-                  pattern the actual Dashboard/Reports modules use for their
-                  own trend and category charts (src/pages/modules/
-                  DashboardPage.tsx), not static faked bars. */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="rounded-xl border border-gray-200 dark:border-ink-700 p-5">
-                  <p className="text-sm font-semibold text-ink-900 dark:text-white mb-4">{t('pLanding.keepFlowing.chart.title')}</p>
-                  <div className="h-28">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={CATEGORY_PERFORMANCE_SAMPLE} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                        <Bar dataKey="value" radius={[3, 3, 0, 0]} fill="#2E8C66" fillOpacity={0.85} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="flex justify-between mt-2 text-[10px] text-ink-400">
-                    {(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const).map((d) => (
-                      <span key={d}>{t(`pLanding.keepFlowing.day.${d}`)}</span>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-xl border border-gray-200 dark:border-ink-700 p-5">
-                  <p className="text-sm font-semibold text-ink-900 dark:text-white mb-4">{t('pLanding.keepFlowing.stores.title')}</p>
-                  <div className="space-y-3">
-                    {[
-                      { code: 'ae', name: 'Dubaï', amount: '$184K' },
-                      { code: 'ci', name: 'Abidjan', amount: '$141K' },
-                      { code: 'gh', name: 'Accra', amount: '$97K' },
-                    ].map((s) => (
-                      <div key={s.code} className="flex items-center gap-3">
-                        <img src={`https://flagcdn.com/w40/${s.code}.png`} alt="" className="h-5 w-5 rounded-full object-cover" />
-                        <span className="text-sm text-ink-700 dark:text-ink-300 flex-1">{s.name}</span>
-                        <span className="text-sm font-semibold text-ink-900 dark:text-white">{s.amount}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Platform capabilities strip — real feature set, same
-                  entries as FEATURE_KEYS used elsewhere on this page
-                  (src/pages/modules/*), giving the dashboard mockup more
-                  visible breadth without inventing anything new. */}
-              <div className="mt-6 pt-6 border-t border-gray-100 dark:border-ink-800">
-                <div className="flex flex-wrap items-center gap-2">
-                  {[
-                    { icon: Wallet, key: 'currencies' },
-                    { icon: Store, key: 'stores' },
-                    { icon: ShieldCheck, key: 'roles' },
-                    { icon: Search, key: 'barcode' },
-                    { icon: CreditCard, key: 'splitPayments' },
-                  ].map((cap) => (
-                    <span
-                      key={cap.key}
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-600 dark:text-ink-300 bg-gray-50 dark:bg-ink-800 border border-gray-100 dark:border-ink-700 rounded-full px-3 py-1.5"
-                    >
-                      <cap.icon size={12} className="text-brand-600 dark:text-brand-400" />
-                      {t(`pLanding.keepFlowing.capability.${cap.key}`)}
-                    </span>
-                  ))}
-                </div>
-              </div>
+            <div className="relative rounded-2xl border border-gray-200 dark:border-ink-700 shadow-2xl overflow-hidden">
+              <img
+                src="/dashboard-screenshot.png"
+                alt={t('pLanding.keepFlowing.screenshotAlt')}
+                loading="lazy"
+                className="block w-full h-auto"
+              />
             </div>
           </div>
+
+          {/* Platform capabilities strip — real feature set, same entries
+              as FEATURE_KEYS used elsewhere on this page
+              (src/pages/modules/*), giving visible breadth alongside the
+              real screenshot without inventing anything new. */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+            {[
+              { icon: Wallet, key: 'currencies' },
+              { icon: Store, key: 'stores' },
+              { icon: ShieldCheck, key: 'roles' },
+              { icon: Search, key: 'barcode' },
+              { icon: CreditCard, key: 'splitPayments' },
+            ].map((cap) => (
+              <span
+                key={cap.key}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-600 dark:text-ink-300 bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 rounded-full px-3 py-1.5 shadow-sm"
+              >
+                <cap.icon size={12} className="text-brand-600 dark:text-brand-400" />
+                {t(`pLanding.keepFlowing.capability.${cap.key}`)}
+              </span>
+            ))}
           </div>
 
           {/* CTA */}
