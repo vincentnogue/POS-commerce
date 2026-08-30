@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Plus, Download, FileText, Trash2, Eye, Printer, MessageCircle, Mail, FileDown } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
-import { formatMoney } from '../../lib/localization';
+import { formatMoney, localDateStr } from '../../lib/localization';
 import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components/ui';
 import { DataTable, SearchInput, Select, Field, exportCSV } from '../../components/DataTable';
 import type { Invoice, Customer, InvoiceItem, Product } from '../../lib/types';
@@ -38,7 +38,7 @@ export function InvoicesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState<Invoice | null>(null);
   const [viewItems, setViewItems] = useState<InvoiceItem[]>([]);
-  const [form, setForm] = useState<any>({ customer_id: '', issue_date: new Date().toISOString().slice(0, 10), due_date: '', items: [] });
+  const [form, setForm] = useState<any>({ customer_id: '', issue_date: localDateStr(), due_date: '', items: [] });
   const [brand, setBrand] = useState<BrandSettings>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
 
@@ -109,7 +109,7 @@ export function InvoicesPage() {
       if (itemsErr) { toast('error', itemsErr.message); return; }
     }
     setModalOpen(false);
-    setForm({ customer_id: '', issue_date: new Date().toISOString().slice(0, 10), due_date: '', items: [] });
+    setForm({ customer_id: '', issue_date: localDateStr(), due_date: '', items: [] });
     const { data } = await supabase.from('invoices').select('*, customer:customers(name)').eq('tenant_id', tenant.id).order('created_at', { ascending: false });
     setInvoices((data as any[]) ?? []);
     toast('success', t('invoices.toast.created'));
@@ -181,7 +181,7 @@ export function InvoicesPage() {
         action={
           <div className="flex gap-2">
             <button onClick={() => exportCSV('factures.csv', filtered.map((i) => ({ numero: i.number, client: (i as any).customer?.name, statut: i.status, total: i.total, date: i.issue_date })))} className="btn-ghost"><Download size={16} /> {t('common.export')}</button>
-            <button onClick={() => { setForm({ customer_id: '', issue_date: new Date().toISOString().slice(0, 10), due_date: '', items: [] }); setModalOpen(true); }} className="btn-primary"><Plus size={16} /> {t('invoices.new')}</button>
+            <button onClick={() => { setForm({ customer_id: '', issue_date: localDateStr(), due_date: '', items: [] }); setModalOpen(true); }} className="btn-primary"><Plus size={16} /> {t('invoices.new')}</button>
           </div>
         }
       />

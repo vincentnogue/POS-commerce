@@ -3,7 +3,7 @@ import { Plus, Wallet, Download, Trash2, Pencil } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
-import { formatMoney } from '../../lib/localization';
+import { formatMoney, localDateStr } from '../../lib/localization';
 import { PageHeader, Modal, EmptyState, StatCard, useToast } from '../../components/ui';
 import { DataTable, SearchInput, Select, Field, exportCSV } from '../../components/DataTable';
 import type { Expense, Store, Supplier } from '../../lib/types';
@@ -20,7 +20,7 @@ const CATEGORIES = [
   { value: 'taxes', labelKey: 'expense.cat.taxes' },
   { value: 'other', labelKey: 'expense.cat.other' },
 ];
-const EMPTY = { description: '', amount: 0, category: CATEGORIES[0].value, payment_method: 'cash', store_id: '', supplier_id: '', expense_date: new Date().toISOString().slice(0, 10), notes: '' };
+const EMPTY = { description: '', amount: 0, category: CATEGORIES[0].value, payment_method: 'cash', store_id: '', supplier_id: '', expense_date: localDateStr(), notes: '' };
 
 export function ExpensesPage() {
   const toast = useToast();

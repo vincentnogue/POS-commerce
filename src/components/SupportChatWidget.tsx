@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { MessageCircle, X, Send, Headset, Sparkles } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../lib/i18n';
@@ -41,7 +41,7 @@ export function SupportChatWidget() {
 
   useEffect(() => { tokenRef.current = getVisitorToken(); }, []);
 
-  const start = async () => {
+  const start = useCallback(async () => {
     if (started) return;
     setStarted(true);
     const result = await callSupportChat({
@@ -61,9 +61,9 @@ export function SupportChatWidget() {
         lastMsgTimeRef.current = msgs[msgs.length - 1].created_at;
       }
     }
-  };
+  }, [started, tenant?.id, user?.id, user?.email, t]);
 
-  useEffect(() => { if (open) start(); }, [open]);
+  useEffect(() => { if (open) start(); }, [open, start]);
 
   // Poll for agent replies while the widget is open (also keeps working if
   // minimized but the conversation is in human handoff).

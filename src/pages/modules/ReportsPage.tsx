@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGri
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
-import { formatMoney } from '../../lib/localization';
+import { formatMoney, localDateStr } from '../../lib/localization';
 import { PageHeader, StatCard, Modal } from '../../components/ui';
 import { Select, SearchInput, exportCSV } from '../../components/DataTable';
 import type { Sale, Expense, Store, Product, Category } from '../../lib/types';
@@ -48,7 +48,7 @@ export function ReportsPage() {
     const since = new Date(Date.now() - days * 86400000).toISOString();
     const [s, e, p, c, st] = await Promise.all([
       supabase.from('sales').select('*, store:stores(name)').eq('tenant_id', tenant.id).gte('sale_date', since),
-      supabase.from('expenses').select('*').eq('tenant_id', tenant.id).gte('expense_date', new Date(Date.now() - days * 86400000).toISOString().slice(0, 10)),
+      supabase.from('expenses').select('*').eq('tenant_id', tenant.id).gte('expense_date', localDateStr(new Date(Date.now() - days * 86400000))),
       supabase.from('products').select('*, category:categories(name)').eq('tenant_id', tenant.id),
       supabase.from('categories').select('*').eq('tenant_id', tenant.id),
       supabase.from('stores').select('*').eq('tenant_id', tenant.id),
@@ -62,7 +62,7 @@ export function ReportsPage() {
     const staffMap: Record<string, string> = {};
     (members ?? []).forEach((m: any) => { if (m.user_id) staffMap[m.user_id] = m.display_name ?? t('reports.unknownStaff'); });
     setStaffNames(staffMap);
-  })(); }, [tenant]);
+  })(); }, [tenant, t]);
 
   const sinceDate = Date.now() - Number(period) * 86400000;
 
@@ -70,7 +70,7 @@ export function ReportsPage() {
     const inPeriod = new Date(s.sale_date).getTime() >= sinceDate;
     const inStore = !storeFilter || s.store_id === storeFilter;
     return inPeriod && inStore;
-  }), [sales, period, storeFilter, sinceDate]);
+  }), [sales, storeFilter, sinceDate]);
 
   const filteredExpenses = useMemo(() => expenses.filter((e) => new Date(e.expense_date).getTime() >= sinceDate && (!storeFilter || e.store_id === storeFilter)), [expenses, sinceDate, storeFilter]);
 
@@ -111,7 +111,7 @@ export function ReportsPage() {
           .slice(0, 6),
       );
     })();
-  }, [tenant, filteredSales]);
+  }, [tenant, filteredSales, t]);
 
   // Category distribution
   const catData = categories.map((c) => ({

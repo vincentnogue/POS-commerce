@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Search, Printer, Receipt, FileText, Download } from 'lucide-react';
+import { Search, Printer, Receipt, FileText, Download, Mail } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -22,7 +22,7 @@ type SaleRow = {
   payment_status: string;
   customer_id: string | null;
   user_id: string | null;
-  customer?: { name: string } | null;
+  customer?: { name: string; email: string | null } | null;
 };
 
 // Every sale has been persisted with its line items since day one — the
@@ -72,6 +72,17 @@ export function SaleHistoryTab() {
     })();
   }, [tenant]);
 
+  // BUG FIX: this tab used to show nothing at all until the user typed a
+  // search and pressed the button — a blank "Historique" tab looks exactly
+  // like "receipts aren't showing up", even though every sale was already
+  // being recorded correctly. Load the most recent sales automatically so
+  // there's always something to see; search/date filters narrow it down.
+  useEffect(() => {
+    if (!tenant) return;
+    runSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenant]);
+
   const runSearch = async () => {
     if (!tenant) return;
     setLoading(true);
@@ -89,7 +100,7 @@ export function SaleHistoryTab() {
 
     let query = supabase
       .from('sales')
-      .select('id, reference, sale_date, subtotal, tax_total, discount_total, total, payment_method, payment_reference, payment_status, customer_id, user_id, customer:customers(name)')
+      .select('id, reference, sale_date, subtotal, tax_total, discount_total, total, payment_method, payment_reference, payment_status, customer_id, user_id, customer:customers(name, email)')
       .eq('tenant_id', tenant.id)
       .order('sale_date', { ascending: false })
       .limit(100);
@@ -133,6 +144,21 @@ export function SaleHistoryTab() {
     m === 'cash' ? t('pos.pay.cash') : m === 'card' ? t('pos.pay.cardLabel') : m === 'mobile_money' ? t('pos.pay.mobileMoney') : (m ?? '—');
 
   const reprint = async (sale: SaleRow) => {
+    // BUG FIX: this used to fetch line items (await) BEFORE printSaleReceipt
+    // called window.open() internally. Browsers block window.open() once
+    // it's no longer a direct synchronous result of the click — silently,
+    // no error — which is exactly the "receipt not visible from history"
+    // bug. Opening the window here, synchronously, first thing on click,
+    // keeps it tied to the user gesture; the data loads into it afterward.
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      // A real, visible failure now instead of nothing happening: this
+      // path only hits if the browser's popup blocker is on and the user
+      // hasn't allowed pop-ups for this site.
+      alert(t('pos.history.popupBlocked'));
+      return;
+    }
+
     const { data: items } = await supabase.from('sale_items').select('name, quantity, unit_price').eq('sale_id', sale.id);
     printSaleReceipt(
       {
@@ -162,6 +188,7 @@ export function SaleHistoryTab() {
         paymentMethodLabel: paymentLabel,
       },
       { businessName: tenant?.name ?? '', currency, lang, locale, formatMoney },
+      printWindow,
     );
   };
 
@@ -320,9 +347,17 @@ export function SaleHistoryTab() {
                 ))}
               </tbody>
             </table>
-            <div className="flex justify-end gap-2">
+            <div className="flex flex-wrap justify-end gap-2">
               <button onClick={handleDownloadInvoice} className="btn-ghost text-sm"><Download size={15} /> {t('invoices.downloadPdf')}</button>
               <button onClick={handlePrintInvoice} className="btn-primary text-sm"><Printer size={15} /> {t('invoices.print')}</button>
+              {viewCustomer?.email && (
+                <a
+                  href={`mailto:${viewCustomer.email}?subject=${encodeURIComponent(t('invoices.emailSubject', { number: viewInvoice.number }))}&body=${encodeURIComponent(t('invoices.emailBody', { number: viewInvoice.number, total: formatMoney(Number(viewInvoice.total), currency) }))}`}
+                  className="btn-ghost text-sm"
+                >
+                  <Mail size={15} /> {t('invoices.sendEmail')}
+                </a>
+              )}
             </div>
           </div>
         )}

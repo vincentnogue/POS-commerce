@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart, Mail } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
-import { formatMoney } from '../../lib/localization';
+import { formatMoney, localDateStr } from '../../lib/localization';
 import { PageHeader, Modal, EmptyState, useToast } from '../../components/ui';
 import { printSaleReceipt } from '../../lib/receipt';
 import { printDayReport } from '../../lib/dayReport';
@@ -40,7 +40,7 @@ export function POSPage() {
   ]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
-  const [lastReceipt, setLastReceipt] = useState<{ items: CartItem[]; total: number; paymentMethod: string; paymentReference: string } | null>(null);
+  const [lastReceipt, setLastReceipt] = useState<{ items: CartItem[]; total: number; paymentMethod: string; paymentReference: string; customerName: string | null; customerPhone: string | null; customerEmail: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [deliveryChoice, setDeliveryChoice] = useState<'delivered' | 'pending'>('delivered');
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -81,7 +81,7 @@ export function POSPage() {
     })();
   }, [tenant]);
 
-  const loadDaySession = async () => {
+  const loadDaySession = useCallback(async () => {
     if (!tenant) return;
     setDaySessionLoading(true);
     let query = supabase.from('day_sessions').select('*').eq('tenant_id', tenant.id).eq('status', 'open');
@@ -89,9 +89,9 @@ export function POSPage() {
     const { data } = await query.maybeSingle();
     setDaySession(data ?? null);
     setDaySessionLoading(false);
-  };
+  }, [tenant, storeId]);
 
-  useEffect(() => { loadDaySession(); }, [tenant, storeId]);
+  useEffect(() => { loadDaySession(); }, [loadDaySession]);
 
   const openDay = async () => {
     if (!tenant || !user) return;
@@ -406,7 +406,7 @@ export function POSPage() {
         city: customer?.city ?? null,
         phone: customer?.phone ?? null,
         status: 'pending',
-        scheduled_date: new Date().toISOString().slice(0, 10),
+        scheduled_date: localDateStr(),
       }).select().single();
 
       if (delErr) {
@@ -426,7 +426,15 @@ export function POSPage() {
     }
 
     setSuccess(ref);
-    setLastReceipt({ items: cart, total, paymentMethod, paymentReference: paymentReference.trim() });
+    setLastReceipt({
+      items: cart,
+      total,
+      paymentMethod,
+      paymentReference: paymentReference.trim(),
+      customerName: customer?.name ?? null,
+      customerPhone: customer?.phone ?? null,
+      customerEmail: customer?.email ?? null,
+    });
     setCart([]);
     setPaymentReference('');
     setPaidAmount('');
@@ -478,7 +486,31 @@ export function POSPage() {
       ? `%0a${t('pos.whatsapp.payment')} : ${paymentLabel(lastReceipt.paymentMethod)} (${t('pos.whatsapp.ref')}: ${lastReceipt.paymentReference})`
       : `%0a${t('pos.whatsapp.payment')} : ${paymentLabel(lastReceipt.paymentMethod)}`;
     const msg = `*${t('pos.whatsapp.saleReceipt')} ${success}*%0a%0a${lines}%0a%0a*${t('pos.receipt.total')}: ${formatMoney(lastReceipt.total, currency)}*${paymentLine}%0a%0a${t('pos.receipt.thanks')}`;
-    window.open(`https://wa.me/?text=${msg}`, '_blank');
+    // FIX: this used to always open wa.me/?text=... with no recipient, even
+    // when a real customer (with a real phone on file) was picked at
+    // checkout -- the cashier had to manually pick the contact every time.
+    // Now it targets the actual customer's number when we have one.
+    const digitsOnly = (lastReceipt.customerPhone ?? '').replace(/[^0-9]/g, '');
+    const target = digitsOnly.length >= 8 ? digitsOnly : '';
+    window.open(`https://wa.me/${target}?text=${msg}`, '_blank');
+  };
+
+  // FIX: there was no way to email a receipt to a customer at all, even
+  // when the selected customer has a real email on file (Customer.email).
+  // mailto: can't attach a PDF, but it opens the cashier's own mail client
+  // with the customer's real address and a real text summary of the sale
+  // pre-filled -- a genuine send, not a placeholder. Only shown when an
+  // email is actually on file (see the button below), so this never
+  // pretends to work when there's nothing to send to.
+  const sendEmail = () => {
+    if (!success || !lastReceipt || !lastReceipt.customerEmail) return;
+    const lines = lastReceipt.items.map((i) => `${i.product.name} x${i.quantity} = ${formatMoney(i.quantity * i.unit_price, currency)}`).join('\n');
+    const paymentLine = lastReceipt.paymentReference
+      ? `${t('pos.whatsapp.payment')}: ${paymentLabel(lastReceipt.paymentMethod)} (${t('pos.whatsapp.ref')}: ${lastReceipt.paymentReference})`
+      : `${t('pos.whatsapp.payment')}: ${paymentLabel(lastReceipt.paymentMethod)}`;
+    const subject = `${t('pos.whatsapp.saleReceipt')} ${success}`;
+    const body = `${lines}\n\n${t('pos.receipt.total')}: ${formatMoney(lastReceipt.total, currency)}\n${paymentLine}\n\n${t('pos.receipt.thanks')}`;
+    window.location.href = `mailto:${lastReceipt.customerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
   return (
@@ -815,6 +847,11 @@ export function POSPage() {
             <button onClick={printReceipt} className="btn-ghost flex-1 justify-center text-sm"><Printer size={15} /> {t('pos.print')}</button>
             <button onClick={sendWhatsApp} className="btn-ghost flex-1 justify-center text-sm border-success-200 text-success-700"><MessageCircle size={15} /> {t('pos.whatsapp')}</button>
           </div>
+          {lastReceipt?.customerEmail && (
+            <button onClick={sendEmail} className="btn-ghost mt-2 w-full justify-center text-sm border-brand-200 text-brand-700">
+              <Mail size={15} /> {t('pos.emailReceipt')} ({lastReceipt.customerEmail})
+            </button>
+          )}
           <button onClick={() => setSuccess(null)} className="btn-primary mt-3 w-full justify-center">{t('pos.newSale')}</button>
         </div>
       </Modal>

@@ -108,10 +108,16 @@ export function OnboardingPage() {
     const finalRegion = customRegion || region;
     const finalCity = customCity || city;
     const finalName = businessName.trim();
-    const countryInfo = getCountry(countryCode)!;
 
     if (!finalName) { setError(t('onboarding.error.businessName')); setSubmitting(false); return; }
+    // BUG FIX: getCountry(countryCode)! used to run BEFORE this check, with
+    // a non-null assertion that TypeScript accepts but does nothing at
+    // runtime — if countryCode were ever empty when finish() runs (e.g. a
+    // future change to the stepper, or state restored some other way),
+    // getCountry('') returns undefined and countryInfo.name below would
+    // throw instead of showing the normal "select a country" error.
     if (!countryCode) { setError(t('onboarding.error.country')); setSubmitting(false); return; }
+    const countryInfo = getCountry(countryCode)!;
 
     // 1. Find plan id
     const { data: plan } = await supabase.from('plans').select('id').eq('code', planCode).maybeSingle();

@@ -3,7 +3,7 @@ import { Plus, Receipt, Download, Trash2, Eye, Check, Package } from 'lucide-rea
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
-import { formatMoney } from '../../lib/localization';
+import { formatMoney, localDateStr } from '../../lib/localization';
 import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components/ui';
 import { DataTable, SearchInput, Select, Field, exportCSV } from '../../components/DataTable';
 import type { Purchase, Supplier, Product, PurchaseItem } from '../../lib/types';
@@ -37,7 +37,7 @@ export function PurchasesPage() {
   const [rejectQtys, setRejectQtys] = useState<Record<string, number>>({});
   const [rejectReasons, setRejectReasons] = useState<Record<string, string>>({});
   const [receiveItems, setReceiveItems] = useState<PurchaseItem[]>([]);
-  const [form, setForm] = useState<any>({ supplier_id: '', purchase_date: new Date().toISOString().slice(0, 10), store_id: '', items: [] });
+  const [form, setForm] = useState<any>({ supplier_id: '', purchase_date: localDateStr(), store_id: '', items: [] });
   const [stores, setStores] = useState<{ id: string; name: string }[]>([]);
 
   const currency = tenant?.currency ?? 'XOF';
@@ -107,7 +107,7 @@ export function PurchasesPage() {
       if (itemsErr) { toast('error', itemsErr.message); return; }
     }
     setModalOpen(false);
-    setForm({ supplier_id: '', purchase_date: new Date().toISOString().slice(0, 10), store_id: '', items: [] });
+    setForm({ supplier_id: '', purchase_date: localDateStr(), store_id: '', items: [] });
     const { data } = await supabase.from('purchases').select('*, supplier:suppliers(name)').eq('tenant_id', tenant.id).order('created_at', { ascending: false });
     setPurchases((data as any[]) ?? []);
     toast('success', t('purchases.toast.created'));
@@ -205,7 +205,7 @@ export function PurchasesPage() {
       <PageHeader title={t('purchases.title')} subtitle={t('purchases.subtitle', { count: purchases.length })} action={
         <div className="flex gap-2">
           <button onClick={() => exportCSV('achats.csv', filtered.map((p) => ({ reference: p.reference, fournisseur: (p as any).supplier?.name, statut: p.status, total: p.total, date: p.purchase_date })))} className="btn-ghost"><Download size={16} /> {t('common.export')}</button>
-          <button onClick={() => { setForm({ supplier_id: '', purchase_date: new Date().toISOString().slice(0, 10), store_id: '', items: [] }); setModalOpen(true); }} className="btn-primary"><Plus size={16} /> {t('purchases.new')}</button>
+          <button onClick={() => { setForm({ supplier_id: '', purchase_date: localDateStr(), store_id: '', items: [] }); setModalOpen(true); }} className="btn-primary"><Plus size={16} /> {t('purchases.new')}</button>
         </div>
       } />
       <div className="card p-5">

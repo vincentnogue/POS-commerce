@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../lib/auth';
 import { supabase } from '../lib/supabase';
 import {
@@ -55,11 +55,7 @@ export function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  useEffect(() => {
-    loadSettings();
-  }, [tenant?.id]);
-
-  async function loadSettings() {
+  const loadSettings = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -77,7 +73,11 @@ export function SettingsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [tenant?.id]);
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
 
   async function saveSettings() {
     if (!settings) return;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Plus, Pencil, Trash2, Store as StoreIcon, MapPin, Phone, Navigation, Users } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
@@ -27,7 +27,7 @@ export function StoresPage() {
   const canUpdate = can('stores', 'update');
   const canDelete = can('stores', 'delete');
 
-  const reload = async () => {
+  const reload = useCallback(async () => {
     if (!tenant) return;
     const [s, m, a] = await Promise.all([
       supabase.from('stores').select('*').eq('tenant_id', tenant.id).order('name'),
@@ -38,9 +38,9 @@ export function StoresPage() {
     setMembers((m.data as Member[]) ?? []);
     setAssignments((a.data as StoreAssignment[]) ?? []);
     setLoading(false);
-  };
+  }, [tenant]);
 
-  useEffect(() => { reload(); }, [tenant]);
+  useEffect(() => { reload(); }, [reload]);
 
   const openNew = () => { setEditing(null); setForm(EMPTY); setModalOpen(true); };
   const openEdit = (s: Store) => {

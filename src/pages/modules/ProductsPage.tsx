@@ -62,8 +62,11 @@ export function ProductsPage() {
       setCategories((c.data as Category[]) ?? []);
       setLoading(false);
     })();
-    if (isNew) { setModalOpen(true); setParams({}, { replace: true }); }
   }, [tenant, canSeeCost]);
+
+  useEffect(() => {
+    if (isNew) { setModalOpen(true); setParams({}, { replace: true }); }
+  }, [isNew, setParams]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();

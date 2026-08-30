@@ -446,6 +446,26 @@ export const USD_REFERENCE_RATES: Record<string, number> = {
   AFN: 0.014, ALL: 0.011, AMD: 0.0025, ANG: 0.56, ARS: 0.00085, AUD: 0.65, AWG: 0.56, AZN: 0.59, BAM: 0.55, BBD: 0.5, BDT: 0.0084, BHD: 2.65, BMD: 1, BND: 0.74, BOB: 0.145, BRL: 0.17, BSD: 1, BTN: 0.012, BYN: 0.3, BZD: 0.5, CAD: 0.73, CHF: 1.12, CKD: 0.6, CLP: 0.0011, CNY: 0.14, COP: 0.00023, CRC: 0.0019, CUC: 1, CZK: 0.043, DKK: 0.145, DOP: 0.017, FJD: 0.44, FKP: 1.27, GEL: 0.36, GIP: 1.27, GTQ: 0.13, GYD: 0.0048, HKD: 0.128, HNL: 0.04, HTG: 0.0076, HUF: 0.0027, IDR: 0.000061, ILS: 0.27, INR: 0.012, IQD: 0.00076, IRR: 0.000024, ISK: 0.0072, JMD: 0.0064, JOD: 1.41, JPY: 0.0067, KGS: 0.0114, KHR: 0.00024, KPW: 0.0011, KRW: 0.00069, KWD: 3.25, KYD: 1.2, KZT: 0.0019, LAK: 0.000045, LBP: 0.000011, LKR: 0.0033, MDL: 0.055, MKD: 0.017, MMK: 0.00048, MNT: 0.00029, MOP: 0.124, MVR: 0.065, MXN: 0.049, MYR: 0.22, NIO: 0.027, NOK: 0.09, NPR: 0.0075, NZD: 0.6, OMR: 2.6, PAB: 1, PEN: 0.27, PGK: 0.24, PHP: 0.017, PKR: 0.0036, PLN: 0.25, PYG: 0.00013, QAR: 0.275, RON: 0.22, RSD: 0.0092, RUB: 0.011, SAR: 0.267, SBD: 0.12, SEK: 0.093, SGD: 0.74, SRD: 0.029, SYP: 0.000077, THB: 0.028, TJS: 0.091, TMT: 0.286, TOP: 0.42, TRY: 0.024, TTD: 0.147, TWD: 0.031, UAH: 0.024, UYU: 0.024, UZS: 0.000078, VES: 0.014, VND: 0.000039, VUV: 0.0083, WST: 0.36, XCD: 0.37, XPF: 0.0091, YER: 0.004, BGN: 0.552,
 };
 
+// BUG FIX: `new Date().toISOString().slice(0, 10)` was used all over the
+// app (invoices, quotes, purchases, expenses, deliveries, and the
+// accounting/reports date-range math) to get "today" or a date boundary
+// as YYYY-MM-DD. toISOString() always converts to UTC first — so for
+// anyone in a timezone AHEAD of UTC (which is most of this app's target
+// market: Lagos/Accra are UTC+0 so unaffected, but Nairobi, Kampala,
+// Dar es Salaam, Cairo, Dubai and the rest of East/Central Africa and the
+// Middle East are UTC+1 to UTC+4), the UTC date can be a full day behind
+// the user's actual local date for part of every day (midnight to
+// UTC+offset each morning). A merchant opening shop at 7am in Nairobi
+// (UTC+3) creating a new purchase order would silently get YESTERDAY's
+// date pre-filled. localDateStr() reads the local Y/M/D components
+// instead, so it always matches the date on the user's own wall clock.
+export function localDateStr(date: Date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 export function formatMoney(amount: number, currency: string): string {
   const info = CURRENCIES[currency] ?? { symbol: currency, decimals: 2 };
   const value = Number(amount || 0);

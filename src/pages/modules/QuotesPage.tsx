@@ -3,7 +3,7 @@ import { Plus, ClipboardList, Download, Trash2, Eye, Send, FileText, Printer, Me
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
-import { formatMoney } from '../../lib/localization';
+import { formatMoney, localDateStr } from '../../lib/localization';
 import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components/ui';
 import { DataTable, SearchInput, Field, exportCSV } from '../../components/DataTable';
 import type { Quote, Customer, Product, QuoteItem } from '../../lib/types';
@@ -29,7 +29,7 @@ export function QuotesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState<Quote | null>(null);
   const [viewItems, setViewItems] = useState<QuoteItem[]>([]);
-  const [form, setForm] = useState<any>({ customer_id: '', issue_date: new Date().toISOString().slice(0, 10), expiry_date: '', items: [] });
+  const [form, setForm] = useState<any>({ customer_id: '', issue_date: localDateStr(), expiry_date: '', items: [] });
 
   const currency = tenant?.currency ?? 'XOF';
 
@@ -90,7 +90,7 @@ export function QuotesPage() {
       if (itemsErr) { toast('error', itemsErr.message); return; }
     }
     setModalOpen(false);
-    setForm({ customer_id: '', issue_date: new Date().toISOString().slice(0, 10), expiry_date: '', items: [] });
+    setForm({ customer_id: '', issue_date: localDateStr(), expiry_date: '', items: [] });
     const { data } = await supabase.from('quotes').select('*, customer:customers(name)').eq('tenant_id', tenant.id).order('created_at', { ascending: false });
     setQuotes((data as any[]) ?? []);
     toast('success', t('quotes.toast.created'));
@@ -136,7 +136,7 @@ export function QuotesPage() {
       customer_id: q.customer_id,
       number: num,
       status: 'sent',
-      issue_date: new Date().toISOString().slice(0, 10),
+      issue_date: localDateStr(),
       due_date: null,
       subtotal: q.subtotal, tax_total: q.tax_total, discount_total: q.discount_total, total: q.total, paid_amount: 0,
     }).select().single();
@@ -189,7 +189,7 @@ export function QuotesPage() {
         action={
           <div className="flex gap-2">
             <button onClick={() => exportCSV('devis.csv', filtered.map((q) => ({ numero: q.number, client: (q as any).customer?.name, statut: q.status, total: q.total, date: q.issue_date })))} className="btn-ghost"><Download size={16} /> {t('common.export')}</button>
-            <button onClick={() => { setForm({ customer_id: '', issue_date: new Date().toISOString().slice(0, 10), expiry_date: '', items: [] }); setModalOpen(true); }} className="btn-primary"><Plus size={16} /> {t('quotes.new')}</button>
+            <button onClick={() => { setForm({ customer_id: '', issue_date: localDateStr(), expiry_date: '', items: [] }); setModalOpen(true); }} className="btn-primary"><Plus size={16} /> {t('quotes.new')}</button>
           </div>
         }
       />

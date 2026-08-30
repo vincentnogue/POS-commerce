@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Search, RotateCcw, Printer } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
 import { EmptyState, useToast } from '../../components/ui';
 import { printReturnReceipt } from '../../lib/receipt';
+import type { Customer } from '../../lib/types';
 
 type SaleRow = {
   id: string;
@@ -57,6 +58,25 @@ export function ReturnsTab() {
   const [submitting, setSubmitting] = useState(false);
   const [lastReturn, setLastReturn] = useState<{ reference: string; items: SaleItemRow[]; amount: number; method: string; kind: 'return' | 'exchange' } | null>(null);
 
+  // BUG FIX: store-credit refunds require a customer to credit, but a
+  // walk-in sale (very common at a POS) often has no customer_id at all —
+  // the form used to just fail with "A customer must be selected to issue
+  // store credit" and gave the cashier no way to actually attach one. Now,
+  // when the original sale has no customer, a search picker appears right
+  // where the error used to be a dead end.
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [pickedCustomerId, setPickedCustomerId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!tenant) return;
+    supabase.from('customers').select('*').eq('tenant_id', tenant.id).order('name')
+      .then(({ data }) => setCustomers((data as Customer[]) ?? []));
+  }, [tenant]);
+
+  const resolvedCustomerId = sale?.customer_id ?? pickedCustomerId;
+  const pickedCustomer = customers.find((c) => c.id === pickedCustomerId);
+
   const availableMethods = [
     settings.allow_cash !== false ? 'cash' : null,
     settings.allow_card !== false ? 'card' : null,
@@ -100,6 +120,8 @@ export function ReturnsTab() {
     setSale(data as any);
     setSaleItems((items as any[]) ?? []);
     setAlreadyReturned(returnedMap);
+    setPickedCustomerId(null);
+    setCustomerSearch('');
     setSearching(false);
   };
 
@@ -114,7 +136,7 @@ export function ReturnsTab() {
 
   const submitReturn = async () => {
     if (!tenant || !user || !sale || selectedItems.length === 0) return;
-    if (refundMethod === 'store_credit' && !sale.customer_id) {
+    if (refundMethod === 'store_credit' && !resolvedCustomerId) {
       toast('error', t('returns.err.customerRequired'));
       return;
     }
@@ -126,7 +148,7 @@ export function ReturnsTab() {
       p_refund_method: kind === 'exchange' ? 'none' : refundMethod,
       p_kind: kind,
       p_reason: reason || null,
-      p_customer_id: sale.customer_id,
+      p_customer_id: resolvedCustomerId,
       p_user_id: user.id,
       p_staff_code: staffCode || null,
     });
@@ -268,6 +290,26 @@ export function ReturnsTab() {
                   </select>
                 </div>
               )}
+              {kind === 'return' && refundMethod === 'store_credit' && !sale.customer_id && (
+                <div className="sm:col-span-2">
+                  <label className="mb-1 block text-sm font-medium text-ink-700 dark:text-ink-300">{t('returns.pickCustomer')}</label>
+                  <input
+                    value={customerSearch}
+                    onChange={(e) => {
+                      setCustomerSearch(e.target.value);
+                      const match = customers.find((c) => c.name.toLowerCase().includes(e.target.value.toLowerCase()));
+                      setPickedCustomerId(match?.id ?? null);
+                    }}
+                    className="input"
+                    placeholder={t('pos.searchCustomer')}
+                  />
+                  {pickedCustomer ? (
+                    <p className="mt-1 text-xs text-success-700 dark:text-success-400">{t('pos.customerPrefix')}: {pickedCustomer.name}</p>
+                  ) : (
+                    <p className="mt-1 text-xs text-warning-700 dark:text-warning-400">{t('returns.pickCustomerHint')}</p>
+                  )}
+                </div>
+              )}
               <div>
                 <label className="mb-1 block text-sm font-medium text-ink-700 dark:text-ink-300">{t('stock.staffIdOptional')}</label>
                 <input value={staffCode} onChange={(e) => setStaffCode(e.target.value)} className="input font-mono" placeholder="STF-001" />
@@ -282,7 +324,11 @@ export function ReturnsTab() {
           {canProcess && (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-ink-50 dark:bg-ink-800/50 p-3">
               <span className="text-sm text-ink-600 dark:text-ink-300">{t('returns.totalToRefund')}: <strong className="text-ink-900 dark:text-ink-50">{formatMoney(refundTotal, currency)}</strong></span>
-              <button onClick={submitReturn} disabled={selectedItems.length === 0 || submitting} className="btn-primary">
+              <button
+                onClick={submitReturn}
+                disabled={selectedItems.length === 0 || submitting || (kind === 'return' && refundMethod === 'store_credit' && !resolvedCustomerId)}
+                className="btn-primary"
+              >
                 <RotateCcw size={15} /> {submitting ? t('returns.processing') : kind === 'exchange' ? t('returns.processExchange') : t('returns.processReturn')}
               </button>
             </div>

@@ -1,11 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../lib/auth';
 import { useTenant } from '../../lib/tenant';
 import { Search, Grid, List, Plus, CheckCircle, AlertCircle, ExternalLink, Trash2 } from 'lucide-react';
 import { IntegrationCredentialForm } from '../../components/IntegrationCredentialForm';
-import { IntegrationStats } from '../../components/IntegrationStats';
 
 interface IntegrationProvider {
   id: string;
@@ -38,11 +37,11 @@ interface IntegrationConnection {
 const CATEGORIES = [
   { key: 'all', label: 'All' },
   { key: 'payments', label: 'Payments' },
-  { key: 'ai', label: 'AI' },
   { key: 'liafrik', label: 'Liafrik' },
   { key: 'logistics', label: 'Logistics' },
   { key: 'communication', label: 'Communication' },
   { key: 'accounting', label: 'Accounting' },
+  { key: 'ai', label: 'AI' },
   { key: 'developers', label: 'Developers' },
 ];
 
@@ -72,40 +71,20 @@ export function MarketplacePage() {
   // starter / pro / premium / entreprise (see src/lib/plans.ts).
   const [planCode, setPlanCode] = useState<string | null>(null);
 
-  // Load providers and connections
-  useEffect(() => {
-    loadData();
-  }, [tenant?.id]);
-
-  useEffect(() => {
-    if (!tenant?.plan_id) {
-      setPlanCode(null);
-      return;
-    }
-    let cancelled = false;
-    supabase
-      .from('plans')
-      .select('code')
-      .eq('id', tenant.plan_id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!cancelled) setPlanCode(data?.code ?? null);
-      });
-    return () => { cancelled = true; };
-  }, [tenant?.plan_id]);
-
-  // Check marketplace access and plan limits
-  useEffect(() => {
-    if (!user?.id || !tenant?.id) return;
-    checkMarketplaceAccess();
-  }, [user?.id, tenant?.id, plan]);
-
-  async function checkMarketplaceAccess() {
+  const checkMarketplaceAccess = useCallback(async () => {
     if (!user?.id || !tenant?.id) return;
 
     try {
-      // Call marketplace-access-check function
-      const response = await fetch(`${process.env.VITE_SUPABASE_URL}/functions/v1/marketplace-access-check`, {
+      // BUG FIX: this used `process.env.VITE_SUPABASE_URL`, which does not
+      // exist in a Vite browser bundle (process.env is a Node concept —
+      // Vite exposes env vars via import.meta.env, as every other edge
+      // function call in this app already does). The fetch URL was
+      // literally "undefined/functions/v1/marketplace-access-check" and
+      // always failed, silently falling back to admin/super_admin-only
+      // access — so a manager or staff member with real plan-level
+      // connect permission could never actually connect an integration.
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/marketplace-access-check`;
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -130,9 +109,9 @@ export function MarketplacePage() {
       // Super admin can always connect
       setUserCanConnect(member?.role === 'super_admin' || member?.role === 'admin');
     }
-  }
+  }, [user?.id, tenant?.id, member?.role]);
 
-  async function loadData() {
+  const loadData = useCallback(async () => {
     if (!tenant?.id) return;
 
     try {
@@ -163,7 +142,35 @@ export function MarketplacePage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [tenant?.id]);
+
+  // Load providers and connections
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  useEffect(() => {
+    if (!tenant?.plan_id) {
+      setPlanCode(null);
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .from('plans')
+      .select('code')
+      .eq('id', tenant.plan_id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setPlanCode(data?.code ?? null);
+      });
+    return () => { cancelled = true; };
+  }, [tenant?.plan_id]);
+
+  // Check marketplace access and plan limits
+  useEffect(() => {
+    if (!user?.id || !tenant?.id) return;
+    checkMarketplaceAccess();
+  }, [user?.id, tenant?.id, plan, checkMarketplaceAccess]);
 
   // Filter providers based on search and category
   const filteredProviders = providers.filter(provider => {
@@ -206,22 +213,14 @@ export function MarketplacePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Marketplace</h1>
+          <h1 className="text-4xl font-bold text-slate-900 dark:text-white">Marketplace</h1>
           <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">
             Connect external services and extend POS Flow with powerful integrations
           </p>
         </div>
-
-        {/* Integration Stats */}
-        <IntegrationStats 
-          totalIntegrations={providers.length}
-          connectedIntegrations={activeIntegrations}
-          integrationLimit={integrationLimit || 5}
-          activeConnections={Math.min(activeIntegrations, 10)}
-        />
 
         {/* Plan usage banner */}
         {integrationLimit !== null && (
@@ -241,7 +240,7 @@ export function MarketplacePage() {
         )}
 
         {/* Search & Filters */}
-        <div className="mb-6 space-y-3">
+        <div className="mb-8 space-y-4">
           {/* Search Bar */}
           <div className="relative">
             <Search className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
@@ -296,8 +295,8 @@ export function MarketplacePage() {
           <>
             {/* Featured Integrations (only in "all" view) */}
             {selectedCategory === 'all' && featured.length > 0 && (
-              <div className="mb-8">
-                <h2 className="mb-3 text-xl font-bold text-slate-900 dark:text-white">Featured</h2>
+              <div className="mb-12">
+                <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">Featured</h2>
                 <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' : ''}`}>
                   {featured.map(provider => (
                     <IntegrationCard
@@ -315,7 +314,7 @@ export function MarketplacePage() {
 
             {/* All Integrations */}
             <div>
-              <h2 className="mb-3 text-xl font-bold text-slate-900 dark:text-white">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
                 {selectedCategory === 'all' ? 'All Integrations' : 'Integrations'}
               </h2>
               {regular.length === 0 ? (
@@ -323,7 +322,7 @@ export function MarketplacePage() {
                   <p className="text-slate-600 dark:text-slate-400">No integrations found</p>
                 </div>
               ) : (
-                <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' : ''}`}>
+                <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : ''}`}>
                   {regular.map(provider => (
                     <IntegrationCard
                       key={provider.id}
@@ -407,14 +406,17 @@ function IntegrationCard({ provider, connection, isLocked, onConnect, viewMode }
   }
 
   return (
-    <div className="group rounded-lg border border-slate-200 bg-white p-6 transition-all hover:border-blue-300 hover:shadow-lg dark:border-slate-700 dark:bg-slate-800 dark:hover:border-blue-600">
-      {/* Logo */}
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700">
+    <div className="group flex flex-col rounded-lg border border-slate-200 bg-white p-6 transition-all hover:border-blue-300 hover:shadow-lg dark:border-slate-700 dark:bg-slate-800 dark:hover:border-blue-600">
+      {/* Logo — sized closer to how the source icons are actually drawn
+          (most already have their own internal padding), so it reads as a
+          crisp, "zoomed in" logo rather than a small icon floating in a lot
+          of extra white margin. */}
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700 overflow-hidden">
         {provider.logo_url ? (
           <img
             src={provider.logo_url}
             alt={provider.provider_name}
-            className="h-8 w-8 object-contain"
+            className="h-11 w-11 object-contain"
           />
         ) : (
           <Plus className="h-6 w-6 text-slate-400" />
@@ -449,56 +451,70 @@ function IntegrationCard({ provider, connection, isLocked, onConnect, viewMode }
         ))}
       </div>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-700">
-        <div className="flex items-center gap-2">
+      {/* BUG FIX: this card used to be a plain block div, so in a CSS
+          grid row (which stretches every card to the tallest card's
+          height by default), the Connect/Upgrade button sat wherever
+          normal document flow put it — right after however much
+          description/capability-tag text came before it. Cards with a
+          longer description, more capability tags, or (since the plan-
+          gating fix) a Lock Badge that only some cards show, ended up
+          with their buttons at visibly different vertical positions in
+          the same row — "les boutons ont glissé". flex flex-col above +
+          mt-auto here pins this footer to the bottom of every card
+          regardless of how much content is above it, so buttons always
+          line up across a row. */}
+      <div className="mt-auto">
+        {/* Footer */}
+        <div className="flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-700">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate(`/integration/${provider.provider_key.toLowerCase()}`)}
+              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+            >
+              More →
+            </button>
+            <a
+              href={provider.documentation_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-xs text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
+            >
+              Docs
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+
           <button
-            onClick={() => navigate(`/integration/${provider.provider_key.toLowerCase()}`)}
-            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+            onClick={onConnect}
+            disabled={isLocked}
+            className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
+              isConnected
+                ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300'
+                : isLocked
+                  ? 'cursor-not-allowed bg-slate-100 text-slate-400 dark:bg-slate-700'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}
           >
-            More →
+            {isConnected ? 'Manage' : isLocked ? 'Upgrade' : 'Connect'}
           </button>
-          <a
-            href={provider.documentation_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 text-xs text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
-          >
-            Docs
-            <ExternalLink className="h-3 w-3" />
-          </a>
         </div>
 
-        <button
-          onClick={onConnect}
-          disabled={isLocked}
-          className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
-            isConnected
-              ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300'
-              : isLocked
-                ? 'cursor-not-allowed bg-slate-100 text-slate-400 dark:bg-slate-700'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-          }`}
-        >
-          {isConnected ? 'Manage' : isLocked ? 'Upgrade' : 'Connect'}
-        </button>
+        {/* Lock Badge */}
+        {isLocked && provider.minimum_plan && (
+          <div className="mt-2 rounded bg-amber-50 p-2 text-center dark:bg-amber-900 dark:bg-opacity-30">
+            <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
+              {/* Real plan display names — never show the raw DB code
+                  ('basic' has no matching plan; the real lowest tier is
+                  'Starter'). Keep in sync with src/lib/plans.ts. */}
+              Upgrade to {(
+                { basic: 'Starter', starter: 'Starter', pro: 'Pro', premium: 'Premium', entreprise: 'Entreprise' }[
+                  provider.minimum_plan.toLowerCase()
+                ] ?? provider.minimum_plan
+              )}
+            </p>
+          </div>
+        )}
       </div>
-
-      {/* Lock Badge */}
-      {isLocked && provider.minimum_plan && (
-        <div className="mt-2 rounded bg-amber-50 p-2 text-center dark:bg-amber-900 dark:bg-opacity-30">
-          <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
-            {/* Real plan display names — never show the raw DB code
-                ('basic' has no matching plan; the real lowest tier is
-                'Starter'). Keep in sync with src/lib/plans.ts. */}
-            Upgrade to {(
-              { basic: 'Starter', starter: 'Starter', pro: 'Pro', premium: 'Premium', entreprise: 'Entreprise' }[
-                provider.minimum_plan.toLowerCase()
-              ] ?? provider.minimum_plan
-            )}
-          </p>
-        </div>
-      )}
     </div>
   );
 }
