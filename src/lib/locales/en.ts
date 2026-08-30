@@ -942,6 +942,7 @@ export const en: Record<string, string> = {
   "pos.history.viewInvoice": "View invoice",
   "pos.history.invoiceGenerated": "Invoice {number} generated",
   "pos.history.invoiceGeneratedNote": "Automatically generated from sale {reference}",
+  "pos.history.popupBlocked": "Your browser blocked the receipt window. Allow pop-ups for this site and try again.",
   "pos.history.staffLabel": "Staff",
   "pos.history.unnamedStaff": "Unnamed",
   "pos.whatsapp.saleReceipt": "Sale receipt",
