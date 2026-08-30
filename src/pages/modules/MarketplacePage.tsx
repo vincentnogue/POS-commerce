@@ -5,6 +5,7 @@ import { useAuth } from '../../lib/auth';
 import { useTenant } from '../../lib/tenant';
 import { Search, Grid, List, Plus, CheckCircle, AlertCircle, ExternalLink, Trash2 } from 'lucide-react';
 import { IntegrationCredentialForm } from '../../components/IntegrationCredentialForm';
+import { IntegrationStats } from '../../components/IntegrationStats';
 
 interface IntegrationProvider {
   id: string;
@@ -207,12 +208,20 @@ export function MarketplacePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-5">
+        <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Marketplace</h1>
           <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">
             Connect external services and extend POS Flow with powerful integrations
           </p>
         </div>
+
+        {/* Integration Stats */}
+        <IntegrationStats 
+          totalIntegrations={providers.length}
+          connectedIntegrations={activeIntegrations}
+          integrationLimit={integrationLimit || 5}
+          activeConnections={Math.min(activeIntegrations, 10)}
+        />
 
         {/* Plan usage banner */}
         {integrationLimit !== null && (
