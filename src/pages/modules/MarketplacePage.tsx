@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Grid, List, Plus, CheckCircle, ExternalLink, Trash2, Store, Zap } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
@@ -72,22 +72,7 @@ export function MarketplacePage() {
   // starter / pro / premium / entreprise (see src/lib/plans.ts).
   const [planCode, setPlanCode] = useState<string | null>(null);
 
-  useEffect(() => { loadData(); }, [tenant?.id]);
-
-  useEffect(() => {
-    if (!tenant?.plan_id) { setPlanCode(null); return; }
-    let cancelled = false;
-    supabase.from('plans').select('code').eq('id', tenant.plan_id).maybeSingle()
-      .then(({ data }) => { if (!cancelled) setPlanCode(data?.code ?? null); });
-    return () => { cancelled = true; };
-  }, [tenant?.plan_id]);
-
-  useEffect(() => {
-    if (!user?.id || !tenant?.id) return;
-    checkMarketplaceAccess();
-  }, [user?.id, tenant?.id, plan]);
-
-  async function checkMarketplaceAccess() {
+  const checkMarketplaceAccess = useCallback(async () => {
     if (!user?.id || !tenant?.id) return;
     try {
       // BUG FIX: this used `process.env.VITE_SUPABASE_URL`, which does not
@@ -116,9 +101,9 @@ export function MarketplacePage() {
       console.error('Failed to check marketplace access:', error);
       setUserCanConnect(member?.role === 'super_admin' || member?.role === 'admin');
     }
-  }
+  }, [user?.id, tenant?.id, member?.role]);
 
-  async function loadData() {
+  const loadData = useCallback(async () => {
     if (!tenant?.id) return;
     try {
       setLoading(true);
@@ -138,7 +123,22 @@ export function MarketplacePage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [tenant?.id, toast, t]);
+
+  useEffect(() => { loadData(); }, [loadData]);
+
+  useEffect(() => {
+    if (!tenant?.plan_id) { setPlanCode(null); return; }
+    let cancelled = false;
+    supabase.from('plans').select('code').eq('id', tenant.plan_id).maybeSingle()
+      .then(({ data }) => { if (!cancelled) setPlanCode(data?.code ?? null); });
+    return () => { cancelled = true; };
+  }, [tenant?.plan_id]);
+
+  useEffect(() => {
+    if (!user?.id || !tenant?.id) return;
+    checkMarketplaceAccess();
+  }, [user?.id, tenant?.id, plan, checkMarketplaceAccess]);
 
   const filteredProviders = providers.filter((provider) => {
     if (selectedCategory !== 'all' && provider.category !== selectedCategory) return false;

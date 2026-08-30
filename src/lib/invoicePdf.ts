@@ -1,5 +1,10 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+
+// jspdf-autotable augments the jsPDF instance at runtime with this property;
+// it isn't part of the base jsPDF type, so we type it explicitly instead of
+// reaching for `any`.
+type JsPDFWithAutoTable = jsPDF & { lastAutoTable: { finalY: number } };
 import type { Invoice, InvoiceItem, Tenant, Customer } from './types';
 import { formatMoney } from './localization';
 
@@ -76,7 +81,7 @@ export async function buildInvoicePdf({ invoice, items, tenant, brand, customer,
   doc.setFillColor(...BRAND_DARK);
   doc.rect(0, 0, pageWidth, 3, 'F');
 
-  let headerY = margin + 6;
+  const headerY = margin + 6;
 
   // --- Logo + company identity (left) ---
   if (logoData) {
@@ -187,8 +192,7 @@ export async function buildInvoicePdf({ invoice, items, tenant, brand, customer,
     },
   });
 
-  // @ts-ignore - lastAutoTable is added by the plugin at runtime
-  let totalsY = (doc as any).lastAutoTable.finalY + 8;
+  let totalsY = (doc as JsPDFWithAutoTable).lastAutoTable.finalY + 8;
 
   // --- Totals box (right-aligned) ---
   const totalsBoxW = 74;

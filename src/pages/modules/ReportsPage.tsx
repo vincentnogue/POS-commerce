@@ -62,7 +62,7 @@ export function ReportsPage() {
     const staffMap: Record<string, string> = {};
     (members ?? []).forEach((m: any) => { if (m.user_id) staffMap[m.user_id] = m.display_name ?? t('reports.unknownStaff'); });
     setStaffNames(staffMap);
-  })(); }, [tenant]);
+  })(); }, [tenant, t]);
 
   const sinceDate = Date.now() - Number(period) * 86400000;
 
@@ -70,7 +70,7 @@ export function ReportsPage() {
     const inPeriod = new Date(s.sale_date).getTime() >= sinceDate;
     const inStore = !storeFilter || s.store_id === storeFilter;
     return inPeriod && inStore;
-  }), [sales, period, storeFilter, sinceDate]);
+  }), [sales, storeFilter, sinceDate]);
 
   const filteredExpenses = useMemo(() => expenses.filter((e) => new Date(e.expense_date).getTime() >= sinceDate && (!storeFilter || e.store_id === storeFilter)), [expenses, sinceDate, storeFilter]);
 
@@ -111,7 +111,7 @@ export function ReportsPage() {
           .slice(0, 6),
       );
     })();
-  }, [tenant, filteredSales]);
+  }, [tenant, filteredSales, t]);
 
   // Category distribution
   const catData = categories.map((c) => ({

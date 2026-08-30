@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { UserCog, Plus, Trash2, Shield, Pencil, KeyRound } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
@@ -101,7 +101,7 @@ export function UsersPage() {
     name: '', description: '', permissions: emptyPerms(),
   });
 
-  const reload = async () => {
+  const reload = useCallback(async () => {
     if (!tenant) return;
     const [m, r] = await Promise.all([
       supabase.from('tenant_members').select('*').eq('tenant_id', tenant.id),
@@ -110,9 +110,9 @@ export function UsersPage() {
     setMembers((m.data as Member[]) ?? []);
     setRoles((r.data as CustomRole[]) ?? []);
     setLoading(false);
-  };
+  }, [tenant]);
 
-  useEffect(() => { reload(); }, [tenant]);
+  useEffect(() => { reload(); }, [reload]);
 
   const invite = async () => {
     setInfo(null);

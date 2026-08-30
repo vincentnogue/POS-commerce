@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Plus, Download, Truck, Eye, Package } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
@@ -38,14 +38,14 @@ export function DeliveriesPage() {
   const [detailItems, setDetailItems] = useState<any[]>([]);
   const [form, setForm] = useState<any>({ customer_name: '', address: '', city: '', phone: '', carrier: '', scheduled_date: localDateStr() });
 
-  useEffect(() => { reload(); }, [tenant]);
-
-  const reload = async () => {
+  const reload = useCallback(async () => {
     if (!tenant) return;
     const { data } = await supabase.from('deliveries').select('*').eq('tenant_id', tenant.id).order('created_at', { ascending: false });
     setDeliveries((data as any[]) ?? []);
     setLoading(false);
-  };
+  }, [tenant]);
+
+  useEffect(() => { reload(); }, [reload]);
 
   const filtered = useMemo(() => deliveries.filter((d) => {
     const q = search.toLowerCase().trim();

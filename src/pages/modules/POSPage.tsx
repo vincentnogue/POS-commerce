@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
@@ -81,7 +81,7 @@ export function POSPage() {
     })();
   }, [tenant]);
 
-  const loadDaySession = async () => {
+  const loadDaySession = useCallback(async () => {
     if (!tenant) return;
     setDaySessionLoading(true);
     let query = supabase.from('day_sessions').select('*').eq('tenant_id', tenant.id).eq('status', 'open');
@@ -89,9 +89,9 @@ export function POSPage() {
     const { data } = await query.maybeSingle();
     setDaySession(data ?? null);
     setDaySessionLoading(false);
-  };
+  }, [tenant, storeId]);
 
-  useEffect(() => { loadDaySession(); }, [tenant, storeId]);
+  useEffect(() => { loadDaySession(); }, [loadDaySession]);
 
   const openDay = async () => {
     if (!tenant || !user) return;

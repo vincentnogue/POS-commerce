@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Plus, Download, Boxes, AlertTriangle, ArrowRightLeft, Check, X } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
@@ -57,7 +57,7 @@ export function StockPage() {
     setLoading(false);
   })(); }, [tenant, user]);
 
-  const reloadTransfers = async () => {
+  const reloadTransfers = useCallback(async () => {
     if (!tenant) return;
     // New named, multi-product transfers ("Transfer Out / Transfer In").
     const { data: batchData } = await supabase
@@ -77,9 +77,9 @@ export function StockPage() {
       .is('batch_id', null)
       .order('created_at', { ascending: false });
     setTransfers(data ?? []);
-  };
+  }, [tenant]);
 
-  useEffect(() => { if (tab === 'transfers') reloadTransfers(); }, [tab, tenant]);
+  useEffect(() => { if (tab === 'transfers') reloadTransfers(); }, [tab, reloadTransfers]);
 
   const stockByProduct = useMemo(() => {
     return products.map((p) => {
