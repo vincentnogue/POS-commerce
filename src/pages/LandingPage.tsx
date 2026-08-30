@@ -298,6 +298,34 @@ function formatUSD(n: number): string {
   return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+// ============================================================================
+// HERO / CTA BACKGROUND VIDEOS — the only place to edit when real footage
+// is ready. Two options:
+//
+//   A) You have real video files: put them in /public/videos/ (create that
+//      folder) named e.g. hero-background.mp4 and cta-background.mp4, then
+//      change the two `src:` values below to '/videos/hero-background.mp4'
+//      and '/videos/cta-background.mp4'. Do the same for `poster:` with a
+//      still frame image (or drop the poster line to use the video's own
+//      first frame). No other code needs to change.
+//
+//   B) You have videos hosted elsewhere (YouTube, Vimeo, your own CDN):
+//      replace `src:` with that direct .mp4 URL (must be a direct video
+//      file link, not a YouTube watch-page URL — YouTube embeds need an
+//      <iframe>, which this background-video treatment isn't built for).
+//
+// Until real footage is provided, these point at free, licensed stock
+// clips (Mixkit — commercial use OK, no attribution required) as a
+// placeholder so the page isn't broken in the meantime.
+const HERO_VIDEO = {
+  src: 'https://assets.mixkit.co/videos/15914/15914-360.mp4',
+  poster: 'https://assets.mixkit.co/videos/15914/15914-thumb-360-1.jpg',
+};
+const CTA_VIDEO = {
+  src: 'https://assets.mixkit.co/videos/49137/49137-360.mp4',
+  poster: 'https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg',
+};
+
 // Cycles through: empty → items added one by one → paid → brief pause → reset.
 // Fully static (final, paid state) when the user prefers reduced motion.
 function usePosDemoStep() {
@@ -680,13 +708,13 @@ export function LandingPage() {
       {/* Hero Section — the product demo is the focal visual; video adds
           ambient motion behind it (muted, looped, no controls) */}
       <section className="relative bg-ink-950 overflow-hidden">
-        {/* Background video layer — free Mixkit-licensed clip (no attribution
-            required, commercial use OK). Falls back to a static poster frame
+        {/* Background video layer — see HERO_VIDEO near the top of this file
+            to swap in real footage. Falls back to a static poster frame
             for reduced-motion users instead of autoplaying. */}
         <div className="absolute inset-0" aria-hidden="true">
           {heroReducedMotion ? (
             <img
-              src="https://assets.mixkit.co/videos/15914/15914-thumb-360-1.jpg"
+              src={HERO_VIDEO.poster}
               alt=""
               className="w-full h-full object-cover opacity-80"
             />
@@ -696,10 +724,10 @@ export function LandingPage() {
               muted
               loop
               playsInline
-              poster="https://assets.mixkit.co/videos/15914/15914-thumb-360-1.jpg"
+              poster={HERO_VIDEO.poster}
               className="w-full h-full object-cover opacity-80"
             >
-              <source src="https://assets.mixkit.co/videos/15914/15914-360.mp4" type="video/mp4" />
+              <source src={HERO_VIDEO.src} type="video/mp4" />
             </video>
           )}
           <div className="absolute inset-0 bg-ink-950/55" />
@@ -1235,12 +1263,13 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Second hero — full video-backed CTA band before the footer */}
+      {/* Second hero — full video-backed CTA band before the footer.
+          See CTA_VIDEO near the top of this file to swap in real footage. */}
       <section className="relative bg-ink-950 overflow-hidden">
         <div className="absolute inset-0" aria-hidden="true">
           {heroReducedMotion ? (
             <img
-              src="https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg"
+              src={CTA_VIDEO.poster}
               alt=""
               className="w-full h-full object-cover opacity-80"
             />
@@ -1250,10 +1279,10 @@ export function LandingPage() {
               muted
               loop
               playsInline
-              poster="https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg"
+              poster={CTA_VIDEO.poster}
               className="w-full h-full object-cover opacity-80"
             >
-              <source src="https://assets.mixkit.co/videos/49137/49137-360.mp4" type="video/mp4" />
+              <source src={CTA_VIDEO.src} type="video/mp4" />
             </video>
           )}
           <div className="absolute inset-0 bg-ink-950/60" />
