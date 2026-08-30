@@ -521,6 +521,7 @@ export function LandingPage() {
   const navigate = useNavigate();
   const heroReducedMotion = usePrefersReducedMotion();
   const [ecosystemProviders, setEcosystemProviders] = useState<EcosystemProvider[]>([]);
+  const [activeTab, setActiveTab] = useState<'pos' | 'payments' | 'inventory' | 'analytics' | 'employees' | 'crm' | 'stores' | 'integrations'>('pos');
 
   // Real integrations only — pulled live from the same integration_providers
   // table that powers /marketplace (public SELECT policy, no auth needed).
@@ -927,6 +928,351 @@ export function LandingPage() {
               </span>
             </Link>
           ))}
+        </div>
+      </section>
+
+      {/* POS Features Showcase - Multi-tab section */}
+      <section className="py-20 px-4 lg:px-8 bg-white dark:bg-ink-900">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              POS system to help your business succeed
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              All the tools you need to manage your entire business in one powerful platform
+            </p>
+          </div>
+
+          {/* Tabs Navigation */}
+          <div className="mb-12">
+            <div className="flex flex-wrap gap-2 justify-center pb-6 border-b border-gray-200 dark:border-ink-700">
+              {[
+                { id: 'pos', label: 'Point of sale', icon: ShoppingCart },
+                { id: 'payments', label: 'Payments', icon: CreditCard },
+                { id: 'inventory', label: 'Inventory management', icon: Package },
+                { id: 'analytics', label: 'Sales analytics', icon: BarChart3 },
+                { id: 'employees', label: 'Employee management', icon: Smartphone },
+                { id: 'crm', label: 'CRM and customer loyalty', icon: TrendingUp },
+                { id: 'stores', label: 'Multi-store management', icon: Store },
+                { id: 'integrations', label: 'Integrations', icon: Plug },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    activeTab === tab.id
+                      ? 'text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-400'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tab Content */}
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left: Image/Visual */}
+            <div className="relative">
+              <img
+                src="/pos-features-showcase.png"
+                alt={`${activeTab} interface preview`}
+                className="w-full rounded-xl shadow-lg"
+              />
+            </div>
+
+            {/* Right: Description */}
+            <div>
+              {activeTab === 'pos' && (
+                <div className="space-y-4">
+                  <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                    Point of sale
+                  </h3>
+                  <p className="text-lg text-gray-600 dark:text-gray-300">
+                    Transform your smartphone or tablet into an easy-to-use point of sale
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Issue printed or electronic receipts</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Apply discounts and issue refunds</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Keep recording sales even when offline</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Connect a receipt printer, barcode scanner, and cash drawer</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Real-time sales tracking and inventory sync</span>
+                    </li>
+                  </ul>
+                  <Link to="/pos" className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-400 hover:text-brand-700 font-semibold mt-6">
+                    Explore Point of Sale <ArrowRight size={16} />
+                  </Link>
+                </div>
+              )}
+
+              {activeTab === 'payments' && (
+                <div className="space-y-4">
+                  <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                    Payments
+                  </h3>
+                  <p className="text-lg text-gray-600 dark:text-gray-300">
+                    Accept payments from customers worldwide with secure, reliable payment processing
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Support 200+ payment methods globally</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Mobile money, cards, digital wallets</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Automatic currency conversion</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Integrated with Stripe, PayPal, and more</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">PCI-DSS compliant and secure</span>
+                    </li>
+                  </ul>
+                  <Link to="/marketplace" className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-400 hover:text-brand-700 font-semibold mt-6">
+                    Explore Payment Options <ArrowRight size={16} />
+                  </Link>
+                </div>
+              )}
+
+              {activeTab === 'inventory' && (
+                <div className="space-y-4">
+                  <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                    Inventory management
+                  </h3>
+                  <p className="text-lg text-gray-600 dark:text-gray-300">
+                    Track stock levels, manage suppliers, and optimize inventory across locations
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Real-time stock tracking</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Low stock alerts and reorder automation</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Barcode scanning integration</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Multi-location inventory sync</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Supplier management and pricing</span>
+                    </li>
+                  </ul>
+                  <Link to="/stock" className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-400 hover:text-brand-700 font-semibold mt-6">
+                    Manage Inventory <ArrowRight size={16} />
+                  </Link>
+                </div>
+              )}
+
+              {activeTab === 'analytics' && (
+                <div className="space-y-4">
+                  <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                    Sales analytics
+                  </h3>
+                  <p className="text-lg text-gray-600 dark:text-gray-300">
+                    Get detailed insights into your business performance with comprehensive reporting
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Real-time sales dashboards</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Revenue, profit, and margin tracking</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Customer behavior analysis</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Custom report builder</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Export and share reports</span>
+                    </li>
+                  </ul>
+                  <Link to="/reports" className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-400 hover:text-brand-700 font-semibold mt-6">
+                    View Reports <ArrowRight size={16} />
+                  </Link>
+                </div>
+              )}
+
+              {activeTab === 'employees' && (
+                <div className="space-y-4">
+                  <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                    Employee management
+                  </h3>
+                  <p className="text-lg text-gray-600 dark:text-gray-300">
+                    Manage staff, track hours, and monitor sales performance per team member
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Clock-in/clock-out tracking</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Role-based access control</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Performance metrics per cashier</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Shift scheduling</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Payroll integration ready</span>
+                    </li>
+                  </ul>
+                  <Link to="/users" className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-400 hover:text-brand-700 font-semibold mt-6">
+                    Manage Team <ArrowRight size={16} />
+                  </Link>
+                </div>
+              )}
+
+              {activeTab === 'crm' && (
+                <div className="space-y-4">
+                  <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                    CRM and customer loyalty
+                  </h3>
+                  <p className="text-lg text-gray-600 dark:text-gray-300">
+                    Build lasting customer relationships with loyalty programs and personalized engagement
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Customer database and profiles</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Points-based loyalty program</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">SMS and email campaigns</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Customer segmentation</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Repeat purchase analytics</span>
+                    </li>
+                  </ul>
+                  <Link to="/customers" className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-400 hover:text-brand-700 font-semibold mt-6">
+                    Manage Customers <ArrowRight size={16} />
+                  </Link>
+                </div>
+              )}
+
+              {activeTab === 'stores' && (
+                <div className="space-y-4">
+                  <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                    Multi-store management
+                  </h3>
+                  <p className="text-lg text-gray-600 dark:text-gray-300">
+                    Manage multiple locations from a single dashboard with centralized control
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Unified inventory across locations</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Centralized reporting and analytics</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Store-specific permissions</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Consolidated customer database</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Transfer stock between locations</span>
+                    </li>
+                  </ul>
+                  <Link to="/stores" className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-400 hover:text-brand-700 font-semibold mt-6">
+                    Manage Stores <ArrowRight size={16} />
+                  </Link>
+                </div>
+              )}
+
+              {activeTab === 'integrations' && (
+                <div className="space-y-4">
+                  <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                    Integrations
+                  </h3>
+                  <p className="text-lg text-gray-600 dark:text-gray-300">
+                    Connect with your favorite tools and services for seamless workflow
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Payment gateway integrations</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Shipping and logistics partners</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Accounting software sync</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">CRM and marketing tools</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">Custom API access</span>
+                    </li>
+                  </ul>
+                  <Link to="/marketplace" className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-400 hover:text-brand-700 font-semibold mt-6">
+                    Browse Marketplace <ArrowRight size={16} />
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </section>
 
