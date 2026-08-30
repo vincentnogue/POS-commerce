@@ -330,7 +330,7 @@ export function HelpCenterPage() {
         <div className="rounded-lg bg-gradient-to-r from-brand-500/10 to-flow-500/10 border border-brand-500/30 p-8">
           <h2 className="text-2xl font-bold text-ink-900 dark:text-white mb-6">Didn't find what you're looking for?</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <a
               href="mailto:support@liafrik.com"
               className="p-4 rounded-lg bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 hover:border-flow-500/50 transition"
@@ -341,16 +341,7 @@ export function HelpCenterPage() {
             </a>
 
             <a
-              href="tel:+97143221234"
-              className="p-4 rounded-lg bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 hover:border-flow-500/50 transition"
-            >
-              <p className="font-semibold text-ink-900 dark:text-white mb-2">Phone Support</p>
-              <p className="text-sm text-ink-600 dark:text-ink-300">+971 4 XXX XXXX</p>
-              <p className="text-xs text-ink-400 dark:text-ink-400 mt-2">Available: 9AM-6PM GST</p>
-            </a>
-
-            <a
-              href="/api-documentation"
+              href="/documentation"
               className="p-4 rounded-lg bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 hover:border-flow-500/50 transition"
             >
               <p className="font-semibold text-ink-900 dark:text-white mb-2">API Documentation</p>
