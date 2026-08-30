@@ -1722,10 +1722,17 @@ export function LandingPage() {
           </div>
 
           {/* Dashboard window */}
-          <div className="rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 shadow-2xl overflow-hidden">
+          <div className="relative">
+            <div className="absolute -inset-1 rounded-[20px] bg-gradient-to-r from-brand-500/30 via-flow-500/20 to-brand-500/30 blur-xl opacity-60" aria-hidden="true" />
+            <div className="relative rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 shadow-2xl overflow-hidden">
             {/* App top bar */}
             <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-ink-800">
               <div className="flex items-center gap-6">
+                <div className="hidden sm:flex items-center gap-1.5 mr-1">
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-yellow-400/70" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-flow-400" />
+                </div>
                 <div className="flex items-center gap-2">
                   <img src="/logo-pos-icon.png" alt="" className="h-6 w-6" />
                   <span className="font-bold text-ink-900 dark:text-white text-sm">POS Flow</span>
@@ -1765,12 +1772,12 @@ export function LandingPage() {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <div className="rounded-xl bg-brand-900 p-5 text-white">
                   <p className="text-xs text-brand-200 mb-2">{t('pLanding.keepFlowing.kpi.sales')}</p>
-                  <p className="text-2xl font-bold mb-1">48,2M FCFA</p>
+                  <p className="text-2xl font-bold mb-1">$482K</p>
                   <p className="text-xs text-flow-300">↑ 18% {t('pLanding.keepFlowing.card.vsYesterday')}</p>
                 </div>
                 <div className="rounded-xl border border-gray-200 dark:border-ink-700 p-5">
                   <p className="text-xs text-ink-500 dark:text-ink-400 mb-2">{t('pLanding.keepFlowing.kpi.purchases')}</p>
-                  <p className="text-2xl font-bold text-ink-900 dark:text-white mb-1">21,6M FCFA</p>
+                  <p className="text-2xl font-bold text-ink-900 dark:text-white mb-1">$216K</p>
                   <p className="text-xs text-flow-600 dark:text-flow-400">↑ 6% {t('pLanding.keepFlowing.card.vsYesterday')}</p>
                 </div>
                 <div className="rounded-xl border border-gray-200 dark:border-ink-700 p-5 col-span-2 sm:col-span-1">
@@ -1818,9 +1825,9 @@ export function LandingPage() {
                   <p className="text-sm font-semibold text-ink-900 dark:text-white mb-4">{t('pLanding.keepFlowing.stores.title')}</p>
                   <div className="space-y-3">
                     {[
-                      { code: 'ae', name: 'Dubaï', amount: '18,4M FCFA' },
-                      { code: 'ci', name: 'Abidjan', amount: '14,1M FCFA' },
-                      { code: 'gh', name: 'Accra', amount: '9,7M FCFA' },
+                      { code: 'ae', name: 'Dubaï', amount: '$184K' },
+                      { code: 'ci', name: 'Abidjan', amount: '$141K' },
+                      { code: 'gh', name: 'Accra', amount: '$97K' },
                     ].map((s) => (
                       <div key={s.code} className="flex items-center gap-3">
                         <img src={`https://flagcdn.com/w40/${s.code}.png`} alt="" className="h-5 w-5 rounded-full object-cover" />
@@ -1833,20 +1840,13 @@ export function LandingPage() {
               </div>
             </div>
           </div>
+          </div>
 
           {/* CTA */}
           <div className="mt-16 text-center">
             <Link
               to="/pricing"
               className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-full font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
-            >
-              {t('pLanding.keepFlowing.cta')} <ArrowRight size={18} />
-            </Link>
-          </div>
-          <div className="mt-16 text-center">
-            <Link
-              to="/pricing"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
             >
               {t('pLanding.keepFlowing.cta')} <ArrowRight size={18} />
             </Link>
