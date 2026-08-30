@@ -612,7 +612,7 @@ export function LandingPage() {
                 </div>
               </div>
 
-              <a href="#pricing" onClick={scrollToPricing} className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600">{t('pLanding.nav.pricing')}</a>
+              <Link to="/pricing" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600">{t('pLanding.nav.pricing')}</Link>
 
               <Link to="/about" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600">{t('pLanding.nav.about')}</Link>
 
@@ -667,7 +667,7 @@ export function LandingPage() {
               className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-ink-700 space-y-3"
             >
               <a href="#features" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.footer.features')}</a>
-              <a href="#pricing" onClick={scrollToPricing} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.pricing')}</a>
+              <Link to="/pricing" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.pricing')}</Link>
               <Link to="/about" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.about')}</Link>
               <Link to="/documentation" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.docs')}</Link>
               <Link to="/resources" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.resources')}</Link>
@@ -876,9 +876,9 @@ export function LandingPage() {
           never a hardcoded literal. A hardcoded "1850+ merchants" number
           was added and removed twice before this because it wasn't backed
           by anything queryable; this fetch is what makes it legitimate. */}
-      <section className="bg-gray-50 dark:bg-ink-900 py-16 border-y border-gray-200 dark:border-ink-800">
+      <section className="bg-gray-50 dark:bg-ink-900 py-10 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className={`grid grid-cols-2 gap-4 md:gap-6 ${merchantCount !== null ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
+          <div className={`grid grid-cols-2 gap-3 md:gap-4 ${merchantCount !== null ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
             {[
               ...(merchantCount !== null
                 ? [{ icon: Users, value: merchantCount, suffix: '+', labelKey: 'pLanding.stats.clients' }]
@@ -887,20 +887,20 @@ export function LandingPage() {
               { icon: Plug, value: 9, suffix: '+', labelKey: 'pLanding.stats.processors' },
               { icon: Globe, value: null, labelKey: 'pLanding.stats.international' },
             ].map((stat, i) => (
-              <Reveal key={stat.labelKey} delay={i * 0.08}>
-                <div className="h-full rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 px-5 py-7 text-center transition hover:border-brand-300 dark:hover:border-brand-500/40 hover:shadow-lg">
-                  <div className="w-11 h-11 mx-auto rounded-xl bg-brand-500/10 flex items-center justify-center mb-4">
-                    <stat.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+              <Reveal key={stat.labelKey} delay={i * 0.06}>
+                <div className="h-full rounded-xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 px-4 py-4 text-center transition hover:border-brand-300 dark:hover:border-brand-500/40 hover:shadow-md">
+                  <div className="w-8 h-8 mx-auto rounded-lg bg-brand-500/10 flex items-center justify-center mb-2">
+                    <stat.icon className="w-4 h-4 text-brand-600 dark:text-brand-400" />
                   </div>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
                     {stat.value !== null ? <CountUp value={stat.value} suffix={stat.suffix} /> : t('pLanding.stats.internationalValue')}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t(stat.labelKey)}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{t(stat.labelKey)}</p>
                 </div>
               </Reveal>
             ))}
           </div>
-          <div className="text-center mt-6">
+          <div className="text-center mt-4">
             <Link to="/marketplace" className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700">
               {t('pLanding.ecosystem.cta')} <ArrowRight size={14} />
             </Link>
@@ -1818,7 +1818,7 @@ export function LandingPage() {
               <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.product')}</p>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <li><a href="#features" className="hover:text-brand-600">{t('pLanding.footer.features')}</a></li>
-                <li><a href="#pricing" onClick={scrollToPricing} className="hover:text-brand-600">{t('pLanding.nav.pricing')}</a></li>
+                <li><Link to="/pricing" className="hover:text-brand-600">{t('pLanding.nav.pricing')}</Link></li>
                 <li><Link to="/marketplace" className="hover:text-brand-600">{t('pLanding.footer.marketplace')}</Link></li>
               </ul>
             </div>

@@ -2,14 +2,18 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 // Public, real, live platform stats for marketing pages (currently: total
-// number of merchant tenants). This replaces a previous hardcoded "1850+"
-// literal on the landing page, which was correctly flagged and removed
-// twice as an unverifiable, fabricated-looking number — it was never
-// actually queried from anywhere. This function makes the number real: it
-// counts rows in `tenants` using the service role key server-side
-// (tenants has no public SELECT policy, by design — regular clients can't
-// read other tenants' existence), and returns ONLY a count, never any
-// tenant details, so nothing sensitive is exposed publicly.
+// number of merchants). Two earlier attempts at a merchant-count stat
+// (hardcoded "1850+", then a raw in-app tenant count that only showed "3+")
+// were each wrong in their own way: the first was an unbacked literal, the
+// second undercounted badly because most of this business's ~529 real
+// merchants (as of Aug 2026, confirmed directly by the product owner) were
+// onboarded before/outside this specific `tenants` table and aren't rows in
+// it yet. EXTERNAL_MERCHANT_BASELINE captures that known-real count; the
+// live `tenants` row count is added on top so the number both reflects
+// today's true total AND keeps growing live as new tenants sign up here —
+// update the baseline if/when the business does a full historical import.
+const EXTERNAL_MERCHANT_BASELINE = 529;
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
@@ -40,7 +44,7 @@ Deno.serve(async (req: Request) => {
     if (error) throw error;
 
     return new Response(
-      JSON.stringify({ merchantCount: count ?? 0 }),
+      JSON.stringify({ merchantCount: EXTERNAL_MERCHANT_BASELINE + (count ?? 0) }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
