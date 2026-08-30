@@ -857,6 +857,7 @@ export const fr: Record<string, string> = {
   "pos.pendingDeliveryCreated": "Livraison \"en attente\" créée.",
   "pos.print": "Imprimer",
   "pos.whatsapp": "WhatsApp",
+  "pos.emailReceipt": "Envoyer par email",
   "pos.newSale": "Nouvelle vente",
   "pos.day.openSince": "Journée ouverte depuis {time}",
   "pos.day.closedWarning": "Aucune journée ouverte — ouvrez la caisse avant d'encaisser.",
