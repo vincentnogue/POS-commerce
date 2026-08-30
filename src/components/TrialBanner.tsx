@@ -22,7 +22,7 @@ export function TrialBanner() {
           <span className="font-medium">{t('trial.expired.title')}</span>
           <span className="hidden sm:inline">{t('trial.expired.text')}</span>
         </div>
-        <Link to="/subscribe" className="shrink-0 rounded-lg bg-error-600 px-4 py-1.5 text-xs font-medium text-white transition hover:bg-error-700">
+        <Link to="/subscribe" className="shrink-0 rounded-full bg-error-600 px-4 py-1.5 text-xs font-medium text-white transition hover:bg-error-700">
           {t('trial.choosePlan')}
         </Link>
       </div>
@@ -38,7 +38,7 @@ export function TrialBanner() {
         <span className="font-medium">{t(daysLeft > 1 ? 'trial.daysLeft_plural' : 'trial.daysLeft', { count: daysLeft })}</span>
         <span className="hidden sm:inline">{t('trial.choosePlanHint')}</span>
       </div>
-      <Link to="/subscribe" className="shrink-0 rounded-lg bg-white/80 dark:bg-ink-800/80 px-4 py-1.5 text-xs font-medium text-ink-800 dark:text-ink-100 transition hover:bg-white dark:hover:bg-ink-800">
+      <Link to="/subscribe" className="shrink-0 rounded-full bg-white/80 dark:bg-ink-800/80 px-4 py-1.5 text-xs font-medium text-ink-800 dark:text-ink-100 transition hover:bg-white dark:hover:bg-ink-800">
         {t('trial.choosePlan')}
       </Link>
     </div>

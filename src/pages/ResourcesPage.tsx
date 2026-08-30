@@ -160,10 +160,10 @@ export function ResourcesPage() {
           <h2 className="text-xl font-bold text-ink-900 dark:text-white mb-2">{t('resources.ctaTitle')}</h2>
           <p className="text-ink-600 dark:text-ink-300 mb-6">{t('resources.ctaDesc')}</p>
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <Link to="/help" className="px-6 py-3 rounded-lg bg-brand-600 text-white font-semibold hover:bg-brand-700 transition">
+            <Link to="/help" className="px-6 py-3 rounded-full bg-brand-600 text-white font-semibold hover:bg-brand-700 transition">
               {t('resources.ctaHelp')}
             </Link>
-            <Link to="/contact" className="px-6 py-3 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-700 dark:text-ink-200 font-semibold hover:border-brand-300 transition">
+            <Link to="/contact" className="px-6 py-3 rounded-full border border-ink-200 dark:border-ink-700 text-ink-700 dark:text-ink-200 font-semibold hover:border-brand-300 transition">
               {t('resources.ctaContact')}
             </Link>
           </div>

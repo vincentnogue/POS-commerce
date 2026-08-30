@@ -328,7 +328,12 @@ export function POSPage() {
         toast('error', t('pos.err.paymentRefRequired'));
         return;
       }
-      paid = paymentMethod === 'cash' ? (Number(paidAmount) || total) : total;
+      // BUG FIX: `Number(paidAmount) || total` treated an explicit "0" the
+      // same as an empty field, silently forcing a full payment even when
+      // the cashier typed 0 to record a credit/unpaid cash sale. Only an
+      // empty field should default to the full total; "0" must stay 0 so
+      // payment_status below correctly comes out 'unpaid'.
+      paid = paymentMethod === 'cash' ? (paidAmount.trim() === '' ? total : Number(paidAmount)) : total;
       tendersToRecord = [{ method: paymentMethod, amount: paid, reference: finalPaymentReference }];
     }
 
@@ -683,8 +688,13 @@ export function POSPage() {
             <input
               value={customerSearch}
               onChange={(e) => {
-                setCustomerSearch(e.target.value);
-                const match = customers.find((c) => c.name.toLowerCase().includes(e.target.value.toLowerCase()));
+                const q = e.target.value;
+                setCustomerSearch(q);
+                // BUG FIX: `"anything".includes("")` is always true, so once the
+                // field was cleared, .find() used to return whichever customer
+                // happened to be first in the list instead of clearing the
+                // selection. Only auto-match on a non-empty query.
+                const match = q.trim() ? customers.find((c) => c.name.toLowerCase().includes(q.toLowerCase())) : null;
                 setCustomer(match ?? null);
               }}
               className="input"

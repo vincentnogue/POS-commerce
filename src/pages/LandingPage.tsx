@@ -894,9 +894,17 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Features */}
-      <section id="features" className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-14">
+      {/* Features — real module icons in a slow, pausable auto-scroll
+          banner instead of a static 4-column grid. Same infinite-marquee
+          technique as the flags/logos bands above (render the list twice,
+          translate exactly -50% so the loop is seamless): saves vertical
+          space versus one row per module and reads as a lively "everything
+          included" strip. Each card still links straight to its module's
+          detail in the tabbed showcase below via an anchor, and the full
+          title/description stays available on hover/focus so nothing is
+          lost versus the old grid — just presented more compactly. */}
+      <section id="features" className="py-20 lg:px-8 max-w-7xl mx-auto overflow-hidden">
+        <div className="text-center mb-14 px-4">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
             {t('pLanding.features.title')}
           </h2>
@@ -905,13 +913,18 @@ export function LandingPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {FEATURE_KEYS.map((f) => (
+        <div
+          className="flex w-max gap-5 animate-[flagscroll_38s_linear_infinite] hover:[animation-play-state:paused] px-4"
+          role="list"
+        >
+          {[...FEATURE_KEYS, ...FEATURE_KEYS].map((f, i) => (
             <div
-              key={f.key}
-              className="rounded-xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 hover:border-brand-500/50 hover:shadow-lg transition"
+              key={`${f.key}-${i}`}
+              role="listitem"
+              aria-hidden={i >= FEATURE_KEYS.length}
+              className="group w-64 shrink-0 rounded-xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 hover:border-brand-500/50 hover:shadow-lg transition"
             >
-              <div className="w-11 h-11 rounded-lg bg-brand-500/10 flex items-center justify-center mb-4">
+              <div className="w-11 h-11 rounded-lg bg-brand-500/10 flex items-center justify-center mb-4 transition group-hover:bg-brand-500/20">
                 <f.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
               </div>
               <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t(`pLanding.feature.${f.key}.title`)}</h3>

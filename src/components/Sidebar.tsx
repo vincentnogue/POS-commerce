@@ -203,7 +203,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
           </div>
           <button
             onClick={handleSignOut}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-medium text-ink-700 dark:text-ink-200 transition hover:border-error-200 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-medium text-ink-700 dark:text-ink-200 transition hover:border-error-200 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"
           >
             <LogOut size={15} /> {t('common.signOut')}
           </button>

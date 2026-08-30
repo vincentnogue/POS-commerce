@@ -301,7 +301,7 @@ export function SettingsPage() {
             <button
               onClick={saveSettings}
               disabled={saving}
-              className="flex items-center gap-2 px-6 py-3 rounded-lg bg-flow-500 text-white font-semibold hover:bg-flow-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-6 py-3 rounded-full bg-flow-500 text-white font-semibold hover:bg-flow-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? (
                 <>
@@ -344,7 +344,7 @@ export function SettingsPage() {
               </div>
               <button
                 onClick={saveSettings}
-                className="flex items-center gap-2 px-6 py-3 rounded-lg bg-flow-500 text-white font-semibold hover:bg-flow-600 transition"
+                className="flex items-center gap-2 px-6 py-3 rounded-full bg-flow-500 text-white font-semibold hover:bg-flow-600 transition"
               >
                 <Save className="w-5 h-5" />
                 Save Email
@@ -367,7 +367,7 @@ export function SettingsPage() {
                   <p className="text-sm text-ink-300 mb-4">
                     Current User: <span className="font-semibold text-white">{user?.email}</span>
                   </p>
-                  <button className="px-6 py-2 rounded-lg bg-brand-500/20 text-brand-300 hover:bg-brand-500/30 transition font-medium">
+                  <button className="px-6 py-2 rounded-full bg-brand-500/20 text-brand-300 hover:bg-brand-500/30 transition font-medium">
                     Change Password
                   </button>
                 </div>
@@ -377,7 +377,7 @@ export function SettingsPage() {
                   <p className="text-sm text-ink-400 mb-4">
                     Add an extra layer of security to your account
                   </p>
-                  <button className="px-6 py-2 rounded-lg bg-flow-500/20 text-flow-300 hover:bg-flow-500/30 transition font-medium">
+                  <button className="px-6 py-2 rounded-full bg-flow-500/20 text-flow-300 hover:bg-flow-500/30 transition font-medium">
                     Enable 2FA
                   </button>
                 </div>
@@ -386,7 +386,7 @@ export function SettingsPage() {
                   <h4 className="text-sm font-semibold text-white mb-4">Danger Zone</h4>
                   <button
                     onClick={signOut}
-                    className="flex items-center gap-2 px-6 py-2 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500/30 transition font-medium"
+                    className="flex items-center gap-2 px-6 py-2 rounded-full bg-red-500/20 text-red-300 hover:bg-red-500/30 transition font-medium"
                   >
                     <LogOut className="w-4 h-4" />
                     Sign Out
@@ -427,7 +427,7 @@ export function SettingsPage() {
 
             <button
               onClick={saveSettings}
-              className="mt-6 flex items-center gap-2 px-6 py-3 rounded-lg bg-flow-500 text-white font-semibold hover:bg-flow-600 transition"
+              className="mt-6 flex items-center gap-2 px-6 py-3 rounded-full bg-flow-500 text-white font-semibold hover:bg-flow-600 transition"
             >
               <Save className="w-5 h-5" />
               Save Preferences
