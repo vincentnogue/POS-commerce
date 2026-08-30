@@ -1200,86 +1200,96 @@ export function LandingPage() {
               </Link>
             </div>
 
-            {/* Right visual — was a flat gradient rectangle with a single
-                emoji. Now a proper animated illustration: a blurred
-                "storefront" backdrop (depth-of-field business environment,
-                built from layered blurred shapes — no hotlinked stock
-                photo, so nothing to break or license) behind an animated
-                cashier-at-the-register scene using the same iconography
-                language as the rest of the site. */}
-            <div className="relative h-96 rounded-xl overflow-hidden shadow-xl">
-              {/* Blurred business backdrop */}
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-600 via-brand-500 to-flow-500" />
-              <div className="absolute inset-0 opacity-40 blur-2xl">
-                <div className="absolute top-4 left-6 w-28 h-40 bg-white/30 rounded-lg rotate-6" />
-                <div className="absolute top-10 left-40 w-20 h-52 bg-white/20 rounded-lg -rotate-3" />
-                <div className="absolute bottom-6 right-10 w-36 h-24 bg-ink-900/30 rounded-lg rotate-2" />
-                <div className="absolute top-1/3 right-1/4 w-24 h-24 bg-flow-200/40 rounded-full" />
-              </div>
-              <div className="absolute inset-0 bg-ink-900/10" />
+            {/* Right visual — user feedback: the previous animated
+                illustration (emoji cashier + abstract blurred shapes)
+                read as a fictional cartoon, not something real. Replaced
+                with an actual screenshot-style preview of the real POS
+                checkout screen: same cart/payment terminology and icons
+                as src/pages/modules/POSPage.tsx (ShoppingCart, Receipt,
+                CreditCard, Smartphone for mobile money, Banknote for
+                cash), with real, internally-consistent arithmetic
+                (subtotal + tax = total, no made-up numbers) rather than
+                an invented scene. Framed like a real browser/app window
+                instead of a stock photo, since we can't license one. */}
+            <div className="relative h-96 rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-brand-600 to-flow-600 p-4 sm:p-6 flex items-center justify-center">
+              <div className="w-full max-w-sm rounded-xl bg-white dark:bg-ink-900 shadow-2xl overflow-hidden">
+                {/* App window chrome */}
+                <div className="flex items-center gap-1.5 px-3 py-2 bg-ink-100 dark:bg-ink-800 border-b border-ink-200 dark:border-ink-700">
+                  <span className="w-2.5 h-2.5 rounded-full bg-error-500/70" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-warning-500/70" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-success-500/70" />
+                  <span className="ml-2 text-[10px] text-ink-400 dark:text-ink-500 font-mono">app.posflow.io/pos</span>
+                </div>
 
-              {/* Foreground scene */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="relative w-64">
-                  {/* Cashier + counter */}
-                  <motion.div
-                    initial={false}
-                    animate={heroReducedMotion ? { y: 0 } : { y: [6, -2, 6] }}
-                    transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-                    className="relative mx-auto w-20 h-20 rounded-full bg-white/95 shadow-lg flex items-center justify-center text-4xl"
-                  >
-                    👩‍💼
-                  </motion.div>
+                <div className="p-4">
+                  <div className="flex items-center gap-2 mb-3 text-ink-500 dark:text-ink-400">
+                    <ShoppingCart size={14} />
+                    <span className="text-xs font-semibold">Panier (3)</span>
+                  </div>
 
-                  {/* POS terminal */}
-                  <div className="mt-4 mx-auto w-56 rounded-xl bg-white/95 dark:bg-ink-800/95 shadow-2xl p-3">
-                    <div className="rounded-lg bg-ink-900 dark:bg-ink-950 px-3 py-2 mb-2">
-                      <p className="text-[10px] text-flow-400 font-mono">TOTAL</p>
-                      <p className="text-lg font-bold text-white font-mono">$48.90</p>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex gap-1">
-                        <div className="w-6 h-4 rounded-sm bg-brand-200 dark:bg-brand-500/30" />
-                        <div className="w-6 h-4 rounded-sm bg-flow-200 dark:bg-flow-500/30" />
-                        <div className="w-6 h-4 rounded-sm bg-ink-200 dark:bg-ink-600" />
+                  {/* Cart lines — real, consistent totals */}
+                  <div className="space-y-2 mb-3">
+                    {[
+                      { name: 'Café Arabica 250g', qty: 2, price: 6.5 },
+                      { name: 'Jus d\u2019orange 1L', qty: 1, price: 3.2 },
+                      { name: 'Pain complet', qty: 3, price: 2.1 },
+                    ].map((item) => (
+                      <div key={item.name} className="flex items-center justify-between text-xs">
+                        <span className="text-ink-700 dark:text-ink-200">{item.qty}× {item.name}</span>
+                        <span className="font-medium text-ink-900 dark:text-white tabular-nums">${(item.qty * item.price).toFixed(2)}</span>
                       </div>
-                      <motion.div
-                        animate={heroReducedMotion ? { opacity: 1 } : { opacity: [0.4, 1, 0.4] }}
-                        transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
-                        className="w-2 h-2 rounded-full bg-brand-500"
-                      />
+                    ))}
+                  </div>
+
+                  <div className="border-t border-dashed border-ink-200 dark:border-ink-700 pt-2 space-y-1 text-xs">
+                    <div className="flex justify-between text-ink-500 dark:text-ink-400">
+                      <span>Sous-total</span><span className="tabular-nums">$22.50</span>
+                    </div>
+                    <div className="flex justify-between text-ink-500 dark:text-ink-400">
+                      <span>TVA (5%)</span><span className="tabular-nums">$1.13</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-bold text-ink-900 dark:text-white pt-1">
+                      <span>Total</span><span className="tabular-nums">$23.63</span>
                     </div>
                   </div>
 
-                  {/* Payment card tapping animation, floating toward terminal */}
-                  <motion.div
-                    initial={false}
-                    animate={
-                      heroReducedMotion
-                        ? { x: 0, y: -30, rotate: 0, opacity: 1 }
-                        : { x: [-70, 0, -70], y: -30, rotate: [-8, 0, -8], opacity: 1 }
-                    }
-                    transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-                    className="absolute -top-2 -right-4 w-16 h-10 rounded-md bg-gradient-to-br from-flow-400 to-flow-600 shadow-lg flex items-center px-2"
-                  >
-                    <div className="w-4 h-3 rounded-sm bg-white/70" />
-                  </motion.div>
-
-                  {/* Success checkmark pulse */}
-                  <motion.div
-                    initial={false}
-                    animate={
-                      heroReducedMotion
-                        ? { scale: 1, opacity: 1 }
-                        : { scale: [0.6, 1, 1], opacity: [0, 1, 0] }
-                    }
-                    transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 0.6, ease: 'easeInOut' }}
-                    className="absolute -right-6 bottom-6 w-9 h-9 rounded-full bg-success-500 shadow-lg flex items-center justify-center text-white text-sm font-bold"
-                  >
-                    ✓
-                  </motion.div>
+                  {/* Payment methods — mirrors POSPage's real options */}
+                  <div className="flex items-center gap-2 mt-4">
+                    {[
+                      { icon: CreditCard, label: 'Carte' },
+                      { icon: Smartphone, label: 'Mobile Money' },
+                      { icon: Banknote, label: 'Espèces' },
+                    ].map(({ icon: Icon, label }, i) => (
+                      <div
+                        key={label}
+                        className={`flex-1 flex flex-col items-center gap-1 rounded-lg border py-2 text-[10px] font-medium ${
+                          i === 0
+                            ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-300'
+                            : 'border-ink-200 dark:border-ink-700 text-ink-500 dark:text-ink-400'
+                        }`}
+                      >
+                        <Icon size={14} /> {label}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
+
+              {/* Payment confirmed toast — subtle, grounded animation
+                  instead of a cartoon success burst */}
+              <motion.div
+                initial={false}
+                animate={
+                  heroReducedMotion
+                    ? { opacity: 1, y: 0 }
+                    : { opacity: [0, 1, 1, 0], y: [8, 0, 0, -4] }
+                }
+                transition={{ duration: 3, repeat: Infinity, repeatDelay: 1.2, ease: 'easeInOut' }}
+                className="absolute bottom-5 right-5 flex items-center gap-2 rounded-lg bg-white dark:bg-ink-800 shadow-lg px-3 py-2 text-xs font-medium text-ink-900 dark:text-white"
+              >
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-success-500 text-white text-[10px]">✓</span>
+                Paiement accepté
+              </motion.div>
             </div>
           </div>
         </div>
