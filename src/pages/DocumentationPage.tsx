@@ -427,7 +427,7 @@ Example Error Response:
       {/* Footer */}
       <div className="border-t border-ink-800/50 bg-ink-950/50 mt-12">
         <div className="max-w-7xl mx-auto px-6 py-8 text-center text-ink-400">
-          <p>Need help? <a href="/help" className="text-flow-400 hover:text-flow-300">Visit Help Center</a> or <a href="mailto:support@pos.liafrik.com" className="text-flow-400 hover:text-flow-300">contact support</a></p>
+          <p>Need help? <a href="/help" className="text-flow-400 hover:text-flow-300">Visit Help Center</a> or <a href="mailto:support@liafrik.com" className="text-flow-400 hover:text-flow-300">contact support</a></p>
         </div>
       </div>
     </div>

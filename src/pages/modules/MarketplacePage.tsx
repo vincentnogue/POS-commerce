@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Grid, List, Plus, CheckCircle, ExternalLink, Trash2, Store } from 'lucide-react';
+import { Search, Grid, List, Plus, CheckCircle, ExternalLink, Trash2, Store, Zap } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../lib/auth';
 import { useTenant } from '../../lib/tenant';
 import { useI18n } from '../../lib/i18n';
-import { PageHeader, Modal, Badge, EmptyState, useToast } from '../../components/ui';
+import { PageHeader, Modal, Badge, EmptyState, StatCard, useToast } from '../../components/ui';
 import { IntegrationCredentialForm } from '../../components/IntegrationCredentialForm';
 
 interface IntegrationProvider {
@@ -189,6 +189,12 @@ export function MarketplacePage() {
           {activeIntegrations >= integrationLimit && !userCanConnect && ` — ${t('marketplace.planUsage.upgrade')}`}
         </div>
       )}
+
+      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <StatCard label={t('marketplace.stats.available')} value={providers.length} icon={Store} tone="brand" />
+        <StatCard label={t('marketplace.stats.connected')} value={activeIntegrations} icon={CheckCircle} tone="success" />
+        <StatCard label={t('marketplace.stats.limit')} value={integrationLimit ?? '∞'} icon={Zap} tone="flow" />
+      </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative min-w-[220px] flex-1">

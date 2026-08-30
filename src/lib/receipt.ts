@@ -44,8 +44,19 @@ export function printSaleReceipt(
   data: ReceiptData,
   labels: ReceiptLabels,
   opts: { businessName: string; currency: string; lang: string; locale: string; formatMoney: (n: number, c: string) => string },
+  presetWindow?: Window | null,
 ) {
-  const w = window.open('', '_blank');
+  // BUG FIX: this used to call window.open() itself, which is exactly why
+  // reprinting from Sale History was silently failing — SaleHistoryTab's
+  // reprint() is an async function that fetches the sale's line items
+  // (`await supabase...`) before calling this. Browsers only allow
+  // window.open() to succeed as a direct, synchronous result of a user
+  // gesture (a click); once you've awaited anything first, it's treated as
+  // programmatic and silently blocked by the popup blocker — no error, the
+  // receipt just never appears. `presetWindow` lets a caller that needs to
+  // await something first open the window synchronously in the click
+  // handler (before the await) and hand it in here once the data is ready.
+  const w = presetWindow !== undefined ? presetWindow : window.open('', '_blank');
   if (!w) return;
 
   const rows = data.items

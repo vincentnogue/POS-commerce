@@ -154,6 +154,7 @@ export type Sale = {
   payment_status: string;
   sale_status: string;
   notes: string | null;
+  user_id: string | null;
   sale_date: string;
   created_at: string;
 };

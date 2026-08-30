@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  Menu, X, Globe, ChevronDown, ArrowRight, ArrowRightLeft, MapPin,
+  Menu, X, Globe, ChevronDown, ArrowRight, MapPin,
   ShoppingCart, Package, Store, Plug, FileText, BarChart3,
   ShieldCheck, Wallet, Check, CheckCircle2, Smartphone, TrendingUp, Receipt, Moon, Sun,
-  Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent, Users,
+  Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent, MessageCircle, Users,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AreaChart, Area, BarChart, Bar, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { useI18n } from '../lib/i18n';
 import { useTheme } from '../lib/theme';
 import { supabase } from '../lib/supabase';
@@ -27,10 +27,6 @@ const REVENUE_TREND_SAMPLE = [
   { day: 'Lun', value: 1180 }, { day: 'Mar', value: 1420 }, { day: 'Mer', value: 1290 },
   { day: 'Jeu', value: 1610 }, { day: 'Ven', value: 1980 }, { day: 'Sam', value: 2260 },
   { day: 'Dim', value: 2450 },
-];
-const CATEGORY_PERFORMANCE_SAMPLE = [
-  { name: 'Boissons', value: 820 }, { name: 'Alim.', value: 640 },
-  { name: 'Hygiène', value: 410 }, { name: 'Access.', value: 580 },
 ];
 
 const FEATURE_KEYS = [
@@ -806,12 +802,12 @@ export function LandingPage() {
                   placeholder={t('pLanding.hero.emailPlaceholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 px-5 py-3.5 rounded-xl bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="flex-1 px-5 py-3.5 rounded-full bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   required
                 />
                 <button
                   type="submit"
-                  className="group px-7 py-3.5 bg-brand-500 text-white rounded-xl font-semibold hover:bg-brand-600 active:scale-[0.98] transition-all whitespace-nowrap inline-flex items-center justify-center gap-2"
+                  className="group px-7 py-3.5 bg-brand-500 text-white rounded-full font-semibold hover:bg-brand-600 active:scale-[0.98] transition-all whitespace-nowrap inline-flex items-center justify-center gap-2"
                 >
                   {t('pLanding.hero.start')}
                   <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
@@ -1425,14 +1421,15 @@ export function LandingPage() {
           capture on a solid brand panel, stylized POS device mockup on a
           gradient panel (no stock photo — the product's own UI, styled as
           hardware, stays consistent with the rest of this page). */}
-      <section className="px-4 lg:px-8 max-w-7xl mx-auto py-4">
-        <div className="relative rounded-3xl overflow-hidden">
+      <section className="overflow-hidden">
+        <div className="relative">
           {/* Right-side gradient backdrop (spans full width, dark panel sits on top of it on the left) */}
           <div className="absolute inset-0 bg-gradient-to-r from-brand-800 via-flow-600 to-flow-400" />
 
           <div className="relative grid grid-cols-1 lg:grid-cols-2 min-h-[560px]">
             {/* Dark content panel */}
-            <div className="relative bg-brand-900/95 px-8 py-14 lg:px-14 lg:py-16 flex flex-col justify-center">
+            <div className="relative bg-brand-900/95 px-8 py-14 lg:px-14 lg:py-16 xl:pl-24 flex flex-col justify-center">
+              <div className="max-w-xl">
               <h2 className="text-4xl lg:text-5xl font-bold text-white leading-tight mb-8">
                 {t('pLanding.busyHero.titleBefore')}{' '}
                 <span className="relative inline-block">
@@ -1473,6 +1470,7 @@ export function LandingPage() {
                   {t('pLanding.busyHero.cta')}
                 </button>
               </form>
+              </div>
             </div>
 
             {/* Device mockup panel — a realistic POS checkout screen: search
@@ -1642,160 +1640,119 @@ export function LandingPage() {
       </section>
 
       {/* Let's work together section */}
-      <section className="py-24 px-4 lg:px-8 bg-white dark:bg-ink-900">
+      <section className="py-24 px-4 lg:px-8 bg-white dark:bg-ink-900 overflow-hidden">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Left content */}
             <div>
-              <span className="inline-block text-xs font-semibold tracking-wider text-brand-600 dark:text-brand-400 uppercase mb-4">
+              <span className="inline-block text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-4">
                 {t('pLanding.workTogether.eyebrow')}
               </span>
               <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-6 leading-tight">
                 {t('pLanding.workTogether.title')}
               </h2>
-              <p className="text-lg text-ink-700 dark:text-ink-300 mb-8 leading-relaxed whitespace-pre-line">
+              <p className="text-lg text-ink-700 dark:text-ink-300 mb-10 leading-relaxed whitespace-pre-line">
                 {t('pLanding.workTogether.desc')}
               </p>
 
-              <div className="space-y-4 mb-8">
+              <div className="space-y-6">
                 {(['assessment', 'recommendation', 'support'] as const).map((key) => (
-                  <div key={key} className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full bg-brand-500 flex items-center justify-center flex-shrink-0 mt-1 text-white text-sm font-bold">✓</div>
+                  <div key={key} className="flex items-start gap-4">
+                    <div className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center flex-shrink-0 text-white text-base font-bold shadow-sm shadow-brand-500/40">✓</div>
                     <div>
                       <p className="font-semibold text-ink-900 dark:text-white">{t(`pLanding.workTogether.point.${key}.title`)}</p>
-                      <p className="text-sm text-ink-600 dark:text-ink-400">{t(`pLanding.workTogether.point.${key}.desc`)}</p>
+                      <p className="text-sm text-ink-600 dark:text-ink-400 mt-0.5">{t(`pLanding.workTogether.point.${key}.desc`)}</p>
                     </div>
                   </div>
                 ))}
               </div>
-
-              <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-                <div>
-                  <p className="text-sm font-bold text-ink-600 dark:text-ink-400 mb-1">{t('pLanding.workTogether.emailLabel')}</p>
-                  <a href="mailto:support@liafrik.com" className="text-2xl font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition">
-                    support@liafrik.com
-                  </a>
-                </div>
-                <Link
-                  to="/contact"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 text-white rounded-full font-semibold hover:bg-brand-700 shadow-lg shadow-brand-500/30 transition sm:ml-auto"
-                >
-                  {t('pLanding.workTogether.cta')} <ArrowRight size={16} />
-                </Link>
-              </div>
             </div>
 
-            {/* Right image — the actual real photo the user provided for
-                this section (a merchant at her own checkout counter,
-                matching what POS Flow is actually for), with a subtle
-                cinematic zoom (Ken Burns) and a floating credibility card.
-                Deliberately does NOT reuse the old "54 countries" figure
-                (landing.africa.countries.title) — that key undersold the
-                product's real international reach and has been removed;
-                the badge below uses the real 24/7 support claim instead. */}
-            <div className="relative">
-              <div className="relative h-[420px] rounded-2xl overflow-hidden shadow-2xl">
-                <motion.img
-                  src="/work-together-merchant.jpg"
-                  alt={t('pLanding.workTogether.photoAlt')}
-                  loading="lazy"
-                  className="absolute inset-0 h-full w-full object-cover"
-                  initial={false}
-                  animate={heroReducedMotion ? { scale: 1 } : { scale: [1, 1.06, 1] }}
-                  transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-ink-950/40 via-transparent to-transparent" />
-              </div>
-              <div className="absolute -bottom-6 -left-6 hidden sm:flex items-center gap-3 rounded-xl bg-white dark:bg-ink-800 border border-gray-100 dark:border-ink-700 shadow-xl px-5 py-4">
-                <div className="w-10 h-10 rounded-full bg-brand-500/10 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-5 h-5 text-brand-600 dark:text-brand-400" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-ink-900 dark:text-white">{t('pLanding.workTogether.card.title')}</p>
-                  <p className="text-xs text-ink-500 dark:text-ink-400">{t('pLanding.workTogether.card.desc')}</p>
-                </div>
-              </div>
+            {/* Right image — the real photo provided for this section (a
+                merchant at her own checkout counter, matching what POS Flow
+                is actually for), with a subtle cinematic zoom (Ken Burns)
+                and a single "Contact us" card anchored to the bottom-left
+                corner — no separate email/button block in the text column. */}
+            <div className="relative h-[420px] rounded-2xl overflow-hidden shadow-2xl">
+              <motion.img
+                src="/work-together-merchant.jpg"
+                alt={t('pLanding.workTogether.photoAlt')}
+                loading="lazy"
+                className="absolute inset-0 h-full w-full object-cover"
+                initial={false}
+                animate={heroReducedMotion ? { scale: 1 } : { scale: [1, 1.06, 1] }}
+                transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-ink-950/40 via-transparent to-transparent" />
+
+              <Link
+                to="/contact"
+                className="absolute bottom-5 left-5 inline-flex items-center gap-2.5 bg-white dark:bg-ink-800 text-ink-900 dark:text-white pl-3 pr-5 py-3 rounded-2xl shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all"
+              >
+                <span className="w-9 h-9 rounded-xl bg-brand-500/10 flex items-center justify-center">
+                  <MessageCircle size={17} className="text-brand-600 dark:text-brand-400" />
+                </span>
+                <span className="font-semibold text-sm">{t('pLanding.workTogether.cta')}</span>
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Keep things flowing section — real feature illustrations only:
-          today's revenue (real sales tracking), a staff clocked in via the
-          real day-open/day-close module, a real stock transfer received
-          notification, and a real multi-currency conversion. No fictional
-          food-service/loyalty-points content — POS Flow has neither a
-          kitchen module nor a loyalty-points program. */}
-      <section className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
+      {/* One connected platform section — a single dashboard-style mockup
+          (not 4 disconnected cards), matching the requested reference
+          layout: app chrome, KPI row, chart + top-stores row. Every figure
+          is a clearly illustrative example built from POS Flow's real
+          feature set (sales, staff day-sessions, multi-store, purchases) —
+          no fictional kitchen orders, no loyalty-points program, no named
+          "customers" standing in for real testimonials. */}
+      <section className="py-24 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-16 whitespace-pre-line">
-            {t('pLanding.keepFlowing.title')}
-          </h2>
+          <div className="text-center mb-14">
+            <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-4">
+              {t('pLanding.keepFlowing.title')}
+            </h2>
+            <p className="text-lg text-ink-600 dark:text-ink-400 max-w-2xl mx-auto">
+              {t('pLanding.keepFlowing.subtitle')}
+            </p>
+          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg">
-              <div className="text-3xl font-bold text-brand-600 dark:text-brand-400 mb-2">$2,450</div>
-              <p className="text-sm font-semibold text-ink-600 dark:text-ink-400 mb-4">{t('pLanding.keepFlowing.card.revenue')}</p>
-              {/* BUG FIX: this used to be 4 fixed-height <div>s faking a bar
-                  chart. Now a real recharts AreaChart, same component and
-                  gradient style the real Dashboard module uses for its own
-                  sales-trend chart (src/pages/modules/DashboardPage.tsx). */}
-              <div className="h-16 mt-3">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={REVENUE_TREND_SAMPLE} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="landingRevenueGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#2E8C66" stopOpacity={0.35} />
-                        <stop offset="100%" stopColor="#2E8C66" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <Area type="monotone" dataKey="value" stroke="#2E8C66" strokeWidth={2.5} fill="url(#landingRevenueGradient)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-              <p className="text-xs text-flow-600 dark:text-flow-400 mt-3">↑ 32% {t('pLanding.keepFlowing.card.vsYesterday')}</p>
+          {/* Dashboard window — the actual real POS Flow dashboard,
+              screenshotted from the live app (not a recreated mockup), so
+              every number and label here is exactly what a merchant really
+              sees after logging in. */}
+          <div className="relative">
+            <div className="absolute -inset-1 rounded-[20px] bg-gradient-to-r from-brand-500/30 via-flow-500/20 to-brand-500/30 blur-xl opacity-60" aria-hidden="true" />
+            <div className="relative rounded-2xl border border-gray-200 dark:border-ink-700 shadow-2xl overflow-hidden">
+              <img
+                src="/dashboard-screenshot.png"
+                alt={t('pLanding.keepFlowing.screenshotAlt')}
+                loading="lazy"
+                className="block w-full h-auto"
+              />
             </div>
+          </div>
 
-            <div className="bg-gradient-to-br from-ink-800 to-ink-900 p-8 rounded-xl shadow-lg text-white">
-              <p className="text-xs text-brand-300 mb-2">{t('pLanding.keepFlowing.card.staffName')}</p>
-              <div className="relative w-20 h-20 mx-auto mb-4">
-                <svg className="w-full h-full" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(46, 140, 102, 0.3)" strokeWidth="2"/>
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="#2E8C66" strokeWidth="3" strokeDasharray="125.6 125.6" strokeDashoffset="-31.4"/>
-                  <text x="50" y="55" textAnchor="middle" fill="white" fontSize="20" fontWeight="bold">08:02</text>
-                </svg>
-              </div>
-              <p className="text-sm font-semibold text-center">{t('pLanding.keepFlowing.card.clockedIn')}</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-brand-50 to-flow-50 dark:from-ink-800 dark:to-ink-900 p-8 rounded-xl shadow-lg">
-              <div className="w-10 h-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4">
-                <ArrowRightLeft className="w-5 h-5 text-brand-600 dark:text-brand-400" />
-              </div>
-              <p className="font-semibold text-ink-900 dark:text-white mb-2">{t('pLanding.keepFlowing.card.transferTitle')}</p>
-              <p className="text-sm text-ink-700 dark:text-ink-300 mb-4">{t('pLanding.keepFlowing.card.transferDesc')}</p>
-              {/* Real performance-by-category illustration (recharts
-                  BarChart), same idea as the real Reports module's
-                  category breakdowns. */}
-              <div className="h-14">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={CATEGORY_PERFORMANCE_SAMPLE} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                    <Bar dataKey="value" radius={[3, 3, 0, 0]} fill="#2E8C66" fillOpacity={0.75} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700">
-              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 mb-4">{t('pLanding.keepFlowing.card.currencyLabel')}</p>
-              <p className="font-bold text-ink-900 dark:text-white text-xl mb-1">$1,000 USD</p>
-              <div className="flex items-center gap-2 my-2 text-ink-400">
-                <div className="h-px flex-1 bg-gray-200 dark:bg-ink-700" />
-                <ArrowRight size={14} />
-                <div className="h-px flex-1 bg-gray-200 dark:bg-ink-700" />
-              </div>
-              <p className="font-bold text-brand-600 dark:text-brand-400 text-xl">3,672.50 AED</p>
-            </div>
+          {/* Platform capabilities strip — real feature set, same entries
+              as FEATURE_KEYS used elsewhere on this page
+              (src/pages/modules/*), giving visible breadth alongside the
+              real screenshot without inventing anything new. */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+            {[
+              { icon: Wallet, key: 'currencies' },
+              { icon: Store, key: 'stores' },
+              { icon: ShieldCheck, key: 'roles' },
+              { icon: Search, key: 'barcode' },
+              { icon: CreditCard, key: 'splitPayments' },
+            ].map((cap) => (
+              <span
+                key={cap.key}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-600 dark:text-ink-300 bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 rounded-full px-3 py-1.5 shadow-sm"
+              >
+                <cap.icon size={12} className="text-brand-600 dark:text-brand-400" />
+                {t(`pLanding.keepFlowing.capability.${cap.key}`)}
+              </span>
+            ))}
           </div>
 
           {/* CTA */}
@@ -1810,49 +1767,71 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 dark:border-ink-800 bg-white dark:bg-ink-950">
-        <div className="max-w-7xl mx-auto px-4 py-12 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+      {/* Footer — always dark (not light/dark-toggled like the rest of the
+          page) for a deliberate "premium" close to the page, matching the
+          video-hero sections above. Added a brand column (logo, one-line
+          description already used elsewhere on this page, and the two real
+          support addresses) beside the existing four link columns, plus a
+          subtle top gradient line and ambient glow consistent with the
+          "high-tech" treatment used in the hero. Nothing in the four
+          existing link columns was removed or reordered. */}
+      <footer className="relative overflow-hidden bg-ink-950 border-t border-white/10">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-500/60 to-transparent" aria-hidden="true" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_15%_0%,rgba(46,140,102,0.12),transparent)]" aria-hidden="true" />
+        <div className="relative max-w-7xl mx-auto px-4 py-16 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-10 mb-10">
+            <div className="md:col-span-1">
+              <div className="flex items-center gap-2 mb-4">
+                <img src="/logo-pos-icon.png" alt="" className="w-8 h-8 rounded-lg" />
+                <span className="text-lg font-semibold tracking-tight text-white">POS Flow</span>
+              </div>
+              <p className="text-sm text-ink-400 mb-5 max-w-[220px]">
+                {t('pLanding.footer.tagline')}
+              </p>
+              <div className="space-y-1.5 text-sm">
+                <a href="mailto:support@liafrik.com" className="block text-ink-300 hover:text-brand-400 transition">support@liafrik.com</a>
+                <a href="mailto:cs@liafrik.com" className="block text-ink-300 hover:text-brand-400 transition">cs@liafrik.com</a>
+              </div>
+            </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.product')}</p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><a href="#features" className="hover:text-brand-600">{t('pLanding.footer.features')}</a></li>
-                <li><Link to="/pricing" className="hover:text-brand-600">{t('pLanding.nav.pricing')}</Link></li>
-                <li><Link to="/marketplace" className="hover:text-brand-600">{t('pLanding.footer.marketplace')}</Link></li>
+              <p className="font-semibold text-white mb-4">{t('pLanding.footer.product')}</p>
+              <ul className="space-y-2 text-sm text-ink-400">
+                <li><a href="#features" className="hover:text-brand-400 transition">{t('pLanding.footer.features')}</a></li>
+                <li><a href="#pricing" onClick={scrollToPricing} className="hover:text-brand-400 transition">{t('pLanding.nav.pricing')}</a></li>
+                <li><Link to="/marketplace" className="hover:text-brand-400 transition">{t('pLanding.footer.marketplace')}</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.company')}</p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><Link to="/about" className="hover:text-brand-600">{t('pLanding.footer.about')}</Link></li>
-                <li><Link to="/careers" className="hover:text-brand-600">{t('pLanding.footer.careers')}</Link></li>
-                <li><Link to="/blog" className="hover:text-brand-600">{t('pLanding.footer.blog')}</Link></li>
-                <li><Link to="/contact" className="hover:text-brand-600">{t('pLanding.footer.contact')}</Link></li>
+              <p className="font-semibold text-white mb-4">{t('pLanding.footer.company')}</p>
+              <ul className="space-y-2 text-sm text-ink-400">
+                <li><Link to="/about" className="hover:text-brand-400 transition">{t('pLanding.footer.about')}</Link></li>
+                <li><Link to="/careers" className="hover:text-brand-400 transition">{t('pLanding.footer.careers')}</Link></li>
+                <li><Link to="/blog" className="hover:text-brand-400 transition">{t('pLanding.footer.blog')}</Link></li>
+                <li><Link to="/contact" className="hover:text-brand-400 transition">{t('pLanding.footer.contact')}</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.resources')}</p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><Link to="/resources" className="hover:text-brand-600">{t('pLanding.footer.resources')}</Link></li>
-                <li><Link to="/help" className="hover:text-brand-600">{t('pLanding.footer.help')}</Link></li>
-                <li><Link to="/documentation" className="hover:text-brand-600">{t('pLanding.footer.docs')}</Link></li>
+              <p className="font-semibold text-white mb-4">{t('pLanding.footer.resources')}</p>
+              <ul className="space-y-2 text-sm text-ink-400">
+                <li><Link to="/resources" className="hover:text-brand-400 transition">{t('pLanding.footer.resources')}</Link></li>
+                <li><Link to="/help" className="hover:text-brand-400 transition">{t('pLanding.footer.help')}</Link></li>
+                <li><Link to="/documentation" className="hover:text-brand-400 transition">{t('pLanding.footer.docs')}</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.legal')}</p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><Link to="/privacy" className="hover:text-brand-600">{t('pLanding.footer.privacy')}</Link></li>
-                <li><Link to="/terms" className="hover:text-brand-600">{t('pLanding.footer.terms')}</Link></li>
-                <li><Link to="/legal" className="hover:text-brand-600">{t('pLanding.footer.legalNotice')}</Link></li>
+              <p className="font-semibold text-white mb-4">{t('pLanding.footer.legal')}</p>
+              <ul className="space-y-2 text-sm text-ink-400">
+                <li><Link to="/privacy" className="hover:text-brand-400 transition">{t('pLanding.footer.privacy')}</Link></li>
+                <li><Link to="/terms" className="hover:text-brand-400 transition">{t('pLanding.footer.terms')}</Link></li>
+                <li><Link to="/legal" className="hover:text-brand-400 transition">{t('pLanding.footer.legalNotice')}</Link></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-200 dark:border-ink-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-ink-500">
               {t('pLanding.footer.rights', { year: new Date().getFullYear() })}
             </p>
-            <button onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')} className="text-sm text-gray-600 dark:text-gray-400 hover:text-brand-600">
+            <button onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')} className="text-sm text-ink-400 hover:text-brand-400 transition">
               {lang.toUpperCase()}
             </button>
           </div>

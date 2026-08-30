@@ -116,13 +116,15 @@ export function Modal({
         initial={{ opacity: 0, scale: 0.96, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.2 }}
-        className={`relative w-full ${maxWidth} rounded-2xl2 bg-white dark:bg-ink-800 p-6 shadow-float`}
+        className={`relative flex max-h-[90vh] w-full ${maxWidth} flex-col rounded-2xl2 bg-white dark:bg-ink-800 shadow-float`}
       >
-        <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 shrink-0">
           <h2 className="text-lg font-medium text-ink-900 dark:text-ink-50">{title}</h2>
           <button onClick={onClose} className="rounded-full p-1 text-ink-400 dark:text-ink-500 hover:bg-ink-100 dark:hover:bg-ink-800 hover:text-ink-700 dark:text-ink-200">✕</button>
         </div>
-        {children}
+        <div className="overflow-y-auto px-6 pb-6 scroll-thin">
+          {children}
+        </div>
       </motion.div>
     </div>
   );
