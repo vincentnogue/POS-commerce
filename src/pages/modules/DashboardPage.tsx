@@ -26,6 +26,8 @@ export function DashboardPage() {
   const [sales, setSales] = useState<Sale[]>([]);
   const [unpaid, setUnpaid] = useState(0);
   const [deliveriesToday, setDeliveriesToday] = useState(0);
+  const [activeProductCount, setActiveProductCount] = useState(0);
+  const [returnsLast7Days, setReturnsLast7Days] = useState(0);
 
   const currency = tenant?.currency ?? 'XOF';
   const country = tenant ? getCountry(tenant.country_code) : undefined;
@@ -70,6 +72,21 @@ export function DashboardPage() {
         .gte('scheduled_date', startOfToday)
         .lt('scheduled_date', new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString());
       setDeliveriesToday(delCount ?? 0);
+
+      const { count: productCount } = await supabase
+        .from('products')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenant.id)
+        .eq('is_active', true);
+      setActiveProductCount(productCount ?? 0);
+
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000).toISOString();
+      const { count: returnsCount } = await supabase
+        .from('sale_returns')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenant.id)
+        .gte('created_at', sevenDaysAgo);
+      setReturnsLast7Days(returnsCount ?? 0);
 
       setLoading(false);
     })();
@@ -260,7 +277,12 @@ export function DashboardPage() {
         transition={{ delay: 0.6, duration: 0.5 }}
         className="mt-12"
       >
-        <PerformanceMetrics />
+        <PerformanceMetrics
+          sales={sales}
+          returnsLast7Days={returnsLast7Days}
+          activeProductCount={activeProductCount}
+          currency={currency}
+        />
       </motion.div>
     </div>
   );
