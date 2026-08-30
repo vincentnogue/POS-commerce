@@ -378,6 +378,16 @@ export type JobPosting = {
   published: boolean;
 };
 
+export type ContactMessage = {
+  id: string;
+  name: string;
+  email: string;
+  subject: string | null;
+  message: string;
+  handled: boolean;
+  created_at: string;
+};
+
 export const MODULES = [
   'dashboard', 'pos', 'products', 'stock', 'stores', 'invoices',
   'deliveries', 'customers', 'suppliers', 'expenses', 'purchases',

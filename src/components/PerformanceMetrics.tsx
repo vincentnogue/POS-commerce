@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { TrendingUp, Activity, Zap, Target } from 'lucide-react';
+import { TrendingUp, Activity } from 'lucide-react';
 
 interface ModulePerformance {
   module: string;
