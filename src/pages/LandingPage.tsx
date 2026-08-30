@@ -591,6 +591,8 @@ export function LandingPage() {
                   <Link to="/blog" className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-ink-800">{t('pLanding.nav.blog')}</Link>
                 </div>
               </div>
+
+              <Link to="/contact" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600">Contact us</Link>
             </nav>
 
             <div className="hidden md:flex items-center gap-4">
@@ -635,6 +637,7 @@ export function LandingPage() {
               <Link to="/documentation" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.docs')}</Link>
               <Link to="/resources" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.resources')}</Link>
               <Link to="/help" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.help')}</Link>
+              <Link to="/contact" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">Contact us</Link>
               <div className="flex items-center gap-3 py-2">
                 <button
                   onClick={toggle}
@@ -687,17 +690,32 @@ export function LandingPage() {
           <div className="absolute inset-0 bg-ink-950/55" />
         </div>
 
-        {/* Ambient gradient + grid, layered above the video */}
+        {/* Ambient gradient + tech effects, layered above the video */}
         <div className="absolute inset-0" aria-hidden="true">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(46,140,102,0.25),transparent)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_85%_60%,rgba(20,181,148,0.12),transparent)]" />
-          <div
-            className="absolute inset-0 opacity-[0.04]"
-            style={{
-              backgroundImage: 'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)',
-              backgroundSize: '56px 56px',
-            }}
-          />
+          
+          {/* Tech effect - top left corner */}
+          <div className="absolute top-0 left-0 w-80 h-80 opacity-20">
+            <svg viewBox="0 0 200 200" className="w-full h-full text-flow-500">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.5" />
+              <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.5" />
+              <circle cx="50" cy="50" r="20" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.5" />
+              <line x1="20" y1="50" x2="80" y2="50" stroke="currentColor" strokeWidth="0.5" opacity="0.3" />
+              <line x1="50" y1="20" x2="50" y2="80" stroke="currentColor" strokeWidth="0.5" opacity="0.3" />
+            </svg>
+          </div>
+          
+          {/* Tech effect - bottom right corner */}
+          <div className="absolute bottom-0 right-0 w-80 h-80 opacity-20">
+            <svg viewBox="0 0 200 200" className="w-full h-full text-brand-500">
+              <circle cx="150" cy="150" r="40" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.5" />
+              <circle cx="150" cy="150" r="30" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.5" />
+              <circle cx="150" cy="150" r="20" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.5" />
+              <line x1="120" y1="150" x2="180" y2="150" stroke="currentColor" strokeWidth="0.5" opacity="0.3" />
+              <line x1="150" y1="120" x2="150" y2="180" stroke="currentColor" strokeWidth="0.5" opacity="0.3" />
+            </svg>
+          </div>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 pt-16 pb-20 lg:pt-24 lg:pb-28 lg:px-8">
