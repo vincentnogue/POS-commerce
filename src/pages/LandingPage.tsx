@@ -815,7 +815,7 @@ export function LandingPage() {
           <p className="text-center text-xs font-semibold tracking-wide text-gray-500 dark:text-ink-400 mb-6 px-4">
             {t('pLanding.ecosystem.heading')}
           </p>
-          <div className="flex w-max animate-[flagscroll_60s_linear_infinite] hover:[animation-play-state:paused] gap-3">
+          <div className="flex w-max animate-[flagscroll_100s_linear_infinite] hover:[animation-play-state:paused] gap-3">
             {[...ecosystemProviders, ...ecosystemProviders].map((p, i) => (
               <div
                 key={`${p.provider_key}-${i}`}
@@ -897,9 +897,15 @@ export function LandingPage() {
           Only the 3 verticals that page actually documents today (post
           restaurant-claims cleanup). No hardware teaser: POS Flow does not
           sell/support physical hardware today, so a hardware CTA here would
-          be a false claim. */}
-      <section className="py-16 px-4 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-10">
+          be a false claim.
+          Icons are the premium PNGs (rendered via CSS mask so they can be
+          recolored: brand-blue on this section's white cards, white in
+          dark mode) rather than plain lucide glyphs — was previously
+          duplicated verbatim, checklists and all, in a second section
+          further down the page; that duplicate has been removed and this
+          is now the only "which business is this for" section. */}
+      <section className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
+        <div className="text-center mb-12">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3">
             {t('pLanding.industries.title')}
           </h2>
@@ -907,22 +913,34 @@ export function LandingPage() {
             {t('pLanding.industries.desc')}
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {[
-            { icon: Store, key: 'retail' },
-            { icon: Smartphone, key: 'services' },
-            { icon: BarChart3, key: 'professional' },
+            { icon: '/icon-shop-now.png', key: 'retail' },
+            { icon: '/icon-scissors.png', key: 'services' },
+            { icon: '/icon-professional-services.png', key: 'professional' },
           ].map((ind) => (
             <Link
               key={ind.key}
               to="/industry-solutions"
-              className="group rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-7 hover:border-brand-500/50 hover:shadow-lg transition"
+              className="group rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-8 hover:border-brand-500/50 hover:shadow-xl transition"
             >
-              <div className="w-11 h-11 rounded-lg bg-brand-500/10 flex items-center justify-center mb-4">
-                <ind.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+              <div className="w-14 h-14 rounded-xl bg-brand-500/10 flex items-center justify-center mb-5 group-hover:scale-105 transition">
+                <div
+                  className="w-7 h-7 bg-brand-600 dark:bg-white"
+                  style={{
+                    WebkitMaskImage: `url(${ind.icon})`,
+                    maskImage: `url(${ind.icon})`,
+                    WebkitMaskSize: 'contain',
+                    maskSize: 'contain',
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskRepeat: 'no-repeat',
+                    WebkitMaskPosition: 'center',
+                    maskPosition: 'center',
+                  }}
+                />
               </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-1.5">{t(`pLanding.industries.${ind.key}.title`)}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-3">{t(`pLanding.industries.${ind.key}.desc`)}</p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{t(`pLanding.industries.${ind.key}.title`)}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4">{t(`pLanding.industries.${ind.key}.desc`)}</p>
               <span className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 group-hover:gap-2 transition-all">
                 {t('pLanding.industries.link')} <ArrowRight size={14} />
               </span>
@@ -958,7 +976,7 @@ export function LandingPage() {
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
                   className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                     activeTab === tab.id
                       ? 'text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-400'
@@ -1285,170 +1303,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Flexible for Every Merchant - Premium Section */}
-      <section className="py-24 px-4 lg:px-8 relative overflow-hidden">
-        {/* Background elements */}
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-50 via-transparent to-flow-50 dark:from-ink-900 dark:via-ink-950 dark:to-ink-900" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-flow-500/10 rounded-full blur-3xl" />
-
-        <div className="relative max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-20">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="mb-6"
-            >
-              <h2 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-brand-600 to-flow-600 dark:from-brand-400 dark:to-flow-400 bg-clip-text text-transparent mb-4">
-                Flexible enough for every kind of merchant
-              </h2>
-              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                Whether you're running a salon, retail store, or professional services business, POS Flow adapts to your needs
-              </p>
-            </motion.div>
-          </div>
-
-          {/* Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
-            {/* Professional Services */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0 }}
-              className="group relative"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-500/20 to-brand-600/0 rounded-2xl blur-xl group-hover:blur-2xl transition opacity-0 group-hover:opacity-100" />
-              <div className="relative bg-white dark:bg-ink-800/50 backdrop-blur border border-gray-200 dark:border-ink-700/50 rounded-2xl p-8 hover:border-brand-500/50 dark:hover:border-brand-500/50 transition h-full">
-                {/* Icon */}
-                <div className="mb-6 relative">
-                  <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-brand-100 to-brand-50 dark:from-brand-900/30 dark:to-brand-800/20 flex items-center justify-center group-hover:scale-110 transition">
-                    <img src="/icon-professional-services.png" alt="Professional Services" className="w-10 h-10 object-contain" />
-                  </div>
-                </div>
-                
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Professional Services</h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  Consultants, coaches, and service providers. Track appointments, billable hours, and client management seamlessly.
-                </p>
-                
-                <ul className="space-y-2 mb-6">
-                  <li className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                    <Check size={16} className="text-green-500 flex-shrink-0" />
-                    Appointment scheduling
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                    <Check size={16} className="text-green-500 flex-shrink-0" />
-                    Billable hours tracking
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                    <Check size={16} className="text-green-500 flex-shrink-0" />
-                    Invoice generation
-                  </li>
-                </ul>
-
-                <Link to="/pos" className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-400 hover:text-brand-700 font-semibold text-sm group-hover:gap-3 transition">
-                  Learn more <ArrowRight size={16} />
-                </Link>
-              </div>
-            </motion.div>
-
-            {/* Salons & Beauty */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="group relative"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-flow-500/20 to-flow-600/0 rounded-2xl blur-xl group-hover:blur-2xl transition opacity-0 group-hover:opacity-100" />
-              <div className="relative bg-white dark:bg-ink-800/50 backdrop-blur border border-gray-200 dark:border-ink-700/50 rounded-2xl p-8 hover:border-flow-500/50 dark:hover:border-flow-500/50 transition h-full">
-                {/* Icon */}
-                <div className="mb-6 relative">
-                  <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-flow-100 to-flow-50 dark:from-flow-900/30 dark:to-flow-800/20 flex items-center justify-center group-hover:scale-110 transition">
-                    <img src="/icon-scissors.png" alt="Salons & Beauty" className="w-10 h-10 object-contain" />
-                  </div>
-                </div>
-                
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Salons & Beauty</h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  Hair salons, spas, and beauty businesses. Manage appointments, staff schedules, and loyalty rewards.
-                </p>
-                
-                <ul className="space-y-2 mb-6">
-                  <li className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                    <Check size={16} className="text-green-500 flex-shrink-0" />
-                    Service-based scheduling
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                    <Check size={16} className="text-green-500 flex-shrink-0" />
-                    Staff shift management
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                    <Check size={16} className="text-green-500 flex-shrink-0" />
-                    Product retail integration
-                  </li>
-                </ul>
-
-                <Link to="/pos" className="inline-flex items-center gap-2 text-flow-600 dark:text-flow-400 hover:text-flow-700 font-semibold text-sm group-hover:gap-3 transition">
-                  Learn more <ArrowRight size={16} />
-                </Link>
-              </div>
-            </motion.div>
-
-            {/* Retail Stores */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="group relative"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-action-500/20 to-action-600/0 rounded-2xl blur-xl group-hover:blur-2xl transition opacity-0 group-hover:opacity-100" />
-              <div className="relative bg-white dark:bg-ink-800/50 backdrop-blur border border-gray-200 dark:border-ink-700/50 rounded-2xl p-8 hover:border-action-500/50 dark:hover:border-action-500/50 transition h-full">
-                {/* Icon */}
-                <div className="mb-6 relative">
-                  <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-action-100 to-action-50 dark:from-action-900/30 dark:to-action-800/20 flex items-center justify-center group-hover:scale-110 transition">
-                    <img src="/icon-shop-now.png" alt="Retail Stores" className="w-10 h-10 object-contain" />
-                  </div>
-                </div>
-                
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Retail Stores</h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  Fashion, groceries, and general retail. Manage inventory, multi-locations, and omnichannel sales.
-                </p>
-                
-                <ul className="space-y-2 mb-6">
-                  <li className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                    <Check size={16} className="text-green-500 flex-shrink-0" />
-                    Real-time inventory tracking
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                    <Check size={16} className="text-green-500 flex-shrink-0" />
-                    Multi-store management
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                    <Check size={16} className="text-green-500 flex-shrink-0" />
-                    Barcode & SKU management
-                  </li>
-                </ul>
-
-                <Link to="/pos" className="inline-flex items-center gap-2 text-action-600 dark:text-action-400 hover:text-action-700 font-semibold text-sm group-hover:gap-3 transition">
-                  Learn more <ArrowRight size={16} />
-                </Link>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* CTA */}
-          <div className="text-center mt-16">
-            <p className="text-gray-600 dark:text-gray-300 mb-6">Not sure which fits your business?</p>
-            <Link to="/contact" className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-brand-600 to-flow-600 hover:from-brand-700 hover:to-flow-700 text-white font-semibold rounded-lg transition shadow-lg hover:shadow-xl">
-              Get a free consultation <ArrowRight size={18} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* Pricing — light section (was hardcoded dark), fixed USD prices */}
       <section id="pricing" className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto">
@@ -1489,7 +1343,7 @@ export function LandingPage() {
         <p className="text-center text-xs font-semibold tracking-wide text-gray-500 dark:text-ink-400 mb-5 px-4">
           {t('pLanding.flags.heading')}
         </p>
-        <div className="flex w-max animate-[flagscroll_75s_linear_infinite] hover:[animation-play-state:paused] gap-5">
+        <div className="flex w-max animate-[flagscroll_170s_linear_infinite] hover:[animation-play-state:paused] gap-5">
           {[...FLAG_COUNTRIES, ...FLAG_COUNTRIES].map((c, i) => (
             <div
               key={`${c.code}-${i}`}

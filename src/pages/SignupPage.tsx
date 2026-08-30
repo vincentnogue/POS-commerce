@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Mail, Lock, AlertCircle, Check } from 'lucide-react';
 import { Logo } from '../components/Logo';
-import { AuthBackgroundVideo } from '../components/AuthBackgroundVideo';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../lib/i18n';
 import { supabase } from '../lib/supabase';
