@@ -3,16 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import {
   Shield, Crown, Building2, Users, DollarSign, TrendingUp,
   Pencil, Trash2, Ban, Check, Plus, Activity, CreditCard,
-  Search, AlertTriangle, Mail, Eye, Loader2, BarChart3, Award, UserCog, Headset, Send, Plug,
+  Search, AlertTriangle, Mail, Eye, Loader2, BarChart3, Award, UserCog, Headset, Send, Plug, FileText,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useI18n } from '../../lib/i18n';
 import { convertToUSD } from '../../lib/localization';
 import { PageHeader, Modal, Badge, StatCard, EmptyState, Spinner, useToast } from '../../components/ui';
 import { Field } from '../../components/DataTable';
-import type { Tenant, Plan, CommercialCode, AuditLog } from '../../lib/types';
+import type { Tenant, Plan, CommercialCode, AuditLog, BlogPost, JobPosting, ContactMessage } from '../../lib/types';
 
-type Tab = 'overview' | 'tenants' | 'employees' | 'subscriptions' | 'admins' | 'staff' | 'plans' | 'codes' | 'performance' | 'audit' | 'monitoring' | 'comms' | 'support' | 'integrations';
+type Tab = 'overview' | 'tenants' | 'employees' | 'subscriptions' | 'admins' | 'staff' | 'plans' | 'codes' | 'performance' | 'audit' | 'monitoring' | 'comms' | 'support' | 'integrations' | 'cms';
 
 // Sections a scoped staff member can ever be granted. Must mirror
 // GRANTABLE_SECTIONS in the platform-staff-manage edge function.
@@ -27,6 +27,7 @@ const GRANTABLE_SECTIONS: { id: Tab; labelKey: string }[] = [
   { id: 'audit', labelKey: 'super.tab.audit' },
   { id: 'monitoring', labelKey: 'super.tab.monitoring' },
   { id: 'comms', labelKey: 'super.tab.comms' },
+  { id: 'cms', labelKey: 'super.tab.cms' },
   { id: 'support', labelKey: 'super.tab.support' },
 ];
 
@@ -108,6 +109,7 @@ export function SuperAdminPage() {
     { id: 'monitoring', labelKey: 'super.tab.monitoring', icon: Eye },
     { id: 'audit', labelKey: 'super.tab.audit', icon: Shield },
     { id: 'comms', labelKey: 'super.tab.comms', icon: Mail },
+    { id: 'cms', labelKey: 'super.tab.cms', icon: FileText },
     { id: 'support', labelKey: 'super.tab.support', icon: Headset },
   ];
 
@@ -159,6 +161,7 @@ export function SuperAdminPage() {
       {activeTab === 'monitoring' && <SuperMonitoring />}
       {activeTab === 'audit' && <SuperAudit />}
       {activeTab === 'comms' && <SuperComms />}
+      {activeTab === 'cms' && <SuperCms />}
       {activeTab === 'support' && <SuperSupport />}
     </div>
   );
@@ -1616,6 +1619,323 @@ function SuperIntegrations() {
               );
             })}
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// CMS: the public Blog, Careers and Contact pages (src/pages/BlogPage.tsx,
+// CareersPage.tsx, ContactPage.tsx) read from blog_posts / job_postings /
+// contact_messages, but until now there was no way to actually write to
+// those tables from the UI — a super admin had to run raw SQL to publish
+// a blog post or a job opening, or to see who had submitted the contact
+// form. RLS already scopes write access to super_admin (migration 0006);
+// this just gives that access a real screen.
+type CmsSection = 'blog' | 'jobs' | 'contact';
+
+function SuperCms() {
+  const { t } = useI18n();
+  const [section, setSection] = useState<CmsSection>('blog');
+
+  const sections: { id: CmsSection; labelKey: string }[] = [
+    { id: 'blog', labelKey: 'super.cms.tab.blog' },
+    { id: 'jobs', labelKey: 'super.cms.tab.jobs' },
+    { id: 'contact', labelKey: 'super.cms.tab.contact' },
+  ];
+
+  return (
+    <div>
+      <div className="mb-4 flex gap-2">
+        {sections.map((s) => (
+          <button
+            key={s.id}
+            onClick={() => setSection(s.id)}
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${section === s.id ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`}
+          >
+            {t(s.labelKey)}
+          </button>
+        ))}
+      </div>
+      {section === 'blog' && <SuperCmsBlog />}
+      {section === 'jobs' && <SuperCmsJobs />}
+      {section === 'contact' && <SuperCmsContact />}
+    </div>
+  );
+}
+
+function slugify(s: string) {
+  return s.toLowerCase().trim()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+function SuperCmsBlog() {
+  const { t } = useI18n();
+  const toast = useToast();
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<BlogPost | null>(null);
+  const [form, setForm] = useState<any>({ title: '', slug: '', excerpt: '', content: '', author: 'LIYHA GROUP', cover_url: '', published: false });
+
+  const reload = async () => {
+    const { data } = await supabase.from('blog_posts').select('*').order('created_at', { ascending: false });
+    setPosts((data as BlogPost[]) ?? []);
+  };
+  useEffect(() => { reload(); }, []);
+
+  const openNew = () => { setEditing(null); setForm({ title: '', slug: '', excerpt: '', content: '', author: 'LIYHA GROUP', cover_url: '', published: false }); setModalOpen(true); };
+  const openEdit = (p: BlogPost) => { setEditing(p); setForm({ ...p, excerpt: p.excerpt ?? '', cover_url: p.cover_url ?? '' }); setModalOpen(true); };
+
+  const save = async () => {
+    if (!form.title.trim() || !form.content.trim()) { toast('error', t('super.cms.err.titleContentRequired')); return; }
+    const payload = {
+      title: form.title.trim(),
+      slug: (form.slug.trim() || slugify(form.title)),
+      excerpt: form.excerpt || null,
+      content: form.content,
+      author: form.author || 'LIYHA GROUP',
+      cover_url: form.cover_url || null,
+      published: !!form.published,
+      published_at: form.published ? (editing?.published_at ?? new Date().toISOString()) : null,
+    };
+    const { error } = editing
+      ? await supabase.from('blog_posts').update(payload).eq('id', editing.id)
+      : await supabase.from('blog_posts').insert(payload);
+    if (error) { toast('error', error.message); return; }
+    setModalOpen(false); await reload();
+    toast('success', t('super.cms.saved'));
+  };
+
+  const togglePublish = async (p: BlogPost) => {
+    const nowPublished = !p.published;
+    const { error } = await supabase.from('blog_posts').update({ published: nowPublished, published_at: nowPublished ? new Date().toISOString() : p.published_at }).eq('id', p.id);
+    if (error) { toast('error', error.message); return; }
+    await reload();
+  };
+
+  const remove = async (p: BlogPost) => {
+    if (!confirm(t('super.cms.confirmDelete', { title: p.title }))) return;
+    const { error } = await supabase.from('blog_posts').delete().eq('id', p.id);
+    if (error) { toast('error', error.message); return; }
+    await reload();
+  };
+
+  return (
+    <div className="card p-5">
+      <div className="mb-4 flex justify-end"><button onClick={openNew} className="btn-primary"><Plus size={16} /> {t('super.cms.blog.new')}</button></div>
+      {posts.length === 0 ? (
+        <EmptyState icon={FileText} title={t('super.cms.blog.empty')} description={t('super.cms.blog.emptyDesc')} />
+      ) : (
+        <table className="w-full text-sm">
+          <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
+            <th className="pb-2 font-medium">{t('super.cms.blog.title')}</th>
+            <th className="pb-2 font-medium">{t('super.cms.blog.author')}</th>
+            <th className="pb-2 font-medium">{t('super.cms.blog.status')}</th>
+            <th></th>
+          </tr></thead>
+          <tbody>
+            {posts.map((p) => (
+              <tr key={p.id} className="border-b border-ink-50 dark:border-ink-800">
+                <td className="py-3 font-medium text-ink-900 dark:text-ink-50">{p.title}</td>
+                <td className="py-3 text-ink-600 dark:text-ink-300">{p.author}</td>
+                <td className="py-3">
+                  <button onClick={() => togglePublish(p)}>
+                    <Badge tone={p.published ? 'success' : 'warning'}>{p.published ? t('super.cms.published') : t('super.cms.draft')}</Badge>
+                  </button>
+                </td>
+                <td className="py-3 text-right">
+                  <button onClick={() => openEdit(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>
+                  <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? t('super.cms.blog.edit') : t('super.cms.blog.new')} maxWidth="max-w-2xl">
+        <div className="grid gap-4">
+          <Field label={t('super.cms.blog.title')}><input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="input" /></Field>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label={t('super.cms.blog.slug')}><input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder={slugify(form.title || '')} className="input font-mono text-xs" /></Field>
+            <Field label={t('super.cms.blog.author')}><input value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} className="input" /></Field>
+          </div>
+          <Field label={t('super.cms.blog.coverUrl')}><input value={form.cover_url} onChange={(e) => setForm({ ...form, cover_url: e.target.value })} className="input" placeholder="https://..." /></Field>
+          <Field label={t('super.cms.blog.excerpt')}><textarea value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} className="input min-h-[60px]" /></Field>
+          <Field label={t('super.cms.blog.content')}><textarea value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} className="input min-h-[220px] font-mono text-xs" /></Field>
+          <label className="flex items-center gap-2 text-sm text-ink-700 dark:text-ink-300">
+            <input type="checkbox" checked={!!form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} />
+            {t('super.cms.blog.publishNow')}
+          </label>
+        </div>
+        <div className="mt-6 flex justify-end gap-2">
+          <button onClick={() => setModalOpen(false)} className="btn-ghost">{t('common.cancel')}</button>
+          <button onClick={save} className="btn-primary">{editing ? t('common.save') : t('super.cms.blog.create')}</button>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+function SuperCmsJobs() {
+  const { t } = useI18n();
+  const toast = useToast();
+  const [jobs, setJobs] = useState<JobPosting[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<JobPosting | null>(null);
+  const [form, setForm] = useState<any>({ title: '', department: '', location: '', type: 'full-time', description: '', requirements: '', salary_range: '', published: false });
+
+  const reload = async () => {
+    const { data } = await supabase.from('job_postings').select('*').order('created_at', { ascending: false });
+    setJobs((data as JobPosting[]) ?? []);
+  };
+  useEffect(() => { reload(); }, []);
+
+  const openNew = () => { setEditing(null); setForm({ title: '', department: '', location: '', type: 'full-time', description: '', requirements: '', salary_range: '', published: false }); setModalOpen(true); };
+  const openEdit = (j: JobPosting) => { setEditing(j); setForm({ ...j, department: j.department ?? '', location: j.location ?? '', requirements: j.requirements ?? '', salary_range: j.salary_range ?? '' }); setModalOpen(true); };
+
+  const save = async () => {
+    if (!form.title.trim() || !form.description.trim()) { toast('error', t('super.cms.err.titleDescRequired')); return; }
+    const payload = {
+      title: form.title.trim(), department: form.department || null, location: form.location || null,
+      type: form.type, description: form.description, requirements: form.requirements || null,
+      salary_range: form.salary_range || null, published: !!form.published,
+    };
+    const { error } = editing
+      ? await supabase.from('job_postings').update(payload).eq('id', editing.id)
+      : await supabase.from('job_postings').insert(payload);
+    if (error) { toast('error', error.message); return; }
+    setModalOpen(false); await reload();
+    toast('success', t('super.cms.saved'));
+  };
+
+  const togglePublish = async (j: JobPosting) => {
+    const { error } = await supabase.from('job_postings').update({ published: !j.published }).eq('id', j.id);
+    if (error) { toast('error', error.message); return; }
+    await reload();
+  };
+
+  const remove = async (j: JobPosting) => {
+    if (!confirm(t('super.cms.confirmDelete', { title: j.title }))) return;
+    const { error } = await supabase.from('job_postings').delete().eq('id', j.id);
+    if (error) { toast('error', error.message); return; }
+    await reload();
+  };
+
+  return (
+    <div className="card p-5">
+      <div className="mb-4 flex justify-end"><button onClick={openNew} className="btn-primary"><Plus size={16} /> {t('super.cms.jobs.new')}</button></div>
+      {jobs.length === 0 ? (
+        <EmptyState icon={Award} title={t('super.cms.jobs.empty')} description={t('super.cms.jobs.emptyDesc')} />
+      ) : (
+        <table className="w-full text-sm">
+          <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
+            <th className="pb-2 font-medium">{t('super.cms.jobs.title')}</th>
+            <th className="pb-2 font-medium">{t('super.cms.jobs.department')}</th>
+            <th className="pb-2 font-medium">{t('super.cms.jobs.location')}</th>
+            <th className="pb-2 font-medium">{t('super.cms.blog.status')}</th>
+            <th></th>
+          </tr></thead>
+          <tbody>
+            {jobs.map((j) => (
+              <tr key={j.id} className="border-b border-ink-50 dark:border-ink-800">
+                <td className="py-3 font-medium text-ink-900 dark:text-ink-50">{j.title}</td>
+                <td className="py-3 text-ink-600 dark:text-ink-300">{j.department ?? '—'}</td>
+                <td className="py-3 text-ink-600 dark:text-ink-300">{j.location ?? '—'}</td>
+                <td className="py-3">
+                  <button onClick={() => togglePublish(j)}>
+                    <Badge tone={j.published ? 'success' : 'warning'}>{j.published ? t('super.cms.published') : t('super.cms.draft')}</Badge>
+                  </button>
+                </td>
+                <td className="py-3 text-right">
+                  <button onClick={() => openEdit(j)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>
+                  <button onClick={() => remove(j)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? t('super.cms.jobs.edit') : t('super.cms.jobs.new')} maxWidth="max-w-2xl">
+        <div className="grid gap-4">
+          <Field label={t('super.cms.jobs.title')}><input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="input" /></Field>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Field label={t('super.cms.jobs.department')}><input value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} className="input" /></Field>
+            <Field label={t('super.cms.jobs.location')}><input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className="input" /></Field>
+            <Field label={t('super.cms.jobs.type')}>
+              <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="input">
+                <option value="full-time">{t('super.cms.jobs.type.fullTime')}</option>
+                <option value="part-time">{t('super.cms.jobs.type.partTime')}</option>
+                <option value="contract">{t('super.cms.jobs.type.contract')}</option>
+                <option value="internship">{t('super.cms.jobs.type.internship')}</option>
+              </select>
+            </Field>
+          </div>
+          <Field label={t('super.cms.jobs.salaryRange')}><input value={form.salary_range} onChange={(e) => setForm({ ...form, salary_range: e.target.value })} className="input" placeholder="ex: 400 000 - 600 000 FCFA" /></Field>
+          <Field label={t('super.cms.jobs.description')}><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input min-h-[140px]" /></Field>
+          <Field label={t('super.cms.jobs.requirements')}><textarea value={form.requirements} onChange={(e) => setForm({ ...form, requirements: e.target.value })} className="input min-h-[100px]" /></Field>
+          <label className="flex items-center gap-2 text-sm text-ink-700 dark:text-ink-300">
+            <input type="checkbox" checked={!!form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} />
+            {t('super.cms.jobs.publishNow')}
+          </label>
+        </div>
+        <div className="mt-6 flex justify-end gap-2">
+          <button onClick={() => setModalOpen(false)} className="btn-ghost">{t('common.cancel')}</button>
+          <button onClick={save} className="btn-primary">{editing ? t('common.save') : t('super.cms.jobs.create')}</button>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+function SuperCmsContact() {
+  const { t } = useI18n();
+  const toast = useToast();
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [filter, setFilter] = useState<'all' | 'unhandled'>('unhandled');
+
+  const reload = async () => {
+    const { data } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false });
+    setMessages((data as ContactMessage[]) ?? []);
+  };
+  useEffect(() => { reload(); }, []);
+
+  const toggleHandled = async (m: ContactMessage) => {
+    const { error } = await supabase.from('contact_messages').update({ handled: !m.handled }).eq('id', m.id);
+    if (error) { toast('error', error.message); return; }
+    await reload();
+  };
+
+  const filtered = filter === 'unhandled' ? messages.filter((m) => !m.handled) : messages;
+
+  return (
+    <div className="card p-5">
+      <div className="mb-4 flex justify-end gap-2">
+        <button onClick={() => setFilter('unhandled')} className={`rounded-lg px-3 py-1.5 text-xs font-medium ${filter === 'unhandled' ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`}>{t('super.cms.contact.unhandled')}</button>
+        <button onClick={() => setFilter('all')} className={`rounded-lg px-3 py-1.5 text-xs font-medium ${filter === 'all' ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`}>{t('super.cms.contact.all')}</button>
+      </div>
+      {filtered.length === 0 ? (
+        <EmptyState icon={Mail} title={t('super.cms.contact.empty')} description={t('super.cms.contact.emptyDesc')} />
+      ) : (
+        <div className="space-y-2">
+          {filtered.map((m) => (
+            <div key={m.id} className={`rounded-xl border p-3 text-sm ${m.handled ? 'border-ink-100 dark:border-ink-800 opacity-60' : 'border-ink-200 dark:border-ink-700'}`}>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <span className="font-medium text-ink-900 dark:text-ink-50">{m.name}</span>
+                  <span className="ml-2 text-ink-500 dark:text-ink-400">{m.email}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-ink-400 dark:text-ink-500">{new Date(m.created_at).toLocaleString()}</span>
+                  <button onClick={() => toggleHandled(m)} className="text-xs font-semibold underline">
+                    {m.handled ? t('super.cms.contact.markUnhandled') : t('super.cms.contact.markHandled')}
+                  </button>
+                </div>
+              </div>
+              {m.subject && <p className="mt-1 font-medium text-ink-700 dark:text-ink-200">{m.subject}</p>}
+              <p className="mt-1 whitespace-pre-wrap text-ink-600 dark:text-ink-300">{m.message}</p>
+            </div>
+          ))}
         </div>
       )}
     </div>
