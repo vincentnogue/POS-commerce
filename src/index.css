@@ -183,6 +183,17 @@
   background-size: 32px 32px;
 }
 
+/* Slow ambient pulse for premium "high-tech" decorative backgrounds
+   (schematic circuit motifs, glow accents) — gentler than Tailwind's
+   default animate-pulse so it reads as ambient, not a loading state. */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.35; }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 6s ease-in-out infinite;
+}
+
 /* Gradient text */
 .text-gradient-flow {
   background: linear-gradient(120deg, #2E8C66 0%, #14B594 100%);

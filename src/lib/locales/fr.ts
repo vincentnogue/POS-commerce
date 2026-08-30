@@ -1535,6 +1535,7 @@ export const fr: Record<string, string> = {
   "pLanding.hero.demo.dashboardLabel": "Tableau de bord",
   "pLanding.hero.demo.caption": "Aperçu simplifié de l'interface de caisse POS Flow — pas une capture en direct.",
   "pLanding.footer.product": "Produit",
+  "pLanding.footer.tagline": "Le POS tout-en-un conçu par LiAfrik, à Dubaï, pour les commerces d'Afrique et d'ailleurs.",
   "pLanding.footer.features": "Fonctionnalités",
   "pLanding.footer.marketplace": "Marketplace",
   "pLanding.footer.company": "Entreprise",

@@ -1535,6 +1535,7 @@ export const en: Record<string, string> = {
   "pLanding.hero.demo.dashboardLabel": "Dashboard",
   "pLanding.hero.demo.caption": "Simplified preview of the POS Flow checkout interface — not a live capture.",
   "pLanding.footer.product": "Product",
+  "pLanding.footer.tagline": "The all-in-one POS built by LiAfrik, in Dubai, for businesses across Africa and beyond.",
   "pLanding.footer.features": "Features",
   "pLanding.footer.marketplace": "Marketplace",
   "pLanding.footer.company": "Company",

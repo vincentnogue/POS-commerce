@@ -119,9 +119,35 @@ export function IndustrySolutionsPage() {
         </div>
       </div>
 
-      {/* Hero */}
-      <div className="bg-gradient-to-r from-brand-600 to-flow-600 py-20">
-        <div className="max-w-5xl mx-auto px-6 text-center">
+      {/* Hero — video background (real shopping/retail motion) instead of a
+          flat gradient. Reuses the same Mixkit clip (49137, verified free
+          commercial license, already used on the main landing page) rather
+          than sourcing a new untested asset. Reduced-motion users get the
+          static poster frame via Tailwind's motion-reduce: variant instead
+          of an autoplaying video. */}
+      <div className="relative overflow-hidden py-24 sm:py-28">
+        <div className="absolute inset-0" aria-hidden="true">
+          <img
+            src="https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg"
+            alt=""
+            className="hidden motion-reduce:block w-full h-full object-cover"
+          />
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster="https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg"
+            className="block motion-reduce:hidden w-full h-full object-cover"
+          >
+            <source src="https://assets.mixkit.co/videos/49137/49137-360.mp4" type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-700/92 via-brand-600/85 to-flow-700/90" />
+        </div>
+        <div className="relative max-w-5xl mx-auto px-6 text-center">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-white/15 text-white text-xs font-semibold tracking-wide uppercase backdrop-blur-sm mb-6">
+            Retail · Services · Distribution
+          </span>
           <h1 className="text-5xl font-bold text-white mb-4">
             Solutions Built for Your Industry
           </h1>
