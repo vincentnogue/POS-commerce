@@ -407,13 +407,16 @@ function IntegrationCard({ provider, connection, isLocked, onConnect, viewMode }
 
   return (
     <div className="group flex flex-col rounded-lg border border-slate-200 bg-white p-6 transition-all hover:border-blue-300 hover:shadow-lg dark:border-slate-700 dark:bg-slate-800 dark:hover:border-blue-600">
-      {/* Logo */}
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700">
+      {/* Logo — sized closer to how the source icons are actually drawn
+          (most already have their own internal padding), so it reads as a
+          crisp, "zoomed in" logo rather than a small icon floating in a lot
+          of extra white margin. */}
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700 overflow-hidden">
         {provider.logo_url ? (
           <img
             src={provider.logo_url}
             alt={provider.provider_name}
-            className="h-8 w-8 object-contain"
+            className="h-11 w-11 object-contain"
           />
         ) : (
           <Plus className="h-6 w-6 text-slate-400" />
