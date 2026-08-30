@@ -3,7 +3,7 @@ import { Download, TrendingUp, TrendingDown, Wallet, FileBarChart, FileDown } fr
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
-import { formatMoney } from '../../lib/localization';
+import { formatMoney, localDateStr } from '../../lib/localization';
 import { PageHeader, StatCard } from '../../components/ui';
 import { DataTable, Select, exportCSV } from '../../components/DataTable';
 import type { Sale, Expense, Purchase } from '../../lib/types';
@@ -33,13 +33,13 @@ export function AccountingPage() {
       const m = Number(month);
       const s = new Date(y, m, 1);
       const e = new Date(y, m + 1, 0);
-      return { start: s.toISOString().slice(0, 10), end: e.toISOString().slice(0, 10), label: `${t(MONTH_KEYS[m])} ${y}` };
+      return { start: localDateStr(s), end: localDateStr(e), label: `${t(MONTH_KEYS[m])} ${y}` };
     }
     if (period === 'quarter') {
       const q = Number(quarter);
       const s = new Date(y, q * 3, 1);
       const e = new Date(y, q * 3 + 3, 0);
-      return { start: s.toISOString().slice(0, 10), end: e.toISOString().slice(0, 10), label: `Q${q + 1} ${y}` };
+      return { start: localDateStr(s), end: localDateStr(e), label: `Q${q + 1} ${y}` };
     }
     return { start: `${y}-01-01`, end: `${y}-12-31`, label: `${t('accounting.fiscalYear')} ${y}` };
   }, [period, year, month, quarter, t]);

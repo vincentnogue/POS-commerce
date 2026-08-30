@@ -4,7 +4,7 @@ import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Bank
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
-import { formatMoney } from '../../lib/localization';
+import { formatMoney, localDateStr } from '../../lib/localization';
 import { PageHeader, Modal, EmptyState, useToast } from '../../components/ui';
 import { printSaleReceipt } from '../../lib/receipt';
 import { printDayReport } from '../../lib/dayReport';
@@ -406,7 +406,7 @@ export function POSPage() {
         city: customer?.city ?? null,
         phone: customer?.phone ?? null,
         status: 'pending',
-        scheduled_date: new Date().toISOString().slice(0, 10),
+        scheduled_date: localDateStr(),
       }).select().single();
 
       if (delErr) {
