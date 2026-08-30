@@ -26,6 +26,27 @@ const REVENUE_TREND_SAMPLE = [
   { day: 'Dim', value: 2450 },
 ];
 
+// Multi-tab feature showcase — 8 tabs, each backed by a real shipped
+// module. Bullet copy only ever names things that actually exist
+// (checked against src/pages/modules/*): POSPage (barcode scan, split
+// payment, staff-linked invoice), MarketplacePage (real live payment
+// providers), StockPage (multi-store transfers), ReportsPage/
+// DashboardPage (real charts), UsersPage (per-module role permissions,
+// staff traceability — NOT payroll/attendance/recruiting, which this
+// product does not have even though the reference photo for this tab
+// happens to show that kind of UI), CustomersPage + store-credit
+// returns, StoresPage (multi-location), and the real API docs.
+const FEATURE_TABS = [
+  { key: 'pos', image: '/feature-tabs/pos.jpg' },
+  { key: 'payments', image: '/feature-tabs/payments.jpg' },
+  { key: 'inventory', image: '/feature-tabs/inventory.jpg' },
+  { key: 'analytics', image: '/feature-tabs/analytics.jpg' },
+  { key: 'employees', image: '/feature-tabs/employees.jpg' },
+  { key: 'crm', image: '/feature-tabs/crm.jpg' },
+  { key: 'multistore', image: '/feature-tabs/multistore.jpg' },
+  { key: 'integrations', image: '/feature-tabs/integrations.jpg' },
+] as const;
+
 const FEATURE_KEYS = [
   { icon: ShoppingCart, key: 'pos' },
   { icon: Package, key: 'stock' },
@@ -508,6 +529,7 @@ const LANDING_PLANS: PricingPlan[] = REAL_PLANS.map((p) => ({
 
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeFeatureTab, setActiveFeatureTab] = useState(0);
   const [email, setEmail] = useState('');
   const { lang, setLang, t } = useI18n();
   const { theme, toggle } = useTheme();
@@ -906,6 +928,74 @@ export function LandingPage() {
             </Link>
           ))}
         </div>
+      </section>
+
+      {/* Multi-tab feature showcase — 8 tabs matching the requested
+          reference layout (tab bar on top, image left / copy right below).
+          Each tab's bullet list only names real, shipped features. */}
+      <section className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
+        <h2 className="text-3xl lg:text-4xl font-bold text-center text-gray-900 dark:text-white mb-10">
+          {t('pLanding.featureTabs.title')}
+        </h2>
+
+        {/* Tab bar */}
+        <div className="flex flex-wrap justify-center gap-x-8 gap-y-3 border-b border-gray-200 dark:border-ink-800 mb-12">
+          {FEATURE_TABS.map((tab, i) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveFeatureTab(i)}
+              className={`relative pb-4 text-sm font-medium transition-colors whitespace-nowrap ${
+                activeFeatureTab === i
+                  ? 'text-brand-600 dark:text-brand-400'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+              }`}
+            >
+              {t(`pLanding.featureTabs.${tab.key}.tabLabel`)}
+              {activeFeatureTab === i && (
+                <motion.span layoutId="featureTabUnderline" className="absolute left-0 right-0 -bottom-px h-0.5 bg-brand-600 dark:bg-brand-400" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Active tab content */}
+        <motion.div
+          key={activeFeatureTab}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+        >
+          <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-ink-700 shadow-xl bg-white">
+            <img
+              src={FEATURE_TABS[activeFeatureTab].image}
+              alt={t(`pLanding.featureTabs.${FEATURE_TABS[activeFeatureTab].key}.tabLabel`)}
+              className="w-full h-auto object-contain"
+            />
+          </div>
+          <div>
+            <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              {t(`pLanding.featureTabs.${FEATURE_TABS[activeFeatureTab].key}.title`)}
+            </h3>
+            <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+              {t(`pLanding.featureTabs.${FEATURE_TABS[activeFeatureTab].key}.desc`)}
+            </p>
+            <ul className="space-y-3 mb-6">
+              {(['point1', 'point2', 'point3', 'point4'] as const).map((p) => (
+                <li key={p} className="flex items-start gap-2.5 text-gray-700 dark:text-gray-300">
+                  <Check className="w-5 h-5 text-brand-600 dark:text-brand-400 mt-0.5 flex-shrink-0" />
+                  {t(`pLanding.featureTabs.${FEATURE_TABS[activeFeatureTab].key}.${p}`)}
+                </li>
+              ))}
+            </ul>
+            <Link
+              to={FEATURE_TABS[activeFeatureTab].key === 'integrations' ? '/marketplace' : '/signup'}
+              className="inline-flex items-center gap-1.5 text-brand-600 dark:text-brand-400 font-semibold hover:gap-2.5 transition-all"
+            >
+              {t(`pLanding.featureTabs.${FEATURE_TABS[activeFeatureTab].key}.cta`)} <ArrowRight size={16} />
+            </Link>
+          </div>
+        </motion.div>
       </section>
 
       {/* Pricing — light section (was hardcoded dark), fixed USD prices */}
