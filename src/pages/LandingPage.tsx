@@ -7,6 +7,7 @@ import {
   Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AreaChart, Area, BarChart, Bar, ResponsiveContainer } from 'recharts';
 import { useI18n } from '../lib/i18n';
 import { useTheme } from '../lib/theme';
 import { supabase } from '../lib/supabase';
@@ -16,6 +17,22 @@ import { PLANS as REAL_PLANS } from '../lib/plans';
 // Real feature set — every entry below maps to an actual module that ships
 // in this app (see src/pages/modules/*), not aspirational copy. Titles/descriptions
 // come from i18n (pLanding.feature.*) so the EN toggle translates this grid too.
+
+// Sample data for the landing page's "revenue" / "performance" chart
+// illustrations. These are marketing mockups (same as the static
+// "$2,450" figure and the old CSS-bar chart they replace) — not live
+// data — but they now render through the same recharts components the
+// real Dashboard/Reports modules use, instead of four fixed-height <div>s.
+const REVENUE_TREND_SAMPLE = [
+  { day: 'Lun', value: 1180 }, { day: 'Mar', value: 1420 }, { day: 'Mer', value: 1290 },
+  { day: 'Jeu', value: 1610 }, { day: 'Ven', value: 1980 }, { day: 'Sam', value: 2260 },
+  { day: 'Dim', value: 2450 },
+];
+const CATEGORY_PERFORMANCE_SAMPLE = [
+  { name: 'Boissons', value: 820 }, { name: 'Alim.', value: 640 },
+  { name: 'Hygiène', value: 410 }, { name: 'Access.', value: 580 },
+];
+
 const FEATURE_KEYS = [
   { icon: ShoppingCart, key: 'pos' },
   { icon: Package, key: 'stock' },
@@ -405,6 +422,36 @@ function PosLiveDemo() {
           </button>
         </div>
       </div>
+
+      {/* Floating card — mini dashboard preview, using the same real
+          recharts component (and sample data) as the "keepFlowing"
+          section below and the real Dashboard module itself
+          (src/pages/modules/DashboardPage.tsx). Added per product
+          request without touching the existing panel/cards above. */}
+      <motion.div
+        initial={reducedMotion ? false : { opacity: 0, y: -10 }}
+        animate={reducedMotion ? { opacity: 1 } : { opacity: 1, y: [0, 6, 0] }}
+        transition={reducedMotion ? { duration: 0.4 } : { duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+        className="hidden sm:flex absolute -top-6 -left-6 w-36 flex-col gap-1.5 rounded-2xl border border-ink-700/80 bg-ink-900/95 backdrop-blur px-3 py-2.5 shadow-xl shadow-black/30"
+      >
+        <div className="flex items-center gap-1.5">
+          <BarChart3 size={12} className="text-brand-400" />
+          <span className="text-[10px] font-semibold text-ink-300">{t('pLanding.hero.demo.dashboardLabel')}</span>
+        </div>
+        <div className="h-8">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={REVENUE_TREND_SAMPLE} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="heroDashboardGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#2E8C66" stopOpacity={0.5} />
+                  <stop offset="100%" stopColor="#2E8C66" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Area type="monotone" dataKey="value" stroke="#2E8C66" strokeWidth={2} fill="url(#heroDashboardGradient)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </motion.div>
 
       {/* Floating card — today's sales, subtle live-count feel */}
       <motion.div
@@ -1187,28 +1234,34 @@ export function LandingPage() {
               </div>
             </div>
 
-            {/* Right image — real merchant photo, with a floating
-                credibility card. No invented stat: the card reflects the
-                same real support channel (email) shown on the left. */}
-            <div>
-              <div className="relative">
-                <div className="relative h-[420px] rounded-2xl overflow-hidden shadow-2xl">
-                  <img
-                    src="/work-together-merchant.jpg"
-                    alt={t('pLanding.workTogether.photoAlt')}
-                    loading="lazy"
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-ink-950/40 via-transparent to-transparent" />
+            {/* Right image — the actual real photo the user provided for
+                this section (a merchant at her own checkout counter,
+                matching what POS Flow is actually for), with a subtle
+                cinematic zoom (Ken Burns) and a floating credibility card.
+                Deliberately does NOT reuse the old "54 countries" figure
+                (landing.africa.countries.title) — that key undersold the
+                product's real international reach and has been removed;
+                the badge below uses the real 24/7 support claim instead. */}
+            <div className="relative">
+              <div className="relative h-[420px] rounded-2xl overflow-hidden shadow-2xl">
+                <motion.img
+                  src="/work-together-merchant.jpg"
+                  alt={t('pLanding.workTogether.photoAlt')}
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover"
+                  initial={false}
+                  animate={heroReducedMotion ? { scale: 1 } : { scale: [1, 1.06, 1] }}
+                  transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-ink-950/40 via-transparent to-transparent" />
+              </div>
+              <div className="absolute -bottom-6 -left-6 hidden sm:flex items-center gap-3 rounded-xl bg-white dark:bg-ink-800 border border-gray-100 dark:border-ink-700 shadow-xl px-5 py-4">
+                <div className="w-10 h-10 rounded-full bg-brand-500/10 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-5 h-5 text-brand-600 dark:text-brand-400" />
                 </div>
-                <div className="absolute -bottom-6 -left-6 hidden sm:flex items-center gap-3 rounded-xl bg-white dark:bg-ink-800 border border-gray-100 dark:border-ink-700 shadow-xl px-5 py-4">
-                  <div className="w-10 h-10 rounded-full bg-brand-500/10 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-5 h-5 text-brand-600 dark:text-brand-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-ink-900 dark:text-white">{t('pLanding.workTogether.card.title')}</p>
-                    <p className="text-xs text-ink-500 dark:text-ink-400">{t('pLanding.workTogether.card.desc')}</p>
-                  </div>
+                <div>
+                  <p className="text-sm font-semibold text-ink-900 dark:text-white">{t('pLanding.workTogether.card.title')}</p>
+                  <p className="text-xs text-ink-500 dark:text-ink-400">{t('pLanding.workTogether.card.desc')}</p>
                 </div>
               </div>
             </div>
@@ -1232,11 +1285,22 @@ export function LandingPage() {
             <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg">
               <div className="text-3xl font-bold text-brand-600 dark:text-brand-400 mb-2">$2,450</div>
               <p className="text-sm font-semibold text-ink-600 dark:text-ink-400 mb-4">{t('pLanding.keepFlowing.card.revenue')}</p>
-              <div className="h-12 flex items-end gap-1 mt-3">
-                <div className="flex-1 bg-flow-300 rounded h-1/3"></div>
-                <div className="flex-1 bg-flow-400 rounded h-2/3"></div>
-                <div className="flex-1 bg-flow-500 rounded h-full"></div>
-                <div className="flex-1 bg-flow-400 rounded h-3/4"></div>
+              {/* BUG FIX: this used to be 4 fixed-height <div>s faking a bar
+                  chart. Now a real recharts AreaChart, same component and
+                  gradient style the real Dashboard module uses for its own
+                  sales-trend chart (src/pages/modules/DashboardPage.tsx). */}
+              <div className="h-16 mt-3">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={REVENUE_TREND_SAMPLE} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="landingRevenueGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#2E8C66" stopOpacity={0.35} />
+                        <stop offset="100%" stopColor="#2E8C66" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <Area type="monotone" dataKey="value" stroke="#2E8C66" strokeWidth={2.5} fill="url(#landingRevenueGradient)" />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
               <p className="text-xs text-flow-600 dark:text-flow-400 mt-3">↑ 32% {t('pLanding.keepFlowing.card.vsYesterday')}</p>
             </div>
@@ -1258,7 +1322,17 @@ export function LandingPage() {
                 <ArrowRightLeft className="w-5 h-5 text-brand-600 dark:text-brand-400" />
               </div>
               <p className="font-semibold text-ink-900 dark:text-white mb-2">{t('pLanding.keepFlowing.card.transferTitle')}</p>
-              <p className="text-sm text-ink-700 dark:text-ink-300">{t('pLanding.keepFlowing.card.transferDesc')}</p>
+              <p className="text-sm text-ink-700 dark:text-ink-300 mb-4">{t('pLanding.keepFlowing.card.transferDesc')}</p>
+              {/* Real performance-by-category illustration (recharts
+                  BarChart), same idea as the real Reports module's
+                  category breakdowns. */}
+              <div className="h-14">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={CATEGORY_PERFORMANCE_SAMPLE} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                    <Bar dataKey="value" radius={[3, 3, 0, 0]} fill="#2E8C66" fillOpacity={0.75} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
             <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700">

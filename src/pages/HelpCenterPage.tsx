@@ -58,7 +58,7 @@ const FAQ_ITEMS: FAQItem[] = [
     id: 'trial',
     category: 'Trial & Subscription',
     question: 'How long is the trial period?',
-    answer: 'Our trial period is 7 days. You don\'t need to enter credit card details to start your trial. After 7 days, you can upgrade to a paid plan or your account will remain in limited mode.',
+    answer: 'Our trial period is 14 days. You don\'t need to enter credit card details to start your trial. After 14 days, you can upgrade to a paid plan or your account will remain in limited mode.',
     icon: Zap,
   },
   {

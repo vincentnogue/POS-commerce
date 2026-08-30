@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Globe, ArrowRight, ArrowLeft, Radio, WifiOff, Check, X } from 'lucide-react';
-import { PricingCard, type PricingPlan } from '../components/PricingCard';
+import { type PricingPlan } from '../components/PricingCard';
 import { CountryFlagsMarquee } from '../components/CountryFlagsMarquee';
 import { PLANS as REAL_PLANS } from '../lib/plans';
 import {
@@ -75,7 +75,6 @@ export function PricingPage() {
   const [loading, setLoading] = useState(true);
   const [currencies, setCurrencies] = useState<string[]>([]);
   const [showMatrix, setShowMatrix] = useState(false);
-  const [showFeatureMatrix, setShowFeatureMatrix] = useState(false);
 
   useEffect(() => {
     const initializePage = async () => {
@@ -204,96 +203,112 @@ export function PricingPage() {
           >
             {showMatrix ? 'Masquer' : 'Afficher'} la matrice complète de conversion ({currencies.length} devises)
           </button>
-          <button
-            onClick={() => setShowFeatureMatrix((v) => !v)}
-            className="text-sm font-medium text-flow-600 dark:text-flow-300 hover:text-flow-500 dark:hover:text-flow-200 underline underline-offset-2"
-          >
-            {showFeatureMatrix ? 'Masquer' : 'Voir'} le comparatif complet des fonctionnalités
-          </button>
         </div>
       </div>
 
-      {/* Full feature comparison matrix — every checklist item across all 4
-          real plans (src/lib/plans.ts), plus usage limits (staff, boutiques,
-          produits). Plans here are cumulative/additive in the real data, so
-          a feature present in a lower plan is present in every plan above
-          it — this table makes that visible instead of hiding it inside
-          four separate cards, so a visitor can see exactly what they'd be
-          missing by not picking a higher plan. */}
-      {showFeatureMatrix && (
-        <div className="max-w-6xl mx-auto px-6 pb-16">
-          <div className="rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 overflow-hidden shadow-soft">
-            <div className="overflow-x-auto scroll-thin">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-ink-200 dark:border-ink-700 bg-brand-50 dark:bg-ink-900/50">
-                    <th className="px-4 py-3 text-left font-semibold text-ink-700 dark:text-ink-200">Fonctionnalité</th>
-                    {PLANS.map((plan) => (
-                      <th key={plan.id} className={`px-4 py-3 text-center font-semibold whitespace-nowrap ${plan.popular ? 'text-brand-700 dark:text-brand-300' : 'text-ink-700 dark:text-ink-200'}`}>
-                        {plan.name}
-                        {plan.popular && <span className="block text-[10px] font-medium text-brand-500">Recommandé</span>}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-ink-100 dark:border-ink-700/50 bg-brand-50/40 dark:bg-ink-900/20">
-                    <td className="px-4 py-2.5 font-medium text-ink-900 dark:text-ink-50">Staff inclus</td>
-                    {REAL_PLANS.map((p) => (
-                      <td key={p.code} className="px-4 py-2.5 text-center tabular-nums text-ink-700 dark:text-ink-200">{p.maxUsers}</td>
-                    ))}
-                  </tr>
-                  <tr className="border-b border-ink-100 dark:border-ink-700/50 bg-brand-50/40 dark:bg-ink-900/20">
-                    <td className="px-4 py-2.5 font-medium text-ink-900 dark:text-ink-50">Boutiques incluses</td>
-                    {REAL_PLANS.map((p) => (
-                      <td key={p.code} className="px-4 py-2.5 text-center tabular-nums text-ink-700 dark:text-ink-200">{p.maxStores}</td>
-                    ))}
-                  </tr>
-                  <tr className="border-b border-ink-100 dark:border-ink-700/50 bg-brand-50/40 dark:bg-ink-900/20">
-                    <td className="px-4 py-2.5 font-medium text-ink-900 dark:text-ink-50">Produits inclus</td>
-                    {REAL_PLANS.map((p) => (
-                      <td key={p.code} className="px-4 py-2.5 text-center tabular-nums text-ink-700 dark:text-ink-200">{p.maxProducts.toLocaleString('fr-FR')}</td>
-                    ))}
-                  </tr>
-                  {ALL_FEATURES.map((feature) => (
-                    <tr key={feature} className="border-b border-ink-100 dark:border-ink-700/50 last:border-0 hover:bg-brand-50/60 dark:hover:bg-ink-900/40">
-                      <td className="px-4 py-2.5 text-ink-900 dark:text-ink-50">{feature}</td>
-                      {REAL_PLANS.map((p) => (
-                        <td key={p.code} className="px-4 py-2.5 text-center">
-                          {p.features.includes(feature) ? (
-                            <Check className="w-4 h-4 text-success-600 dark:text-success-400 inline" />
-                          ) : (
-                            <X className="w-4 h-4 text-ink-300 dark:text-ink-600 inline" />
-                          )}
-                        </td>
-                      ))}
-                    </tr>
+      {/* BUG FIX / PRODUCT CHANGE: this page used to show a flat 4-card
+          grid (name + price + a plain feature list per card, see
+          PricingCard) and hid the real comparison behind a
+          click-to-reveal toggle most visitors never clicked. A prospect
+          comparing 4 plans across ~20 features has to mentally cross-
+          reference 4 separate cards to see what changes between tiers.
+          The comparison table already existed and was already correct
+          (built straight from src/lib/plans.ts, the single real source
+          of truth) — it's now the primary, always-visible content, with
+          price + CTA folded into the table itself so nothing is lost by
+          removing the card grid. Plans are cumulative/additive in the
+          real data: a feature present in a lower plan is present in
+          every plan above it, which this table makes directly visible. */}
+      <div className="max-w-6xl mx-auto px-6 pb-16">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl lg:text-3xl font-bold text-ink-900 dark:text-white mb-2">
+            Comparatif complet des fonctionnalités
+          </h2>
+          <p className="text-ink-600 dark:text-ink-300">
+            Chaque plan inclut tout ce qui est listé dans les plans en-dessous de lui. Comparez en détail avant de choisir.
+          </p>
+        </div>
+        <div className="rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 overflow-hidden shadow-soft">
+          <div className="overflow-x-auto scroll-thin">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-ink-200 dark:border-ink-700 bg-brand-50 dark:bg-ink-900/50">
+                  <th className="px-4 py-3 text-left font-semibold text-ink-700 dark:text-ink-200 sticky left-0 bg-brand-50 dark:bg-ink-900/50">Fonctionnalité</th>
+                  {PLANS.map((plan) => (
+                    <th
+                      key={plan.id}
+                      className={`px-4 py-3 text-center font-semibold whitespace-nowrap ${
+                        plan.popular ? 'text-brand-700 dark:text-brand-300 bg-brand-100/60 dark:bg-brand-500/10' : 'text-ink-700 dark:text-ink-200'
+                      }`}
+                    >
+                      {plan.popular && <span className="block text-[10px] font-bold text-brand-500 mb-0.5">★ RECOMMANDÉ</span>}
+                      <span className="text-base">{plan.name}</span>
+                      <span className="block mt-1 text-lg font-bold text-ink-900 dark:text-white tabular-nums">
+                        {convertedPrices[plan.id]?.formatted ?? `$${plan.basePrice}`}
+                        <span className="text-xs font-normal text-ink-500 dark:text-ink-400">/mois</span>
+                      </span>
+                      <span className="block mt-0.5 text-[11px] font-normal text-ink-500 dark:text-ink-400 normal-case">{plan.description}</span>
+                    </th>
                   ))}
-                </tbody>
-                <tfoot>
-                  <tr className="bg-brand-50/60 dark:bg-ink-900/40">
-                    <td className="px-4 py-4"></td>
-                    {PLANS.map((plan) => (
-                      <td key={plan.id} className="px-4 py-4 text-center">
-                        <Link
-                          to={plan.cta.href}
-                          className={`inline-flex items-center justify-center px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                            plan.popular
-                              ? 'bg-brand-500 text-white hover:bg-brand-600 shadow-md shadow-brand-500/30'
-                              : 'bg-flow-500/10 text-flow-700 dark:text-flow-300 hover:bg-flow-500/20 border border-flow-500/30'
-                          }`}
-                        >
-                          {plan.cta.text}
-                        </Link>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-ink-100 dark:border-ink-700/50 bg-brand-50/40 dark:bg-ink-900/20">
+                  <td className="px-4 py-2.5 font-medium text-ink-900 dark:text-ink-50 sticky left-0 bg-brand-50/40 dark:bg-ink-900/20">Staff inclus</td>
+                  {REAL_PLANS.map((p) => (
+                    <td key={p.code} className={`px-4 py-2.5 text-center tabular-nums text-ink-700 dark:text-ink-200 ${p.popular ? 'bg-brand-50/60 dark:bg-brand-500/5' : ''}`}>{p.maxUsers}</td>
+                  ))}
+                </tr>
+                <tr className="border-b border-ink-100 dark:border-ink-700/50 bg-brand-50/40 dark:bg-ink-900/20">
+                  <td className="px-4 py-2.5 font-medium text-ink-900 dark:text-ink-50 sticky left-0 bg-brand-50/40 dark:bg-ink-900/20">Boutiques incluses</td>
+                  {REAL_PLANS.map((p) => (
+                    <td key={p.code} className={`px-4 py-2.5 text-center tabular-nums text-ink-700 dark:text-ink-200 ${p.popular ? 'bg-brand-50/60 dark:bg-brand-500/5' : ''}`}>{p.maxStores}</td>
+                  ))}
+                </tr>
+                <tr className="border-b border-ink-100 dark:border-ink-700/50 bg-brand-50/40 dark:bg-ink-900/20">
+                  <td className="px-4 py-2.5 font-medium text-ink-900 dark:text-ink-50 sticky left-0 bg-brand-50/40 dark:bg-ink-900/20">Produits inclus</td>
+                  {REAL_PLANS.map((p) => (
+                    <td key={p.code} className={`px-4 py-2.5 text-center tabular-nums text-ink-700 dark:text-ink-200 ${p.popular ? 'bg-brand-50/60 dark:bg-brand-500/5' : ''}`}>{p.maxProducts.toLocaleString('fr-FR')}</td>
+                  ))}
+                </tr>
+                {ALL_FEATURES.map((feature) => (
+                  <tr key={feature} className="border-b border-ink-100 dark:border-ink-700/50 last:border-0 hover:bg-brand-50/60 dark:hover:bg-ink-900/40">
+                    <td className="px-4 py-2.5 text-ink-900 dark:text-ink-50 sticky left-0 bg-white dark:bg-ink-800">{feature}</td>
+                    {REAL_PLANS.map((p) => (
+                      <td key={p.code} className={`px-4 py-2.5 text-center ${p.popular ? 'bg-brand-50/40 dark:bg-brand-500/5' : ''}`}>
+                        {p.features.includes(feature) ? (
+                          <Check className="w-4 h-4 text-success-600 dark:text-success-400 inline" />
+                        ) : (
+                          <X className="w-4 h-4 text-ink-300 dark:text-ink-600 inline" />
+                        )}
                       </td>
                     ))}
                   </tr>
-                </tfoot>
-              </table>
-            </div>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="bg-brand-50/60 dark:bg-ink-900/40">
+                  <td className="px-4 py-4 sticky left-0 bg-brand-50/60 dark:bg-ink-900/40"></td>
+                  {PLANS.map((plan) => (
+                    <td key={plan.id} className="px-4 py-4 text-center">
+                      <Link
+                        to={plan.cta.href}
+                        className={`inline-flex items-center justify-center px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                          plan.popular
+                            ? 'bg-brand-500 text-white hover:bg-brand-600 shadow-md shadow-brand-500/30'
+                            : 'bg-flow-500/10 text-flow-700 dark:text-flow-300 hover:bg-flow-500/20 border border-flow-500/30'
+                        }`}
+                      >
+                        {plan.cta.text}
+                      </Link>
+                    </td>
+                  ))}
+                </tr>
+              </tfoot>
+            </table>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Full currency conversion matrix */}
       {showMatrix && rates && (
@@ -346,30 +361,11 @@ export function PricingPage() {
         </div>
       )}
 
-      {/* Pricing Cards */}
-      <div className="max-w-6xl mx-auto px-6 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {PLANS.map((plan) => (
-            <PricingCard
-              key={plan.id}
-              plan={plan}
-              convertedPrice={convertedPrices[plan.id] || {
-                usd: plan.basePrice,
-                currency: 'USD',
-                amount: plan.basePrice,
-                formatted: `$${plan.basePrice}`,
-                rate: 1,
-              }}
-              onSelect={(planId) => {
-                const cta = PLANS.find((p) => p.id === planId)?.cta;
-                if (cta) {
-                  window.location.href = cta.href;
-                }
-              }}
-            />
-          ))}
-        </div>
-      </div>
+      {/* Pricing Cards grid removed — replaced by the always-visible
+          feature comparison table above (price + CTA now live inside the
+          table itself), per product decision: a 4-card grid forced
+          visitors to cross-reference cards manually instead of seeing the
+          full comparison at a glance. */}
 
       <div className="border-t border-ink-200 dark:border-ink-800/50">
         <CountryFlagsMarquee title="Conçu pour fonctionner partout dans le monde" lang="fr" />
@@ -396,7 +392,7 @@ export function PricingPage() {
               Y a-t-il un essai gratuit ?
             </h3>
             <p className="text-ink-600 dark:text-ink-300">
-              Oui ! Tous les plans incluent un essai gratuit de 7 jours. Aucune carte bancaire requise pour démarrer.
+              Oui ! Tous les plans incluent un essai gratuit de 14 jours. Aucune carte bancaire requise pour démarrer.
             </p>
           </div>
 
@@ -415,7 +411,7 @@ export function PricingPage() {
               Proposez-vous des remboursements ?
             </h3>
             <p className="text-ink-600 dark:text-ink-300">
-              Pendant l'essai de 7 jours, vous pouvez annuler et être intégralement remboursé. Passé ce délai, les abonnements ne sont pas remboursables,
+              Pendant l'essai de 14 jours, vous pouvez annuler et être intégralement remboursé. Passé ce délai, les abonnements ne sont pas remboursables,
               mais vous pouvez annuler à tout moment sans pénalité.
             </p>
           </div>
@@ -437,7 +433,7 @@ export function PricingPage() {
           Prêt à commencer ?
         </h2>
         <p className="text-xl text-ink-600 dark:text-ink-300 mb-8">
-          Démarrez votre essai gratuit de 7 jours dès aujourd'hui. Aucune carte bancaire requise.
+          Démarrez votre essai gratuit de 14 jours dès aujourd'hui. Aucune carte bancaire requise.
         </p>
         <button className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/30">
           Démarrer l'essai gratuit
