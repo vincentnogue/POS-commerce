@@ -675,12 +675,14 @@ export function LandingPage() {
               className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-ink-700 space-y-3"
             >
               <a href="#features" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.footer.features')}</a>
+              <Link to="/marketplace" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.productsMarketplace')}</Link>
               <a href="#pricing" onClick={scrollToPricing} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.pricing')}</a>
-              <Link to="/about" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.about')}</Link>
-              <Link to="/contact" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.contact')}</Link>
-              <Link to="/documentation" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.docs')}</Link>
-              <Link to="/resources" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.resources')}</Link>
-              <Link to="/help" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.help')}</Link>
+              <Link to="/about" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.about')}</Link>
+              <Link to="/contact" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.contact')}</Link>
+              <Link to="/documentation" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.docs')}</Link>
+              <Link to="/blog" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.footer.blog')}</Link>
+              <Link to="/resources" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.resources')}</Link>
+              <Link to="/help" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.help')}</Link>
               <div className="flex items-center gap-3 py-2">
                 <button
                   onClick={toggle}
@@ -698,8 +700,8 @@ export function LandingPage() {
                   <Globe size={16} /> {lang.toUpperCase()}
                 </button>
               </div>
-              <Link to="/login" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.login')}</Link>
-              <Link to="/signup" className="block w-full px-6 py-2 bg-brand-600 text-white rounded-full font-medium text-center">{t('pLanding.nav.cta')}</Link>
+              <Link to="/login" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.login')}</Link>
+              <Link to="/signup" onClick={() => setMenuOpen(false)} className="block w-full px-6 py-2 bg-brand-600 text-white rounded-full font-medium text-center">{t('pLanding.nav.cta')}</Link>
             </motion.div>
           )}
         </div>
@@ -1389,50 +1391,76 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 dark:border-ink-800 bg-white dark:bg-ink-950">
-        <div className="max-w-7xl mx-auto px-4 py-12 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+      {/* Footer — always-dark "premium" treatment (independent of the
+          site's light/dark toggle, like most SaaS marketing footers): a
+          gradient accent hairline on top, a brand column with tagline,
+          and a CTA pill button reusing the shared .btn-primary pill style
+          from the audit below instead of a one-off rounded-full class. */}
+      <footer className="relative overflow-hidden bg-ink-950">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-400/70 to-transparent" />
+        <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-brand-500/10 blur-3xl" />
+
+        <div className="relative mx-auto max-w-7xl px-4 py-16 lg:px-8">
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-5">
+            <div className="md:col-span-1">
+              <Link to="/" className="flex items-center gap-2.5">
+                <img src="/logo-pos-icon.png" alt="POS Flow" className="h-9 w-9" />
+                <span className="text-xl font-bold tracking-tight text-white">
+                  POS <span className="text-brand-400">Flow</span>
+                </span>
+              </Link>
+              <p className="mt-3 max-w-xs text-sm text-ink-400">
+                {t('pLanding.footer.tagline')}
+              </p>
+              <Link to="/signup" className="btn-primary mt-6 inline-flex">
+                {t('pLanding.nav.cta')}
+              </Link>
+            </div>
+
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.product')}</p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><a href="#features" className="hover:text-brand-600">{t('pLanding.footer.features')}</a></li>
-                <li><a href="#pricing" onClick={scrollToPricing} className="hover:text-brand-600">{t('pLanding.nav.pricing')}</a></li>
-                <li><Link to="/marketplace" className="hover:text-brand-600">{t('pLanding.footer.marketplace')}</Link></li>
+              <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-200">{t('pLanding.footer.product')}</p>
+              <ul className="space-y-2.5 text-sm text-ink-400">
+                <li><a href="#features" className="transition hover:text-brand-400">{t('pLanding.footer.features')}</a></li>
+                <li><a href="#pricing" onClick={scrollToPricing} className="transition hover:text-brand-400">{t('pLanding.nav.pricing')}</a></li>
+                <li><Link to="/marketplace" className="transition hover:text-brand-400">{t('pLanding.footer.marketplace')}</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.company')}</p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><Link to="/about" className="hover:text-brand-600">{t('pLanding.footer.about')}</Link></li>
-                <li><Link to="/careers" className="hover:text-brand-600">{t('pLanding.footer.careers')}</Link></li>
-                <li><Link to="/blog" className="hover:text-brand-600">{t('pLanding.footer.blog')}</Link></li>
-                <li><Link to="/contact" className="hover:text-brand-600">{t('pLanding.footer.contact')}</Link></li>
+              <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-200">{t('pLanding.footer.company')}</p>
+              <ul className="space-y-2.5 text-sm text-ink-400">
+                <li><Link to="/about" className="transition hover:text-brand-400">{t('pLanding.footer.about')}</Link></li>
+                <li><Link to="/careers" className="transition hover:text-brand-400">{t('pLanding.footer.careers')}</Link></li>
+                <li><Link to="/blog" className="transition hover:text-brand-400">{t('pLanding.footer.blog')}</Link></li>
+                <li><Link to="/contact" className="transition hover:text-brand-400">{t('pLanding.footer.contact')}</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.resources')}</p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><Link to="/resources" className="hover:text-brand-600">{t('pLanding.footer.resources')}</Link></li>
-                <li><Link to="/help" className="hover:text-brand-600">{t('pLanding.footer.help')}</Link></li>
-                <li><Link to="/documentation" className="hover:text-brand-600">{t('pLanding.footer.docs')}</Link></li>
+              <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-200">{t('pLanding.footer.resources')}</p>
+              <ul className="space-y-2.5 text-sm text-ink-400">
+                <li><Link to="/resources" className="transition hover:text-brand-400">{t('pLanding.footer.resources')}</Link></li>
+                <li><Link to="/help" className="transition hover:text-brand-400">{t('pLanding.footer.help')}</Link></li>
+                <li><Link to="/documentation" className="transition hover:text-brand-400">{t('pLanding.footer.docs')}</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.legal')}</p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><Link to="/privacy" className="hover:text-brand-600">{t('pLanding.footer.privacy')}</Link></li>
-                <li><Link to="/terms" className="hover:text-brand-600">{t('pLanding.footer.terms')}</Link></li>
-                <li><Link to="/legal" className="hover:text-brand-600">{t('pLanding.footer.legalNotice')}</Link></li>
+              <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-200">{t('pLanding.footer.legal')}</p>
+              <ul className="space-y-2.5 text-sm text-ink-400">
+                <li><Link to="/privacy" className="transition hover:text-brand-400">{t('pLanding.footer.privacy')}</Link></li>
+                <li><Link to="/terms" className="transition hover:text-brand-400">{t('pLanding.footer.terms')}</Link></li>
+                <li><Link to="/legal" className="transition hover:text-brand-400">{t('pLanding.footer.legalNotice')}</Link></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-200 dark:border-ink-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+
+          <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 sm:flex-row">
+            <p className="text-sm text-ink-500">
               {t('pLanding.footer.rights', { year: new Date().getFullYear() })}
             </p>
-            <button onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')} className="text-sm text-gray-600 dark:text-gray-400 hover:text-brand-600">
-              {lang.toUpperCase()}
+            <button
+              onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-sm text-ink-400 transition hover:border-brand-400/50 hover:text-brand-400"
+            >
+              <Globe size={14} /> {lang.toUpperCase()}
             </button>
           </div>
         </div>
