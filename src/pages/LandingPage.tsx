@@ -806,12 +806,12 @@ export function LandingPage() {
                   placeholder={t('pLanding.hero.emailPlaceholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 px-5 py-3.5 rounded-xl bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="flex-1 px-5 py-3.5 rounded-full bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   required
                 />
                 <button
                   type="submit"
-                  className="group px-7 py-3.5 bg-brand-500 text-white rounded-xl font-semibold hover:bg-brand-600 active:scale-[0.98] transition-all whitespace-nowrap inline-flex items-center justify-center gap-2"
+                  className="group px-7 py-3.5 bg-brand-500 text-white rounded-full font-semibold hover:bg-brand-600 active:scale-[0.98] transition-all whitespace-nowrap inline-flex items-center justify-center gap-2"
                 >
                   {t('pLanding.hero.start')}
                   <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
@@ -1836,6 +1836,30 @@ export function LandingPage() {
                       </div>
                     ))}
                   </div>
+                </div>
+              </div>
+
+              {/* Platform capabilities strip — real feature set, same
+                  entries as FEATURE_KEYS used elsewhere on this page
+                  (src/pages/modules/*), giving the dashboard mockup more
+                  visible breadth without inventing anything new. */}
+              <div className="mt-6 pt-6 border-t border-gray-100 dark:border-ink-800">
+                <div className="flex flex-wrap items-center gap-2">
+                  {[
+                    { icon: Wallet, key: 'currencies' },
+                    { icon: Store, key: 'stores' },
+                    { icon: ShieldCheck, key: 'roles' },
+                    { icon: Search, key: 'barcode' },
+                    { icon: CreditCard, key: 'splitPayments' },
+                  ].map((cap) => (
+                    <span
+                      key={cap.key}
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-600 dark:text-ink-300 bg-gray-50 dark:bg-ink-800 border border-gray-100 dark:border-ink-700 rounded-full px-3 py-1.5"
+                    >
+                      <cap.icon size={12} className="text-brand-600 dark:text-brand-400" />
+                      {t(`pLanding.keepFlowing.capability.${cap.key}`)}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>

@@ -1654,6 +1654,11 @@ export const fr: Record<string, string> = {
   "pLanding.keepFlowing.day.sat": "Sam",
   "pLanding.keepFlowing.day.sun": "Dim",
   "pLanding.keepFlowing.stores.title": "Meilleures boutiques",
+  "pLanding.keepFlowing.capability.currencies": "Multi-devises",
+  "pLanding.keepFlowing.capability.stores": "Multi-boutiques",
+  "pLanding.keepFlowing.capability.roles": "Rôles & permissions staff",
+  "pLanding.keepFlowing.capability.barcode": "Scan code-barre",
+  "pLanding.keepFlowing.capability.splitPayments": "Paiements fractionnés",
   "pLanding.keepFlowing.cta": "Explorer la plateforme",
 
 
