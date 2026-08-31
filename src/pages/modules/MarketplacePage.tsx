@@ -606,14 +606,14 @@ function IntegrationConnectionModal({ provider, connection, onClose, onSuccess }
               <div className="space-y-2">
                 <button
                   onClick={() => setShowForm(true)}
-                  className="w-full px-4 py-2 border border-ink-300 dark:border-ink-600 rounded-lg text-ink-900 dark:text-white font-medium hover:bg-ink-50 dark:hover:bg-ink-700 transition-colors"
+                  className="w-full px-4 py-2 border border-ink-300 dark:border-ink-600 rounded-full text-ink-900 dark:text-white font-medium hover:bg-ink-50 dark:hover:bg-ink-700 transition-colors"
                 >
                   Update Credentials
                 </button>
                 <button
                   onClick={handleDisconnect}
                   disabled={disconnecting}
-                  className="w-full px-4 py-2 border border-error-100 dark:border-error-500 rounded-lg text-error-500 dark:text-error-500 font-medium hover:bg-error-50 dark:hover:bg-error-600/20 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  className="w-full px-4 py-2 border border-error-100 dark:border-error-500 rounded-full text-error-500 dark:text-error-500 font-medium hover:bg-error-50 dark:hover:bg-error-600/20 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" />
                   {disconnecting ? 'Disconnecting...' : 'Disconnect'}

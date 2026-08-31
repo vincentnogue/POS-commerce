@@ -441,7 +441,7 @@ function PosLiveDemo() {
             type="button"
             tabIndex={-1}
             aria-hidden="true"
-            className={`mt-3 w-full rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 transition-colors ${
+            className={`mt-3 w-full rounded-full py-2.5 text-sm font-semibold flex items-center justify-center gap-2 transition-colors ${
               isPaid ? 'bg-brand-500 text-white' : 'bg-white text-ink-900'
             }`}
           >
@@ -801,7 +801,7 @@ export function LandingPage() {
                 />
                 <button
                   type="submit"
-                  className="group px-7 py-3.5 bg-brand-500 text-white rounded-xl font-semibold hover:bg-brand-600 active:scale-[0.98] transition-all whitespace-nowrap inline-flex items-center justify-center gap-2"
+                  className="group px-7 py-3.5 bg-brand-500 text-white rounded-full font-semibold hover:bg-brand-600 active:scale-[0.98] transition-all whitespace-nowrap inline-flex items-center justify-center gap-2"
                 >
                   {t('pLanding.hero.start')}
                   <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />

@@ -224,7 +224,7 @@ export function Button({
 
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
       {...props}
     />
   );

@@ -558,14 +558,14 @@ export function POSPage() {
         )
       )}
 
-      <div className="mb-4 inline-flex rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
-        <button onClick={() => setPageTab('sale')} className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition ${pageTab === 'sale' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
+      <div className="mb-4 inline-flex rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
+        <button onClick={() => setPageTab('sale')} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition ${pageTab === 'sale' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
           <ShoppingCart size={14} /> {t('pos.tab.sale')}
         </button>
-        <button onClick={() => setPageTab('history')} className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition ${pageTab === 'history' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
+        <button onClick={() => setPageTab('history')} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition ${pageTab === 'history' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
           <History size={14} /> {t('pos.tab.history')}
         </button>
-        <button onClick={() => setPageTab('returns')} className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition ${pageTab === 'returns' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
+        <button onClick={() => setPageTab('returns')} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition ${pageTab === 'returns' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
           <RotateCcw size={14} /> {t('pos.tab.returns')}
         </button>
       </div>

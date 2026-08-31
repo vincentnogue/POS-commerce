@@ -147,8 +147,8 @@ export function SuppliersPage() {
               { key: 'balance', label: t('suppliers.col.balance'), className: 'text-right', render: (s) => <span className={Number(s.balance) > 0 ? 'font-medium text-warning-600' : 'text-ink-900 dark:text-ink-50'}>{formatMoney(s.balance, currency)}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (s) => (
                 <div className="flex justify-end gap-2">
-                  {canUpdate && <button onClick={() => openEdit(s)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>}
-                  {canDelete && <button onClick={() => remove(s)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>}
+                  {canUpdate && <button onClick={() => openEdit(s)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>}
+                  {canDelete && <button onClick={() => remove(s)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>}
                 </div>
               )},
             ]}

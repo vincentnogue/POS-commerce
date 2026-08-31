@@ -243,15 +243,15 @@ export function UsersPage() {
 
       {info && <div className="mb-4 rounded-xl bg-brand-50 dark:bg-brand-900/25 p-3 text-sm text-brand-700">{info}</div>}
 
-      <div className="mb-4 inline-flex rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
+      <div className="mb-4 inline-flex rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
         <button
           onClick={() => setTab('members')}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${tab === 'members' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
+          className={`rounded-full px-4 py-2 text-sm font-medium transition ${tab === 'members' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
         >{t('users.tab.team')}</button>
         {canManageRoles && (
           <button
             onClick={() => setTab('roles')}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition ${tab === 'roles' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
+            className={`rounded-full px-4 py-2 text-sm font-medium transition ${tab === 'roles' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
           >{t('users.tab.roles')}</button>
         )}
       </div>
@@ -311,10 +311,10 @@ export function UsersPage() {
                         {customRole?.name ?? t(ROLE_LABELS[m.role]?.key ?? 'users.role.staff')}
                       </Badge>
                       {canManageRoles && m.role !== 'super_admin' && (
-                        <button onClick={() => openPinModal(m)} title={t('users.setPin')} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><KeyRound size={15} /></button>
+                        <button onClick={() => openPinModal(m)} title={t('users.setPin')} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><KeyRound size={15} /></button>
                       )}
                       {canManageRoles && m.role !== 'super_admin' && (
-                        <button onClick={() => remove(m)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
+                        <button onClick={() => remove(m)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
                       )}
                     </div>
                   </div>
@@ -342,8 +342,8 @@ export function UsersPage() {
                           <h4 className="font-medium text-ink-900 dark:text-ink-50">{r.name}</h4>
                         </div>
                         <div className="flex gap-1">
-                          <button onClick={() => openEditRole(r)} className="rounded-md p-1 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={13} /></button>
-                          <button onClick={() => deleteRole(r)} className="rounded-md p-1 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={13} /></button>
+                          <button onClick={() => openEditRole(r)} className="rounded-full p-1 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={13} /></button>
+                          <button onClick={() => deleteRole(r)} className="rounded-full p-1 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={13} /></button>
                         </div>
                       </div>
                       {r.description && <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">{r.description}</p>}
@@ -432,7 +432,7 @@ export function UsersPage() {
                         <button
                           key={a}
                           onClick={() => togglePerm(m, a)}
-                          className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition ${
+                          className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition ${
                             active ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-500 dark:text-ink-400 hover:bg-ink-200 dark:hover:bg-ink-700'
                           }`}
                           title={`${t(ACTION_LABELS[a])} — ${t(MODULE_LABELS[m])}`}

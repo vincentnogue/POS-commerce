@@ -148,7 +148,7 @@ export function HelpCenterPage() {
         <div className="mb-8 flex flex-wrap gap-2">
           <button
             onClick={() => setSelectedCategory(null)}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
+            className={`px-4 py-2 rounded-full font-medium transition ${
               !selectedCategory
                 ? 'bg-flow-500 text-white'
                 : 'bg-white dark:bg-ink-800 text-ink-600 dark:text-ink-300 border border-ink-200 dark:border-ink-700 hover:bg-ink-100 dark:hover:bg-ink-700/50'
@@ -160,7 +160,7 @@ export function HelpCenterPage() {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
+              className={`px-4 py-2 rounded-full font-medium transition ${
                 selectedCategory === category
                   ? 'bg-flow-500 text-white'
                   : 'bg-white dark:bg-ink-800 text-ink-600 dark:text-ink-300 border border-ink-200 dark:border-ink-700 hover:bg-ink-100 dark:hover:bg-ink-700/50'
@@ -293,7 +293,7 @@ export function HelpCenterPage() {
                   <p className={`text-sm mb-4 ${palette.text}`}>{p.maxUsers} users &middot; {p.maxStores} store{p.maxStores > 1 ? 's' : ''}</p>
                   <a
                     href={isLast ? '/contact' : '/signup'}
-                    className={`inline-block px-4 py-2 rounded-lg text-white text-sm font-medium transition ${palette.btn}`}
+                    className={`inline-block px-4 py-2 rounded-full text-white text-sm font-medium transition ${palette.btn}`}
                   >
                     {isLast ? 'Contact Sales' : 'Try for Free'}
                   </a>

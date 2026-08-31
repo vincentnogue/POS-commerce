@@ -229,11 +229,11 @@ export function QuotesPage() {
               { key: 'total', label: t('quotes.col.total'), className: 'text-right', render: (q) => <span className="font-medium text-ink-900 dark:text-ink-50">{formatMoney(q.total, currency)}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (q) => (
                 <div className="flex justify-end gap-2">
-                  <button onClick={() => view(q)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Eye size={15} /></button>
-                  {q.status === 'draft' && <button onClick={() => send(q)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600" title={t('quotes.send')}><Send size={15} /></button>}
-                  {q.status === 'sent' && <button onClick={() => acceptQuote(q)} className="rounded-lg p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25" title={t('quotes.accept')}><Check size={15} /></button>}
-                  {q.status === 'sent' && <button onClick={() => refuseQuote(q)} className="rounded-lg p-1.5 text-error-600 hover:bg-error-50 dark:hover:bg-error-900/25" title={t('quotes.refuse')}><Trash2 size={15} /></button>}
-                  {q.status !== 'accepted' && <button onClick={() => remove(q)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>}
+                  <button onClick={() => view(q)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Eye size={15} /></button>
+                  {q.status === 'draft' && <button onClick={() => send(q)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600" title={t('quotes.send')}><Send size={15} /></button>}
+                  {q.status === 'sent' && <button onClick={() => acceptQuote(q)} className="rounded-full p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25" title={t('quotes.accept')}><Check size={15} /></button>}
+                  {q.status === 'sent' && <button onClick={() => refuseQuote(q)} className="rounded-full p-1.5 text-error-600 hover:bg-error-50 dark:hover:bg-error-900/25" title={t('quotes.refuse')}><Trash2 size={15} /></button>}
+                  {q.status !== 'accepted' && <button onClick={() => remove(q)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>}
                 </div>
               )},
             ]}
@@ -264,7 +264,7 @@ export function QuotesPage() {
                   <input value={it.name} onChange={(e) => updateItem(i, 'name', e.target.value)} placeholder={t('quotes.col.designation')} className="input col-span-3" />
                   <input type="number" value={it.quantity} onChange={(e) => updateItem(i, 'quantity', Number(e.target.value))} className="input col-span-1" />
                   <input type="number" value={it.unit_price} onChange={(e) => updateItem(i, 'unit_price', Number(e.target.value))} className="input col-span-2" />
-                  <button onClick={() => removeItem(i)} className="col-span-1 rounded-lg text-ink-400 dark:text-ink-500 hover:text-error-500"><Trash2 size={14} /></button>
+                  <button onClick={() => removeItem(i)} className="col-span-1 rounded-full text-ink-400 dark:text-ink-500 hover:text-error-500"><Trash2 size={14} /></button>
                 </div>
               ))}
               {form.items.length === 0 && <p className="py-4 text-center text-xs text-ink-400 dark:text-ink-500">{t('quotes.addAtLeastOneLine')}</p>}

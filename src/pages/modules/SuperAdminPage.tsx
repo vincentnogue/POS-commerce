@@ -324,11 +324,11 @@ function SuperTenants() {
                   <td className="py-3 text-ink-500 dark:text-ink-400 text-xs">{formatDate(ten.created_at)}</td>
                   <td className="py-3">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => impersonate(ten)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-flow-50 dark:hover:bg-flow-900/25 hover:text-flow-600" title={t('super.tenants.impersonate')}><Eye size={15} /></button>
-                      <button onClick={() => toggleStatus(ten)} className={`rounded-lg p-1.5 ${ten.status === 'active' ? 'text-error-600 hover:bg-error-50 dark:hover:bg-error-900/25' : 'text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25'}`} title={ten.status === 'active' ? t('super.tenants.suspend') : t('super.tenants.activate')}>
+                      <button onClick={() => impersonate(ten)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-flow-50 dark:hover:bg-flow-900/25 hover:text-flow-600" title={t('super.tenants.impersonate')}><Eye size={15} /></button>
+                      <button onClick={() => toggleStatus(ten)} className={`rounded-full p-1.5 ${ten.status === 'active' ? 'text-error-600 hover:bg-error-50 dark:hover:bg-error-900/25' : 'text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25'}`} title={ten.status === 'active' ? t('super.tenants.suspend') : t('super.tenants.activate')}>
                         {ten.status === 'active' ? <Ban size={15} /> : <Check size={15} />}
                       </button>
-                      <button onClick={() => deleteTenant(ten)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600" title={t('common.delete')}><Trash2 size={15} /></button>
+                      <button onClick={() => deleteTenant(ten)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600" title={t('common.delete')}><Trash2 size={15} /></button>
                     </div>
                   </td>
                 </tr>
@@ -901,8 +901,8 @@ function SuperPlans() {
               <td className="py-3 text-ink-600 dark:text-ink-300">{p.max_stores}</td>
               <td className="py-3 text-ink-600 dark:text-ink-300">{p.max_products}</td>
               <td className="py-3 text-right">
-                <button onClick={() => { setEditing(p); setForm({ name: p.name, code: p.code, price_usd: p.price_usd, max_users: p.max_users, max_stores: p.max_stores, max_products: p.max_products }); setModalOpen(true); }} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>
-                <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
+                <button onClick={() => { setEditing(p); setForm({ name: p.name, code: p.code, price_usd: p.price_usd, max_users: p.max_users, max_stores: p.max_stores, max_products: p.max_products }); setModalOpen(true); }} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>
+                <button onClick={() => remove(p)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
               </td>
             </tr>
           ))}
