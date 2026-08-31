@@ -135,6 +135,28 @@ Deno.serve(async (req: Request) => {
               }),
             }
           );
+
+          // BUG FIX: this used to only write public.subscriptions. Plan-gated
+          // UI (e.g. Marketplace's feature locking) reads tenants.plan_id,
+          // which was never updated here — a customer completing checkout
+          // for the first time via this Stripe Checkout flow would see their
+          // subscription recorded as active, yet the Marketplace (and any
+          // other tenants.plan_id-based gate) would still show them on
+          // their old/default plan forever, since nothing ever synced this
+          // column after initial tenant creation. supabase/functions/
+          // stripe-subscriptions already does this correctly for its own
+          // (separate) upgrade path — mirroring that here with the same
+          // service-role write.
+          if (planId) {
+            await supabaseRest(
+              supabaseUrl, serviceRoleKey,
+              `tenants?id=eq.${tenantId}`,
+              {
+                method: 'PATCH',
+                body: JSON.stringify({ plan_id: planId }),
+              }
+            );
+          }
         }
         break;
       }

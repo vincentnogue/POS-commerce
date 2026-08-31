@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  Menu, X, Globe, ChevronDown, ArrowRight, ArrowRightLeft, MapPin,
+  Menu, X, Globe, ChevronDown, ArrowRight, MapPin,
   ShoppingCart, Package, Store, Plug, FileText, BarChart3,
   ShieldCheck, Wallet, Check, CheckCircle2, Smartphone, TrendingUp, Receipt, Moon, Sun,
-  Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent,
+  Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent, Lock,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
@@ -25,6 +25,27 @@ const REVENUE_TREND_SAMPLE = [
   { day: 'Jeu', value: 1610 }, { day: 'Ven', value: 1980 }, { day: 'Sam', value: 2260 },
   { day: 'Dim', value: 2450 },
 ];
+
+// Multi-tab feature showcase — 8 tabs, each backed by a real shipped
+// module. Bullet copy only ever names things that actually exist
+// (checked against src/pages/modules/*): POSPage (barcode scan, split
+// payment, staff-linked invoice), MarketplacePage (real live payment
+// providers), StockPage (multi-store transfers), ReportsPage/
+// DashboardPage (real charts), UsersPage (per-module role permissions,
+// staff traceability — NOT payroll/attendance/recruiting, which this
+// product does not have even though the reference photo for this tab
+// happens to show that kind of UI), CustomersPage + store-credit
+// returns, StoresPage (multi-location), and the real API docs.
+const FEATURE_TABS = [
+  { key: 'pos', image: '/feature-tabs/pos.jpg' },
+  { key: 'payments', image: '/feature-tabs/payments.jpg' },
+  { key: 'inventory', image: '/feature-tabs/inventory.jpg' },
+  { key: 'analytics', image: '/feature-tabs/analytics.jpg' },
+  { key: 'employees', image: '/feature-tabs/employees.jpg' },
+  { key: 'crm', image: '/feature-tabs/crm.jpg' },
+  { key: 'multistore', image: '/feature-tabs/multistore.jpg' },
+  { key: 'integrations', image: '/feature-tabs/integrations.jpg' },
+] as const;
 
 const FEATURE_KEYS = [
   { icon: ShoppingCart, key: 'pos' },
@@ -277,6 +298,34 @@ function formatUSD(n: number): string {
   return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+// ============================================================================
+// HERO / CTA BACKGROUND VIDEOS — the only place to edit when real footage
+// is ready. Two options:
+//
+//   A) You have real video files: put them in /public/videos/ (create that
+//      folder) named e.g. hero-background.mp4 and cta-background.mp4, then
+//      change the two `src:` values below to '/videos/hero-background.mp4'
+//      and '/videos/cta-background.mp4'. Do the same for `poster:` with a
+//      still frame image (or drop the poster line to use the video's own
+//      first frame). No other code needs to change.
+//
+//   B) You have videos hosted elsewhere (YouTube, Vimeo, your own CDN):
+//      replace `src:` with that direct .mp4 URL (must be a direct video
+//      file link, not a YouTube watch-page URL — YouTube embeds need an
+//      <iframe>, which this background-video treatment isn't built for).
+//
+// Until real footage is provided, these point at free, licensed stock
+// clips (Mixkit — commercial use OK, no attribution required) as a
+// placeholder so the page isn't broken in the meantime.
+const HERO_VIDEO = {
+  src: 'https://assets.mixkit.co/videos/15914/15914-360.mp4',
+  poster: 'https://assets.mixkit.co/videos/15914/15914-thumb-360-1.jpg',
+};
+const CTA_VIDEO = {
+  src: 'https://assets.mixkit.co/videos/49137/49137-360.mp4',
+  poster: 'https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg',
+};
+
 // Cycles through: empty → items added one by one → paid → brief pause → reset.
 // Fully static (final, paid state) when the user prefers reduced motion.
 function usePosDemoStep() {
@@ -392,7 +441,7 @@ function PosLiveDemo() {
             type="button"
             tabIndex={-1}
             aria-hidden="true"
-            className={`mt-3 w-full rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 transition-colors ${
+            className={`mt-3 w-full rounded-full py-2.5 text-sm font-semibold flex items-center justify-center gap-2 transition-colors ${
               isPaid ? 'bg-brand-500 text-white' : 'bg-white text-ink-900'
             }`}
           >
@@ -508,6 +557,7 @@ const LANDING_PLANS: PricingPlan[] = REAL_PLANS.map((p) => ({
 
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeFeatureTab, setActiveFeatureTab] = useState(0);
   const [email, setEmail] = useState('');
   const { lang, setLang, t } = useI18n();
   const { theme, toggle } = useTheme();
@@ -574,6 +624,8 @@ export function LandingPage() {
 
               <Link to="/about" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600">{t('pLanding.nav.about')}</Link>
 
+              <Link to="/contact" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600">{t('pLanding.nav.contact')}</Link>
+
               <div className="relative group">
                 <Link to="/resources" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600 flex items-center gap-1">
                   {t('pLanding.nav.resources')} <ChevronDown size={16} />
@@ -623,11 +675,14 @@ export function LandingPage() {
               className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-ink-700 space-y-3"
             >
               <a href="#features" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.footer.features')}</a>
+              <Link to="/marketplace" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.productsMarketplace')}</Link>
               <a href="#pricing" onClick={scrollToPricing} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.pricing')}</a>
-              <Link to="/about" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.about')}</Link>
-              <Link to="/documentation" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.docs')}</Link>
-              <Link to="/resources" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.resources')}</Link>
-              <Link to="/help" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.help')}</Link>
+              <Link to="/about" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.about')}</Link>
+              <Link to="/contact" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.contact')}</Link>
+              <Link to="/documentation" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.docs')}</Link>
+              <Link to="/blog" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.footer.blog')}</Link>
+              <Link to="/resources" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.resources')}</Link>
+              <Link to="/help" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.help')}</Link>
               <div className="flex items-center gap-3 py-2">
                 <button
                   onClick={toggle}
@@ -645,8 +700,8 @@ export function LandingPage() {
                   <Globe size={16} /> {lang.toUpperCase()}
                 </button>
               </div>
-              <Link to="/login" className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.login')}</Link>
-              <Link to="/signup" className="block w-full px-6 py-2 bg-brand-600 text-white rounded-full font-medium text-center">{t('pLanding.nav.cta')}</Link>
+              <Link to="/login" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.login')}</Link>
+              <Link to="/signup" onClick={() => setMenuOpen(false)} className="block w-full px-6 py-2 bg-brand-600 text-white rounded-full font-medium text-center">{t('pLanding.nav.cta')}</Link>
             </motion.div>
           )}
         </div>
@@ -655,13 +710,13 @@ export function LandingPage() {
       {/* Hero Section — the product demo is the focal visual; video adds
           ambient motion behind it (muted, looped, no controls) */}
       <section className="relative bg-ink-950 overflow-hidden">
-        {/* Background video layer — free Mixkit-licensed clip (no attribution
-            required, commercial use OK). Falls back to a static poster frame
+        {/* Background video layer — see HERO_VIDEO near the top of this file
+            to swap in real footage. Falls back to a static poster frame
             for reduced-motion users instead of autoplaying. */}
         <div className="absolute inset-0" aria-hidden="true">
           {heroReducedMotion ? (
             <img
-              src="https://assets.mixkit.co/videos/15914/15914-thumb-360-1.jpg"
+              src={HERO_VIDEO.poster}
               alt=""
               className="w-full h-full object-cover opacity-80"
             />
@@ -671,10 +726,10 @@ export function LandingPage() {
               muted
               loop
               playsInline
-              poster="https://assets.mixkit.co/videos/15914/15914-thumb-360-1.jpg"
+              poster={HERO_VIDEO.poster}
               className="w-full h-full object-cover opacity-80"
             >
-              <source src="https://assets.mixkit.co/videos/15914/15914-360.mp4" type="video/mp4" />
+              <source src={HERO_VIDEO.src} type="video/mp4" />
             </video>
           )}
           <div className="absolute inset-0 bg-ink-950/55" />
@@ -746,7 +801,7 @@ export function LandingPage() {
                 />
                 <button
                   type="submit"
-                  className="group px-7 py-3.5 bg-brand-500 text-white rounded-xl font-semibold hover:bg-brand-600 active:scale-[0.98] transition-all whitespace-nowrap inline-flex items-center justify-center gap-2"
+                  className="group px-7 py-3.5 bg-brand-500 text-white rounded-full font-semibold hover:bg-brand-600 active:scale-[0.98] transition-all whitespace-nowrap inline-flex items-center justify-center gap-2"
                 >
                   {t('pLanding.hero.start')}
                   <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
@@ -839,9 +894,17 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Features */}
-      <section id="features" className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-14">
+      {/* Features — real module icons in a slow, pausable auto-scroll
+          banner instead of a static 4-column grid. Same infinite-marquee
+          technique as the flags/logos bands above (render the list twice,
+          translate exactly -50% so the loop is seamless): saves vertical
+          space versus one row per module and reads as a lively "everything
+          included" strip. Each card still links straight to its module's
+          detail in the tabbed showcase below via an anchor, and the full
+          title/description stays available on hover/focus so nothing is
+          lost versus the old grid — just presented more compactly. */}
+      <section id="features" className="py-20 lg:px-8 max-w-7xl mx-auto overflow-hidden">
+        <div className="text-center mb-14 px-4">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
             {t('pLanding.features.title')}
           </h2>
@@ -850,13 +913,18 @@ export function LandingPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {FEATURE_KEYS.map((f) => (
+        <div
+          className="flex w-max gap-5 animate-[flagscroll_38s_linear_infinite] hover:[animation-play-state:paused] px-4"
+          role="list"
+        >
+          {[...FEATURE_KEYS, ...FEATURE_KEYS].map((f, i) => (
             <div
-              key={f.key}
-              className="rounded-xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 hover:border-brand-500/50 hover:shadow-lg transition"
+              key={`${f.key}-${i}`}
+              role="listitem"
+              aria-hidden={i >= FEATURE_KEYS.length}
+              className="group w-64 shrink-0 rounded-xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 hover:border-brand-500/50 hover:shadow-lg transition"
             >
-              <div className="w-11 h-11 rounded-lg bg-brand-500/10 flex items-center justify-center mb-4">
+              <div className="w-11 h-11 rounded-lg bg-brand-500/10 flex items-center justify-center mb-4 transition group-hover:bg-brand-500/20">
                 <f.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
               </div>
               <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t(`pLanding.feature.${f.key}.title`)}</h3>
@@ -883,26 +951,94 @@ export function LandingPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           {[
-            { icon: Store, key: 'retail' },
-            { icon: Smartphone, key: 'services' },
-            { icon: BarChart3, key: 'professional' },
+            { icon: '/icon-shop-now.png', key: 'retail' },
+            { icon: '/icon-scissors.png', key: 'services' },
+            { icon: '/icon-professional-services.png', key: 'professional' },
           ].map((ind) => (
             <Link
               key={ind.key}
               to="/industry-solutions"
               className="group rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-7 hover:border-brand-500/50 hover:shadow-lg transition"
             >
-              <div className="w-11 h-11 rounded-lg bg-brand-500/10 flex items-center justify-center mb-4">
-                <ind.icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+              <div className="w-12 h-12 rounded-full bg-brand-500/10 flex items-center justify-center mb-4">
+                <img src={ind.icon} alt="" className="w-6 h-6 object-contain" style={{ filter: 'invert(35%) sepia(70%) saturate(500%) hue-rotate(190deg) brightness(95%)' }} />
               </div>
               <h3 className="font-semibold text-gray-900 dark:text-white mb-1.5">{t(`pLanding.industries.${ind.key}.title`)}</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-3">{t(`pLanding.industries.${ind.key}.desc`)}</p>
-              <span className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 group-hover:gap-2 transition-all">
+              <span className="inline-flex items-center gap-1 rounded-full border border-brand-200 dark:border-brand-800 px-3 py-1 text-sm font-medium text-brand-600 group-hover:bg-brand-50 dark:group-hover:bg-brand-900/20 transition-all">
                 {t('pLanding.industries.link')} <ArrowRight size={14} />
               </span>
             </Link>
           ))}
         </div>
+      </section>
+
+      {/* Multi-tab feature showcase — 8 tabs matching the requested
+          reference layout (tab bar on top, image left / copy right below).
+          Each tab's bullet list only names real, shipped features. */}
+      <section className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
+        <h2 className="text-3xl lg:text-4xl font-bold text-center text-gray-900 dark:text-white mb-10">
+          {t('pLanding.featureTabs.title')}
+        </h2>
+
+        {/* Tab bar */}
+        <div className="flex flex-wrap justify-center gap-x-8 gap-y-3 border-b border-gray-200 dark:border-ink-800 mb-12">
+          {FEATURE_TABS.map((tab, i) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveFeatureTab(i)}
+              className={`relative pb-4 text-sm font-medium transition-colors whitespace-nowrap ${
+                activeFeatureTab === i
+                  ? 'text-brand-600 dark:text-brand-400'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+              }`}
+            >
+              {t(`pLanding.featureTabs.${tab.key}.tabLabel`)}
+              {activeFeatureTab === i && (
+                <motion.span layoutId="featureTabUnderline" className="absolute left-0 right-0 -bottom-px h-0.5 bg-brand-600 dark:bg-brand-400" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Active tab content */}
+        <motion.div
+          key={activeFeatureTab}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+        >
+          <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-ink-700 shadow-xl bg-white">
+            <img
+              src={FEATURE_TABS[activeFeatureTab].image}
+              alt={t(`pLanding.featureTabs.${FEATURE_TABS[activeFeatureTab].key}.tabLabel`)}
+              className="w-full h-auto object-contain"
+            />
+          </div>
+          <div>
+            <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              {t(`pLanding.featureTabs.${FEATURE_TABS[activeFeatureTab].key}.title`)}
+            </h3>
+            <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+              {t(`pLanding.featureTabs.${FEATURE_TABS[activeFeatureTab].key}.desc`)}
+            </p>
+            <ul className="space-y-3 mb-6">
+              {(['point1', 'point2', 'point3', 'point4'] as const).map((p) => (
+                <li key={p} className="flex items-start gap-2.5 text-gray-700 dark:text-gray-300">
+                  <Check className="w-5 h-5 text-brand-600 dark:text-brand-400 mt-0.5 flex-shrink-0" />
+                  {t(`pLanding.featureTabs.${FEATURE_TABS[activeFeatureTab].key}.${p}`)}
+                </li>
+              ))}
+            </ul>
+            <Link
+              to={FEATURE_TABS[activeFeatureTab].key === 'integrations' ? '/marketplace' : '/signup'}
+              className="inline-flex items-center gap-1.5 text-brand-600 dark:text-brand-400 font-semibold hover:gap-2.5 transition-all"
+            >
+              {t(`pLanding.featureTabs.${FEATURE_TABS[activeFeatureTab].key}.cta`)} <ArrowRight size={16} />
+            </Link>
+          </div>
+        </motion.div>
       </section>
 
       {/* Pricing — light section (was hardcoded dark), fixed USD prices */}
@@ -967,14 +1103,14 @@ export function LandingPage() {
           capture on a solid brand panel, stylized POS device mockup on a
           gradient panel (no stock photo — the product's own UI, styled as
           hardware, stays consistent with the rest of this page). */}
-      <section className="px-4 lg:px-8 max-w-7xl mx-auto py-4">
-        <div className="relative rounded-3xl overflow-hidden">
+      <section className="relative overflow-hidden">
+        <div className="relative">
           {/* Right-side gradient backdrop (spans full width, dark panel sits on top of it on the left) */}
           <div className="absolute inset-0 bg-gradient-to-r from-brand-800 via-flow-600 to-flow-400" />
 
-          <div className="relative grid grid-cols-1 lg:grid-cols-2 min-h-[560px]">
+          <div className="relative grid grid-cols-1 lg:grid-cols-2 min-h-[560px] max-w-[1800px] mx-auto">
             {/* Dark content panel */}
-            <div className="relative bg-brand-900/95 px-8 py-14 lg:px-14 lg:py-16 flex flex-col justify-center">
+            <div className="relative bg-brand-900/95 px-6 sm:px-10 lg:px-16 py-14 lg:py-20 flex flex-col justify-center">
               <h2 className="text-4xl lg:text-5xl font-bold text-white leading-tight mb-8">
                 {t('pLanding.busyHero.titleBefore')}{' '}
                 <span className="relative inline-block">
@@ -1021,8 +1157,8 @@ export function LandingPage() {
                 bar, category tabs, an icon-coded product grid, and a full
                 cart panel with line items, tax and payment methods. Mirrors
                 the real checkout layout in POSPage.tsx, no stock photo. */}
-            <div className="relative hidden lg:flex items-center justify-center p-10 overflow-hidden">
-              <div className="relative w-full max-w-lg" style={{ transform: 'perspective(1400px) rotateY(-12deg) rotateX(2deg)' }}>
+            <div className="relative hidden lg:flex items-center justify-center p-4 overflow-hidden">
+              <div className="relative w-full" style={{ transform: 'perspective(1400px) rotateY(-10deg) rotateX(2deg)' }}>
                 <div className="rounded-2xl bg-white border-4 border-ink-900 shadow-2xl overflow-hidden">
                   {/* Screen top bar */}
                   <div className="flex items-center justify-between bg-ink-950 px-4 py-2.5">
@@ -1142,12 +1278,13 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Second hero — full video-backed CTA band before the footer */}
+      {/* Second hero — full video-backed CTA band before the footer.
+          See CTA_VIDEO near the top of this file to swap in real footage. */}
       <section className="relative bg-ink-950 overflow-hidden">
         <div className="absolute inset-0" aria-hidden="true">
           {heroReducedMotion ? (
             <img
-              src="https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg"
+              src={CTA_VIDEO.poster}
               alt=""
               className="w-full h-full object-cover opacity-80"
             />
@@ -1157,10 +1294,10 @@ export function LandingPage() {
               muted
               loop
               playsInline
-              poster="https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg"
+              poster={CTA_VIDEO.poster}
               className="w-full h-full object-cover opacity-80"
             >
-              <source src="https://assets.mixkit.co/videos/49137/49137-360.mp4" type="video/mp4" />
+              <source src={CTA_VIDEO.src} type="video/mp4" />
             </video>
           )}
           <div className="absolute inset-0 bg-ink-950/60" />
@@ -1207,94 +1344,77 @@ export function LandingPage() {
                   </div>
                 ))}
               </div>
+            </div>
 
-              <div className="mb-8">
-                <p className="text-sm font-bold text-ink-600 dark:text-ink-400 mb-2">{t('pLanding.workTogether.emailLabel')}</p>
-                <a href="mailto:support@liafrik.com" className="text-2xl font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition">
-                  support@liafrik.com
-                </a>
-              </div>
-
+            {/* Right image — real photo (was an emoji on a gradient
+                placeholder). "Contact us" floats as a pill badge anchored at
+                the photo's bottom-left corner — the only CTA for this
+                section (no separate email block/button in the text column,
+                to avoid repeating the same action twice). */}
+            <div className="relative h-96 rounded-xl overflow-hidden shadow-xl group">
+              <img
+                src="/work-together-photo.jpg"
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-ink-950/50 via-transparent to-transparent" />
               <Link
                 to="/contact"
-                className="inline-flex items-center gap-2 px-6 py-3 border-2 border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400 rounded-lg font-semibold hover:bg-brand-50 dark:hover:bg-brand-600/10 transition"
+                className="absolute bottom-6 left-6 inline-flex items-center gap-2 px-6 py-3 bg-white text-ink-900 rounded-full font-semibold shadow-lg shadow-black/20 transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-105 animate-pulse-slow"
               >
                 {t('pLanding.workTogether.cta')}
               </Link>
-            </div>
-
-            {/* Right image */}
-            <div className="relative h-96 rounded-xl overflow-hidden shadow-xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-500 to-flow-500 flex items-center justify-center">
-                <div className="text-6xl">👩‍💼</div>
-              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Keep things flowing section — real feature illustrations only:
-          today's revenue (real sales tracking), a staff clocked in via the
-          real day-open/day-close module, a real stock transfer received
-          notification, and a real multi-currency conversion. No fictional
-          food-service/loyalty-points content — POS Flow has neither a
-          kitchen module nor a loyalty-points program. */}
+      {/* Keep things flowing section — the real dashboard, not mock cards.
+          A previous version of this section showed four illustrative cards
+          with made-up example figures ($2,450, "+32% vs yesterday",
+          $1,000 -> 3,672.50 AED) as if they were live data; none of it came
+          from an actual account. Replaced with an actual screenshot of the
+          real, running dashboard (public/dashboard-screenshot.png). */}
       <section className="py-20 px-4 lg:px-8 bg-gray-50 dark:bg-ink-950 border-y border-gray-200 dark:border-ink-800">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-16 whitespace-pre-line">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-4xl lg:text-5xl font-bold text-ink-900 dark:text-white mb-6 whitespace-pre-line">
             {t('pLanding.keepFlowing.title')}
           </h2>
+          <p className="text-lg text-ink-600 dark:text-ink-300 mb-12 max-w-2xl mx-auto">
+            {t('pLanding.keepFlowing.desc')}
+          </p>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div className="bg-white dark:bg-ink-800 p-8 rounded-xl shadow-lg">
-              <div className="text-3xl font-bold text-brand-600 dark:text-brand-400 mb-2">$2,450</div>
-              <p className="text-sm font-semibold text-ink-600 dark:text-ink-400 mb-4">{t('pLanding.keepFlowing.card.revenue')}</p>
-              <div className="h-12 flex items-end gap-1 mt-3">
-                <div className="flex-1 bg-flow-300 rounded h-1/3"></div>
-                <div className="flex-1 bg-flow-400 rounded h-2/3"></div>
-                <div className="flex-1 bg-flow-500 rounded h-full"></div>
-                <div className="flex-1 bg-flow-400 rounded h-3/4"></div>
+          {/* Real screenshot presented as a browser window (traffic-light
+              dots + address bar showing the platform's actual domain)
+              instead of a bare image — this both reads as a proper product
+              shot rather than a flat cropped banner, and gives the very
+              wide capture (native desktop resolution, ~2.3:1) some vertical
+              weight so it doesn't look stretched thin at marketing-page
+              width. The screenshot itself was also cropped to remove the
+              dead gray margin that used to sit below the cards. */}
+          <div className="mx-auto max-w-5xl rounded-2xl bg-[#172B3A] border border-white/10 shadow-2xl overflow-hidden">
+            <div className="flex items-center gap-3 border-b border-white/10 bg-white/5 px-4 py-3">
+              <div className="flex gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-error-500/70" />
+                <span className="h-2.5 w-2.5 rounded-full bg-warning-500/70" />
+                <span className="h-2.5 w-2.5 rounded-full bg-success-500/70" />
               </div>
-              <p className="text-xs text-flow-600 dark:text-flow-400 mt-3">↑ 32% {t('pLanding.keepFlowing.card.vsYesterday')}</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-ink-800 to-ink-900 p-8 rounded-xl shadow-lg text-white">
-              <p className="text-xs text-brand-300 mb-2">{t('pLanding.keepFlowing.card.staffName')}</p>
-              <div className="relative w-20 h-20 mx-auto mb-4">
-                <svg className="w-full h-full" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(46, 140, 102, 0.3)" strokeWidth="2"/>
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="#2E8C66" strokeWidth="3" strokeDasharray="125.6 125.6" strokeDashoffset="-31.4"/>
-                  <text x="50" y="55" textAnchor="middle" fill="white" fontSize="20" fontWeight="bold">08:02</text>
-                </svg>
+              <div className="mx-auto flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-1 text-xs text-white/60">
+                <Lock size={11} /> pos.liafrik.com
               </div>
-              <p className="text-sm font-semibold text-center">{t('pLanding.keepFlowing.card.clockedIn')}</p>
             </div>
-
-            <div className="bg-gradient-to-br from-brand-50 to-flow-50 dark:from-ink-800 dark:to-ink-900 p-8 rounded-xl shadow-lg">
-              <div className="w-10 h-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4">
-                <ArrowRightLeft className="w-5 h-5 text-brand-600 dark:text-brand-400" />
-              </div>
-              <p className="font-semibold text-ink-900 dark:text-white mb-2">{t('pLanding.keepFlowing.card.transferTitle')}</p>
-              <p className="text-sm text-ink-700 dark:text-ink-300">{t('pLanding.keepFlowing.card.transferDesc')}</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-ink-800 dark:to-ink-700 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-ink-700">
-              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 mb-4">{t('pLanding.keepFlowing.card.currencyLabel')}</p>
-              <p className="font-bold text-ink-900 dark:text-white text-xl mb-1">$1,000 USD</p>
-              <div className="flex items-center gap-2 my-2 text-ink-400">
-                <div className="h-px flex-1 bg-gray-200 dark:bg-ink-700" />
-                <ArrowRight size={14} />
-                <div className="h-px flex-1 bg-gray-200 dark:bg-ink-700" />
-              </div>
-              <p className="font-bold text-brand-600 dark:text-brand-400 text-xl">3,672.50 AED</p>
-            </div>
+            <img
+              src="/dashboard-screenshot.png"
+              alt={t('pLanding.keepFlowing.screenshotAlt')}
+              className="w-full h-auto"
+            />
           </div>
 
           {/* CTA */}
-          <div className="mt-16 text-center">
+          <div className="mt-12">
             <Link
               to="/pricing"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white rounded-full font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-600/30"
             >
               {t('pLanding.keepFlowing.cta')} <ArrowRight size={18} />
             </Link>
@@ -1302,50 +1422,76 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 dark:border-ink-800 bg-white dark:bg-ink-950">
-        <div className="max-w-7xl mx-auto px-4 py-12 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+      {/* Footer — always-dark "premium" treatment (independent of the
+          site's light/dark toggle, like most SaaS marketing footers): a
+          gradient accent hairline on top, a brand column with tagline,
+          and a CTA pill button reusing the shared .btn-primary pill style
+          from the audit below instead of a one-off rounded-full class. */}
+      <footer className="relative overflow-hidden bg-ink-950">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-400/70 to-transparent" />
+        <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-brand-500/10 blur-3xl" />
+
+        <div className="relative mx-auto max-w-7xl px-4 py-16 lg:px-8">
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-5">
+            <div className="md:col-span-1">
+              <Link to="/" className="flex items-center gap-2.5">
+                <img src="/logo-pos-icon.png" alt="POS Flow" className="h-9 w-9" />
+                <span className="text-xl font-bold tracking-tight text-white">
+                  POS <span className="text-brand-400">Flow</span>
+                </span>
+              </Link>
+              <p className="mt-3 max-w-xs text-sm text-ink-400">
+                {t('pLanding.footer.tagline')}
+              </p>
+              <Link to="/signup" className="btn-primary mt-6 inline-flex">
+                {t('pLanding.nav.cta')}
+              </Link>
+            </div>
+
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.product')}</p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><a href="#features" className="hover:text-brand-600">{t('pLanding.footer.features')}</a></li>
-                <li><a href="#pricing" onClick={scrollToPricing} className="hover:text-brand-600">{t('pLanding.nav.pricing')}</a></li>
-                <li><Link to="/marketplace" className="hover:text-brand-600">{t('pLanding.footer.marketplace')}</Link></li>
+              <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-200">{t('pLanding.footer.product')}</p>
+              <ul className="space-y-2.5 text-sm text-ink-400">
+                <li><a href="#features" className="transition hover:text-brand-400">{t('pLanding.footer.features')}</a></li>
+                <li><a href="#pricing" onClick={scrollToPricing} className="transition hover:text-brand-400">{t('pLanding.nav.pricing')}</a></li>
+                <li><Link to="/marketplace" className="transition hover:text-brand-400">{t('pLanding.footer.marketplace')}</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.company')}</p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><Link to="/about" className="hover:text-brand-600">{t('pLanding.footer.about')}</Link></li>
-                <li><Link to="/careers" className="hover:text-brand-600">{t('pLanding.footer.careers')}</Link></li>
-                <li><Link to="/blog" className="hover:text-brand-600">{t('pLanding.footer.blog')}</Link></li>
-                <li><Link to="/contact" className="hover:text-brand-600">{t('pLanding.footer.contact')}</Link></li>
+              <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-200">{t('pLanding.footer.company')}</p>
+              <ul className="space-y-2.5 text-sm text-ink-400">
+                <li><Link to="/about" className="transition hover:text-brand-400">{t('pLanding.footer.about')}</Link></li>
+                <li><Link to="/careers" className="transition hover:text-brand-400">{t('pLanding.footer.careers')}</Link></li>
+                <li><Link to="/blog" className="transition hover:text-brand-400">{t('pLanding.footer.blog')}</Link></li>
+                <li><Link to="/contact" className="transition hover:text-brand-400">{t('pLanding.footer.contact')}</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.resources')}</p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><Link to="/resources" className="hover:text-brand-600">{t('pLanding.footer.resources')}</Link></li>
-                <li><Link to="/help" className="hover:text-brand-600">{t('pLanding.footer.help')}</Link></li>
-                <li><Link to="/documentation" className="hover:text-brand-600">{t('pLanding.footer.docs')}</Link></li>
+              <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-200">{t('pLanding.footer.resources')}</p>
+              <ul className="space-y-2.5 text-sm text-ink-400">
+                <li><Link to="/resources" className="transition hover:text-brand-400">{t('pLanding.footer.resources')}</Link></li>
+                <li><Link to="/help" className="transition hover:text-brand-400">{t('pLanding.footer.help')}</Link></li>
+                <li><Link to="/documentation" className="transition hover:text-brand-400">{t('pLanding.footer.docs')}</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white mb-4">{t('pLanding.footer.legal')}</p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><Link to="/privacy" className="hover:text-brand-600">{t('pLanding.footer.privacy')}</Link></li>
-                <li><Link to="/terms" className="hover:text-brand-600">{t('pLanding.footer.terms')}</Link></li>
-                <li><Link to="/legal" className="hover:text-brand-600">{t('pLanding.footer.legalNotice')}</Link></li>
+              <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-200">{t('pLanding.footer.legal')}</p>
+              <ul className="space-y-2.5 text-sm text-ink-400">
+                <li><Link to="/privacy" className="transition hover:text-brand-400">{t('pLanding.footer.privacy')}</Link></li>
+                <li><Link to="/terms" className="transition hover:text-brand-400">{t('pLanding.footer.terms')}</Link></li>
+                <li><Link to="/legal" className="transition hover:text-brand-400">{t('pLanding.footer.legalNotice')}</Link></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-200 dark:border-ink-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+
+          <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 sm:flex-row">
+            <p className="text-sm text-ink-500">
               {t('pLanding.footer.rights', { year: new Date().getFullYear() })}
             </p>
-            <button onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')} className="text-sm text-gray-600 dark:text-gray-400 hover:text-brand-600">
-              {lang.toUpperCase()}
+            <button
+              onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-sm text-ink-400 transition hover:border-brand-400/50 hover:text-brand-400"
+            >
+              <Globe size={14} /> {lang.toUpperCase()}
             </button>
           </div>
         </div>

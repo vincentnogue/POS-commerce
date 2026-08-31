@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart, Mail } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -40,7 +40,7 @@ export function POSPage() {
   ]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
-  const [lastReceipt, setLastReceipt] = useState<{ items: CartItem[]; total: number; paymentMethod: string; paymentReference: string } | null>(null);
+  const [lastReceipt, setLastReceipt] = useState<{ items: CartItem[]; total: number; paymentMethod: string; paymentReference: string; customerName: string | null; customerPhone: string | null; customerEmail: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [deliveryChoice, setDeliveryChoice] = useState<'delivered' | 'pending'>('delivered');
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -328,7 +328,12 @@ export function POSPage() {
         toast('error', t('pos.err.paymentRefRequired'));
         return;
       }
-      paid = paymentMethod === 'cash' ? (Number(paidAmount) || total) : total;
+      // BUG FIX: `Number(paidAmount) || total` treated an explicit "0" the
+      // same as an empty field, silently forcing a full payment even when
+      // the cashier typed 0 to record a credit/unpaid cash sale. Only an
+      // empty field should default to the full total; "0" must stay 0 so
+      // payment_status below correctly comes out 'unpaid'.
+      paid = paymentMethod === 'cash' ? (paidAmount.trim() === '' ? total : Number(paidAmount)) : total;
       tendersToRecord = [{ method: paymentMethod, amount: paid, reference: finalPaymentReference }];
     }
 
@@ -426,7 +431,15 @@ export function POSPage() {
     }
 
     setSuccess(ref);
-    setLastReceipt({ items: cart, total, paymentMethod, paymentReference: paymentReference.trim() });
+    setLastReceipt({
+      items: cart,
+      total,
+      paymentMethod,
+      paymentReference: paymentReference.trim(),
+      customerName: customer?.name ?? null,
+      customerPhone: customer?.phone ?? null,
+      customerEmail: customer?.email ?? null,
+    });
     setCart([]);
     setPaymentReference('');
     setPaidAmount('');
@@ -478,7 +491,31 @@ export function POSPage() {
       ? `%0a${t('pos.whatsapp.payment')} : ${paymentLabel(lastReceipt.paymentMethod)} (${t('pos.whatsapp.ref')}: ${lastReceipt.paymentReference})`
       : `%0a${t('pos.whatsapp.payment')} : ${paymentLabel(lastReceipt.paymentMethod)}`;
     const msg = `*${t('pos.whatsapp.saleReceipt')} ${success}*%0a%0a${lines}%0a%0a*${t('pos.receipt.total')}: ${formatMoney(lastReceipt.total, currency)}*${paymentLine}%0a%0a${t('pos.receipt.thanks')}`;
-    window.open(`https://wa.me/?text=${msg}`, '_blank');
+    // FIX: this used to always open wa.me/?text=... with no recipient, even
+    // when a real customer (with a real phone on file) was picked at
+    // checkout -- the cashier had to manually pick the contact every time.
+    // Now it targets the actual customer's number when we have one.
+    const digitsOnly = (lastReceipt.customerPhone ?? '').replace(/[^0-9]/g, '');
+    const target = digitsOnly.length >= 8 ? digitsOnly : '';
+    window.open(`https://wa.me/${target}?text=${msg}`, '_blank');
+  };
+
+  // FIX: there was no way to email a receipt to a customer at all, even
+  // when the selected customer has a real email on file (Customer.email).
+  // mailto: can't attach a PDF, but it opens the cashier's own mail client
+  // with the customer's real address and a real text summary of the sale
+  // pre-filled -- a genuine send, not a placeholder. Only shown when an
+  // email is actually on file (see the button below), so this never
+  // pretends to work when there's nothing to send to.
+  const sendEmail = () => {
+    if (!success || !lastReceipt || !lastReceipt.customerEmail) return;
+    const lines = lastReceipt.items.map((i) => `${i.product.name} x${i.quantity} = ${formatMoney(i.quantity * i.unit_price, currency)}`).join('\n');
+    const paymentLine = lastReceipt.paymentReference
+      ? `${t('pos.whatsapp.payment')}: ${paymentLabel(lastReceipt.paymentMethod)} (${t('pos.whatsapp.ref')}: ${lastReceipt.paymentReference})`
+      : `${t('pos.whatsapp.payment')}: ${paymentLabel(lastReceipt.paymentMethod)}`;
+    const subject = `${t('pos.whatsapp.saleReceipt')} ${success}`;
+    const body = `${lines}\n\n${t('pos.receipt.total')}: ${formatMoney(lastReceipt.total, currency)}\n${paymentLine}\n\n${t('pos.receipt.thanks')}`;
+    window.location.href = `mailto:${lastReceipt.customerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
   return (
@@ -521,14 +558,14 @@ export function POSPage() {
         )
       )}
 
-      <div className="mb-4 inline-flex rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
-        <button onClick={() => setPageTab('sale')} className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition ${pageTab === 'sale' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
+      <div className="mb-4 inline-flex rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
+        <button onClick={() => setPageTab('sale')} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition ${pageTab === 'sale' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
           <ShoppingCart size={14} /> {t('pos.tab.sale')}
         </button>
-        <button onClick={() => setPageTab('history')} className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition ${pageTab === 'history' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
+        <button onClick={() => setPageTab('history')} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition ${pageTab === 'history' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
           <History size={14} /> {t('pos.tab.history')}
         </button>
-        <button onClick={() => setPageTab('returns')} className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition ${pageTab === 'returns' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
+        <button onClick={() => setPageTab('returns')} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition ${pageTab === 'returns' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
           <RotateCcw size={14} /> {t('pos.tab.returns')}
         </button>
       </div>
@@ -606,7 +643,7 @@ export function POSPage() {
                     </div>
                     <div className="mt-2 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => updateQty(i.product.id, -1)} className="rounded-md border border-ink-200 dark:border-ink-700 p-1 text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-900">
+                        <button onClick={() => updateQty(i.product.id, -1)} className="rounded-full border border-ink-200 dark:border-ink-700 p-1 text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-900">
                           <Minus size={12} />
                         </button>
                         <input
@@ -615,7 +652,7 @@ export function POSPage() {
                           onChange={(e) => setQty(i.product.id, Number(e.target.value))}
                           className="w-12 rounded-md border border-ink-200 dark:border-ink-700 px-2 py-1 text-center text-sm"
                         />
-                        <button onClick={() => updateQty(i.product.id, 1)} className="rounded-md border border-ink-200 dark:border-ink-700 p-1 text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-900">
+                        <button onClick={() => updateQty(i.product.id, 1)} className="rounded-full border border-ink-200 dark:border-ink-700 p-1 text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-900">
                           <Plus size={12} />
                         </button>
                       </div>
@@ -651,8 +688,13 @@ export function POSPage() {
             <input
               value={customerSearch}
               onChange={(e) => {
-                setCustomerSearch(e.target.value);
-                const match = customers.find((c) => c.name.toLowerCase().includes(e.target.value.toLowerCase()));
+                const q = e.target.value;
+                setCustomerSearch(q);
+                // BUG FIX: `"anything".includes("")` is always true, so once the
+                // field was cleared, .find() used to return whichever customer
+                // happened to be first in the list instead of clearing the
+                // selection. Only auto-match on a non-empty query.
+                const match = q.trim() ? customers.find((c) => c.name.toLowerCase().includes(q.toLowerCase())) : null;
                 setCustomer(match ?? null);
               }}
               className="input"
@@ -815,6 +857,11 @@ export function POSPage() {
             <button onClick={printReceipt} className="btn-ghost flex-1 justify-center text-sm"><Printer size={15} /> {t('pos.print')}</button>
             <button onClick={sendWhatsApp} className="btn-ghost flex-1 justify-center text-sm border-success-200 text-success-700"><MessageCircle size={15} /> {t('pos.whatsapp')}</button>
           </div>
+          {lastReceipt?.customerEmail && (
+            <button onClick={sendEmail} className="btn-ghost mt-2 w-full justify-center text-sm border-brand-200 text-brand-700">
+              <Mail size={15} /> {t('pos.emailReceipt')} ({lastReceipt.customerEmail})
+            </button>
+          )}
           <button onClick={() => setSuccess(null)} className="btn-primary mt-3 w-full justify-center">{t('pos.newSale')}</button>
         </div>
       </Modal>

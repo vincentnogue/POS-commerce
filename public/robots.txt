@@ -20,4 +20,4 @@ Disallow: /superadmin
 Disallow: /onboarding
 Disallow: /reset-password
 
-Sitemap: https://posflow.io/sitemap.xml
+Sitemap: https://pos.liafrik.com/sitemap.xml

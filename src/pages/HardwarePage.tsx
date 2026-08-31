@@ -111,7 +111,7 @@ export function HardwarePage() {
           </p>
           <Link
             to="/pricing"
-            className="inline-block px-8 py-3 bg-white text-brand-600 font-semibold rounded-lg hover:bg-gray-100 transition"
+            className="inline-block px-8 py-3 bg-white text-brand-600 font-semibold rounded-full hover:bg-gray-100 transition"
           >
             View Pricing Plans
           </Link>
@@ -183,7 +183,7 @@ export function HardwarePage() {
                   {/* CTA */}
                   <Link
                     to="/pricing"
-                    className={`block text-center px-4 py-2 bg-gradient-to-r ${colorMap[device.color]} text-white font-semibold rounded-lg hover:opacity-90 transition`}
+                    className={`block text-center px-4 py-2 bg-gradient-to-r ${colorMap[device.color]} text-white font-semibold rounded-full hover:opacity-90 transition`}
                   >
                     Get {device.name} <ArrowRight size={16} className="inline ml-2" />
                   </Link>
@@ -255,7 +255,7 @@ export function HardwarePage() {
           </p>
           <Link
             to="/pricing"
-            className="inline-block px-8 py-3 bg-white text-brand-600 font-semibold rounded-lg hover:bg-gray-100 transition"
+            className="inline-block px-8 py-3 bg-white text-brand-600 font-semibold rounded-full hover:bg-gray-100 transition"
           >
             Start Free Trial
           </Link>

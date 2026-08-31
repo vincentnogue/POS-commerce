@@ -303,13 +303,13 @@ export function SaleHistoryTab() {
                   <td className="py-2.5 text-ink-600 dark:text-ink-300">{paymentLabel(s.payment_method)}</td>
                   <td className="py-2.5 text-right">
                     <div className="flex justify-end gap-1.5">
-                      <button onClick={() => reprint(s)} className="rounded-lg border border-ink-200 dark:border-ink-700 px-2.5 py-1 text-xs font-medium text-brand-600 transition hover:bg-brand-50 dark:hover:bg-brand-900/25">
+                      <button onClick={() => reprint(s)} className="rounded-full border border-ink-200 dark:border-ink-700 px-2.5 py-1 text-xs font-medium text-brand-600 transition hover:bg-brand-50 dark:hover:bg-brand-900/25">
                         <Printer size={13} className="inline -mt-0.5 mr-1" /> {t('pos.history.reprint')}
                       </button>
                       <button
                         onClick={() => openInvoice(s)}
                         disabled={invoiceBusy === s.id}
-                        className="rounded-lg border border-ink-200 dark:border-ink-700 px-2.5 py-1 text-xs font-medium text-ink-700 dark:text-ink-200 transition hover:bg-brand-50 dark:hover:bg-brand-900/25 disabled:opacity-50"
+                        className="rounded-full border border-ink-200 dark:border-ink-700 px-2.5 py-1 text-xs font-medium text-ink-700 dark:text-ink-200 transition hover:bg-brand-50 dark:hover:bg-brand-900/25 disabled:opacity-50"
                       >
                         <FileText size={13} className="inline -mt-0.5 mr-1" />
                         {invoiceBusy === s.id ? t('common.loading') : invoiceBySale[s.id] ? t('pos.history.viewInvoice') : t('pos.history.generateInvoice')}

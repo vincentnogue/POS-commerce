@@ -167,7 +167,7 @@ export function SupportChatWidget() {
           {status !== 'closed' && (
             <div className="border-t border-ink-100 dark:border-ink-800 p-3">
               {status === 'ai' && (
-                <button onClick={requestHuman} className="mb-2 w-full rounded-lg border border-ink-200 dark:border-ink-700 py-1.5 text-xs font-medium text-ink-600 dark:text-ink-300 transition hover:border-brand-300 hover:text-brand-600">
+                <button onClick={requestHuman} className="mb-2 w-full rounded-full border border-ink-200 dark:border-ink-700 py-1.5 text-xs font-medium text-ink-600 dark:text-ink-300 transition hover:border-brand-300 hover:text-brand-600">
                   <Headset size={12} className="mr-1 inline" /> {t('support.requestHuman')}
                 </button>
               )}

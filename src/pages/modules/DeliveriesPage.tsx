@@ -154,7 +154,7 @@ export function DeliveriesPage() {
               { key: 'status', label: t('common.status'), render: (d) => <Badge tone={STATUS_LABELS[d.status]?.tone}>{t(STATUS_LABELS[d.status]?.key ?? 'delivery.status.pending')}</Badge> },
               { key: 'actions', label: '', className: 'text-right', render: (d) => (
                 <div className="flex justify-end gap-2">
-                  <button onClick={() => openDetail(d)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Eye size={15} /></button>
+                  <button onClick={() => openDetail(d)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Eye size={15} /></button>
                   {TERMINAL_STATUSES.has(d.status) ? (
                     <span className="text-xs text-ink-400 dark:text-ink-500 italic px-1">{t('delivery.statusFinal')}</span>
                   ) : (

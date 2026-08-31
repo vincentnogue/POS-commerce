@@ -324,11 +324,11 @@ function SuperTenants() {
                   <td className="py-3 text-ink-500 dark:text-ink-400 text-xs">{formatDate(ten.created_at)}</td>
                   <td className="py-3">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => impersonate(ten)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-flow-50 dark:hover:bg-flow-900/25 hover:text-flow-600" title={t('super.tenants.impersonate')}><Eye size={15} /></button>
-                      <button onClick={() => toggleStatus(ten)} className={`rounded-lg p-1.5 ${ten.status === 'active' ? 'text-error-600 hover:bg-error-50 dark:hover:bg-error-900/25' : 'text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25'}`} title={ten.status === 'active' ? t('super.tenants.suspend') : t('super.tenants.activate')}>
+                      <button onClick={() => impersonate(ten)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-flow-50 dark:hover:bg-flow-900/25 hover:text-flow-600" title={t('super.tenants.impersonate')}><Eye size={15} /></button>
+                      <button onClick={() => toggleStatus(ten)} className={`rounded-full p-1.5 ${ten.status === 'active' ? 'text-error-600 hover:bg-error-50 dark:hover:bg-error-900/25' : 'text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25'}`} title={ten.status === 'active' ? t('super.tenants.suspend') : t('super.tenants.activate')}>
                         {ten.status === 'active' ? <Ban size={15} /> : <Check size={15} />}
                       </button>
-                      <button onClick={() => deleteTenant(ten)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600" title={t('common.delete')}><Trash2 size={15} /></button>
+                      <button onClick={() => deleteTenant(ten)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600" title={t('common.delete')}><Trash2 size={15} /></button>
                     </div>
                   </td>
                 </tr>
@@ -901,8 +901,8 @@ function SuperPlans() {
               <td className="py-3 text-ink-600 dark:text-ink-300">{p.max_stores}</td>
               <td className="py-3 text-ink-600 dark:text-ink-300">{p.max_products}</td>
               <td className="py-3 text-right">
-                <button onClick={() => { setEditing(p); setForm({ name: p.name, code: p.code, price_usd: p.price_usd, max_users: p.max_users, max_stores: p.max_stores, max_products: p.max_products }); setModalOpen(true); }} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>
-                <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
+                <button onClick={() => { setEditing(p); setForm({ name: p.name, code: p.code, price_usd: p.price_usd, max_users: p.max_users, max_stores: p.max_stores, max_products: p.max_products }); setModalOpen(true); }} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>
+                <button onClick={() => remove(p)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
               </td>
             </tr>
           ))}
@@ -1035,10 +1035,10 @@ function SuperPerformance() {
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
-        <button onClick={() => setView('staff')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${view === 'staff' ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`}>
+        <button onClick={() => setView('staff')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${view === 'staff' ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'}`}>
           {t('super.perf.staffPerf')}
         </button>
-        <button onClick={() => setView('commercials')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${view === 'commercials' ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300'}`}>
+        <button onClick={() => setView('commercials')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${view === 'commercials' ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'}`}>
           {t('super.perf.commercialPerf')}
         </button>
       </div>
@@ -1210,8 +1210,8 @@ function SuperAudit() {
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
-        <button onClick={() => setView('audit')} className={`rounded-full px-4 py-2 text-sm font-medium ${view === 'audit' ? 'bg-brand-500 text-white' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200'}`}>{t('admin.tab.audit')}</button>
-        <button onClick={() => setView('access')} className={`rounded-full px-4 py-2 text-sm font-medium ${view === 'access' ? 'bg-brand-500 text-white' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200'}`}>{t('super.audit.accessAttempts')}</button>
+        <button onClick={() => setView('audit')} className={`rounded-full px-4 py-2 text-sm font-medium transition ${view === 'audit' ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'}`}>{t('admin.tab.audit')}</button>
+        <button onClick={() => setView('access')} className={`rounded-full px-4 py-2 text-sm font-medium transition ${view === 'access' ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'}`}>{t('super.audit.accessAttempts')}</button>
       </div>
       <div className="card p-5">
         {view === 'audit' ? (
@@ -1361,10 +1361,10 @@ function SuperMessages() {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <div className="flex gap-2">
-          <button onClick={() => setFilter('unhandled')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${filter === 'unhandled' ? 'bg-brand-500 text-white' : 'border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300'}`}>
+          <button onClick={() => setFilter('unhandled')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${filter === 'unhandled' ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'}`}>
             {t('super.messages.unhandled', { count: unhandledCount })}
           </button>
-          <button onClick={() => setFilter('all')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${filter === 'all' ? 'bg-brand-500 text-white' : 'border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300'}`}>
+          <button onClick={() => setFilter('all')} className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${filter === 'all' ? 'bg-brand-500 text-white shadow-soft' : 'border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:border-brand-200'}`}>
             {t('super.messages.all', { count: messages.length })}
           </button>
         </div>
@@ -1386,10 +1386,10 @@ function SuperMessages() {
                   <p className="mt-2 text-xs text-ink-400 dark:text-ink-500">{formatDateTime(new Date(m.created_at))}</p>
                 </div>
                 <div className="flex flex-shrink-0 items-center gap-2">
-                  <a href={`mailto:${m.email}${m.subject ? `?subject=${encodeURIComponent('Re: ' + m.subject)}` : ''}`} className="rounded-lg border border-ink-200 dark:border-ink-700 p-2 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600" title={t('super.messages.reply')}>
+                  <a href={`mailto:${m.email}${m.subject ? `?subject=${encodeURIComponent('Re: ' + m.subject)}` : ''}`} className="rounded-full border border-ink-200 dark:border-ink-700 p-2 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600" title={t('super.messages.reply')}>
                     <Mail size={15} />
                   </a>
-                  <button onClick={() => toggleHandled(m)} className={`rounded-lg border p-2 ${m.handled ? 'border-ink-200 dark:border-ink-700 text-ink-400' : 'border-success-200 dark:border-success-800 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25'}`} title={t(m.handled ? 'super.messages.markUnhandled' : 'super.messages.markHandled')}>
+                  <button onClick={() => toggleHandled(m)} className={`rounded-full border p-2 ${m.handled ? 'border-ink-200 dark:border-ink-700 text-ink-400' : 'border-success-200 dark:border-success-800 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25'}`} title={t(m.handled ? 'super.messages.markUnhandled' : 'super.messages.markHandled')}>
                     <Check size={15} />
                   </button>
                 </div>
