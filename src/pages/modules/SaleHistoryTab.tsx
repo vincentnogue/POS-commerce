@@ -70,7 +70,7 @@ export function SaleHistoryTab() {
       (data ?? []).forEach((m: any) => { if (m.user_id) map[m.user_id] = m.display_name ?? t('pos.history.unnamedStaff'); });
       setStaffNames(map);
     })();
-  }, [tenant]);
+  }, [tenant, t]);
 
   // BUG FIX: this tab used to show nothing at all until the user typed a
   // search and pressed the button — a blank "Historique" tab looks exactly

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Shield, Crown, Building2, Users, DollarSign, TrendingUp,
@@ -509,7 +509,7 @@ function SuperAdmins() {
   const [editingLabel, setEditingLabel] = useState('');
   const toast = useToast();
 
-  const callManage = async (body: Record<string, unknown>) => {
+  const callManage = useCallback(async (body: Record<string, unknown>) => {
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData.session?.access_token;
     const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/super-admin-manage`;
@@ -521,9 +521,9 @@ function SuperAdmins() {
     const json = await res.json();
     if (!res.ok || json.error) throw new Error(json.error ?? t('super.err.unknown'));
     return json;
-  };
+  }, [t]);
 
-  const reload = async () => {
+  const reload = useCallback(async () => {
     setLoading(true);
     const [sa, pa] = await Promise.all([
       supabase.from('tenant_members').select('*, tenants!inner(name)').eq('role', 'super_admin').order('created_at', { ascending: false }),
@@ -532,9 +532,9 @@ function SuperAdmins() {
     setSuperAdminMembers(sa.data ?? []);
     setAdmins(pa.admins ?? []);
     setLoading(false);
-  };
+  }, [callManage]);
 
-  useEffect(() => { reload(); }, []);
+  useEffect(() => { reload(); }, [reload]);
 
   const handleAdd = async () => {
     if (!newEmail.trim()) return;
@@ -688,7 +688,7 @@ function SuperStaff() {
   const [editingPerms, setEditingPerms] = useState<Record<string, boolean>>({});
   const toast = useToast();
 
-  const callManage = async (body: Record<string, unknown>) => {
+  const callManage = useCallback(async (body: Record<string, unknown>) => {
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData.session?.access_token;
     const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/platform-staff-manage`;
@@ -700,9 +700,9 @@ function SuperStaff() {
     const json = await res.json();
     if (!res.ok || json.error) throw new Error(json.error ?? t('super.err.unknown'));
     return json;
-  };
+  }, [t]);
 
-  const reload = async () => {
+  const reload = useCallback(async () => {
     setLoading(true);
     try {
       const result = await callManage({ action: 'list' });
@@ -712,9 +712,9 @@ function SuperStaff() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [callManage]);
 
-  useEffect(() => { reload(); }, []);
+  useEffect(() => { reload(); }, [reload]);
 
   const handleAdd = async () => {
     if (!newEmail.trim()) return;
@@ -1018,7 +1018,7 @@ function SuperPerformance() {
     } finally {
       setLoading(false);
     }
-  })(); }, []);
+  })(); }, [t]);
 
   const fmtUSD = (n: number) => `$${convertToUSD(n, 'USD').toFixed(0)}`;
   const timeAgo = (iso: string | null) => {
@@ -1412,7 +1412,7 @@ function SuperSupport() {
   const [sending, setSending] = useState(false);
   const toast = useToast();
 
-  const callAgent = async (body: Record<string, unknown>) => {
+  const callAgent = useCallback(async (body: Record<string, unknown>) => {
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData.session?.access_token;
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/support-agent`, {
@@ -1423,9 +1423,9 @@ function SuperSupport() {
     const json = await res.json();
     if (!res.ok || json.error) throw new Error(json.error ?? t('super.err.unknown'));
     return json;
-  };
+  }, [t]);
 
-  const reload = async () => {
+  const reload = useCallback(async () => {
     setLoading(true);
     try {
       const result = await callAgent({ action: 'list' });
@@ -1435,9 +1435,9 @@ function SuperSupport() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [callAgent, toast]);
 
-  useEffect(() => { reload(); const i = setInterval(reload, 10000); return () => clearInterval(i); }, []);
+  useEffect(() => { reload(); const i = setInterval(reload, 10000); return () => clearInterval(i); }, [reload]);
 
   const openConversation = async (conv: any) => {
     setActive(conv);
