@@ -1,23 +1,62 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Check, AlertCircle, CreditCard, Sparkles, Smartphone } from 'lucide-react';
+import { Clock, Check, AlertCircle, CreditCard, Sparkles, Smartphone, Wallet } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../lib/i18n';
 import { supabase } from '../lib/supabase';
 import { PLANS, annualPrice } from '../lib/plans';
 
+type PspId = 'stripe' | 'flutterwave' | 'paystack' | 'payunit';
+
+const PSP_META: Record<PspId, { functionName: string; icon: typeof CreditCard; labelKey: string }> = {
+  stripe: { functionName: 'stripe-checkout', icon: CreditCard, labelKey: 'subscribe.card' },
+  flutterwave: { functionName: 'flutterwave-checkout', icon: Smartphone, labelKey: 'subscribe.mobileMoney' },
+  paystack: { functionName: 'paystack-checkout', icon: Smartphone, labelKey: 'subscribe.psp.paystack' },
+  payunit: { functionName: 'payunit-checkout', icon: Wallet, labelKey: 'subscribe.psp.payunit' },
+};
+
 export function SubscribePage() {
   const { tenant, user, access } = useAuth();
   const { t } = useI18n();
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly');
-  const [provider, setProvider] = useState<'stripe' | 'flutterwave'>('stripe');
+  // "quand le client clique sur pay, uniquement les méthodes de paiement
+  // actives s'affichent... si une seule méthode existe qu'il fasse avec" —
+  // this used to hardcode Stripe + Flutterwave regardless of whether
+  // either was actually configured, with no Paystack/PayUnit option at
+  // all. Now it asks the backend which of the 4 platform PSPs actually
+  // have their secret keys set, shows a picker only when more than one
+  // is real, and silently uses the one available PSP otherwise.
+  const [activeProviders, setActiveProviders] = useState<PspId[] | null>(null);
+  const [provider, setProvider] = useState<PspId | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/payment-providers-status`, {
+          headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
+        });
+        const status = await res.json();
+        const active = (Object.keys(PSP_META) as PspId[]).filter((id) => status[id]);
+        if (cancelled) return;
+        setActiveProviders(active);
+        setProvider(active[0] ?? null);
+      } catch {
+        // Backend unreachable — fail closed to Stripe (card payments are
+        // the most universally reachable option) rather than showing a
+        // picker with providers we can't confirm are actually configured.
+        if (!cancelled) { setActiveProviders(['stripe']); setProvider('stripe'); }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const startCheckout = async (planCode: string) => {
-    if (!tenant) return;
+    if (!tenant || !provider) return;
     setLoading(true);
     setError(null);
     setCheckoutPlan(planCode);
@@ -29,7 +68,7 @@ export function SubscribePage() {
         apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
       };
 
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${provider === 'stripe' ? 'stripe-checkout' : 'flutterwave-checkout'}`;
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${PSP_META[provider].functionName}`;
       const body = provider === 'stripe'
         ? {
             plan_code: planCode,
@@ -113,18 +152,26 @@ export function SubscribePage() {
           </div>
         </div>
 
-        <div className="mb-8 flex justify-center">
-          <div className="inline-flex rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
-            <button
-              onClick={() => setProvider('stripe')}
-              className={`flex items-center gap-1.5 rounded-full px-5 py-2 text-sm font-medium transition ${provider === 'stripe' ? 'bg-ink-900 text-white dark:bg-brand-500' : 'text-ink-600 dark:text-ink-300'}`}
-            ><CreditCard size={15} /> {t('subscribe.card')}</button>
-            <button
-              onClick={() => setProvider('flutterwave')}
-              className={`flex items-center gap-1.5 rounded-full px-5 py-2 text-sm font-medium transition ${provider === 'flutterwave' ? 'bg-ink-900 text-white dark:bg-brand-500' : 'text-ink-600 dark:text-ink-300'}`}
-            ><Smartphone size={15} /> {t('subscribe.mobileMoney')}</button>
+        {activeProviders && activeProviders.length > 1 && (
+          <div className="mb-8 flex justify-center">
+            <div className="inline-flex flex-wrap justify-center gap-1 rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
+              {activeProviders.map((id) => {
+                const meta = PSP_META[id];
+                const Icon = meta.icon;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setProvider(id)}
+                    className={`flex items-center gap-1.5 rounded-full px-5 py-2 text-sm font-medium transition ${provider === id ? 'bg-ink-900 text-white dark:bg-brand-500' : 'text-ink-600 dark:text-ink-300'}`}
+                  ><Icon size={15} /> {t(meta.labelKey)}</button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
+        {activeProviders && activeProviders.length === 0 && (
+          <p className="mx-auto mb-8 max-w-md text-center text-sm text-warning-700 dark:text-warning-400">{t('subscribe.noPspConfigured')}</p>
+        )}
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {PLANS.map((plan) => {
@@ -153,7 +200,7 @@ export function SubscribePage() {
                 </ul>
                 <button
                   onClick={() => startCheckout(plan.code)}
-                  disabled={loading}
+                  disabled={loading || !provider}
                   className={`mt-6 w-full justify-center py-3 ${plan.highlight ? 'btn-primary' : 'btn-ghost border-brand-200 text-brand-700'}`}
                 >
                   {loading && checkoutPlan === plan.code ? t('subscribe.redirecting') : <><CreditCard size={15} /> {t('subscribe.choose')} {t('plan.name.' + plan.code)}</>}

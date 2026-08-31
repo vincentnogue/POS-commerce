@@ -73,11 +73,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadProfile = useCallback(async (uid: string, email: string) => {
-    // Fetch all memberships for this user, with tenant + role data
-    const { data: members } = await supabase
-      .from('tenant_members')
-      .select('id, tenant_id, user_id, role, custom_role_id, display_name, avatar_color')
-      .eq('user_id', uid);
+    // CRITICAL BUG FIX: this used to do `const { data: members } = await
+    // supabase.from('tenant_members')...` and treat ANY falsy/empty
+    // result — including a query that FAILED (expired/refreshing JWT,
+    // transient network error) — identically to "this user genuinely has
+    // zero tenants", which immediately set tenant=null and sent them to
+    // /onboarding via RequireOnboarded. Onboarding asks for a business
+    // name/country/etc., which looks exactly like "create a new account".
+    // A real, returning user whose session access token needed a silent
+    // refresh (tokens are short-lived; anyone coming back after it expired
+    // would hit this on literally every visit) got bounced into onboarding
+    // instead of seeing their existing business — reported as "the app
+    // asks me to create a new account every time I log in".
+    //
+    // Fix: distinguish a genuinely-empty, successful result (0 rows, no
+    // error — this user really has no tenant yet) from a failed request
+    // (error present, or Supabase's browser client not yet done attaching
+    // a just-refreshed session to outgoing requests). On failure, retry
+    // once after a short delay instead of concluding "no tenant" from a
+    // request that never actually got a real answer.
+    const fetchMembers = () =>
+      supabase.from('tenant_members')
+        .select('id, tenant_id, user_id, role, custom_role_id, display_name, avatar_color')
+        .eq('user_id', uid);
+
+    let { data: members, error: membersError } = await fetchMembers();
+    if (membersError) {
+      // Give a possibly-still-refreshing session a moment, then retry once
+      // before accepting the failure. This is the common case: the tab
+      // was reopened / left open across the JWT's expiry window.
+      await new Promise((r) => setTimeout(r, 800));
+      ({ data: members, error: membersError } = await fetchMembers());
+    }
+
+    if (membersError) {
+      // Still failing after a retry — a real (non-auth) problem. Do NOT
+      // wipe an existing session's tenant/member state over a failed
+      // request; just stop the loading spinner and leave things as they
+      // were so the user isn't silently dropped into onboarding.
+      console.error('Failed to load tenant memberships:', membersError.message);
+      setUser({ id: uid, email });
+      setLoading(false);
+      return;
+    }
 
     if (!members || members.length === 0) {
       setUser({ id: uid, email });
@@ -89,10 +127,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const tenantIds = members.map((m) => m.tenant_id);
-    const { data: tenantRows } = await supabase
+    const { data: tenantRows, error: tenantsError } = await supabase
       .from('tenants')
       .select('*')
       .in('id', tenantIds);
+
+    if (tenantsError || !tenantRows) {
+      console.error('Failed to load tenants:', tenantsError?.message);
+      setUser({ id: uid, email });
+      setLoading(false);
+      return;
+    }
 
     const list = (tenantRows || []).map((t) => ({
       tenant: t as Tenant,
