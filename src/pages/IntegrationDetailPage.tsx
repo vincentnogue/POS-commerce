@@ -295,7 +295,7 @@ export function IntegrationDetailPage() {
                       </div>
 
                       <button
-                        className={`w-full px-6 py-3 rounded-lg font-semibold transition ${
+                        className={`w-full px-6 py-3 rounded-full font-semibold transition ${
                           plan.canConnect
                             ? 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700'
                             : 'bg-gray-200 dark:bg-ink-600 text-gray-500 dark:text-ink-400 cursor-not-allowed'

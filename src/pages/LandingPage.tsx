@@ -4,7 +4,7 @@ import {
   Menu, X, Globe, ChevronDown, ArrowRight, MapPin,
   ShoppingCart, Package, Store, Plug, FileText, BarChart3,
   ShieldCheck, Wallet, Check, CheckCircle2, Smartphone, TrendingUp, Receipt, Moon, Sun,
-  Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent,
+  Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent, Lock,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
@@ -1384,11 +1384,29 @@ export function LandingPage() {
             {t('pLanding.keepFlowing.desc')}
           </p>
 
-          <div className="mx-auto max-w-4xl p-3 rounded-3xl bg-[#172B3A] border border-white/10 shadow-2xl">
+          {/* Real screenshot presented as a browser window (traffic-light
+              dots + address bar showing the platform's actual domain)
+              instead of a bare image — this both reads as a proper product
+              shot rather than a flat cropped banner, and gives the very
+              wide capture (native desktop resolution, ~2.3:1) some vertical
+              weight so it doesn't look stretched thin at marketing-page
+              width. The screenshot itself was also cropped to remove the
+              dead gray margin that used to sit below the cards. */}
+          <div className="mx-auto max-w-5xl rounded-2xl bg-[#172B3A] border border-white/10 shadow-2xl overflow-hidden">
+            <div className="flex items-center gap-3 border-b border-white/10 bg-white/5 px-4 py-3">
+              <div className="flex gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-error-500/70" />
+                <span className="h-2.5 w-2.5 rounded-full bg-warning-500/70" />
+                <span className="h-2.5 w-2.5 rounded-full bg-success-500/70" />
+              </div>
+              <div className="mx-auto flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-1 text-xs text-white/60">
+                <Lock size={11} /> pos.liafrik.com
+              </div>
+            </div>
             <img
               src="/dashboard-screenshot.png"
               alt={t('pLanding.keepFlowing.screenshotAlt')}
-              className="w-full h-auto rounded-2xl"
+              className="w-full h-auto"
             />
           </div>
 

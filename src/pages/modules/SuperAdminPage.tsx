@@ -1386,10 +1386,10 @@ function SuperMessages() {
                   <p className="mt-2 text-xs text-ink-400 dark:text-ink-500">{formatDateTime(new Date(m.created_at))}</p>
                 </div>
                 <div className="flex flex-shrink-0 items-center gap-2">
-                  <a href={`mailto:${m.email}${m.subject ? `?subject=${encodeURIComponent('Re: ' + m.subject)}` : ''}`} className="rounded-lg border border-ink-200 dark:border-ink-700 p-2 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600" title={t('super.messages.reply')}>
+                  <a href={`mailto:${m.email}${m.subject ? `?subject=${encodeURIComponent('Re: ' + m.subject)}` : ''}`} className="rounded-full border border-ink-200 dark:border-ink-700 p-2 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600" title={t('super.messages.reply')}>
                     <Mail size={15} />
                   </a>
-                  <button onClick={() => toggleHandled(m)} className={`rounded-lg border p-2 ${m.handled ? 'border-ink-200 dark:border-ink-700 text-ink-400' : 'border-success-200 dark:border-success-800 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25'}`} title={t(m.handled ? 'super.messages.markUnhandled' : 'super.messages.markHandled')}>
+                  <button onClick={() => toggleHandled(m)} className={`rounded-full border p-2 ${m.handled ? 'border-ink-200 dark:border-ink-700 text-ink-400' : 'border-success-200 dark:border-success-800 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25'}`} title={t(m.handled ? 'super.messages.markUnhandled' : 'super.messages.markHandled')}>
                     <Check size={15} />
                   </button>
                 </div>
