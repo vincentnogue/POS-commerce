@@ -20,6 +20,12 @@ export type Tenant = {
   rms_destination_store_id?: string | null;
   return_settings?: { allow_cash?: boolean; allow_card?: boolean; allow_store_credit?: boolean; allow_exchange?: boolean } | null;
   max_x_reports_per_day?: number;
+  // D365-style checkout discount config: which mechanism(s) are active,
+  // and the rules for each (see migration 0067).
+  discount_mode?: 'manual_approval' | 'loyalty_points' | 'both';
+  manual_discount_requires_approval_above?: number;
+  loyalty_points_per_currency?: number;
+  loyalty_point_value?: number;
 };
 
 export type Store = {
@@ -123,6 +129,7 @@ export type Customer = {
   notes: string | null;
   created_at: string;
   store_credit_balance?: number;
+  loyalty_points?: number;
 };
 
 export type Supplier = {

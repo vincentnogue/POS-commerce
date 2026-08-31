@@ -45,6 +45,15 @@ export function SettingsPage() {
   });
   const [maxXReports, setMaxXReports] = useState(String(tenant?.max_x_reports_per_day ?? 0));
   const [xReportSaving, setXReportSaving] = useState(false);
+  // D365-style checkout discount config (see migration 0067): which
+  // discount mechanism(s) are enabled and the rules for each.
+  const [discountForm, setDiscountForm] = useState({
+    discount_mode: tenant?.discount_mode ?? 'manual_approval',
+    threshold: String(tenant?.manual_discount_requires_approval_above ?? 0),
+    earnRate: String(tenant?.loyalty_points_per_currency ?? 1),
+    pointValue: String(tenant?.loyalty_point_value ?? 0.01),
+  });
+  const [discountSaving, setDiscountSaving] = useState(false);
   const [contactForm, setContactForm] = useState({
     phone: '',
     address: '',
@@ -84,6 +93,28 @@ export function SettingsPage() {
     if (error) { toast('error', error.message); return; }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+    await refreshProfile();
+  };
+
+  const saveDiscountSettings = async () => {
+    if (!tenant) return;
+    const threshold = Number(discountForm.threshold);
+    const earnRate = Number(discountForm.earnRate);
+    const pointValue = Number(discountForm.pointValue);
+    if (Number.isNaN(threshold) || threshold < 0 || Number.isNaN(earnRate) || earnRate < 0 || Number.isNaN(pointValue) || pointValue < 0) {
+      toast('error', t('settings.security.xReportLimitInvalid'));
+      return;
+    }
+    setDiscountSaving(true);
+    const { error } = await supabase.from('tenants').update({
+      discount_mode: discountForm.discount_mode,
+      manual_discount_requires_approval_above: threshold,
+      loyalty_points_per_currency: earnRate,
+      loyalty_point_value: pointValue,
+    }).eq('id', tenant.id);
+    setDiscountSaving(false);
+    if (error) { toast('error', error.message); return; }
+    toast('success', t('settings.security.discountSaved'));
     await refreshProfile();
   };
 
@@ -137,6 +168,16 @@ export function SettingsPage() {
     setUploading(false);
     toast('success', type === 'logo' ? t('settings.toast.logoUpdated') : t('settings.toast.stampUpdated'));
   };
+
+  useEffect(() => {
+    if (!tenant) return;
+    setDiscountForm({
+      discount_mode: tenant.discount_mode ?? 'manual_approval',
+      threshold: String(tenant.manual_discount_requires_approval_above ?? 0),
+      earnRate: String(tenant.loyalty_points_per_currency ?? 1),
+      pointValue: String(tenant.loyalty_point_value ?? 0.01),
+    });
+  }, [tenant]);
 
   useEffect(() => {
     if (!tenant?.plan_id) return;
@@ -313,6 +354,72 @@ export function SettingsPage() {
                     <button onClick={saveXReportLimit} disabled={xReportSaving} className="btn-ghost">{t('common.save')}</button>
                   </div>
                   <p className="mt-2 text-xs text-ink-400">{t('settings.security.xReportLimitZero')}</p>
+                </div>
+                <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-4">
+                  <p className="font-medium text-ink-900 dark:text-ink-50">{t('settings.security.discountTitle')}</p>
+                  <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{t('settings.security.discountDesc')}</p>
+
+                  <div className="mt-3">
+                    <label className="label">{t('settings.security.discountMode')}</label>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                      {(['manual_approval', 'loyalty_points', 'both'] as const).map((mode) => (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => setDiscountForm((f) => ({ ...f, discount_mode: mode }))}
+                          className={`rounded-xl border p-3 text-left text-sm font-medium transition ${
+                            discountForm.discount_mode === mode
+                              ? 'border-brand-400 bg-brand-50 dark:bg-brand-900/25 text-brand-700'
+                              : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-200'
+                          }`}
+                        >
+                          {t(`settings.security.discountMode.${mode}`)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {(discountForm.discount_mode === 'manual_approval' || discountForm.discount_mode === 'both') && (
+                    <div className="mt-4">
+                      <Field label={t('settings.security.discountThreshold')} hint={t('settings.security.discountThresholdDesc')}>
+                        <input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={discountForm.threshold}
+                          onChange={(e) => setDiscountForm((f) => ({ ...f, threshold: e.target.value }))}
+                          className="input"
+                        />
+                      </Field>
+                    </div>
+                  )}
+
+                  {(discountForm.discount_mode === 'loyalty_points' || discountForm.discount_mode === 'both') && (
+                    <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <Field label={t('settings.security.loyaltyEarnRate')} hint={t('settings.security.loyaltyEarnRateDesc')}>
+                        <input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={discountForm.earnRate}
+                          onChange={(e) => setDiscountForm((f) => ({ ...f, earnRate: e.target.value }))}
+                          className="input"
+                        />
+                      </Field>
+                      <Field label={t('settings.security.loyaltyPointValue')} hint={t('settings.security.loyaltyPointValueDesc')}>
+                        <input
+                          type="number"
+                          min={0}
+                          step="0.001"
+                          value={discountForm.pointValue}
+                          onChange={(e) => setDiscountForm((f) => ({ ...f, pointValue: e.target.value }))}
+                          className="input"
+                        />
+                      </Field>
+                    </div>
+                  )}
+
+                  <button onClick={saveDiscountSettings} disabled={discountSaving} className="btn-primary mt-4">{t('common.save')}</button>
                 </div>
               </div>
             </div>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart, Mail, Lock as LockIcon } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart, Mail, Lock as LockIcon, Percent, Gift } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -122,6 +122,15 @@ export function POSPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [customerSearch, setCustomerSearch] = useState('');
   const [customers, setCustomers] = useState<Customer[]>([]);
+  // D365-style checkout discount: manual discount w/ manager approval
+  // and/or loyalty points redemption, per tenant.discount_mode (0067).
+  const [manualDiscountAmount, setManualDiscountAmount] = useState('');
+  const [discountApproverCode, setDiscountApproverCode] = useState('');
+  const [discountApproverPin, setDiscountApproverPin] = useState('');
+  const [discountApproval, setDiscountApproval] = useState<{ approver_name: string | null } | null>(null);
+  const [discountErr, setDiscountErr] = useState<string | null>(null);
+  const [applyingDiscount, setApplyingDiscount] = useState(false);
+  const [redeemPointsInput, setRedeemPointsInput] = useState('');
   const [stores, setStores] = useState<{ id: string; name: string }[]>([]);
   const [storeId, setStoreId] = useState<string | null>(null);
   const [pageTab, setPageTab] = useState<'sale' | 'history' | 'returns'>('sale');
@@ -363,7 +372,55 @@ export function POSPage() {
 
   const subtotal = cart.reduce((s, i) => s + i.quantity * i.unit_price, 0);
   const taxTotal = cart.reduce((s, i) => s + i.quantity * i.unit_price * (Number(i.product.tax_rate) / 100), 0);
-  const total = subtotal + taxTotal;
+
+  // Discount config for this tenant (see migration 0067): which
+  // mechanism(s) are on, and the rules for each.
+  const discountMode = tenant?.discount_mode ?? 'manual_approval';
+  const manualDiscountEnabled = discountMode === 'manual_approval' || discountMode === 'both';
+  const loyaltyDiscountEnabled = discountMode === 'loyalty_points' || discountMode === 'both';
+  const discountThreshold = Number(tenant?.manual_discount_requires_approval_above ?? 0);
+  const requiresManagerApproval = Number(manualDiscountAmount || 0) > discountThreshold;
+  // Manual discount only actually reduces the total once verified via
+  // check_manual_discount (below) — until then it's just a draft input.
+  const manualDiscountValue = discountApproval ? Math.max(0, Number(manualDiscountAmount) || 0) : 0;
+  const loyaltyRedeemPoints = customer ? Math.max(0, Math.min(Math.floor(Number(redeemPointsInput) || 0), customer.loyalty_points ?? 0)) : 0;
+  const loyaltyDiscountValue = loyaltyRedeemPoints * Number(tenant?.loyalty_point_value ?? 0.01);
+  const discountTotal = manualDiscountValue + (loyaltyDiscountEnabled ? loyaltyDiscountValue : 0);
+  const total = Math.max(0, subtotal + taxTotal - discountTotal);
+
+  // Verifies (and, if above the tenant's threshold, requires manager
+  // Staff ID + PIN for) a manual discount via check_manual_discount — no
+  // side effects server-side, so safe to call ahead of the actual sale;
+  // the approved amount is only applied to the sale total at checkout.
+  const applyManualDiscount = async () => {
+    if (!tenant) return;
+    const amt = Number(manualDiscountAmount);
+    if (!amt || amt <= 0) { setDiscountErr(t('pos.discount.err.invalidAmount')); return; }
+    setApplyingDiscount(true);
+    setDiscountErr(null);
+    const { data, error } = await supabase.rpc('check_manual_discount', {
+      p_tenant_id: tenant.id,
+      p_amount: amt,
+      p_approver_staff_code: discountApproverCode.trim() || null,
+      p_approver_pin: discountApproverPin.trim() || null,
+    });
+    setApplyingDiscount(false);
+    if (error) { setDiscountErr(error.message); return; }
+    setDiscountApproval({ approver_name: (data as { approver_name?: string | null } | null)?.approver_name ?? null });
+  };
+
+  const clearManualDiscount = () => {
+    setManualDiscountAmount('');
+    setDiscountApproverCode('');
+    setDiscountApproverPin('');
+    setDiscountApproval(null);
+    setDiscountErr(null);
+  };
+
+  const resetDiscountState = () => {
+    clearManualDiscount();
+    setRedeemPointsInput('');
+  };
 
   const splitTotal = splitTenders.reduce((s, t) => s + (Number(t.amount) || 0), 0);
   const splitRemaining = total - splitTotal;
@@ -373,6 +430,22 @@ export function POSPage() {
     if (!daySession) {
       toast('error', t('pos.day.err.mustOpenFirst'));
       return;
+    }
+    // A pending manual discount that was typed but never verified (e.g.
+    // the manager PIN step was skipped) must not silently make it into
+    // the sale — either it's approved (discountApproval set) or it's
+    // dropped from the total already via manualDiscountValue above, but
+    // block checkout instead of silently ignoring the cashier's intent.
+    if (manualDiscountEnabled && Number(manualDiscountAmount) > 0 && !discountApproval) {
+      toast('error', t('pos.discount.err.invalidAmount'));
+      return;
+    }
+    if (loyaltyDiscountEnabled && Number(redeemPointsInput) > 0) {
+      if (!customer) { toast('error', t('pos.discount.err.needCustomerForPoints')); return; }
+      if (Math.floor(Number(redeemPointsInput)) > (customer.loyalty_points ?? 0)) {
+        toast('error', t('pos.discount.err.insufficientPoints'));
+        return;
+      }
     }
 
     let finalPaymentMethod = paymentMethod;
@@ -425,7 +498,7 @@ export function POSPage() {
         reference: ref,
         subtotal,
         tax_total: taxTotal,
-        discount_total: 0,
+        discount_total: discountTotal,
         total,
         paid_amount: paid,
         payment_method: finalPaymentMethod,
@@ -477,6 +550,40 @@ export function POSPage() {
       return;
     }
 
+    // Loyalty points: redeem what was selected (deducts the customer's
+    // balance now, after the sale is safely recorded) and award new
+    // points earned on this sale. Both are best-effort/non-blocking —
+    // the sale itself is already completed and paid at this point, so a
+    // failure here must not roll back or block it; it only means the
+    // loyalty ledger is out of sync and should be reconciled manually.
+    if (customer && tenant) {
+      if (loyaltyDiscountEnabled && loyaltyRedeemPoints > 0) {
+        const { error: redeemErr } = await supabase.rpc('redeem_loyalty_points', {
+          p_tenant_id: tenant.id,
+          p_customer_id: customer.id,
+          p_points: loyaltyRedeemPoints,
+        });
+        if (redeemErr) console.error('redeem_loyalty_points failed (non-blocking):', redeemErr.message);
+      }
+      const { data: earnedPoints, error: earnErr } = await supabase.rpc('earn_loyalty_points', {
+        p_tenant_id: tenant.id,
+        p_customer_id: customer.id,
+        p_sale_id: sale.id,
+        p_sale_total: total,
+      });
+      if (earnErr) {
+        console.error('earn_loyalty_points failed (non-blocking):', earnErr.message);
+      } else if (typeof earnedPoints === 'number' && earnedPoints > 0) {
+        toast('success', t('pos.discount.pointsEarned', { points: earnedPoints }));
+      }
+      // Refresh the customer's balance locally so the next sale (and the
+      // customer list) reflects the redemption/earn that just happened.
+      const { data: refreshedCustomer } = await supabase.from('customers').select('*').eq('id', customer.id).maybeSingle();
+      if (refreshedCustomer) {
+        setCustomers((cs) => cs.map((c) => (c.id === refreshedCustomer.id ? (refreshedCustomer as Customer) : c)));
+      }
+    }
+
     // If "Non livré", create a pending delivery with per-product line items
     if (deliveryChoice === 'pending') {
       const { data: delivery, error: delErr } = await supabase.from('deliveries').insert({
@@ -525,6 +632,7 @@ export function POSPage() {
     setCustomer(null);
     setCustomerSearch('');
     setDeliveryChoice('delivered');
+    resetDiscountState();
   };
 
   const paymentLabel = (m: string) => m === 'cash' ? t('pos.pay.cash') : m === 'card' ? t('pos.pay.cardLabel') : m === 'mobile_money' ? t('pos.pay.mobileMoney') : m === 'split' ? t('pos.split.label') : m;
@@ -803,6 +911,9 @@ export function POSPage() {
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>{t('pos.subtotal')}</span><span>{formatMoney(subtotal, currency)}</span></div>
                 <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>{t('pos.taxes')}</span><span>{formatMoney(taxTotal, currency)}</span></div>
+                {discountTotal > 0 && (
+                  <div className="flex justify-between text-success-700"><span>{t('pos.discount.total')}</span><span>-{formatMoney(discountTotal, currency)}</span></div>
+                )}
                 <div className="flex justify-between text-base font-medium text-ink-900 dark:text-ink-50"><span>{t('pos.totalLabel')}</span><span>{formatMoney(total, currency)}</span></div>
               </div>
               <button onClick={() => setCheckoutOpen(true)} className="btn-primary mt-4 w-full justify-center py-3">
@@ -836,6 +947,96 @@ export function POSPage() {
             />
             {customer && <p className="mt-1 text-xs text-success-700">{t('pos.customerPrefix')}: {customer.name}</p>}
           </div>
+
+          {manualDiscountEnabled && (
+            <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-3 space-y-2">
+              <p className="label mb-0 flex items-center gap-1"><Percent size={14} /> {t('pos.discount.manualTitle')}</p>
+              {!discountApproval ? (
+                <>
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={manualDiscountAmount}
+                    onChange={(e) => { setManualDiscountAmount(e.target.value); setDiscountErr(null); }}
+                    className="input"
+                    placeholder={t('pos.discount.amountPlaceholder')}
+                  />
+                  {requiresManagerApproval && Number(manualDiscountAmount) > 0 && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        value={discountApproverCode}
+                        onChange={(e) => setDiscountApproverCode(e.target.value)}
+                        className="input py-1.5 text-sm"
+                        placeholder={t('pos.discount.approverStaffId')}
+                      />
+                      <input
+                        type="password"
+                        inputMode="numeric"
+                        value={discountApproverPin}
+                        onChange={(e) => setDiscountApproverPin(e.target.value.replace(/[^0-9]/g, ''))}
+                        className="input py-1.5 text-sm"
+                        placeholder={t('pos.discount.approverPin')}
+                      />
+                    </div>
+                  )}
+                  {requiresManagerApproval && Number(manualDiscountAmount) > 0 && (
+                    <p className="text-xs text-ink-400 dark:text-ink-500">
+                      {t('pos.discount.approvalRequiredNote', { amount: formatMoney(discountThreshold, currency) })}
+                    </p>
+                  )}
+                  {discountErr && <p className="text-xs font-medium text-error-600">{discountErr}</p>}
+                  <button
+                    type="button"
+                    onClick={applyManualDiscount}
+                    disabled={!manualDiscountAmount || Number(manualDiscountAmount) <= 0 || applyingDiscount}
+                    className="btn-ghost w-full justify-center py-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {requiresManagerApproval ? t('pos.discount.requestApproval') : t('pos.discount.apply')}
+                  </button>
+                </>
+              ) : (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium text-success-700">
+                    -{formatMoney(manualDiscountValue, currency)}
+                    {discountApproval.approver_name && ` (${t('pos.discount.approvedBy')} ${discountApproval.approver_name})`}
+                  </span>
+                  <button type="button" onClick={clearManualDiscount} className="text-error-500 hover:text-error-700">
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {loyaltyDiscountEnabled && (
+            <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-3 space-y-2">
+              <p className="label mb-0 flex items-center gap-1"><Gift size={14} /> {t('pos.discount.loyaltyTitle')}</p>
+              {!customer ? (
+                <p className="text-xs text-ink-400 dark:text-ink-500">{t('pos.discount.loyaltyNeedsCustomer')}</p>
+              ) : (
+                <>
+                  <p className="text-xs text-ink-500 dark:text-ink-400">{t('pos.discount.loyaltyBalance', { points: customer.loyalty_points ?? 0 })}</p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      max={customer.loyalty_points ?? 0}
+                      value={redeemPointsInput}
+                      onChange={(e) => setRedeemPointsInput(e.target.value)}
+                      className="input"
+                      placeholder="0"
+                    />
+                    <span className="shrink-0 text-xs text-ink-400 dark:text-ink-500">{t('pos.discount.pointsSuffix')}</span>
+                  </div>
+                  {loyaltyRedeemPoints > 0 && (
+                    <p className="text-xs font-medium text-success-700">-{formatMoney(loyaltyDiscountValue, currency)}</p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
           <div>
             <div className="flex items-center justify-between">
               <p className="label mb-0">{t('pos.paymentMethod')}</p>
