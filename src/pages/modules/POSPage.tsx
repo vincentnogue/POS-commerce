@@ -43,6 +43,7 @@ export function POSPage() {
   // paints. This is purely a local terminal state (not persisted server
   // side): each shared terminal locks independently. */
   const [locked, setLocked] = useState(false);
+  const [pendingLockConfirm, setPendingLockConfirm] = useState(false);
   const [unlockStaffCode, setUnlockStaffCode] = useState('');
   const [unlockPin, setUnlockPin] = useState('');
   const [unlockErr, setUnlockErr] = useState<string | null>(null);
@@ -50,9 +51,36 @@ export function POSPage() {
 
   const lockSession = () => {
     setLocked(true);
+    setPendingLockConfirm(true);
     setUnlockStaffCode(member?.staff_code ?? '');
     setUnlockPin('');
     setUnlockErr(null);
+  };
+
+  // FIX: locking used to be purely a local screen overlay -- the account
+  // itself was never actually locked server-side, so the same Staff ID +
+  // PIN kept working everywhere else (another till, a transfer, RMS) while
+  // "locked" here. Locking now requires entering the Staff ID + PIN too
+  // (same as unlocking), and calls the real lock_staff_account RPC, so the
+  // lock is a genuine per-staff state (see tenant_members.is_locked), not
+  // just this one screen.
+  const confirmLockAccount = async () => {
+    if (!tenant) return;
+    if (!unlockStaffCode.trim() || !unlockPin.trim()) {
+      setUnlockErr(t('pos.lock.err.required'));
+      return;
+    }
+    setUnlocking(true);
+    setUnlockErr(null);
+    const { error } = await supabase.rpc('lock_staff_account', {
+      p_tenant_id: tenant.id,
+      p_staff_code: unlockStaffCode.trim(),
+      p_pin: unlockPin.trim(),
+    });
+    setUnlocking(false);
+    if (error) { setUnlockErr(error.message); return; }
+    setPendingLockConfirm(false);
+    setUnlockPin('');
   };
 
   const unlockSession = async () => {
@@ -63,7 +91,11 @@ export function POSPage() {
     }
     setUnlocking(true);
     setUnlockErr(null);
-    const { error } = await supabase.rpc('verify_staff_pin', {
+    // FIX: this used to call verify_staff_pin, which (now that locking is
+    // real) correctly REFUSES a locked account -- so unlocking must call
+    // unlock_staff_account instead, which authenticates the PIN the same
+    // way but doesn't require the account to already be unlocked.
+    const { error } = await supabase.rpc('unlock_staff_account', {
       p_tenant_id: tenant.id,
       p_staff_code: unlockStaffCode.trim(),
       p_pin: unlockPin.trim(),
@@ -95,7 +127,7 @@ export function POSPage() {
   const [pageTab, setPageTab] = useState<'sale' | 'history' | 'returns'>('sale');
   const [daySession, setDaySession] = useState<any | null>(null);
   const [daySessionLoading, setDaySessionLoading] = useState(true);
-  const [members, setMembers] = useState<{ id: string; display_name: string | null; staff_code: string | null }[]>([]);
+  const [members, setMembers] = useState<{ id: string; user_id?: string; display_name: string | null; staff_code: string | null; is_locked?: boolean }[]>([]);
   const [openDayModal, setOpenDayModal] = useState(false);
   const [closeDayModal, setCloseDayModal] = useState(false);
   const [openingCash, setOpeningCash] = useState('');
@@ -119,7 +151,7 @@ export function POSPage() {
       setCustomers((c.data as Customer[]) ?? []);
       setStores((s.data as any[]) ?? []);
       setStoreId((s.data as any[])?.[0]?.id ?? null);
-      const { data: m } = await supabase.from('tenant_members').select('id, display_name, staff_code').eq('tenant_id', tenant.id);
+      const { data: m } = await supabase.from('tenant_members').select('id, user_id, display_name, staff_code, is_locked').eq('tenant_id', tenant.id);
       setMembers((m as any[]) ?? []);
       setLoading(false);
     })();
@@ -571,11 +603,11 @@ export function POSPage() {
               <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 dark:bg-brand-900/25 text-brand-500">
                 <LockIcon size={22} />
               </div>
-              <h2 className="text-lg font-semibold text-ink-900 dark:text-ink-50">{t('pos.lock.title')}</h2>
-              <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{t('pos.lock.desc')}</p>
+              <h2 className="text-lg font-semibold text-ink-900 dark:text-ink-50">{pendingLockConfirm ? t('pos.lock.confirmTitle') : t('pos.lock.title')}</h2>
+              <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{pendingLockConfirm ? t('pos.lock.confirmDesc') : t('pos.lock.desc')}</p>
             </div>
             <form
-              onSubmit={(e) => { e.preventDefault(); unlockSession(); }}
+              onSubmit={(e) => { e.preventDefault(); if (pendingLockConfirm) { confirmLockAccount(); } else { unlockSession(); } }}
               className="space-y-3"
             >
               <div>
@@ -601,8 +633,17 @@ export function POSPage() {
               </div>
               {unlockErr && <p className="text-sm text-red-600 dark:text-red-400">{unlockErr}</p>}
               <button type="submit" disabled={unlocking} className="btn-primary w-full">
-                {unlocking ? t('pos.lock.unlocking') : t('pos.lock.unlockBtn')}
+                {unlocking ? t('pos.lock.working') : pendingLockConfirm ? t('pos.lock.confirmBtn') : t('pos.lock.unlockBtn')}
               </button>
+              {pendingLockConfirm && (
+                <button
+                  type="button"
+                  onClick={() => { setLocked(false); setPendingLockConfirm(false); setUnlockErr(null); }}
+                  className="btn-ghost w-full justify-center"
+                >
+                  {t('common.cancel')}
+                </button>
+              )}
             </form>
           </div>
         </div>
