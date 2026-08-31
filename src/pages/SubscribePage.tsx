@@ -90,8 +90,8 @@ export function SubscribePage() {
       const json = await res.json();
       if (!res.ok) { setError(json.error ?? t('subscribe.error.init')); return; }
       if (json.url) window.location.href = json.url;
-    } catch (e: any) {
-      setError(e.message ?? t('subscribe.error.connection'));
+    } catch (e) {
+      setError((e instanceof Error ? e.message : undefined) ?? t('subscribe.error.connection'));
     } finally {
       setLoading(false);
       setCheckoutPlan(null);

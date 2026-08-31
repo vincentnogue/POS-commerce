@@ -64,9 +64,9 @@ export function SuperAdminPage() {
           setBackendVerified(false);
           setVerifyError(json.reason ?? json.error ?? t('super.err.accessDenied'));
         }
-      } catch (e: any) {
+      } catch (e) {
         setBackendVerified(false);
-        setVerifyError(e.message ?? t('super.err.verifyError'));
+        setVerifyError((e instanceof Error ? e.message : String(e)) ?? t('super.err.verifyError'));
       }
     })();
   }, [t]);
@@ -546,8 +546,8 @@ function SuperAdmins() {
         : t('super.admins.addedToList', { email: newEmail }));
       setNewEmail(''); setNewLabel(''); setFormOpen(false);
       await reload();
-    } catch (e: any) {
-      toast('error', e.message);
+    } catch (e) {
+      toast('error', (e instanceof Error ? e.message : String(e)));
     } finally {
       setBusy(false);
     }
@@ -560,8 +560,8 @@ function SuperAdmins() {
       await callManage({ action: 'remove', email });
       toast('success', t('super.admins.removed', { email }));
       await reload();
-    } catch (e: any) {
-      toast('error', e.message);
+    } catch (e) {
+      toast('error', (e instanceof Error ? e.message : String(e)));
     } finally {
       setBusy(false);
     }
@@ -573,8 +573,8 @@ function SuperAdmins() {
       await callManage({ action: 'update_label', email, label: editingLabel });
       setEditingEmail(null);
       await reload();
-    } catch (e: any) {
-      toast('error', e.message);
+    } catch (e) {
+      toast('error', (e instanceof Error ? e.message : String(e)));
     } finally {
       setBusy(false);
     }
@@ -728,8 +728,8 @@ function SuperStaff() {
       setNewPerms(Object.fromEntries(GRANTABLE_SECTIONS.map((s) => [s.id, false])));
       setFormOpen(false);
       await reload();
-    } catch (e: any) {
-      toast('error', e.message);
+    } catch (e) {
+      toast('error', (e instanceof Error ? e.message : String(e)));
     } finally {
       setBusy(false);
     }
@@ -742,8 +742,8 @@ function SuperStaff() {
       await callManage({ action: 'remove', email });
       toast('success', t('super.staff.removed', { email }));
       await reload();
-    } catch (e: any) {
-      toast('error', e.message);
+    } catch (e) {
+      toast('error', (e instanceof Error ? e.message : String(e)));
     } finally {
       setBusy(false);
     }
@@ -761,8 +761,8 @@ function SuperStaff() {
       setEditingEmail(null);
       await reload();
       toast('success', t('super.staff.permsUpdated'));
-    } catch (e: any) {
-      toast('error', e.message);
+    } catch (e) {
+      toast('error', (e instanceof Error ? e.message : String(e)));
     } finally {
       setBusy(false);
     }
@@ -1013,8 +1013,8 @@ function SuperPerformance() {
       if (!res.ok || json.error) throw new Error(json.error ?? t('super.err.unknown'));
       setStaff(json.staff ?? []);
       setCommercials(json.commercials ?? []);
-    } catch (e: any) {
-      setError(e.message ?? t('super.perf.loadError'));
+    } catch (e) {
+      setError((e instanceof Error ? e.message : String(e)) ?? t('super.perf.loadError'));
     } finally {
       setLoading(false);
     }
@@ -1292,8 +1292,8 @@ function SuperComms() {
       if (!res.ok || result.error) throw new Error(result.error ?? t('super.err.unknown'));
       toast('success', t('super.comms.sent', { sent: result.sent, tenants: result.tenants ?? recipientCount }));
       setSubject(''); setBody('');
-    } catch (e: any) {
-      toast('error', e.message);
+    } catch (e) {
+      toast('error', (e instanceof Error ? e.message : String(e)));
     } finally {
       setSending(false);
     }
@@ -1430,8 +1430,8 @@ function SuperSupport() {
     try {
       const result = await callAgent({ action: 'list' });
       setConversations(result.conversations ?? []);
-    } catch (e: any) {
-      toast('error', e.message);
+    } catch (e) {
+      toast('error', (e instanceof Error ? e.message : String(e)));
     } finally {
       setLoading(false);
     }
@@ -1444,8 +1444,8 @@ function SuperSupport() {
     try {
       const result = await callAgent({ action: 'messages', conversation_id: conv.id });
       setMessages(result.messages ?? []);
-    } catch (e: any) {
-      toast('error', e.message);
+    } catch (e) {
+      toast('error', (e instanceof Error ? e.message : String(e)));
     }
   };
 
@@ -1457,8 +1457,8 @@ function SuperSupport() {
       setMessages((prev) => [...prev, { id: `local-${Date.now()}`, sender: 'agent', content: reply.trim(), created_at: new Date().toISOString() }]);
       setReply('');
       await reload();
-    } catch (e: any) {
-      toast('error', e.message);
+    } catch (e) {
+      toast('error', (e instanceof Error ? e.message : String(e)));
     } finally {
       setSending(false);
     }
@@ -1471,8 +1471,8 @@ function SuperSupport() {
       toast('success', t('super.support.closed'));
       setActive(null);
       await reload();
-    } catch (e: any) {
-      toast('error', e.message);
+    } catch (e) {
+      toast('error', (e instanceof Error ? e.message : String(e)));
     }
   };
 

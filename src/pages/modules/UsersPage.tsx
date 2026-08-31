@@ -154,8 +154,8 @@ export function UsersPage() {
       setSetPasswordMode(false); setInvitePassword('');
       setModalOpen(false);
       await reload();
-    } catch (e: any) {
-      setInfo(t('users.err.generic', { msg: e.message }));
+    } catch (e) {
+      setInfo(t('users.err.generic', { msg: e instanceof Error ? e.message : String(e) }));
     } finally {
       setInviting(false);
     }
