@@ -76,6 +76,7 @@ export type Member = {
   display_name: string | null;
   avatar_color: string;
   staff_code?: string | null;
+  is_locked?: boolean;
 };
 
 export type Plan = {
