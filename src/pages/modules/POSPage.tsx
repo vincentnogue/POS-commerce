@@ -11,6 +11,7 @@ import { printDayReport } from '../../lib/dayReport';
 import { SaleHistoryTab } from './SaleHistoryTab';
 import { ReturnsTab } from './ReturnsTab';
 import type { Product, Customer } from '../../lib/types';
+import { getGiftCardStatus, redeemGiftCard, type GiftCardLookup } from '../../lib/giftCards';
 
 type CartItem = {
   product: Product;
@@ -22,6 +23,7 @@ const PAYMENT_METHODS = [
   { id: 'cash', labelKey: 'pos.pay.cash', icon: Banknote },
   { id: 'card', labelKey: 'pos.pay.card', icon: CreditCard },
   { id: 'mobile_money', labelKey: 'pos.pay.mobileMoney', icon: Smartphone },
+  { id: 'gift_card', labelKey: 'pos.pay.giftCard', icon: Gift },
 ];
 
 export function POSPage() {
@@ -110,6 +112,13 @@ export function POSPage() {
   };
   const [paidAmount, setPaidAmount] = useState('');
   const [paymentReference, setPaymentReference] = useState('');
+  // Gift card tender: paymentReference doubles as the card code (same
+  // convention as the existing card/mobile_money reference field). This
+  // holds the last balance check so we can warn before checkout instead of
+  // only finding out when redeem_gift_card rejects it.
+  const [giftCardLookup, setGiftCardLookup] = useState<GiftCardLookup | null>(null);
+  const [giftCardChecking, setGiftCardChecking] = useState(false);
+  const [giftCardErr, setGiftCardErr] = useState<string | null>(null);
   const [splitPayment, setSplitPayment] = useState(false);
   const [splitTenders, setSplitTenders] = useState<{ method: string; amount: string; reference: string }[]>([
     { method: 'cash', amount: '', reference: '' },
@@ -425,6 +434,21 @@ export function POSPage() {
   const splitTotal = splitTenders.reduce((s, t) => s + (Number(t.amount) || 0), 0);
   const splitRemaining = total - splitTotal;
 
+  // Look up a gift card's live balance/status before checkout so the
+  // cashier finds out about an expired/insufficient/unknown card while
+  // they can still ask the customer for another tender, rather than after
+  // the sale is already recorded.
+  const checkGiftCard = async (code: string) => {
+    if (!tenant || !code.trim()) { setGiftCardLookup(null); setGiftCardErr(null); return; }
+    setGiftCardChecking(true);
+    setGiftCardErr(null);
+    const { data, error } = await getGiftCardStatus({ tenantId: tenant.id, code: code.trim() });
+    setGiftCardChecking(false);
+    if (error) { setGiftCardErr(error); setGiftCardLookup(null); return; }
+    if (!data?.found) { setGiftCardErr(t('pos.giftCard.err.notFound')); setGiftCardLookup(null); return; }
+    setGiftCardLookup(data);
+  };
+
   const checkout = async () => {
     if (!tenant || cart.length === 0 || locked) return;
     if (!daySession) {
@@ -473,8 +497,8 @@ export function POSPage() {
       finalPaymentReference = null;
       tendersToRecord = validTenders.map((t) => ({ method: t.method, amount: Number(t.amount), reference: t.method === 'cash' ? null : t.reference.trim() }));
     } else {
-      if ((paymentMethod === 'card' || paymentMethod === 'mobile_money') && !paymentReference.trim()) {
-        toast('error', t('pos.err.paymentRefRequired'));
+      if ((paymentMethod === 'card' || paymentMethod === 'mobile_money' || paymentMethod === 'gift_card') && !paymentReference.trim()) {
+        toast('error', paymentMethod === 'gift_card' ? t('pos.giftCard.err.codeRequired') : t('pos.err.paymentRefRequired'));
         return;
       }
       // BUG FIX: `Number(paidAmount) || total` treated an explicit "0" the
@@ -484,6 +508,34 @@ export function POSPage() {
       // payment_status below correctly comes out 'unpaid'.
       paid = paymentMethod === 'cash' ? (paidAmount.trim() === '' ? total : Number(paidAmount)) : total;
       tendersToRecord = [{ method: paymentMethod, amount: paid, reference: finalPaymentReference }];
+    }
+
+    // Pre-validate every gift-card tender's balance *before* creating the
+    // sale (and re-checks live, not the possibly-stale UI lookup) — the
+    // redeem_gift_card RPC is still the sole source of truth that actually
+    // moves money and is called after the sale row exists below, but this
+    // catches an unknown/expired/insufficient card while nothing has been
+    // recorded yet instead of leaving a paid sale with a failed tender.
+    const giftCardAmountsByCode = new Map<string, number>();
+    for (const tRow of tendersToRecord) {
+      if (tRow.method === 'gift_card' && tRow.reference) {
+        giftCardAmountsByCode.set(tRow.reference, (giftCardAmountsByCode.get(tRow.reference) ?? 0) + tRow.amount);
+      }
+    }
+    for (const [code, amount] of giftCardAmountsByCode) {
+      const { data: gcStatus, error: gcErr } = await getGiftCardStatus({ tenantId: tenant.id, code });
+      if (gcErr || !gcStatus?.found) {
+        toast('error', t('pos.giftCard.err.notFound'));
+        return;
+      }
+      if (gcStatus.status !== 'active') {
+        toast('error', t('pos.giftCard.err.notUsable'));
+        return;
+      }
+      if ((gcStatus.balance ?? 0) < amount) {
+        toast('error', t('pos.giftCard.err.insufficientBalance'));
+        return;
+      }
     }
 
     const paymentStatus = paid >= total ? 'paid' : 'unpaid';
@@ -522,11 +574,31 @@ export function POSPage() {
     // already fully describe a normal sale on their own, so a failure here
     // must not roll back or block a completed, paid sale — it only means
     // the itemized breakdown is missing for reporting.
-    const { error: paymentsErr } = await supabase.from('sale_payments').insert(
-      tendersToRecord.map((tRow) => ({ tenant_id: tenant.id, sale_id: sale.id, method: tRow.method, amount: tRow.amount, reference: tRow.reference }))
-    );
-    if (paymentsErr) {
-      console.error('sale_payments insert failed (non-blocking):', paymentsErr.message);
+    //
+    // Gift-card tenders are the one exception: they go through
+    // redeem_gift_card (migration 0068) instead of a direct insert, because
+    // that RPC is what actually decrements the card's balance and writes
+    // its own sale_payments row (method='gift_card') plus the audit trail
+    // in gift_card_transactions. We already pre-validated balance above, so
+    // a failure here is a rare race (e.g. the same card used concurrently
+    // at another till) — logged and surfaced, but the sale itself, already
+    // committed, is not rolled back, same non-blocking posture as the
+    // ordinary tender insert below.
+    const otherTenders = tendersToRecord.filter((tRow) => tRow.method !== 'gift_card');
+    if (otherTenders.length > 0) {
+      const { error: paymentsErr } = await supabase.from('sale_payments').insert(
+        otherTenders.map((tRow) => ({ tenant_id: tenant.id, sale_id: sale.id, method: tRow.method, amount: tRow.amount, reference: tRow.reference }))
+      );
+      if (paymentsErr) {
+        console.error('sale_payments insert failed (non-blocking):', paymentsErr.message);
+      }
+    }
+    for (const [code, amount] of giftCardAmountsByCode) {
+      const { error: gcRedeemErr } = await redeemGiftCard({ tenantId: tenant.id, code, amount, saleId: sale.id });
+      if (gcRedeemErr) {
+        console.error('redeem_gift_card failed (sale already recorded):', gcRedeemErr);
+        toast('error', t('pos.giftCard.err.redeemFailedAfterSale', { code }));
+      }
     }
 
     // This writes the actual line items — and triggers automatic stock
@@ -632,6 +704,8 @@ export function POSPage() {
     setPaidAmount('');
     setSplitPayment(false);
     setSplitTenders([{ method: 'cash', amount: '', reference: '' }]);
+    setGiftCardLookup(null);
+    setGiftCardErr(null);
     setCheckoutOpen(false);
     setCustomer(null);
     setCustomerSearch('');
@@ -1061,7 +1135,7 @@ export function POSPage() {
               </button>
             </div>
             {!splitPayment && (
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {PAYMENT_METHODS.map((m) => (
                   <button
                     key={m.id}
@@ -1182,6 +1256,38 @@ export function POSPage() {
                 placeholder={paymentMethod === 'card' ? t('pos.cardRefPlaceholder') : t('pos.mobileRefPlaceholder')}
               />
               <p className="mt-1 text-xs text-ink-400 dark:text-ink-500">{t('pos.refHelp')}</p>
+            </div>
+          )}
+          {!splitPayment && paymentMethod === 'gift_card' && (
+            <div>
+              <label className="label">
+                {t('pos.giftCard.codeLabel')}
+                <span className="ml-1 text-error-500">*</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={paymentReference}
+                  onChange={(e) => { setPaymentReference(e.target.value.toUpperCase()); setGiftCardLookup(null); setGiftCardErr(null); }}
+                  className="input flex-1"
+                  placeholder={t('pos.giftCard.codePlaceholder')}
+                />
+                <button
+                  type="button"
+                  onClick={() => checkGiftCard(paymentReference)}
+                  disabled={giftCardChecking || !paymentReference.trim()}
+                  className="btn-secondary shrink-0 px-3 disabled:opacity-50"
+                >
+                  {giftCardChecking ? '…' : t('pos.giftCard.checkBalance')}
+                </button>
+              </div>
+              {giftCardErr && <p className="mt-1 text-xs font-medium text-error-600">{giftCardErr}</p>}
+              {giftCardLookup?.found && (
+                <p className={`mt-1 text-xs font-medium ${giftCardLookup.status === 'active' && (giftCardLookup.balance ?? 0) >= total ? 'text-success-700' : 'text-warning-700'}`}>
+                  {t('pos.giftCard.balanceLabel')}: {formatMoney(giftCardLookup.balance ?? 0, giftCardLookup.currency || currency)}
+                  {giftCardLookup.status !== 'active' && ` — ${giftCardLookup.status}`}
+                </p>
+              )}
             </div>
           )}
           <button onClick={checkout} disabled={splitPayment && Math.abs(splitRemaining) > 0.01} className="btn-primary w-full justify-center py-3 disabled:opacity-50 disabled:cursor-not-allowed">

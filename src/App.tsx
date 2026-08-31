@@ -45,6 +45,7 @@ const StoresPage = lazy(() => import('./pages/modules/StoresPage').then((m) => (
 const InvoicesPage = lazy(() => import('./pages/modules/InvoicesPage').then((m) => ({ default: m.InvoicesPage })));
 const DeliveriesPage = lazy(() => import('./pages/modules/DeliveriesPage').then((m) => ({ default: m.DeliveriesPage })));
 const CustomersPage = lazy(() => import('./pages/modules/CustomersPage').then((m) => ({ default: m.CustomersPage })));
+const GiftCardsPage = lazy(() => import('./pages/modules/GiftCardsPage').then((m) => ({ default: m.GiftCardsPage })));
 const SuppliersPage = lazy(() => import('./pages/modules/SuppliersPage').then((m) => ({ default: m.SuppliersPage })));
 const ExpensesPage = lazy(() => import('./pages/modules/ExpensesPage').then((m) => ({ default: m.ExpensesPage })));
 const PurchasesPage = lazy(() => import('./pages/modules/PurchasesPage').then((m) => ({ default: m.PurchasesPage })));
@@ -136,6 +137,7 @@ export default function App() {
                       <Route path="/invoices" element={<InvoicesPage />} />
                       <Route path="/deliveries" element={<DeliveriesPage />} />
                       <Route path="/customers" element={<CustomersPage />} />
+                      <Route path="/gift-cards" element={<GiftCardsPage />} />
                       <Route path="/suppliers" element={<SuppliersPage />} />
                       <Route path="/expenses" element={<ExpensesPage />} />
                       <Route path="/purchases" element={<PurchasesPage />} />
