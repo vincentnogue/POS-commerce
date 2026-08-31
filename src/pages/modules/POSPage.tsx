@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart, Mail, Lock as LockIcon, Percent, Gift } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart, Mail, Lock as LockIcon, Percent, Gift, PauseCircle } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -22,7 +22,12 @@ const PAYMENT_METHODS = [
   { id: 'cash', labelKey: 'pos.pay.cash', icon: Banknote },
   { id: 'card', labelKey: 'pos.pay.card', icon: CreditCard },
   { id: 'mobile_money', labelKey: 'pos.pay.mobileMoney', icon: Smartphone },
+  { id: 'gift_card', labelKey: 'pos.pay.giftCard', icon: Gift },
 ];
+// Split-payment tenders exclude gift_card: a gift card is verified/redeemed
+// as a single atomic tender covering the whole total (see checkout()), not
+// wired to support being one of several partial tenders in a split sale.
+const SPLIT_PAYMENT_METHODS = PAYMENT_METHODS.filter((m) => m.id !== 'gift_card');
 
 export function POSPage() {
   const { tenant, user, member } = useAuth();
@@ -110,6 +115,10 @@ export function POSPage() {
   };
   const [paidAmount, setPaidAmount] = useState('');
   const [paymentReference, setPaymentReference] = useState('');
+  const [giftCardCode, setGiftCardCode] = useState('');
+  const [giftCardCheck, setGiftCardCheck] = useState<{ id: string; balance: number } | null>(null);
+  const [giftCardErr, setGiftCardErr] = useState<string | null>(null);
+  const [checkingGiftCard, setCheckingGiftCard] = useState(false);
   const [splitPayment, setSplitPayment] = useState(false);
   const [splitTenders, setSplitTenders] = useState<{ method: string; amount: string; reference: string }[]>([
     { method: 'cash', amount: '', reference: '' },
@@ -145,6 +154,18 @@ export function POSPage() {
   const [closingCash, setClosingCash] = useState('');
   const [daySubmitting, setDaySubmitting] = useState(false);
   const [xReportSubmitting, setXReportSubmitting] = useState(false);
+  // Held/parked sales (D365-style "park sale"): put an in-progress cart
+  // aside to serve another customer, resume it later.
+  const [heldSales, setHeldSales] = useState<{ id: string; label: string | null; cart: CartItem[]; customer_id: string | null; created_at: string }[]>([]);
+  const [heldSalesModalOpen, setHeldSalesModalOpen] = useState(false);
+  const [holdingSale, setHoldingSale] = useState(false);
+  // Issue/sell a new gift card from the POS toolbar.
+  const [issueGiftCardModalOpen, setIssueGiftCardModalOpen] = useState(false);
+  const [issueAmount, setIssueAmount] = useState('');
+  const [issueCustomCode, setIssueCustomCode] = useState('');
+  const [issuing, setIssuing] = useState(false);
+  const [issuedCard, setIssuedCard] = useState<{ code: string; balance: number } | null>(null);
+  const [issueErr, setIssueErr] = useState<string | null>(null);
 
   const currency = tenant?.currency ?? 'XOF';
 
@@ -177,6 +198,77 @@ export function POSPage() {
   }, [tenant, storeId]);
 
   useEffect(() => { loadDaySession(); }, [loadDaySession]);
+
+  const loadHeldSales = useCallback(async () => {
+    if (!tenant) return;
+    let query = supabase.from('held_sales').select('id, label, cart, customer_id, created_at').eq('tenant_id', tenant.id).order('created_at', { ascending: false });
+    query = storeId ? query.eq('store_id', storeId) : query;
+    const { data } = await query;
+    setHeldSales((data as { id: string; label: string | null; cart: CartItem[]; customer_id: string | null; created_at: string }[]) ?? []);
+  }, [tenant, storeId]);
+
+  useEffect(() => { loadHeldSales(); }, [loadHeldSales]);
+
+  const holdSale = async () => {
+    if (!tenant || cart.length === 0) return;
+    setHoldingSale(true);
+    const { error } = await supabase.from('held_sales').insert({
+      tenant_id: tenant.id,
+      store_id: storeId,
+      user_id: user?.id ?? null,
+      customer_id: customer?.id ?? null,
+      label: customer?.name ?? null,
+      cart,
+    });
+    setHoldingSale(false);
+    if (error) { toast('error', error.message); return; }
+    setCart([]);
+    setCustomer(null);
+    setCustomerSearch('');
+    resetDiscountState();
+    toast('success', t('pos.hold.saved'));
+    loadHeldSales();
+  };
+
+  const resumeHeldSale = async (held: { id: string; cart: CartItem[]; customer_id: string | null }) => {
+    if (cart.length > 0 && !window.confirm(t('pos.hold.confirmReplace'))) return;
+    setCart(held.cart);
+    const matchedCustomer = held.customer_id ? customers.find((c) => c.id === held.customer_id) ?? null : null;
+    setCustomer(matchedCustomer);
+    await supabase.from('held_sales').delete().eq('id', held.id);
+    setHeldSalesModalOpen(false);
+    loadHeldSales();
+  };
+
+  const deleteHeldSale = async (id: string) => {
+    await supabase.from('held_sales').delete().eq('id', id);
+    loadHeldSales();
+  };
+
+  const issueGiftCard = async () => {
+    if (!tenant) return;
+    const amt = Number(issueAmount);
+    if (!amt || amt <= 0) { setIssueErr(t('pos.giftCard.err.amountInvalid')); return; }
+    setIssuing(true);
+    setIssueErr(null);
+    const { data, error } = await supabase.rpc('issue_gift_card', {
+      p_tenant_id: tenant.id,
+      p_amount: amt,
+      p_customer_id: customer?.id ?? null,
+      p_code: issueCustomCode.trim() || null,
+    });
+    setIssuing(false);
+    if (error) { setIssueErr(error.message); return; }
+    setIssuedCard(data as { code: string; balance: number });
+  };
+
+  const resetIssueGiftCard = () => {
+    setIssueAmount('');
+    setIssueCustomCode('');
+    setIssuedCard(null);
+    setIssueErr(null);
+    setIssueGiftCardModalOpen(false);
+  };
 
   const openDay = async () => {
     if (!tenant || !user || locked) return;
@@ -452,6 +544,7 @@ export function POSPage() {
     let finalPaymentReference: string | null = paymentMethod === 'cash' ? null : paymentReference.trim();
     let paid: number;
     let tendersToRecord: { method: string; amount: number; reference: string | null }[];
+    let redeemedGiftCardId: string | null = null;
 
     if (splitPayment) {
       const validTenders = splitTenders.filter((t) => Number(t.amount) > 0);
@@ -476,6 +569,21 @@ export function POSPage() {
       if ((paymentMethod === 'card' || paymentMethod === 'mobile_money') && !paymentReference.trim()) {
         toast('error', t('pos.err.paymentRefRequired'));
         return;
+      }
+      if (paymentMethod === 'gift_card') {
+        if (!giftCardCode.trim()) { toast('error', t('pos.giftCard.err.codeRequired')); return; }
+        // Always re-verify against the current total right before the
+        // sale, even if it was already checked once — the cart/discount
+        // may have changed since, and this call has no side effects.
+        const { data: gc, error: gcErr } = await supabase.rpc('check_gift_card', {
+          p_tenant_id: tenant.id,
+          p_code: giftCardCode.trim(),
+          p_amount: total,
+        });
+        if (gcErr) { toast('error', gcErr.message); return; }
+        setGiftCardCheck(gc as { id: string; balance: number });
+        redeemedGiftCardId = (gc as { id: string })?.id ?? null;
+        finalPaymentReference = giftCardCode.trim().toUpperCase();
       }
       // BUG FIX: `Number(paidAmount) || total` treated an explicit "0" the
       // same as an empty field, silently forcing a full payment even when
@@ -548,6 +656,19 @@ export function POSPage() {
     if (itemsErr) {
       toast('error', t('pos.err.itemsFailed', { ref, msg: itemsErr.message }));
       return;
+    }
+
+    // Gift card: actually spend it now that the sale exists (mirrors the
+    // loyalty pattern above) — was already validated with a fresh,
+    // non-mutating check_gift_card call right before the sale was created.
+    if (paymentMethod === 'gift_card' && redeemedGiftCardId) {
+      const { error: gcRedeemErr } = await supabase.rpc('redeem_gift_card', {
+        p_tenant_id: tenant.id,
+        p_gift_card_id: redeemedGiftCardId,
+        p_amount: total,
+        p_sale_id: sale.id,
+      });
+      if (gcRedeemErr) console.error('redeem_gift_card failed (non-blocking):', gcRedeemErr.message);
     }
 
     // Loyalty points: redeem what was selected (deducts the customer's
@@ -637,9 +758,12 @@ export function POSPage() {
     setCustomerSearch('');
     setDeliveryChoice('delivered');
     resetDiscountState();
+    setGiftCardCode('');
+    setGiftCardCheck(null);
+    setGiftCardErr(null);
   };
 
-  const paymentLabel = (m: string) => m === 'cash' ? t('pos.pay.cash') : m === 'card' ? t('pos.pay.cardLabel') : m === 'mobile_money' ? t('pos.pay.mobileMoney') : m === 'split' ? t('pos.split.label') : m;
+  const paymentLabel = (m: string) => m === 'cash' ? t('pos.pay.cash') : m === 'card' ? t('pos.pay.cardLabel') : m === 'mobile_money' ? t('pos.pay.mobileMoney') : m === 'gift_card' ? t('pos.pay.giftCard') : m === 'split' ? t('pos.split.label') : m;
 
   const printReceipt = () => {
     if (!success || !lastReceipt) return;
@@ -812,15 +936,20 @@ export function POSPage() {
         )
       )}
 
-      <div className="mb-4 inline-flex rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
-        <button onClick={() => setPageTab('sale')} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition ${pageTab === 'sale' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
-          <ShoppingCart size={14} /> {t('pos.tab.sale')}
-        </button>
-        <button onClick={() => setPageTab('history')} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition ${pageTab === 'history' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
-          <History size={14} /> {t('pos.tab.history')}
-        </button>
-        <button onClick={() => setPageTab('returns')} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition ${pageTab === 'returns' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
-          <RotateCcw size={14} /> {t('pos.tab.returns')}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div className="inline-flex rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
+          <button onClick={() => setPageTab('sale')} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition ${pageTab === 'sale' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
+            <ShoppingCart size={14} /> {t('pos.tab.sale')}
+          </button>
+          <button onClick={() => setPageTab('history')} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition ${pageTab === 'history' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
+            <History size={14} /> {t('pos.tab.history')}
+          </button>
+          <button onClick={() => setPageTab('returns')} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition ${pageTab === 'returns' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>
+            <RotateCcw size={14} /> {t('pos.tab.returns')}
+          </button>
+        </div>
+        <button type="button" onClick={() => setIssueGiftCardModalOpen(true)} className="btn-ghost py-1.5 text-xs">
+          <Gift size={14} /> {t('pos.giftCard.sellAction')}
         </button>
       </div>
 
@@ -870,9 +999,23 @@ export function POSPage() {
 
         {/* Cart */}
         <div className="card flex flex-col p-5">
-          <h3 className="mb-3 flex items-center gap-2 font-medium text-ink-900 dark:text-ink-50">
-            <Receipt size={18} /> {t('pos.cart')} ({cart.length})
-          </h3>
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="flex items-center gap-2 font-medium text-ink-900 dark:text-ink-50">
+              <Receipt size={18} /> {t('pos.cart')} ({cart.length})
+            </h3>
+            <div className="flex items-center gap-2">
+              {cart.length > 0 && (
+                <button type="button" onClick={holdSale} disabled={holdingSale} className="flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700 disabled:opacity-50">
+                  <PauseCircle size={14} /> {t('pos.hold.action')}
+                </button>
+              )}
+              {heldSales.length > 0 && (
+                <button type="button" onClick={() => setHeldSalesModalOpen(true)} className="flex items-center gap-1 rounded-full bg-warning-100 dark:bg-warning-900/35 px-2 py-0.5 text-xs font-semibold text-warning-700">
+                  <PauseCircle size={12} /> {t('pos.hold.list', { count: heldSales.length })}
+                </button>
+              )}
+            </div>
+          </div>
           {cart.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
               <ShoppingCart size={28} className="mb-2 text-ink-300" />
@@ -936,6 +1079,61 @@ export function POSPage() {
         </div>
       </div>
       )}
+
+      {/* Issue gift card modal */}
+      <Modal open={issueGiftCardModalOpen} onClose={resetIssueGiftCard} title={t('pos.giftCard.sellAction')}>
+        {issuedCard ? (
+          <div className="text-center">
+            <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-success-100 dark:bg-success-900/35 text-success-700">
+              <Gift size={28} />
+            </div>
+            <p className="text-sm text-ink-600 dark:text-ink-300">{t('pos.giftCard.issuedNote')}</p>
+            <p className="mt-2 rounded-lg bg-ink-100 dark:bg-ink-800 px-4 py-2 font-mono text-lg tracking-widest text-ink-900 dark:text-ink-50">{issuedCard.code}</p>
+            <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{formatMoney(issuedCard.balance, currency)}</p>
+            <button onClick={resetIssueGiftCard} className="btn-primary mt-4 w-full justify-center">{t('common.done')}</button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div>
+              <label className="label">{t('pos.giftCard.amountLabel')}</label>
+              <input type="number" min={0} step="0.01" value={issueAmount} onChange={(e) => setIssueAmount(e.target.value)} className="input" />
+            </div>
+            <div>
+              <label className="label">{t('pos.giftCard.customCodeLabel')}</label>
+              <input type="text" value={issueCustomCode} onChange={(e) => setIssueCustomCode(e.target.value.toUpperCase())} className="input" placeholder={t('pos.giftCard.customCodePlaceholder')} />
+            </div>
+            {issueErr && <p className="text-xs font-medium text-error-600">{issueErr}</p>}
+            <button onClick={issueGiftCard} disabled={issuing || !issueAmount} className="btn-primary w-full justify-center disabled:opacity-50">
+              {issuing ? '…' : t('pos.giftCard.issueAction')}
+            </button>
+          </div>
+        )}
+      </Modal>
+
+      {/* Held sales modal */}
+      <Modal open={heldSalesModalOpen} onClose={() => setHeldSalesModalOpen(false)} title={t('pos.hold.modalTitle')}>
+        {heldSales.length === 0 ? (
+          <p className="py-6 text-center text-sm text-ink-400">{t('pos.hold.empty')}</p>
+        ) : (
+          <div className="max-h-96 space-y-2 overflow-y-auto">
+            {heldSales.map((h) => {
+              const holdTotal = h.cart.reduce((s, i) => s + i.quantity * i.unit_price, 0);
+              return (
+                <div key={h.id} className="flex items-center justify-between rounded-xl border border-ink-200 dark:border-ink-700 p-3">
+                  <div>
+                    <p className="text-sm font-medium text-ink-900 dark:text-ink-50">{h.label || t('pos.hold.untitled')}</p>
+                    <p className="text-xs text-ink-400 dark:text-ink-500">{h.cart.length} {t('pos.hold.items')} · {formatMoney(holdTotal, currency)}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button type="button" onClick={() => resumeHeldSale(h)} className="btn-primary py-1.5 text-xs">{t('pos.hold.resume')}</button>
+                    <button type="button" onClick={() => deleteHeldSale(h.id)} className="text-error-500 hover:text-error-700"><Trash2 size={15} /></button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Modal>
 
       {/* Checkout modal */}
       <Modal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} title={t('pos.checkoutTitle')}>
@@ -1086,7 +1284,7 @@ export function POSPage() {
                     onChange={(e) => setSplitTenders((rows) => rows.map((r, i) => (i === idx ? { ...r, method: e.target.value } : r)))}
                     className="input py-1.5 text-sm w-28 shrink-0"
                   >
-                    {PAYMENT_METHODS.map((m) => <option key={m.id} value={m.id}>{t(m.labelKey)}</option>)}
+                    {SPLIT_PAYMENT_METHODS.map((m) => <option key={m.id} value={m.id}>{t(m.labelKey)}</option>)}
                   </select>
                   <input
                     type="number"
@@ -1182,6 +1380,40 @@ export function POSPage() {
                 placeholder={paymentMethod === 'card' ? t('pos.cardRefPlaceholder') : t('pos.mobileRefPlaceholder')}
               />
               <p className="mt-1 text-xs text-ink-400 dark:text-ink-500">{t('pos.refHelp')}</p>
+            </div>
+          )}
+          {!splitPayment && paymentMethod === 'gift_card' && (
+            <div className="space-y-2">
+              <label className="label">{t('pos.giftCard.codeLabel')} <span className="ml-1 text-error-500">*</span></label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={giftCardCode}
+                  onChange={(e) => { setGiftCardCode(e.target.value.toUpperCase()); setGiftCardCheck(null); setGiftCardErr(null); }}
+                  className="input flex-1"
+                  placeholder={t('pos.giftCard.codePlaceholder')}
+                />
+                <button
+                  type="button"
+                  disabled={!giftCardCode.trim() || checkingGiftCard}
+                  onClick={async () => {
+                    if (!tenant) return;
+                    setCheckingGiftCard(true);
+                    setGiftCardErr(null);
+                    const { data, error } = await supabase.rpc('check_gift_card', { p_tenant_id: tenant.id, p_code: giftCardCode.trim(), p_amount: total });
+                    setCheckingGiftCard(false);
+                    if (error) { setGiftCardErr(error.message); setGiftCardCheck(null); return; }
+                    setGiftCardCheck(data as { id: string; balance: number });
+                  }}
+                  className="btn-ghost shrink-0 py-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {checkingGiftCard ? '…' : t('pos.giftCard.verify')}
+                </button>
+              </div>
+              {giftCardErr && <p className="text-xs font-medium text-error-600">{giftCardErr}</p>}
+              {giftCardCheck && (
+                <p className="text-xs font-medium text-success-700">{t('pos.giftCard.balanceOk', { balance: formatMoney(giftCardCheck.balance, currency) })}</p>
+              )}
             </div>
           )}
           <button onClick={checkout} disabled={splitPayment && Math.abs(splitRemaining) > 0.01} className="btn-primary w-full justify-center py-3 disabled:opacity-50 disabled:cursor-not-allowed">
