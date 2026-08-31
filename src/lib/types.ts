@@ -396,6 +396,42 @@ export type ContactMessage = {
   created_at: string;
 };
 
+// Gift cards (see migration 0068). Reuses the 'pos' module permission for
+// issue/recharge/redeem and 'administration' for cancel — no new ModuleCode.
+export type GiftCardStatus = 'active' | 'inactive' | 'depleted' | 'expired' | 'cancelled';
+
+export type GiftCard = {
+  id: string;
+  tenant_id: string;
+  code: string;
+  currency: string | null;
+  initial_balance: number;
+  balance: number;
+  status: GiftCardStatus;
+  customer_id: string | null;
+  store_id: string | null;
+  issued_by: string | null;
+  expires_at: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type GiftCardTransactionType = 'issue' | 'recharge' | 'redeem' | 'refund' | 'cancel' | 'expire';
+
+export type GiftCardTransaction = {
+  id: string;
+  tenant_id: string;
+  gift_card_id: string;
+  type: GiftCardTransactionType;
+  amount: number;
+  balance_after: number;
+  sale_id: string | null;
+  performed_by: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
 export const MODULES = [
   'dashboard', 'pos', 'products', 'stock', 'stores', 'invoices',
   'deliveries', 'customers', 'suppliers', 'expenses', 'purchases',
