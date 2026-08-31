@@ -20,6 +20,8 @@ export type ReceiptData = {
   paymentMethod: string;
   paymentReference: string | null;
   staffName?: string | null;
+  discountTotal?: number;
+  pointsEarned?: number | null;
 };
 
 export type ReceiptLabels = {
@@ -37,6 +39,8 @@ export type ReceiptLabels = {
   thanks: string;
   keepProof: string;
   staffLabel?: string;
+  discountLabel?: string;
+  pointsEarnedLabel?: (points: number) => string;
   paymentMethodLabel: (method: string) => string;
 };
 
@@ -94,6 +98,7 @@ export function printSaleReceipt(
     ${data.staffName && labels.staffLabel ? `<div class="meta"><span>${labels.staffLabel}</span><span>${data.staffName}</span></div>` : ''}
     <div class="divider"></div>
     <table><thead><tr><th>${labels.designation}</th><th style="text-align:right">${labels.qty}</th><th style="text-align:right">${labels.price}</th><th style="text-align:right">${labels.total}</th></tr></thead><tbody>${rows}</tbody></table>
+    ${data.discountTotal && data.discountTotal > 0 && labels.discountLabel ? `<div class="meta"><span>${labels.discountLabel}</span><span>-${opts.formatMoney(data.discountTotal, opts.currency)}</span></div>` : ''}
     <div class="total-row"><span>${labels.total}</span><span>${opts.formatMoney(data.total, opts.currency)}</span></div>
     <div class="payment-block">
       <div class="payment-row"><span class="label">${labels.paymentMode}</span><span class="value">${labels.paymentMethodLabel(data.paymentMethod)}</span></div>
@@ -102,6 +107,7 @@ export function printSaleReceipt(
     </div>
     <div class="footer">
       <div class="thanks">${labels.thanks}</div>
+      ${data.pointsEarned && data.pointsEarned > 0 && labels.pointsEarnedLabel ? `<div>${labels.pointsEarnedLabel(data.pointsEarned)}</div>` : ''}
       ${labels.keepProof}
     </div>
   </body></html>`);

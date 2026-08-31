@@ -116,7 +116,7 @@ export function POSPage() {
   ]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
-  const [lastReceipt, setLastReceipt] = useState<{ items: CartItem[]; total: number; paymentMethod: string; paymentReference: string; customerName: string | null; customerPhone: string | null; customerEmail: string | null } | null>(null);
+  const [lastReceipt, setLastReceipt] = useState<{ items: CartItem[]; total: number; paymentMethod: string; paymentReference: string; customerName: string | null; customerPhone: string | null; customerEmail: string | null; discountTotal: number; pointsEarned: number | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [deliveryChoice, setDeliveryChoice] = useState<'delivered' | 'pending'>('delivered');
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -556,6 +556,7 @@ export function POSPage() {
     // the sale itself is already completed and paid at this point, so a
     // failure here must not roll back or block it; it only means the
     // loyalty ledger is out of sync and should be reconciled manually.
+    let pointsEarnedForReceipt: number | null = null;
     if (customer && tenant) {
       if (loyaltyDiscountEnabled && loyaltyRedeemPoints > 0) {
         const { error: redeemErr } = await supabase.rpc('redeem_loyalty_points', {
@@ -574,6 +575,7 @@ export function POSPage() {
       if (earnErr) {
         console.error('earn_loyalty_points failed (non-blocking):', earnErr.message);
       } else if (typeof earnedPoints === 'number' && earnedPoints > 0) {
+        pointsEarnedForReceipt = earnedPoints;
         toast('success', t('pos.discount.pointsEarned', { points: earnedPoints }));
       }
       // Refresh the customer's balance locally so the next sale (and the
@@ -622,6 +624,8 @@ export function POSPage() {
       customerName: customer?.name ?? null,
       customerPhone: customer?.phone ?? null,
       customerEmail: customer?.email ?? null,
+      discountTotal,
+      pointsEarned: pointsEarnedForReceipt,
     });
     setCart([]);
     setPaymentReference('');
@@ -647,6 +651,8 @@ export function POSPage() {
         total: lastReceipt.total,
         paymentMethod: lastReceipt.paymentMethod,
         paymentReference: lastReceipt.paymentReference || null,
+        discountTotal: lastReceipt.discountTotal,
+        pointsEarned: lastReceipt.pointsEarned,
       },
       {
         title: t('pos.receipt.title'),
@@ -662,6 +668,8 @@ export function POSPage() {
         statusPaid: t('pos.receipt.statusPaid'),
         thanks: t('pos.receipt.thanks'),
         keepProof: t('pos.receipt.keepProof'),
+        discountLabel: t('pos.discount.total'),
+        pointsEarnedLabel: (points) => t('pos.discount.pointsEarned', { points }),
         paymentMethodLabel: paymentLabel,
       },
       { businessName: tenant?.name ?? '', currency, lang, locale, formatMoney },
@@ -674,7 +682,9 @@ export function POSPage() {
     const paymentLine = lastReceipt.paymentReference
       ? `%0a${t('pos.whatsapp.payment')} : ${paymentLabel(lastReceipt.paymentMethod)} (${t('pos.whatsapp.ref')}: ${lastReceipt.paymentReference})`
       : `%0a${t('pos.whatsapp.payment')} : ${paymentLabel(lastReceipt.paymentMethod)}`;
-    const msg = `*${t('pos.whatsapp.saleReceipt')} ${success}*%0a%0a${lines}%0a%0a*${t('pos.receipt.total')}: ${formatMoney(lastReceipt.total, currency)}*${paymentLine}%0a%0a${t('pos.receipt.thanks')}`;
+    const discountLine = lastReceipt.discountTotal > 0 ? `%0a${t('pos.discount.total')}: -${formatMoney(lastReceipt.discountTotal, currency)}` : '';
+    const pointsLine = lastReceipt.pointsEarned && lastReceipt.pointsEarned > 0 ? `%0a${t('pos.discount.pointsEarned', { points: lastReceipt.pointsEarned })}` : '';
+    const msg = `*${t('pos.whatsapp.saleReceipt')} ${success}*%0a%0a${lines}${discountLine}%0a%0a*${t('pos.receipt.total')}: ${formatMoney(lastReceipt.total, currency)}*${paymentLine}${pointsLine}%0a%0a${t('pos.receipt.thanks')}`;
     // FIX: this used to always open wa.me/?text=... with no recipient, even
     // when a real customer (with a real phone on file) was picked at
     // checkout -- the cashier had to manually pick the contact every time.
@@ -697,8 +707,10 @@ export function POSPage() {
     const paymentLine = lastReceipt.paymentReference
       ? `${t('pos.whatsapp.payment')}: ${paymentLabel(lastReceipt.paymentMethod)} (${t('pos.whatsapp.ref')}: ${lastReceipt.paymentReference})`
       : `${t('pos.whatsapp.payment')}: ${paymentLabel(lastReceipt.paymentMethod)}`;
+    const discountLine = lastReceipt.discountTotal > 0 ? `${t('pos.discount.total')}: -${formatMoney(lastReceipt.discountTotal, currency)}\n` : '';
+    const pointsLine = lastReceipt.pointsEarned && lastReceipt.pointsEarned > 0 ? `\n${t('pos.discount.pointsEarned', { points: lastReceipt.pointsEarned })}` : '';
     const subject = `${t('pos.whatsapp.saleReceipt')} ${success}`;
-    const body = `${lines}\n\n${t('pos.receipt.total')}: ${formatMoney(lastReceipt.total, currency)}\n${paymentLine}\n\n${t('pos.receipt.thanks')}`;
+    const body = `${lines}\n${discountLine}\n${t('pos.receipt.total')}: ${formatMoney(lastReceipt.total, currency)}\n${paymentLine}${pointsLine}\n\n${t('pos.receipt.thanks')}`;
     window.location.href = `mailto:${lastReceipt.customerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 

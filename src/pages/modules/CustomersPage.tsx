@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Plus, Pencil, Trash2, Users, Download, Mail, Phone } from 'lucide-react';
+import { Plus, Pencil, Trash2, Users, Download, Mail, Phone, Gift } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -10,9 +10,11 @@ import type { Customer } from '../../lib/types';
 
 const EMPTY = { name: '', email: '', phone: '', address: '', city: '', tax_id: '', notes: '' };
 
+type LoyaltyTx = { id: string; points_delta: number; reason: string; created_at: string };
+
 export function CustomersPage() {
   const toast = useToast();
-  const { t } = useI18n();
+  const { t, formatDate } = useI18n();
   const { tenant } = useAuth();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState('');
@@ -20,6 +22,9 @@ export function CustomersPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Customer | null>(null);
   const [form, setForm] = useState<any>(EMPTY);
+  const [loyaltyCustomer, setLoyaltyCustomer] = useState<Customer | null>(null);
+  const [loyaltyTx, setLoyaltyTx] = useState<LoyaltyTx[]>([]);
+  const [loyaltyLoading, setLoyaltyLoading] = useState(false);
 
   const currency = tenant?.currency ?? 'XOF';
 
@@ -37,6 +42,23 @@ export function CustomersPage() {
 
   const openNew = () => { setEditing(null); setForm(EMPTY); setModalOpen(true); };
   const openEdit = (c: Customer) => { setEditing(c); setForm({ name: c.name, email: c.email ?? '', phone: c.phone ?? '', address: c.address ?? '', city: c.city ?? '', tax_id: c.tax_id ?? '', notes: c.notes ?? '' }); setModalOpen(true); };
+
+  // D365-style loyalty ledger (see migration 0067): every earn/redeem is
+  // logged in loyalty_transactions — surface it per customer so a cashier
+  // or manager can see how a balance was built up, not just the total.
+  const openLoyaltyHistory = async (c: Customer) => {
+    if (!tenant) return;
+    setLoyaltyCustomer(c);
+    setLoyaltyLoading(true);
+    const { data } = await supabase
+      .from('loyalty_transactions')
+      .select('id, points_delta, reason, created_at')
+      .eq('tenant_id', tenant.id)
+      .eq('customer_id', c.id)
+      .order('created_at', { ascending: false });
+    setLoyaltyTx((data as LoyaltyTx[]) ?? []);
+    setLoyaltyLoading(false);
+  };
 
   const save = async () => {
     if (!tenant || !form.name.trim()) return;
@@ -87,6 +109,15 @@ export function CustomersPage() {
               { key: 'phone', label: t('customers.col.phone'), render: (c) => c.phone ? <span className="flex items-center gap-1 text-ink-600 dark:text-ink-300"><Phone size={12} /> {c.phone}</span> : <span className="text-ink-400 dark:text-ink-500">—</span> },
               { key: 'city', label: t('customers.col.city'), render: (c) => <span className="text-ink-600 dark:text-ink-300">{c.city ?? '—'}</span> },
               { key: 'balance', label: t('customers.col.balance'), className: 'text-right', render: (c) => <span className={Number(c.balance) < 0 ? 'font-medium text-error-600' : 'text-ink-900 dark:text-ink-50'}>{formatMoney(c.balance, currency)}</span> },
+              { key: 'loyalty_points', label: t('customers.col.loyaltyPoints'), className: 'text-right', render: (c) => (
+                <button
+                  type="button"
+                  onClick={() => openLoyaltyHistory(c)}
+                  className="inline-flex items-center gap-1 rounded-full border border-ink-200 dark:border-ink-700 px-2 py-0.5 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/25"
+                >
+                  <Gift size={12} /> {c.loyalty_points ?? 0}
+                </button>
+              )},
               { key: 'actions', label: '', className: 'text-right', render: (c) => (
                 <div className="flex justify-end gap-2">
                   <button onClick={() => openEdit(c)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>
@@ -111,6 +142,33 @@ export function CustomersPage() {
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={() => setModalOpen(false)} className="btn-ghost">{t('common.cancel')}</button>
           <button onClick={save} className="btn-primary">{editing ? t('common.save') : t('common.create')}</button>
+        </div>
+      </Modal>
+      <Modal open={!!loyaltyCustomer} onClose={() => setLoyaltyCustomer(null)} title={t('customers.loyalty.title', { name: loyaltyCustomer?.name ?? '' })}>
+        <div className="space-y-3">
+          <div className="rounded-xl bg-brand-50 dark:bg-brand-900/25 p-3 text-center">
+            <p className="text-xs uppercase text-ink-500 dark:text-ink-400">{t('customers.loyalty.balance')}</p>
+            <p className="text-2xl font-medium text-brand-700">{loyaltyCustomer?.loyalty_points ?? 0}</p>
+          </div>
+          {loyaltyLoading ? (
+            <p className="py-4 text-center text-sm text-ink-400">{t('common.loading')}</p>
+          ) : loyaltyTx.length === 0 ? (
+            <p className="py-4 text-center text-sm text-ink-400">{t('customers.loyalty.empty')}</p>
+          ) : (
+            <div className="max-h-80 space-y-1.5 overflow-y-auto">
+              {loyaltyTx.map((tx) => (
+                <div key={tx.id} className="flex items-center justify-between rounded-lg border border-ink-100 dark:border-ink-800 px-3 py-2 text-sm">
+                  <div>
+                    <p className="text-ink-900 dark:text-ink-50">{tx.reason}</p>
+                    <p className="text-xs text-ink-400 dark:text-ink-500">{formatDate(new Date(tx.created_at))}</p>
+                  </div>
+                  <span className={`font-medium ${tx.points_delta >= 0 ? 'text-success-700' : 'text-error-600'}`}>
+                    {tx.points_delta >= 0 ? '+' : ''}{tx.points_delta}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </Modal>
     </div>

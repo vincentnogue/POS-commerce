@@ -169,6 +169,7 @@ export function SaleHistoryTab() {
         paymentMethod: sale.payment_method ?? '',
         paymentReference: sale.payment_reference,
         staffName: sale.user_id ? staffNames[sale.user_id] ?? null : null,
+        discountTotal: Number(sale.discount_total ?? 0),
       },
       {
         title: t('pos.receipt.title'),
@@ -185,6 +186,7 @@ export function SaleHistoryTab() {
         thanks: t('pos.receipt.thanks'),
         keepProof: t('pos.receipt.keepProof'),
         staffLabel: t('pos.history.staffLabel'),
+        discountLabel: t('pos.discount.total'),
         paymentMethodLabel: paymentLabel,
       },
       { businessName: tenant?.name ?? '', currency, lang, locale, formatMoney },
