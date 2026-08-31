@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart, Mail } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart, Mail, Lock as LockIcon } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -25,13 +25,57 @@ const PAYMENT_METHODS = [
 ];
 
 export function POSPage() {
-  const { tenant, user } = useAuth();
+  const { tenant, user, member } = useAuth();
   const { t, lang, locale } = useI18n();
   const toast = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState('cash');
+
+  // --- Staff session lock (D365-style: a staff member can lock their own
+  // register session on a shared terminal; unlocking requires their own
+  // Staff ID + PIN, verified server-side against the hash set by an admin
+  // via set_staff_pin. While locked, no sale/checkout/day-session action
+  // can go through — this is enforced both by the overlay blocking all
+  // interaction AND inside checkout()/openDay()/closeDay() themselves, so
+  // it can't be bypassed by a stray click landing before the overlay
+  // paints. This is purely a local terminal state (not persisted server
+  // side): each shared terminal locks independently. */
+  const [locked, setLocked] = useState(false);
+  const [unlockStaffCode, setUnlockStaffCode] = useState('');
+  const [unlockPin, setUnlockPin] = useState('');
+  const [unlockErr, setUnlockErr] = useState<string | null>(null);
+  const [unlocking, setUnlocking] = useState(false);
+
+  const lockSession = () => {
+    setLocked(true);
+    setUnlockStaffCode(member?.staff_code ?? '');
+    setUnlockPin('');
+    setUnlockErr(null);
+  };
+
+  const unlockSession = async () => {
+    if (!tenant) return;
+    if (!unlockStaffCode.trim() || !unlockPin.trim()) {
+      setUnlockErr(t('pos.lock.err.required'));
+      return;
+    }
+    setUnlocking(true);
+    setUnlockErr(null);
+    const { error } = await supabase.rpc('verify_staff_pin', {
+      p_tenant_id: tenant.id,
+      p_staff_code: unlockStaffCode.trim(),
+      p_pin: unlockPin.trim(),
+    });
+    setUnlocking(false);
+    if (error) {
+      setUnlockErr(error.message);
+      return;
+    }
+    setLocked(false);
+    setUnlockPin('');
+  };
   const [paidAmount, setPaidAmount] = useState('');
   const [paymentReference, setPaymentReference] = useState('');
   const [splitPayment, setSplitPayment] = useState(false);
@@ -94,7 +138,7 @@ export function POSPage() {
   useEffect(() => { loadDaySession(); }, [loadDaySession]);
 
   const openDay = async () => {
-    if (!tenant || !user) return;
+    if (!tenant || !user || locked) return;
     const cashValue = Number(openingCash);
     if (Number.isNaN(cashValue) || cashValue < 0) { toast('error', t('pos.day.err.invalidCash')); return; }
     setDaySubmitting(true);
@@ -115,7 +159,7 @@ export function POSPage() {
   };
 
   const closeDay = async () => {
-    if (!tenant || !user || !daySession) return;
+    if (!tenant || !user || !daySession || locked) return;
     const cashValue = Number(closingCash);
     if (Number.isNaN(cashValue) || cashValue < 0) { toast('error', t('pos.day.err.invalidCash')); return; }
     setDaySubmitting(true);
@@ -293,7 +337,7 @@ export function POSPage() {
   const splitRemaining = total - splitTotal;
 
   const checkout = async () => {
-    if (!tenant || cart.length === 0) return;
+    if (!tenant || cart.length === 0 || locked) return;
     if (!daySession) {
       toast('error', t('pos.day.err.mustOpenFirst'));
       return;
@@ -520,9 +564,58 @@ export function POSPage() {
 
   return (
     <div>
+      {locked && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-ink-950/90 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-ink-900 p-6 shadow-2xl">
+            <div className="mb-4 flex flex-col items-center text-center">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 dark:bg-brand-900/25 text-brand-500">
+                <LockIcon size={22} />
+              </div>
+              <h2 className="text-lg font-semibold text-ink-900 dark:text-ink-50">{t('pos.lock.title')}</h2>
+              <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{t('pos.lock.desc')}</p>
+            </div>
+            <form
+              onSubmit={(e) => { e.preventDefault(); unlockSession(); }}
+              className="space-y-3"
+            >
+              <div>
+                <label className="mb-1 block text-sm font-medium text-ink-700 dark:text-ink-300">{t('pos.lock.staffId')}</label>
+                <input
+                  autoFocus
+                  value={unlockStaffCode}
+                  onChange={(e) => setUnlockStaffCode(e.target.value)}
+                  className="input"
+                  placeholder={t('pos.lock.staffIdPlaceholder')}
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-ink-700 dark:text-ink-300">{t('pos.lock.pin')}</label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  value={unlockPin}
+                  onChange={(e) => setUnlockPin(e.target.value)}
+                  className="input"
+                  placeholder="••••"
+                />
+              </div>
+              {unlockErr && <p className="text-sm text-red-600 dark:text-red-400">{unlockErr}</p>}
+              <button type="submit" disabled={unlocking} className="btn-primary w-full">
+                {unlocking ? t('pos.lock.unlocking') : t('pos.lock.unlockBtn')}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       <PageHeader
         title={t('pos.title')}
         subtitle={t('pos.subtitle')}
+        action={
+          <button onClick={lockSession} className="btn-ghost inline-flex items-center gap-2">
+            <LockIcon size={16} /> {t('pos.lock.lockBtn')}
+          </button>
+        }
       />
 
       {stores.length > 1 && pageTab === 'sale' && (
