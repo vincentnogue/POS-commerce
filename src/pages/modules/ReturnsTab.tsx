@@ -296,8 +296,13 @@ export function ReturnsTab() {
                   <input
                     value={customerSearch}
                     onChange={(e) => {
-                      setCustomerSearch(e.target.value);
-                      const match = customers.find((c) => c.name.toLowerCase().includes(e.target.value.toLowerCase()));
+                      const q = e.target.value;
+                      setCustomerSearch(q);
+                      // BUG FIX: `"anything".includes("")` is always true, so once the
+                      // field was cleared, .find() used to return whichever customer
+                      // happened to be first in the list instead of clearing the
+                      // selection. Only auto-match on a non-empty query.
+                      const match = q.trim() ? customers.find((c) => c.name.toLowerCase().includes(q.toLowerCase())) : undefined;
                       setPickedCustomerId(match?.id ?? null);
                     }}
                     className="input"

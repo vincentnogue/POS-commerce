@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Plus, Download, Boxes, AlertTriangle, ArrowRightLeft, Check, X } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
@@ -57,7 +57,7 @@ export function StockPage() {
     setLoading(false);
   })(); }, [tenant, user]);
 
-  const reloadTransfers = async () => {
+  const reloadTransfers = useCallback(async () => {
     if (!tenant) return;
     // New named, multi-product transfers ("Transfer Out / Transfer In").
     const { data: batchData } = await supabase
@@ -77,9 +77,9 @@ export function StockPage() {
       .is('batch_id', null)
       .order('created_at', { ascending: false });
     setTransfers(data ?? []);
-  };
+  }, [tenant]);
 
-  useEffect(() => { if (tab === 'transfers') reloadTransfers(); }, [tab, tenant]);
+  useEffect(() => { if (tab === 'transfers') reloadTransfers(); }, [tab, reloadTransfers]);
 
   const stockByProduct = useMemo(() => {
     return products.map((p) => {
@@ -270,9 +270,9 @@ export function StockPage() {
         }
       />
 
-      <div className="mb-4 inline-flex rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
-        <button onClick={() => setTab('inventory')} className={`rounded-lg px-4 py-2 text-sm font-medium transition ${tab === 'inventory' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>{t('stock.tab.inventory')}</button>
-        <button onClick={() => setTab('transfers')} className={`rounded-lg px-4 py-2 text-sm font-medium transition ${tab === 'transfers' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>{t('stock.tab.transfers')} {pendingTransferCount > 0 && <span className="ml-1 rounded-full bg-warning-500 px-1.5 text-[10px] text-white">{pendingTransferCount}</span>}</button>
+      <div className="mb-4 inline-flex rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
+        <button onClick={() => setTab('inventory')} className={`rounded-full px-4 py-2 text-sm font-medium transition ${tab === 'inventory' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>{t('stock.tab.inventory')}</button>
+        <button onClick={() => setTab('transfers')} className={`rounded-full px-4 py-2 text-sm font-medium transition ${tab === 'transfers' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}>{t('stock.tab.transfers')} {pendingTransferCount > 0 && <span className="ml-1 rounded-full bg-warning-500 px-1.5 text-[10px] text-white">{pendingTransferCount}</span>}</button>
       </div>
 
       {tab === 'inventory' && (
@@ -308,7 +308,7 @@ export function StockPage() {
                     key: 'actions', label: '', className: 'text-right', render: (r: any) => (
                       <button
                         onClick={() => { setForm({ product_id: r.product.id, store_id: storeFilter || stores[0]?.id || '', type: 'in', quantity: 1, reason: '' }); setMoveOpen(true); }}
-                        className="rounded-lg border border-ink-200 dark:border-ink-700 px-2.5 py-1 text-xs font-medium text-brand-600 transition hover:bg-brand-50 dark:hover:bg-brand-900/25"
+                        className="rounded-full border border-ink-200 dark:border-ink-700 px-2.5 py-1 text-xs font-medium text-brand-600 transition hover:bg-brand-50 dark:hover:bg-brand-900/25"
                       >
                         {t('stock.adjust')}
                       </button>
@@ -356,10 +356,10 @@ export function StockPage() {
                   { key: 'actions', label: '', className: 'text-right', render: (row) => (
                     <div className="flex justify-end gap-2">
                       {row.status === 'pending' && (isAdmin || assignments.has(row.dest_store_id)) && (
-                        <button onClick={() => receiveBatch(row)} className="rounded-lg p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25" title={t('stock.markReceived')}><Check size={15} /></button>
+                        <button onClick={() => receiveBatch(row)} className="rounded-full p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25" title={t('stock.markReceived')}><Check size={15} /></button>
                       )}
                       {row.status === 'pending' && (isAdmin || assignments.has(row.source_store_id)) && (
-                        <button onClick={() => cancelBatch(row)} className="rounded-lg p-1.5 text-error-600 hover:bg-error-50 dark:hover:bg-error-900/25" title={t('common.cancel')}><X size={15} /></button>
+                        <button onClick={() => cancelBatch(row)} className="rounded-full p-1.5 text-error-600 hover:bg-error-50 dark:hover:bg-error-900/25" title={t('common.cancel')}><X size={15} /></button>
                       )}
                     </div>
                   )},
@@ -384,10 +384,10 @@ export function StockPage() {
                   { key: 'actions', label: '', className: 'text-right', render: (row) => (
                     <div className="flex justify-end gap-2">
                       {row.status === 'pending' && (isAdmin || assignments.has(row.dest_store_id)) && (
-                        <button onClick={() => receiveTransfer(row)} className="rounded-lg p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25" title={t('stock.markReceived')}><Check size={15} /></button>
+                        <button onClick={() => receiveTransfer(row)} className="rounded-full p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25" title={t('stock.markReceived')}><Check size={15} /></button>
                       )}
                       {row.status === 'pending' && (isAdmin || assignments.has(row.source_store_id)) && (
-                        <button onClick={() => cancelTransfer(row)} className="rounded-lg p-1.5 text-error-600 hover:bg-error-50 dark:hover:bg-error-900/25" title={t('common.cancel')}><X size={15} /></button>
+                        <button onClick={() => cancelTransfer(row)} className="rounded-full p-1.5 text-error-600 hover:bg-error-50 dark:hover:bg-error-900/25" title={t('common.cancel')}><X size={15} /></button>
                       )}
                     </div>
                   )},

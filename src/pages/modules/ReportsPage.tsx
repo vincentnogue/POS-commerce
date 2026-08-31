@@ -62,7 +62,7 @@ export function ReportsPage() {
     const staffMap: Record<string, string> = {};
     (members ?? []).forEach((m: any) => { if (m.user_id) staffMap[m.user_id] = m.display_name ?? t('reports.unknownStaff'); });
     setStaffNames(staffMap);
-  })(); }, [tenant]);
+  })(); }, [tenant, t]);
 
   const sinceDate = Date.now() - Number(period) * 86400000;
 
@@ -70,7 +70,27 @@ export function ReportsPage() {
     const inPeriod = new Date(s.sale_date).getTime() >= sinceDate;
     const inStore = !storeFilter || s.store_id === storeFilter;
     return inPeriod && inStore;
-  }), [sales, period, storeFilter, sinceDate]);
+  }), [sales, storeFilter, sinceDate]);
+
+  // Sales-by-store breakdown (Dynamics-365-Commerce-style store comparison):
+  // always computed off the period alone, ignoring storeFilter, so the
+  // comparison table keeps showing every store even while one is selected
+  // elsewhere on the page — clicking a row here is what drives storeFilter.
+  const salesByStore = useMemo(() => {
+    const periodSales = sales.filter((s) => new Date(s.sale_date).getTime() >= sinceDate);
+    const map = new Map<string, { id: string; name: string; revenue: number; count: number }>();
+    periodSales.forEach((s) => {
+      const id = s.store_id ?? '__none__';
+      const name = (s as any).store?.name ?? t('reports.byStore.noStore');
+      const row = map.get(id) ?? { id, name, revenue: 0, count: 0 };
+      row.revenue += Number(s.total);
+      row.count += 1;
+      map.set(id, row);
+    });
+    const rows = Array.from(map.values()).sort((a, b) => b.revenue - a.revenue);
+    const total = rows.reduce((s, r) => s + r.revenue, 0);
+    return rows.map((r) => ({ ...r, avgBasket: r.count > 0 ? r.revenue / r.count : 0, share: total > 0 ? (r.revenue / total) * 100 : 0 }));
+  }, [sales, sinceDate, t]);
 
   const filteredExpenses = useMemo(() => expenses.filter((e) => new Date(e.expense_date).getTime() >= sinceDate && (!storeFilter || e.store_id === storeFilter)), [expenses, sinceDate, storeFilter]);
 
@@ -111,7 +131,7 @@ export function ReportsPage() {
           .slice(0, 6),
       );
     })();
-  }, [tenant, filteredSales]);
+  }, [tenant, filteredSales, t]);
 
   // Category distribution
   const catData = categories.map((c) => ({
@@ -188,6 +208,64 @@ export function ReportsPage() {
           </ResponsiveContainer>
         </div>
       </div>
+
+      {/* Sales by store — lets a multi-store tenant see at a glance which
+          locations are driving revenue instead of having to flip the
+          single-store filter above one store at a time. Clicking a row
+          sets storeFilter, which then also narrows the charts, stat cards
+          and register below to that store — same drill-down pattern as
+          the sales register's row click below. */}
+      {stores.length > 1 && (
+        <div className="card mb-6 p-6">
+          <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t('reports.byStore.title')}</h3>
+            {storeFilter ? (
+              <button onClick={() => setStoreFilter('')} className="btn-ghost !px-3 !py-1 text-xs">{t('reports.allStores')}</button>
+            ) : (
+              <span className="text-xs text-ink-400 dark:text-ink-500">{t('reports.byStore.clearFilter')}</span>
+            )}
+          </div>
+          {salesByStore.length === 0 ? (
+            <p className="py-12 text-center text-sm text-ink-400 dark:text-ink-500">{t('common.empty')}</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">
+                    <th className="pb-2.5 font-medium">{t('reports.byStore.col.store')}</th>
+                    <th className="pb-2.5 text-right font-medium">{t('reports.byStore.col.transactions')}</th>
+                    <th className="pb-2.5 text-right font-medium">{t('reports.byStore.col.avgBasket')}</th>
+                    <th className="pb-2.5 text-right font-medium">{t('reports.byStore.col.revenue')}</th>
+                    <th className="pb-2.5 pl-4 font-medium">{t('reports.byStore.col.share')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {salesByStore.map((r) => (
+                    <tr
+                      key={r.id}
+                      onClick={() => r.id !== '__none__' && setStoreFilter(storeFilter === r.id ? '' : r.id)}
+                      className={`border-b border-ink-50 dark:border-ink-800 last:border-0 ${r.id !== '__none__' ? 'cursor-pointer hover:bg-brand-50/30 dark:hover:bg-brand-900/25' : ''} ${storeFilter === r.id ? 'bg-brand-50/60 dark:bg-brand-900/40' : ''}`}
+                    >
+                      <td className="py-2.5 font-medium text-ink-900 dark:text-ink-50">{r.name}</td>
+                      <td className="py-2.5 text-right text-ink-600 dark:text-ink-300">{r.count}</td>
+                      <td className="py-2.5 text-right text-ink-600 dark:text-ink-300">{formatMoney(r.avgBasket, currency)}</td>
+                      <td className="py-2.5 text-right font-medium text-ink-900 dark:text-ink-50">{formatMoney(r.revenue, currency)}</td>
+                      <td className="py-2.5 pl-4">
+                        <div className="flex items-center gap-2">
+                          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-ink-100 dark:bg-ink-800">
+                            <div className="h-full rounded-full bg-brand-500" style={{ width: `${r.share}%` }} />
+                          </div>
+                          <span className="tabular-nums text-xs text-ink-500 dark:text-ink-400">{r.share.toFixed(0)}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="card p-6">

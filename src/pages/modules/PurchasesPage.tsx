@@ -225,9 +225,9 @@ export function PurchasesPage() {
             { key: 'total', label: t('purchases.col.total'), className: 'text-right', render: (p) => <span className="font-medium text-ink-900 dark:text-ink-50">{canSeeCost ? formatMoney(p.total, currency) : '—'}</span> },
             { key: 'actions', label: '', className: 'text-right', render: (p) => (
               <div className="flex justify-end gap-2">
-                <button onClick={() => view(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Eye size={15} /></button>
-                {(p.status === 'ordered' || p.status === 'partially_received') && <button onClick={() => openReceive(p)} className="rounded-lg p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25" title={t('purchases.receive')}><Package size={15} /></button>}
-                <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
+                <button onClick={() => view(p)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Eye size={15} /></button>
+                {(p.status === 'ordered' || p.status === 'partially_received') && <button onClick={() => openReceive(p)} className="rounded-full p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25" title={t('purchases.receive')}><Package size={15} /></button>}
+                <button onClick={() => remove(p)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
               </div>
             )},
           ]} rows={filtered} />
@@ -268,7 +268,7 @@ export function PurchasesPage() {
                   <input value={it.name} onChange={(e) => updateItem(i, 'name', e.target.value)} placeholder={t('purchases.col.designation')} className="input col-span-3" />
                   <input type="number" value={it.quantity} onChange={(e) => updateItem(i, 'quantity', Number(e.target.value))} className="input col-span-1" />
                   {canSeeCost ? <input type="number" value={it.unit_cost} onChange={(e) => updateItem(i, 'unit_cost', Number(e.target.value))} className="input col-span-2" /> : <span className="col-span-2 self-center text-center text-xs text-ink-400 dark:text-ink-500">{t('purchases.costHidden')}</span>}
-                  <button onClick={() => removeItem(i)} className="col-span-1 rounded-lg text-ink-400 dark:text-ink-500 hover:text-error-500"><Trash2 size={14} /></button>
+                  <button onClick={() => removeItem(i)} className="col-span-1 rounded-full text-ink-400 dark:text-ink-500 hover:text-error-500"><Trash2 size={14} /></button>
                 </div>
               ))}
               {form.items.length === 0 && <p className="py-4 text-center text-xs text-ink-400 dark:text-ink-500">{t('purchases.addAtLeastOneLine')}</p>}

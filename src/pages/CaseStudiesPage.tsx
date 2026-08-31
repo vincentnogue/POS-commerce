@@ -229,7 +229,7 @@ export function CaseStudiesPage() {
           </p>
           <Link
             to="/signup"
-            className="inline-block px-8 py-3 bg-white text-brand-600 font-semibold rounded-lg hover:bg-gray-100 transition"
+            className="inline-block px-8 py-3 bg-white text-brand-600 font-semibold rounded-full hover:bg-gray-100 transition"
           >
             Start Free Trial <ArrowRight size={16} className="inline ml-2" />
           </Link>

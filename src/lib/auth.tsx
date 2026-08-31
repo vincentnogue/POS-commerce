@@ -155,7 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setActiveTenantId(chosen.tenant.id);
     await Promise.all([loadSubscription(chosen.tenant.id), loadCustomRole(chosen.member)]);
     setLoading(false);
-  }, []);
+  }, [loadSubscription, loadCustomRole]);
 
   const refreshProfile = useCallback(async () => {
     if (user) await loadProfile(user.id, user.email);

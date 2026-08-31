@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Plus, Pencil, Trash2, Building2, Download, Mail, Phone, Package, X } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
@@ -31,7 +31,7 @@ export function SuppliersPage() {
 
   const currency = tenant?.currency ?? 'XOF';
 
-  const reload = async () => {
+  const reload = useCallback(async () => {
     if (!tenant) return;
     const [s, p, sp] = await Promise.all([
       supabase.from('suppliers').select('*').eq('tenant_id', tenant.id).order('name'),
@@ -47,9 +47,9 @@ export function SuppliersPage() {
     });
     setSupplierProducts(map);
     setLoading(false);
-  };
+  }, [tenant]);
 
-  useEffect(() => { reload(); }, [tenant]);
+  useEffect(() => { reload(); }, [reload]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -147,8 +147,8 @@ export function SuppliersPage() {
               { key: 'balance', label: t('suppliers.col.balance'), className: 'text-right', render: (s) => <span className={Number(s.balance) > 0 ? 'font-medium text-warning-600' : 'text-ink-900 dark:text-ink-50'}>{formatMoney(s.balance, currency)}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (s) => (
                 <div className="flex justify-end gap-2">
-                  {canUpdate && <button onClick={() => openEdit(s)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>}
-                  {canDelete && <button onClick={() => remove(s)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>}
+                  {canUpdate && <button onClick={() => openEdit(s)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>}
+                  {canDelete && <button onClick={() => remove(s)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>}
                 </div>
               )},
             ]}

@@ -145,7 +145,7 @@ export function AddOnsPage() {
           </p>
           <Link
             to="/pricing"
-            className="inline-block px-8 py-3 bg-white text-brand-600 font-semibold rounded-lg hover:bg-gray-100 transition"
+            className="inline-block px-8 py-3 bg-white text-brand-600 font-semibold rounded-full hover:bg-gray-100 transition"
           >
             View Bundle Packages
           </Link>
@@ -205,7 +205,7 @@ export function AddOnsPage() {
                   {/* CTA */}
                   <Link
                     to="/pricing"
-                    className="block text-center px-4 py-2 bg-brand-600 text-white font-semibold rounded-lg hover:bg-brand-700 transition"
+                    className="block text-center px-4 py-2 bg-brand-600 text-white font-semibold rounded-full hover:bg-brand-700 transition"
                   >
                     Add to Plan
                   </Link>
@@ -276,7 +276,7 @@ export function AddOnsPage() {
                 </ul>
                 <Link
                   to="/pricing"
-                  className="block text-center px-6 py-2 bg-brand-600 text-white font-semibold rounded-lg hover:bg-brand-700 transition"
+                  className="block text-center px-6 py-2 bg-brand-600 text-white font-semibold rounded-full hover:bg-brand-700 transition"
                 >
                   Choose Bundle
                 </Link>
@@ -297,7 +297,7 @@ export function AddOnsPage() {
           </p>
           <Link
             to="/signup"
-            className="inline-block px-8 py-3 bg-white text-brand-600 font-semibold rounded-lg hover:bg-gray-100 transition"
+            className="inline-block px-8 py-3 bg-white text-brand-600 font-semibold rounded-full hover:bg-gray-100 transition"
           >
             Start Your Free Trial <ArrowRight size={16} className="inline ml-2" />
           </Link>

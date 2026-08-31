@@ -116,8 +116,8 @@ export function ExpensesPage() {
               { key: 'amount', label: t('expense.col.amount'), className: 'text-right', render: (e) => <span className="font-medium text-ink-900 dark:text-ink-50">{formatMoney(e.amount, currency)}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (e) => (
                 <div className="flex justify-end gap-2">
-                  <button onClick={() => openEdit(e)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>
-                  <button onClick={() => remove(e)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
+                  <button onClick={() => openEdit(e)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>
+                  <button onClick={() => remove(e)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>
                 </div>
               )},
             ]}

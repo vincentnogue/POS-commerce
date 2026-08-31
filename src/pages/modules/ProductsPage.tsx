@@ -62,8 +62,11 @@ export function ProductsPage() {
       setCategories((c.data as Category[]) ?? []);
       setLoading(false);
     })();
-    if (isNew) { setModalOpen(true); setParams({}, { replace: true }); }
   }, [tenant, canSeeCost]);
+
+  useEffect(() => {
+    if (isNew) { setModalOpen(true); setParams({}, { replace: true }); }
+  }, [isNew, setParams]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -260,8 +263,8 @@ export function ProductsPage() {
               { key: 'stock', label: t('products.col.minStock'), className: 'text-right', render: (p: Product) => <span className="text-ink-600 dark:text-ink-300">{p.low_stock_threshold}</span> },
               { key: 'actions', label: '', className: 'text-right', render: (p: Product) => (
                 <div className="flex justify-end gap-2">
-                  {canUpdate && <button onClick={() => openEdit(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>}
-                  {canDelete && <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>}
+                  {canUpdate && <button onClick={() => openEdit(p)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={15} /></button>}
+                  {canDelete && <button onClick={() => remove(p)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={15} /></button>}
                 </div>
               )},
             ]}
@@ -283,7 +286,7 @@ export function ProductsPage() {
                   <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadProductImage(f); }} />
                 </label>
                 {form.image_url && (
-                  <button type="button" onClick={() => setForm({ ...form, image_url: '' })} className="rounded-lg p-1.5 text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600" title={t('common.remove')}>
+                  <button type="button" onClick={() => setForm({ ...form, image_url: '' })} className="rounded-full p-1.5 text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600" title={t('common.remove')}>
                     <X size={15} />
                   </button>
                 )}
@@ -361,8 +364,8 @@ export function ProductsPage() {
                       </span>
                     )}
                     <div className="flex shrink-0 gap-1">
-                      <button onClick={() => { setEditingCategoryId(c.id); setEditingCategoryName(c.name); }} className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={13} /></button>
-                      <button onClick={() => deleteCategory(c)} className="rounded-lg p-1.5 text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={13} /></button>
+                      <button onClick={() => { setEditingCategoryId(c.id); setEditingCategoryName(c.name); }} className="rounded-full p-1.5 text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"><Pencil size={13} /></button>
+                      <button onClick={() => deleteCategory(c)} className="rounded-full p-1.5 text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><Trash2 size={13} /></button>
                     </div>
                   </div>
                 ))}
