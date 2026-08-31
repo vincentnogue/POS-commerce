@@ -104,8 +104,7 @@ export function MarketplacePage() {
       // always failed, silently falling back to admin/super_admin-only
       // access — so a manager or staff member with real plan-level
       // connect permission could never actually connect an integration.
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/marketplace-access-check`;
-      const response = await fetch(url, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/marketplace-access-check`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -233,7 +232,7 @@ export function MarketplacePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 to-indigo-50 dark:from-ink-900 dark:to-ink-800">
+    <div className="min-h-screen bg-gray-50 dark:bg-ink-950">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">

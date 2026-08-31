@@ -103,6 +103,21 @@ Deno.serve(async (req: Request) => {
       return json({ error: `Failed to activate subscription: ${errText}` }, 500);
     }
 
+    // BUG FIX: same gap as the Stripe webhook — Marketplace and other
+    // tenants.plan_id-based gates never saw a Flutterwave-paid upgrade,
+    // since only public.subscriptions was written here. Sync it too, via
+    // the service-role key this function already authenticates with.
+    const tenantPatchRes = await sb(supabaseUrl, serviceRoleKey, `tenants?id=eq.${tenantId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ plan_id: plan.id }),
+    });
+    if (!tenantPatchRes.ok) {
+      console.error('Failed to sync tenants.plan_id after Flutterwave payment:', await tenantPatchRes.text());
+      // Non-fatal: the subscription itself is active and correctly
+      // recorded; only the (already-being-phased-out) tenants.plan_id
+      // mirror failed to sync. Don't fail the whole webhook over it.
+    }
+
     return json({ received: true, activated: true });
   } catch (err) {
     return json({ error: err.message }, 500);
