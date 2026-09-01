@@ -131,6 +131,8 @@ export type Customer = {
   created_at: string;
   store_credit_balance?: number;
   loyalty_points?: number;
+  loyalty_tier_id?: string | null;
+  segment_id?: string | null;
 };
 
 export type Supplier = {
