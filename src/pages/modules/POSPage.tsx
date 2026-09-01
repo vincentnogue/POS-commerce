@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart, Mail, Lock as LockIcon, Percent, Gift, PauseCircle } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart, Mail, Lock as LockIcon, Percent, Gift, PauseCircle, Tag } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -10,7 +10,7 @@ import { printSaleReceipt } from '../../lib/receipt';
 import { printDayReport } from '../../lib/dayReport';
 import { SaleHistoryTab } from './SaleHistoryTab';
 import { ReturnsTab } from './ReturnsTab';
-import type { Product, Customer } from '../../lib/types';
+import type { Product, Customer, Promotion } from '../../lib/types';
 import { issueGiftCard as apiIssueGiftCard, redeemGiftCard as apiRedeemGiftCard, getGiftCardStatus as apiGetGiftCardStatus } from '../../lib/giftCards';
 
 type CartItem = {
@@ -167,6 +167,13 @@ export function POSPage() {
   const [issuing, setIssuing] = useState(false);
   const [issuedCard, setIssuedCard] = useState<{ code: string; balance: number } | null>(null);
   const [issueErr, setIssueErr] = useState<string | null>(null);
+  // Promotions (see migration 0070): active ones are loaded once and
+  // matched client-side — the best automatic one applies silently, a
+  // coupon code (if entered) takes its place.
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<Promotion | null>(null);
+  const [couponErr, setCouponErr] = useState<string | null>(null);
 
   const currency = tenant?.currency ?? 'XOF';
 
@@ -209,6 +216,12 @@ export function POSPage() {
   }, [tenant, storeId]);
 
   useEffect(() => { loadHeldSales(); }, [loadHeldSales]);
+
+  useEffect(() => {
+    if (!tenant) return;
+    supabase.from('promotions').select('*').eq('tenant_id', tenant.id).eq('is_active', true)
+      .then(({ data }) => setPromotions((data as Promotion[]) ?? []));
+  }, [tenant]);
 
   const holdSale = async () => {
     if (!tenant || cart.length === 0) return;
@@ -479,7 +492,40 @@ export function POSPage() {
   const manualDiscountValue = discountApproval ? Math.max(0, Number(manualDiscountAmount) || 0) : 0;
   const loyaltyRedeemPoints = customer ? Math.max(0, Math.min(Math.floor(Number(redeemPointsInput) || 0), customer.loyalty_points ?? 0)) : 0;
   const loyaltyDiscountValue = loyaltyRedeemPoints * Number(tenant?.loyalty_point_value ?? 0.01);
-  const discountTotal = manualDiscountValue + (loyaltyDiscountEnabled ? loyaltyDiscountValue : 0);
+
+  // Promotions: match active ones against the current subtotal. Only one
+  // promotion applies per sale — a valid coupon takes priority over the
+  // best automatic match — stacking on top of manual discount/loyalty,
+  // which are separate, tenant-configured mechanisms.
+  const now = Date.now();
+  const activePromotions = promotions.filter((p) => {
+    if (p.starts_at && new Date(p.starts_at).getTime() > now) return false;
+    if (p.ends_at && new Date(p.ends_at).getTime() < now) return false;
+    return true;
+  });
+  const promoValueFor = (p: Promotion, base: number) => (p.type === 'percent' ? base * (p.value / 100) : Math.min(p.value, base));
+  const bestAutoPromotion = activePromotions
+    .filter((p) => !p.requires_code && (p.min_purchase == null || subtotal >= p.min_purchase))
+    .reduce<Promotion | null>((best, p) => (!best || promoValueFor(p, subtotal) > promoValueFor(best, subtotal) ? p : best), null);
+  const appliedPromotion = appliedCoupon ?? bestAutoPromotion;
+  const promotionValue = appliedPromotion ? promoValueFor(appliedPromotion, subtotal) : 0;
+
+  const applyCoupon = () => {
+    const code = couponCode.trim().toUpperCase();
+    if (!code) return;
+    const match = activePromotions.find((p) => p.requires_code && p.code?.toUpperCase() === code);
+    if (!match) { setCouponErr(t('pos.promo.err.invalid')); setAppliedCoupon(null); return; }
+    if (match.min_purchase != null && subtotal < match.min_purchase) {
+      setCouponErr(t('pos.promo.err.minPurchase', { amount: formatMoney(match.min_purchase, currency) }));
+      setAppliedCoupon(null);
+      return;
+    }
+    setAppliedCoupon(match);
+    setCouponErr(null);
+  };
+  const clearCoupon = () => { setAppliedCoupon(null); setCouponCode(''); setCouponErr(null); };
+
+  const discountTotal = manualDiscountValue + (loyaltyDiscountEnabled ? loyaltyDiscountValue : 0) + promotionValue;
   const total = Math.max(0, subtotal + taxTotal - discountTotal);
 
   // Verifies (and, if above the tenant's threshold, requires manager
@@ -514,6 +560,7 @@ export function POSPage() {
   const resetDiscountState = () => {
     clearManualDiscount();
     setRedeemPointsInput('');
+    clearCoupon();
   };
 
   const splitTotal = splitTenders.reduce((s, t) => s + (Number(t.amount) || 0), 0);
@@ -1253,6 +1300,37 @@ export function POSPage() {
                   {loyaltyRedeemPoints > 0 && (
                     <p className="text-xs font-medium text-success-700">-{formatMoney(loyaltyDiscountValue, currency)}</p>
                   )}
+                </>
+              )}
+            </div>
+          )}
+
+          {(appliedPromotion || activePromotions.some((p) => p.requires_code)) && (
+            <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-3 space-y-2">
+              <p className="label mb-0 flex items-center gap-1"><Tag size={14} /> {t('pos.promo.title')}</p>
+              {appliedCoupon ? (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium text-success-700">{appliedCoupon.name} — -{formatMoney(promotionValue, currency)}</span>
+                  <button type="button" onClick={clearCoupon} className="text-error-500 hover:text-error-700"><X size={14} /></button>
+                </div>
+              ) : (
+                <>
+                  {bestAutoPromotion && (
+                    <p className="text-xs font-medium text-success-700">{t('pos.promo.autoApplied', { name: bestAutoPromotion.name, amount: formatMoney(promotionValue, currency) })}</p>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponErr(null); }}
+                      className="input flex-1"
+                      placeholder={t('pos.promo.codePlaceholder')}
+                    />
+                    <button type="button" onClick={applyCoupon} disabled={!couponCode.trim()} className="btn-ghost shrink-0 py-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                      {t('pos.promo.apply')}
+                    </button>
+                  </div>
+                  {couponErr && <p className="text-xs font-medium text-error-600">{couponErr}</p>}
                 </>
               )}
             </div>
