@@ -9,7 +9,7 @@ import { PageHeader, Modal, EmptyState, useToast } from '../../components/ui';
 import { DataTable, SearchInput, Field, exportCSV } from '../../components/DataTable';
 import type { Product, Category } from '../../lib/types';
 
-const EMPTY = { name: '', sku: '', barcode: '', description: '', cost_price: 0, sale_price: 0, tax_rate: 0, unit: 'unité', low_stock_threshold: 5, category_id: '', image_url: '', sizes: '' };
+const EMPTY = { name: '', sku: '', barcode: '', description: '', cost_price: 0, sale_price: 0, tax_rate: 0, unit: 'unité', low_stock_threshold: 5, category_id: '', image_url: '', sizes: '', tracking_mode: 'none' };
 
 // products.variants is stored as a JSON array (e.g. [{ type: 'size', value: 'M' }]).
 // The form only needs a simple comma-separated size list for now, so we
@@ -79,7 +79,7 @@ export function ProductsPage() {
   const openNew = () => { setEditing(null); setForm(EMPTY); setModalOpen(true); };
   const openEdit = (p: Product) => {
     setEditing(p);
-    setForm({ name: p.name, sku: p.sku ?? '', barcode: p.barcode ?? '', description: p.description ?? '', cost_price: Number(p.cost_price), sale_price: Number(p.sale_price), tax_rate: Number(p.tax_rate), unit: p.unit, low_stock_threshold: p.low_stock_threshold, category_id: p.category_id ?? '', image_url: p.image_url ?? '', sizes: variantsToSizesText(p.variants) });
+    setForm({ name: p.name, sku: p.sku ?? '', barcode: p.barcode ?? '', description: p.description ?? '', cost_price: Number(p.cost_price), sale_price: Number(p.sale_price), tax_rate: Number(p.tax_rate), unit: p.unit, low_stock_threshold: p.low_stock_threshold, category_id: p.category_id ?? '', image_url: p.image_url ?? '', sizes: variantsToSizesText(p.variants), tracking_mode: p.tracking_mode ?? 'none' });
     setModalOpen(true);
   };
 
@@ -100,6 +100,7 @@ export function ProductsPage() {
       image_url: form.image_url || null,
       variants: sizesTextToVariants(form.sizes),
       is_active: true,
+      tracking_mode: form.tracking_mode,
     };
     if (editing) {
       const { error } = await supabase.from('products').update(payload).eq('id', editing.id);
@@ -308,6 +309,13 @@ export function ProductsPage() {
           <Field label={t('products.field.sale')}><input type="number" value={form.sale_price} onChange={(e) => setForm({ ...form, sale_price: e.target.value })} className="input" /></Field>
           <Field label={t('products.field.tax')}><input type="number" value={form.tax_rate} onChange={(e) => setForm({ ...form, tax_rate: e.target.value })} className="input" /></Field>
           <Field label={t('products.field.lowStock')}><input type="number" value={form.low_stock_threshold} onChange={(e) => setForm({ ...form, low_stock_threshold: e.target.value })} className="input" /></Field>
+          <Field label={t('products.field.tracking')} hint={t('products.field.trackingHint')}>
+            <select value={form.tracking_mode} onChange={(e) => setForm({ ...form, tracking_mode: e.target.value })} className="input">
+              <option value="none">{t('products.tracking.none')}</option>
+              <option value="serial">{t('products.tracking.serial')}</option>
+              <option value="batch">{t('products.tracking.lot')}</option>
+            </select>
+          </Field>
           <div className="sm:col-span-2">
             <Field label={t('products.field.sizes')}>
               <input value={form.sizes} onChange={(e) => setForm({ ...form, sizes: e.target.value })} className="input" placeholder={t('products.field.sizesPlaceholder')} />

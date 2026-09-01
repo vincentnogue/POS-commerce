@@ -589,6 +589,37 @@ export function POSPage() {
       }
     }
 
+    // Serial/batch tracked products (see migrations 0073/0076): a real
+    // feasibility check before the sale is created — not enough serials
+    // in stock, or not enough total remaining_quantity across batches,
+    // must block checkout rather than let the sale claim success and
+    // silently fail to actually consume stock afterward.
+    const trackedItems = cart.filter((i) => i.product.tracking_mode === 'serial' || i.product.tracking_mode === 'batch');
+    if (trackedItems.length > 0) {
+      for (const item of trackedItems) {
+        if (item.product.tracking_mode === 'serial') {
+          let q = supabase.from('product_serials').select('id', { count: 'exact', head: true })
+            .eq('tenant_id', tenant.id).eq('product_id', item.product.id).eq('status', 'in_stock');
+          q = storeId ? q.eq('store_id', storeId) : q.is('store_id', null);
+          const { count } = await q;
+          if ((count ?? 0) < item.quantity) {
+            toast('error', t('pos.tracking.err.notEnoughSerials', { name: item.product.name, available: count ?? 0 }));
+            return;
+          }
+        } else {
+          let q = supabase.from('product_batches').select('remaining_quantity')
+            .eq('tenant_id', tenant.id).eq('product_id', item.product.id);
+          q = storeId ? q.eq('store_id', storeId) : q.is('store_id', null);
+          const { data: batchRows } = await q;
+          const available = (batchRows ?? []).reduce((s, r) => s + Number(r.remaining_quantity), 0);
+          if (available < item.quantity) {
+            toast('error', t('pos.tracking.err.notEnoughBatch', { name: item.product.name, available }));
+            return;
+          }
+        }
+      }
+    }
+
     let finalPaymentMethod = paymentMethod;
     let finalPaymentReference: string | null = paymentMethod === 'cash' ? null : paymentReference.trim();
     let paid: number;
@@ -690,7 +721,7 @@ export function POSPage() {
     // decrement server-side (see migration 0018). If this fails, the sale
     // header exists but is empty, which is worse than not selling at all,
     // so we must surface the error clearly rather than silently continuing.
-    const { error: itemsErr } = await supabase.from('sale_items').insert(
+    const { data: insertedItems, error: itemsErr } = await supabase.from('sale_items').insert(
       cart.map((i) => ({
         sale_id: sale.id,
         product_id: i.product.id,
@@ -701,10 +732,50 @@ export function POSPage() {
         tax_rate: Number(i.product.tax_rate),
         total: i.quantity * i.unit_price * (1 + Number(i.product.tax_rate) / 100),
       }))
-    );
+    ).select('id');
     if (itemsErr) {
       toast('error', t('pos.err.itemsFailed', { ref, msg: itemsErr.message }));
       return;
+    }
+
+    // Actually consume the serials/batches now that each sale_items row
+    // has a real id to link them to — the availability was already
+    // checked above, but these calls are still the hard, race-proof
+    // backstop (row-locked) server-side. A failure here means stock was
+    // sold without the corresponding serial/batch record being
+    // consumed — surfaced loudly since it's an inventory-accuracy gap,
+    // not a best-effort ledger update.
+    if (insertedItems && trackedItems.length > 0) {
+      for (let idx = 0; idx < cart.length; idx++) {
+        const item = cart[idx];
+        const saleItemId = insertedItems[idx]?.id;
+        if (!saleItemId) continue;
+        if (item.product.tracking_mode === 'serial') {
+          let sq = supabase.from('product_serials').select('id')
+            .eq('tenant_id', tenant.id).eq('product_id', item.product.id).eq('status', 'in_stock')
+            .order('created_at', { ascending: true }).limit(item.quantity);
+          sq = storeId ? sq.eq('store_id', storeId) : sq.is('store_id', null);
+          const { data: pickedSerials } = await sq;
+          for (const s of pickedSerials ?? []) {
+            const { error: serialErr } = await supabase.rpc('sell_product_serial', {
+              p_tenant_id: tenant.id, p_serial_id: s.id, p_sale_id: sale.id, p_sale_item_id: saleItemId,
+            });
+            if (serialErr) {
+              console.error('sell_product_serial failed:', serialErr.message);
+              toast('error', t('pos.tracking.err.consumeFailedAfterSale', { ref }));
+            }
+          }
+        } else if (item.product.tracking_mode === 'batch') {
+          const { error: batchErr } = await supabase.rpc('consume_product_batches_fefo', {
+            p_tenant_id: tenant.id, p_product_id: item.product.id, p_store_id: storeId || null,
+            p_quantity: item.quantity, p_sale_item_id: saleItemId,
+          });
+          if (batchErr) {
+            console.error('consume_product_batches_fefo failed:', batchErr.message);
+            toast('error', t('pos.tracking.err.consumeFailedAfterSale', { ref }));
+          }
+        }
+      }
     }
 
     // Gift card: actually spend it now that the sale exists — sale_id is

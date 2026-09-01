@@ -24,6 +24,9 @@ export function StockPage() {
   const [moveOpen, setMoveOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [form, setForm] = useState({ product_id: '', store_id: '', type: 'in', quantity: 1, reason: '' });
+  const [serialInput, setSerialInput] = useState('');
+  const [lotNumber, setLotNumber] = useState('');
+  const [lotExpiry, setLotExpiry] = useState('');
   const [batches, setBatches] = useState<any[]>([]);
   const [batchForm, setBatchForm] = useState({ name: '', source_store_id: '', dest_store_id: '', staff_code: '', staff_pin: '', notes: '', type: 'transfer' as 'transfer' | 'rms', reason: 'broken' });
   const [batchItems, setBatchItems] = useState<{ product_id: string; name: string; quantity: number }[]>([]);
@@ -98,7 +101,53 @@ export function StockPage() {
   const recordMovement = async () => {
     if (!tenant || !form.product_id) return;
     const qty = Number(form.quantity);
-    const effective = form.type === 'in' ? Math.abs(qty) : -Math.abs(qty);
+    const selectedProduct = products.find((p) => p.id === form.product_id);
+    const trackingMode = selectedProduct?.tracking_mode ?? 'none';
+
+    // Serial/batch tracked products (see migration 0073) capture extra
+    // detail on receiving ('in'). Validate and write those rows FIRST,
+    // before touching aggregate inventory/stock_movements below — if a
+    // serial is a duplicate or the batch number is missing, nothing else
+    // should have been written yet.
+    let serials: string[] = [];
+    if (trackingMode === 'serial' && form.type === 'in') {
+      serials = serialInput.split(/[\n,]/).map((s) => s.trim()).filter(Boolean);
+      if (serials.length === 0) { toast('error', t('stock.tracking.err.serialsRequired')); return; }
+      const { error: serialErr } = await supabase.from('product_serials').insert(
+        serials.map((serial_number) => ({ tenant_id: tenant.id, product_id: form.product_id, store_id: form.store_id || null, serial_number }))
+      );
+      if (serialErr) {
+        toast('error', serialErr.message.includes('unique') ? t('stock.tracking.err.serialDuplicate') : serialErr.message);
+        return;
+      }
+    }
+    if (trackingMode === 'batch' && form.type === 'in') {
+      if (!lotNumber.trim()) { toast('error', t('stock.tracking.err.lotRequired')); return; }
+      let batchQuery = supabase.from('product_batches').select('id, received_quantity, remaining_quantity')
+        .eq('tenant_id', tenant.id).eq('product_id', form.product_id).eq('batch_number', lotNumber.trim());
+      batchQuery = form.store_id ? batchQuery.eq('store_id', form.store_id) : batchQuery.is('store_id', null);
+      const { data: existingBatch } = await batchQuery.maybeSingle();
+      if (existingBatch) {
+        const { error } = await supabase.from('product_batches').update({
+          received_quantity: Number(existingBatch.received_quantity) + Math.abs(qty),
+          remaining_quantity: Number(existingBatch.remaining_quantity) + Math.abs(qty),
+          updated_at: new Date().toISOString(),
+        }).eq('id', existingBatch.id);
+        if (error) { toast('error', error.message); return; }
+      } else {
+        const { error } = await supabase.from('product_batches').insert({
+          tenant_id: tenant.id, product_id: form.product_id, store_id: form.store_id || null,
+          batch_number: lotNumber.trim(), received_quantity: Math.abs(qty), remaining_quantity: Math.abs(qty), expiry_date: lotExpiry || null,
+        });
+        if (error) { toast('error', error.message); return; }
+      }
+    }
+
+    // Serial tracking derives the received quantity from how many serial
+    // numbers were actually entered, rather than trusting a separately
+    // typed number that could disagree with it.
+    const effectiveQty = trackingMode === 'serial' && form.type === 'in' ? serials.length : Math.abs(qty);
+    const effective = form.type === 'in' ? effectiveQty : -effectiveQty;
 
     const existing = inventory.find((i) => i.product_id === form.product_id && i.store_id === form.store_id);
     if (existing) {
@@ -114,7 +163,7 @@ export function StockPage() {
       product_id: form.product_id,
       store_id: form.store_id || null,
       movement_type: form.type,
-      quantity: Math.abs(qty),
+      quantity: effectiveQty,
       reason: form.reason || null,
       user_id: user?.id,
     });
@@ -122,6 +171,9 @@ export function StockPage() {
 
     setMoveOpen(false);
     setForm({ product_id: '', store_id: stores[0]?.id ?? '', type: 'in', quantity: 1, reason: '' });
+    setSerialInput('');
+    setLotNumber('');
+    setLotExpiry('');
     const { data } = await supabase.from('inventory').select('*, product:products(name), store:stores(name)').eq('tenant_id', tenant.id);
     setInventory(data ?? []);
     toast('success', t('stock.toast.movementRecorded'));
@@ -400,7 +452,7 @@ export function StockPage() {
       )}
 
       {/* Movement modal */}
-      <Modal open={moveOpen} onClose={() => setMoveOpen(false)} title={t('stock.movementTitle')}>
+      <Modal open={moveOpen} onClose={() => { setMoveOpen(false); setSerialInput(''); setLotNumber(''); setLotExpiry(''); }} title={t('stock.movementTitle')}>
         <div className="space-y-4">
           <Field label={t('stock.col.product')}>
             <select value={form.product_id} onChange={(e) => setForm({ ...form, product_id: e.target.value })} className="input">
@@ -420,12 +472,46 @@ export function StockPage() {
                 <option value="out">{t('stock.type.out')}</option>
               </select>
             </Field>
-            <Field label={t('stock.col.quantity')}><input type="number" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })} className="input" /></Field>
+            <Field label={t('stock.col.quantity')}>
+              <input
+                type="number"
+                value={form.quantity}
+                onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })}
+                className="input"
+                disabled={products.find((p) => p.id === form.product_id)?.tracking_mode === 'serial' && form.type === 'in'}
+              />
+            </Field>
           </div>
+          {(() => {
+            const trackingMode = products.find((p) => p.id === form.product_id)?.tracking_mode ?? 'none';
+            if (form.type !== 'in' || trackingMode === 'none') return null;
+            if (trackingMode === 'serial') {
+              return (
+                <Field label={t('stock.tracking.serialsLabel')} hint={t('stock.tracking.serialsHint')}>
+                  <textarea
+                    value={serialInput}
+                    onChange={(e) => setSerialInput(e.target.value)}
+                    className="input min-h-[80px]"
+                    placeholder={t('stock.tracking.serialsPlaceholder')}
+                  />
+                </Field>
+              );
+            }
+            return (
+              <div className="grid grid-cols-2 gap-3">
+                <Field label={t('stock.tracking.lotNumberLabel')}>
+                  <input value={lotNumber} onChange={(e) => setLotNumber(e.target.value)} className="input" placeholder={t('stock.tracking.lotNumberPlaceholder')} />
+                </Field>
+                <Field label={t('stock.tracking.lotExpiryLabel')}>
+                  <input type="date" value={lotExpiry} onChange={(e) => setLotExpiry(e.target.value)} className="input" />
+                </Field>
+              </div>
+            );
+          })()}
           <Field label={t('stock.col.reason')}><input value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} className="input" placeholder={t('stock.reasonPlaceholder')} /></Field>
         </div>
         <div className="mt-6 flex justify-end gap-2">
-          <button onClick={() => setMoveOpen(false)} className="btn-ghost">{t('common.cancel')}</button>
+          <button onClick={() => { setMoveOpen(false); setSerialInput(''); setLotNumber(''); setLotExpiry(''); }} className="btn-ghost">{t('common.cancel')}</button>
           <button onClick={recordMovement} className="btn-primary">{t('common.save')}</button>
         </div>
       </Modal>

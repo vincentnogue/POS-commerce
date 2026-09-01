@@ -114,6 +114,7 @@ export type Product = {
   image_url: string | null;
   low_stock_threshold: number;
   is_active: boolean;
+  tracking_mode?: ProductTrackingMode;
 };
 
 export type Customer = {
