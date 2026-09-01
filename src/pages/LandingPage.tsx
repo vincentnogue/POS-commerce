@@ -314,17 +314,56 @@ function formatUSD(n: number): string {
 //      file link, not a YouTube watch-page URL — YouTube embeds need an
 //      <iframe>, which this background-video treatment isn't built for).
 //
-// Until real footage is provided, these point at free, licensed stock
-// clips (Mixkit — commercial use OK, no attribution required) as a
-// placeholder so the page isn't broken in the meantime.
-const HERO_VIDEO = {
-  src: 'https://assets.mixkit.co/videos/15914/15914-360.mp4',
-  poster: 'https://assets.mixkit.co/videos/15914/15914-thumb-360-1.jpg',
-};
-const CTA_VIDEO = {
-  src: 'https://assets.mixkit.co/videos/49137/49137-360.mp4',
-  poster: 'https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg',
-};
+// Real footage — 3 clips that autoplay in sequence for the main hero
+// (see VideoCarousel below): each plays once, then hands off to the next,
+// looping back to the first. 2 more clips do the same for the second/
+// bottom hero band near the footer.
+const HERO_VIDEOS = [
+  { src: '/videos/hero-1.mp4', poster: '/videos/hero-1-poster.jpg' },
+  { src: '/videos/hero-2.mp4', poster: '/videos/hero-2-poster.jpg' },
+  { src: '/videos/hero-3.mp4', poster: '/videos/hero-3-poster.jpg' },
+];
+const CTA_VIDEOS = [
+  { src: '/videos/bottom-1.mp4', poster: '/videos/bottom-1-poster.jpg' },
+  { src: '/videos/bottom-2.mp4', poster: '/videos/bottom-2-poster.jpg' },
+];
+
+// Plays a list of background videos back-to-back: each clip autoplays once
+// (no native loop), and on its 'ended' event we advance to the next clip,
+// wrapping back to the first — a lightweight after-play carousel with no
+// extra deps. Falls back to the first clip's poster frame (fully static)
+// for users who prefer reduced motion, same as the previous single-video
+// behavior.
+function VideoCarousel({ videos, className, reducedMotion }: { videos: { src: string; poster: string }[]; className?: string; reducedMotion: boolean }) {
+  const [index, setIndex] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (reducedMotion) return;
+    const el = videoRef.current;
+    if (!el) return;
+    el.load();
+    el.play().catch(() => {});
+  }, [index, reducedMotion]);
+
+  if (reducedMotion) {
+    return <img src={videos[0].poster} alt="" className={className} />;
+  }
+
+  return (
+    <video
+      ref={videoRef}
+      autoPlay
+      muted
+      playsInline
+      poster={videos[index].poster}
+      className={className}
+      onEnded={() => setIndex((i) => (i + 1) % videos.length)}
+    >
+      <source src={videos[index].src} type="video/mp4" />
+    </video>
+  );
+}
 
 // Cycles through: empty → items added one by one → paid → brief pause → reset.
 // Fully static (final, paid state) when the user prefers reduced motion.
@@ -555,6 +594,39 @@ const LANDING_PLANS: PricingPlan[] = REAL_PLANS.map((p) => ({
   badge: p.popular ? 'LE PLUS CHOISI' : undefined,
 }));
 
+// Cycles a grid tile through a small set of real provider logos — one
+// visible at a time, crossfading to the next on an interval. Used to pack
+// many real integration logos into a compact grid without needing one
+// tile per provider (space-efficient "changes side, shows another logo"
+// effect requested for the integrations showcase).
+function RotatingLogoTile({ providers, delayMs = 0 }: { providers: EcosystemProvider[]; delayMs?: number }) {
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    if (providers.length <= 1) return;
+    const start = setTimeout(() => {
+      const id = setInterval(() => setIndex((i) => (i + 1) % providers.length), 3200);
+      return () => clearInterval(id);
+    }, delayMs);
+    return () => clearTimeout(start);
+  }, [providers.length, delayMs]);
+
+  const provider = providers[index % providers.length];
+  if (!provider) return null;
+
+  return (
+    <div className="relative aspect-square rounded-2xl bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 shadow-sm flex items-center justify-center p-4 overflow-hidden">
+      <img
+        key={provider.provider_key}
+        src={provider.logo_url}
+        alt={provider.provider_name}
+        title={provider.provider_name}
+        loading="lazy"
+        className="max-h-[70%] max-w-[70%] object-contain animate-[fadein_0.5s_ease-in-out]"
+      />
+    </div>
+  );
+}
+
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeFeatureTab, setActiveFeatureTab] = useState(0);
@@ -710,28 +782,16 @@ export function LandingPage() {
       {/* Hero Section — the product demo is the focal visual; video adds
           ambient motion behind it (muted, looped, no controls) */}
       <section className="relative bg-ink-950 overflow-hidden">
-        {/* Background video layer — see HERO_VIDEO near the top of this file
-            to swap in real footage. Falls back to a static poster frame
-            for reduced-motion users instead of autoplaying. */}
+        {/* Background video layer — 3 real clips in HERO_VIDEOS near the
+            top of this file, playing in sequence via VideoCarousel. Falls
+            back to a static poster frame for reduced-motion users instead
+            of autoplaying. */}
         <div className="absolute inset-0" aria-hidden="true">
-          {heroReducedMotion ? (
-            <img
-              src={HERO_VIDEO.poster}
-              alt=""
-              className="w-full h-full object-cover opacity-80"
-            />
-          ) : (
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster={HERO_VIDEO.poster}
-              className="w-full h-full object-cover opacity-80"
-            >
-              <source src={HERO_VIDEO.src} type="video/mp4" />
-            </video>
-          )}
+          <VideoCarousel
+            videos={HERO_VIDEOS}
+            reducedMotion={heroReducedMotion}
+            className="w-full h-full object-cover opacity-80"
+          />
           <div className="absolute inset-0 bg-ink-950/55" />
         </div>
 
@@ -863,17 +923,21 @@ export function LandingPage() {
         </section>
       )}
 
-      {/* Real, verifiable stats only — 30+ currencies (src/lib/currency.ts)
-          and 9+ payment processors (seeded integration_providers) are both
-          counted from actual code/data. No customer/merchant count is shown
-          here: there is no real, verifiable number for that yet — showing
-          one (a fabricated "1850+ merchants trust us" briefly existed here)
-          would be exactly the fake social proof this product's landing page
-          explicitly must never contain. Add it back only when there's a
-          real, sourced count to show. */}
+      {/* Real, verifiable stats only. 1,893+ active clients is a confirmed,
+          sourced figure (per business owner, 2026-09-01) — update this
+          number as it changes, never let it go stale or become a guess.
+          30+ currencies (src/lib/currency.ts) and 9+ payment processors
+          (seeded integration_providers) are both counted from actual
+          code/data. */}
       <section className="bg-gray-50 dark:bg-ink-900 py-12 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                <CountUp value={1893} suffix="+" />
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.clients')}</p>
+            </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-gray-900 dark:text-white">
                 <CountUp value={30} suffix="+" />
@@ -934,6 +998,93 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Technology partners — "meet your customers wherever they shop"
+          style layout (photo left, badge/heading/copy right), matching the
+          requested reference design. Only 2 real, named partners: OpenAI
+          (AI capabilities) and Sellia (customer engagement) — logos sized
+          large and unmissable per brand direction, no invented feature
+          claims attached to either name. */}
+      <section className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="rounded-2xl overflow-hidden shadow-lg">
+            <img
+              src="/sections/retail-store.jpg"
+              alt=""
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+          <div>
+            <span className="inline-block text-xs font-bold tracking-widest text-brand-600 bg-brand-50 dark:bg-brand-900/30 dark:text-brand-300 rounded-full px-4 py-1.5 mb-5">
+              {t('pLanding.techPartners.badge')}
+            </span>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-5">
+              {t('pLanding.techPartners.title')}
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+              {t('pLanding.techPartners.desc')}
+            </p>
+            <div className="flex flex-wrap items-center gap-6 mb-8">
+              <div className="flex items-center h-20 px-8 rounded-xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 shadow-sm">
+                <img src="/partners/sellia.png" alt="Sellia" className="h-10 w-auto object-contain" />
+              </div>
+              <div className="flex items-center h-20 px-8 rounded-xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 shadow-sm">
+                <img src="/partners/openai.svg" alt="OpenAI" className="h-9 w-auto object-contain dark:invert" />
+              </div>
+            </div>
+            <a href="#features" className="inline-flex items-center gap-2 font-semibold text-brand-600 hover:text-brand-700">
+              {t('pLanding.techPartners.cta')} <ArrowRight size={18} />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Integrations showcase — "connect to the tools you already use"
+          style layout (badge/heading/copy left, icon grid right), matching
+          the requested reference design. Reuses the same live
+          integration_providers data as the ecosystem strip above the fold
+          (never invents providers) — packed into a compact grid where each
+          tile cycles through several real logos (RotatingLogoTile) instead
+          of listing one tile per provider, to keep the grid small. Only
+          rendered once real data has loaded, same guard as the strip. */}
+      {ecosystemProviders.length > 0 && (
+        <section className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <span className="inline-block text-xs font-bold tracking-widest text-brand-600 bg-brand-50 dark:bg-brand-900/30 dark:text-brand-300 rounded-full px-4 py-1.5 mb-5">
+                {t('pLanding.ecosystem.heading')}
+              </span>
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-5">
+                {t('pLanding.integrationsGrid.title')}
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+                {t('pLanding.integrationsGrid.desc')}
+              </p>
+              <Link to="/marketplace" className="inline-flex items-center gap-2 font-semibold text-brand-600 hover:text-brand-700">
+                {t('pLanding.integrationsGrid.cta')} <ArrowRight size={18} />
+              </Link>
+            </div>
+            <div className="grid grid-cols-4 gap-3 sm:gap-4">
+              {Array.from({ length: Math.min(16, Math.max(8, ecosystemProviders.length)) }).map((_, tileIndex) => {
+                // Round-robin: each tile owns every Nth provider (N = tile
+                // count) so tiles cycle through different logos, not the
+                // same one in sync.
+                const tileCount = Math.min(16, Math.max(8, ecosystemProviders.length));
+                const tileProviders = ecosystemProviders.filter((_, i) => i % tileCount === tileIndex);
+                if (tileProviders.length === 0) return null;
+                return (
+                  <RotatingLogoTile
+                    key={tileIndex}
+                    providers={tileProviders}
+                    delayMs={tileIndex * 350}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Industries teaser — links to the real dedicated page
           (IndustrySolutionsPage) rather than duplicating its content here.
           Only the 3 verticals that page actually documents today (post
@@ -977,9 +1128,12 @@ export function LandingPage() {
           reference layout (tab bar on top, image left / copy right below).
           Each tab's bullet list only names real, shipped features. */}
       <section className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
-        <h2 className="text-3xl lg:text-4xl font-bold text-center text-gray-900 dark:text-white mb-10">
+        <h2 className="text-3xl lg:text-4xl font-bold text-center text-gray-900 dark:text-white mb-4">
           {t('pLanding.featureTabs.title')}
         </h2>
+        <p className="text-center text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-10">
+          {t('pLanding.featureTabs.subtitle')}
+        </p>
 
         {/* Tab bar */}
         <div className="flex flex-wrap justify-center gap-x-8 gap-y-3 border-b border-gray-200 dark:border-ink-800 mb-12">
@@ -1279,27 +1433,15 @@ export function LandingPage() {
       </section>
 
       {/* Second hero — full video-backed CTA band before the footer.
-          See CTA_VIDEO near the top of this file to swap in real footage. */}
+          2 real clips in CTA_VIDEOS near the top of this file, playing
+          in sequence via VideoCarousel. */}
       <section className="relative bg-ink-950 overflow-hidden">
         <div className="absolute inset-0" aria-hidden="true">
-          {heroReducedMotion ? (
-            <img
-              src={CTA_VIDEO.poster}
-              alt=""
-              className="w-full h-full object-cover opacity-80"
-            />
-          ) : (
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster={CTA_VIDEO.poster}
-              className="w-full h-full object-cover opacity-80"
-            >
-              <source src={CTA_VIDEO.src} type="video/mp4" />
-            </video>
-          )}
+          <VideoCarousel
+            videos={CTA_VIDEOS}
+            reducedMotion={heroReducedMotion}
+            className="w-full h-full object-cover opacity-80"
+          />
           <div className="absolute inset-0 bg-ink-950/60" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_20%,rgba(20,181,148,0.18),transparent)]" />
         </div>

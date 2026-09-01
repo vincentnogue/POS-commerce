@@ -1659,6 +1659,7 @@ export const fr: Record<string, string> = {
   "pLanding.industries.professional.desc": "Facturation, gestion clients et paiements flexibles.",
   "pLanding.industries.link": "Voir comment ça s'adapte",
   "pLanding.featureTabs.title": "Une seule plateforme pour chaque partie de votre commerce",
+  "pLanding.featureTabs.subtitle": "De la caisse au bilan comptable — 8 modules connectés, une seule connexion, aucune ressaisie, où que vous vendiez dans le monde.",
   "pLanding.featureTabs.pos.tabLabel": "Point de vente",
   "pLanding.featureTabs.pos.title": "Un encaissement conçu pour la rapidité",
   "pLanding.featureTabs.pos.desc": "Scannez, vendez et faites sortir vos clients rapidement — sur l'écran que votre équipe utilise déjà.",
@@ -1763,6 +1764,10 @@ export const fr: Record<string, string> = {
   "pLanding.integrationsGrid.category.shipping": "Connectez livraison et exécution des commandes à la vente.",
   "pLanding.integrationsGrid.apiNote": "Besoin d'une connexion sur mesure ? Construisez autour de votre activité avec l'accès API.",
   "pLanding.integrationsGrid.apiCta": "Voir la doc API",
+  "pLanding.techPartners.badge": "PARTENAIRES TECHNOLOGIQUES",
+  "pLanding.techPartners.title": "Construit sur une technologie de confiance",
+  "pLanding.techPartners.desc": "POS Flow s'appuie sur une infrastructure solide et éprouvée — notamment les capacités IA d'OpenAI et la technologie de relation client de Sellia — pour offrir à votre commerce une fiabilité de niveau entreprise dès le premier jour.",
+  "pLanding.techPartners.cta": "Découvrir comment tout se connecte",
   "pLanding.hero.titleStart": "Le point de vente qui",
   "pLanding.hero.titleAccent": "s'adapte",
   "pLanding.hero.titleEnd": "à votre commerce",
@@ -1945,6 +1950,9 @@ export const fr: Record<string, string> = {
   "contact.info.hq": "Siège social",
   "contact.info.hqValue": "Dubaï, Émirats arabes unis",
   "contact.info.email": "Email",
+  "contact.hero.badge": "SUPPORT 24/7",
+  "contact.hero.title": "Votre partenaire de réussite.",
+  "contact.hero.desc": "Avec un accompagnement personnalisé, POS Flow n'est pas qu'une plateforme — c'est un partenaire. Écrivez-nous à tout moment ; une vraie personne de notre équipe vous répond sous 24h.",
 
   // Legal page
   "legal.title": "Mentions légales",

@@ -1659,6 +1659,7 @@ export const en: Record<string, string> = {
   "pLanding.industries.professional.desc": "Invoicing, client management and flexible billing.",
   "pLanding.industries.link": "See how it fits",
   "pLanding.featureTabs.title": "One platform built for every part of your business",
+  "pLanding.featureTabs.subtitle": "From the till to the balance sheet — 8 connected modules, one login, no data re-entry, wherever in the world you sell.",
   "pLanding.featureTabs.pos.tabLabel": "Point of sale",
   "pLanding.featureTabs.pos.title": "A checkout built for speed",
   "pLanding.featureTabs.pos.desc": "Scan, sell and get customers out the door fast — on any screen your staff already use.",
@@ -1763,6 +1764,10 @@ export const en: Record<string, string> = {
   "pLanding.integrationsGrid.category.shipping": "Connect delivery and fulfillment to the sale.",
   "pLanding.integrationsGrid.apiNote": "Need a custom connection? Build around your business with API access.",
   "pLanding.integrationsGrid.apiCta": "View API docs",
+  "pLanding.techPartners.badge": "TECHNOLOGY PARTNERS",
+  "pLanding.techPartners.title": "Built on technology you can trust",
+  "pLanding.techPartners.desc": "POS Flow runs on solid, proven infrastructure — including AI capabilities from OpenAI and customer engagement technology from Sellia — so your business gets enterprise-grade reliability from day one.",
+  "pLanding.techPartners.cta": "See how it all connects",
   "pLanding.hero.titleStart": "The point of sale that",
   "pLanding.hero.titleAccent": "adapts",
   "pLanding.hero.titleEnd": "to your business",
@@ -1942,6 +1947,9 @@ export const en: Record<string, string> = {
   "contact.info.hq": "Headquarters",
   "contact.info.hqValue": "Dubai, United Arab Emirates",
   "contact.info.email": "Email",
+  "contact.hero.badge": "24/7 SUPPORT",
+  "contact.hero.title": "Your partner in success.",
+  "contact.hero.desc": "With personalized support, POS Flow is not just a platform — we're a partner. Reach out any time; a real person on our team replies within 24h.",
 
   // Legal page
   "legal.title": "Legal notice",
