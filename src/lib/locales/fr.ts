@@ -1950,6 +1950,9 @@ export const fr: Record<string, string> = {
   "contact.info.hq": "Siège social",
   "contact.info.hqValue": "Dubaï, Émirats arabes unis",
   "contact.info.email": "Email",
+  "contact.hero.badge": "SUPPORT 24/7",
+  "contact.hero.title": "Votre partenaire de réussite.",
+  "contact.hero.desc": "Avec un accompagnement personnalisé, POS Flow n'est pas qu'une plateforme — c'est un partenaire. Écrivez-nous à tout moment ; une vraie personne de notre équipe vous répond sous 24h.",
 
   // Legal page
   "legal.title": "Mentions légales",

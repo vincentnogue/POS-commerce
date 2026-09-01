@@ -1947,6 +1947,9 @@ export const en: Record<string, string> = {
   "contact.info.hq": "Headquarters",
   "contact.info.hqValue": "Dubai, United Arab Emirates",
   "contact.info.email": "Email",
+  "contact.hero.badge": "24/7 SUPPORT",
+  "contact.hero.title": "Your partner in success.",
+  "contact.hero.desc": "With personalized support, POS Flow is not just a platform — we're a partner. Reach out any time; a real person on our team replies within 24h.",
 
   // Legal page
   "legal.title": "Legal notice",

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, MapPin, Send, CheckCircle2 } from 'lucide-react';
+import { Mail, MapPin, Send, CheckCircle2, Headset } from 'lucide-react';
 import { FooterPageLayout } from '../components/FooterPageLayout';
 import { supabase } from '../lib/supabase';
 import { useI18n } from '../lib/i18n';
@@ -42,6 +42,35 @@ export function ContactPage() {
 
   return (
     <FooterPageLayout title={t('contact.title')}>
+      {/* "Your partner in success" support band — photo left, badge/
+          heading/copy right, matching the requested reference design.
+          Sits inside FooterPageLayout's existing max-w-3xl container (a
+          shared component used by every /legal, /terms, /privacy... page)
+          rather than changing that layout, so nothing else on the site
+          shifts. Real submission form and contact info below are
+          untouched. */}
+      <div className="-mt-2 mb-2 grid grid-cols-1 sm:grid-cols-2 overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-700 bg-brand-50/30 dark:bg-brand-900/20">
+        <div className="h-56 sm:h-full min-h-[260px]">
+          <img
+            src="/contact/support-agent.jpg"
+            alt=""
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+        </div>
+        <div className="flex flex-col justify-center p-6 sm:p-8">
+          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 px-3 py-1 text-xs font-bold tracking-widest text-brand-600 mb-4">
+            <Headset size={12} /> {t('contact.hero.badge')}
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-bold text-ink-900 dark:text-ink-50 mb-3 leading-tight">
+            {t('contact.hero.title')}
+          </h2>
+          <p className="text-sm sm:text-base text-ink-600 dark:text-ink-300 leading-relaxed">
+            {t('contact.hero.desc')}
+          </p>
+        </div>
+      </div>
+
       <p className="text-ink-600 dark:text-ink-300">{t('contact.intro')}</p>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
