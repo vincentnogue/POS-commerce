@@ -504,3 +504,52 @@ export const DEFAULT_PERMISSIONS: Record<Role, Permissions> = {
     users: {}, marketplace: { view: true }, administration: {}, settings: { view: true },
   } as Permissions,
 };
+
+// --- Foundational types for migrations 0072-0075 (catalog, serial/lot,
+// pricing/currency, ops). No UI reads/writes these yet — added so the
+// first screen built against any of these tables has a typed starting
+// point instead of `any`. See each migration's own comments for the
+// reasoning behind each table's shape. ---
+
+export type Brand = { id: string; tenant_id: string; name: string; logo_url: string | null; created_at: string };
+export type Collection = { id: string; tenant_id: string; name: string; description: string | null; created_at: string };
+export type ProductBarcode = { id: string; tenant_id: string; product_id: string; barcode: string; label: string | null; created_at: string };
+export type ProductBundleItem = { id: string; tenant_id: string; bundle_product_id: string; component_product_id: string; quantity: number };
+export type TaxGroup = { id: string; tenant_id: string; name: string; rate: number; is_default: boolean; created_at: string };
+
+export type ProductTrackingMode = 'none' | 'serial' | 'batch';
+export type ProductSerialStatus = 'in_stock' | 'sold' | 'returned' | 'transferred' | 'damaged' | 'lost';
+export type ProductSerial = {
+  id: string; tenant_id: string; product_id: string; serial_number: string;
+  store_id: string | null; status: ProductSerialStatus; sale_id: string | null;
+  sale_item_id: string | null; notes: string | null; created_at: string; updated_at: string;
+};
+export type ProductBatch = {
+  id: string; tenant_id: string; product_id: string; store_id: string | null;
+  batch_number: string; expiry_date: string | null; received_quantity: number;
+  remaining_quantity: number; notes: string | null; created_at: string; updated_at: string;
+};
+
+export type TenantCurrency = { id: string; tenant_id: string; currency_code: string; rate_to_tenant_currency: number; is_active: boolean; updated_at: string };
+export type PriceList = { id: string; tenant_id: string; name: string; currency: string | null; store_id: string | null; is_active: boolean; starts_at: string | null; ends_at: string | null; created_at: string };
+export type PriceListItem = { id: string; price_list_id: string; product_id: string; price: number; min_quantity: number };
+
+export type StoreLocationType = 'store' | 'warehouse';
+export type Wishlist = { id: string; tenant_id: string; customer_id: string; product_id: string; created_at: string };
+
+export type TaskPriority = 'low' | 'normal' | 'high' | 'urgent';
+export type TaskStatus = 'open' | 'in_progress' | 'done' | 'cancelled';
+export type Task = {
+  id: string; tenant_id: string; store_id: string | null; title: string; description: string | null;
+  assigned_to: string | null; created_by: string | null; due_date: string | null;
+  priority: TaskPriority; status: TaskStatus; completed_at: string | null;
+  created_at: string; updated_at: string;
+};
+
+export type CommissionRule = { id: string; tenant_id: string; name: string; rate_percent: number; category_id: string | null; is_active: boolean; created_at: string };
+export type SaleCommission = { id: string; tenant_id: string; sale_id: string; member_id: string; commission_rule_id: string | null; amount: number; created_at: string };
+
+export type LoyaltyTier = { id: string; tenant_id: string; name: string; min_points: number; benefits: Record<string, unknown>; sort_order: number; created_at: string };
+export type CustomerSegment = { id: string; tenant_id: string; name: string; criteria: Record<string, unknown> | null; created_at: string };
+
+export type SaleChannel = 'pos' | 'online' | 'call_center';
