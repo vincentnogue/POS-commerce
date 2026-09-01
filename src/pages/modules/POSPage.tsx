@@ -126,7 +126,7 @@ export function POSPage() {
   ]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
-  const [lastReceipt, setLastReceipt] = useState<{ items: CartItem[]; total: number; paymentMethod: string; paymentReference: string; customerName: string | null; customerPhone: string | null; customerEmail: string | null; discountTotal: number; pointsEarned: number | null } | null>(null);
+  const [lastReceipt, setLastReceipt] = useState<{ items: CartItem[]; total: number; paymentMethod: string; paymentReference: string; customerName: string | null; customerPhone: string | null; customerEmail: string | null; discountTotal: number; pointsEarned: number | null; foreignCurrency: string | null; foreignAmount: number | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [deliveryChoice, setDeliveryChoice] = useState<'delivered' | 'pending'>('delivered');
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -902,6 +902,8 @@ export function POSPage() {
       customerEmail: customer?.email ?? null,
       discountTotal,
       pointsEarned: pointsEarnedForReceipt,
+      foreignCurrency: activeSaleCurrency !== tenant?.currency ? activeSaleCurrency : null,
+      foreignAmount: activeSaleCurrency !== tenant?.currency ? totalInSaleCurrency : null,
     });
     setCart([]);
     setPaymentReference('');
@@ -933,6 +935,8 @@ export function POSPage() {
         paymentReference: lastReceipt.paymentReference || null,
         discountTotal: lastReceipt.discountTotal,
         pointsEarned: lastReceipt.pointsEarned,
+        foreignCurrency: lastReceipt.foreignCurrency,
+        foreignAmount: lastReceipt.foreignAmount,
       },
       {
         title: t('pos.receipt.title'),
@@ -950,6 +954,7 @@ export function POSPage() {
         keepProof: t('pos.receipt.keepProof'),
         discountLabel: t('pos.discount.total'),
         pointsEarnedLabel: (points) => t('pos.discount.pointsEarned', { points }),
+        foreignAmountLabel: t('pos.currency.toCollectLabel'),
         paymentMethodLabel: paymentLabel,
       },
       { businessName: tenant?.name ?? '', currency, lang, locale, formatMoney },
@@ -964,7 +969,10 @@ export function POSPage() {
       : `%0a${t('pos.whatsapp.payment')} : ${paymentLabel(lastReceipt.paymentMethod)}`;
     const discountLine = lastReceipt.discountTotal > 0 ? `%0a${t('pos.discount.total')}: -${formatMoney(lastReceipt.discountTotal, currency)}` : '';
     const pointsLine = lastReceipt.pointsEarned && lastReceipt.pointsEarned > 0 ? `%0a${t('pos.discount.pointsEarned', { points: lastReceipt.pointsEarned })}` : '';
-    const msg = `*${t('pos.whatsapp.saleReceipt')} ${success}*%0a%0a${lines}${discountLine}%0a%0a*${t('pos.receipt.total')}: ${formatMoney(lastReceipt.total, currency)}*${paymentLine}${pointsLine}%0a%0a${t('pos.receipt.thanks')}`;
+    const foreignLine = lastReceipt.foreignCurrency && lastReceipt.foreignAmount != null
+      ? `%0a${t('pos.currency.toCollectLabel')}: ${lastReceipt.foreignAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${lastReceipt.foreignCurrency}`
+      : '';
+    const msg = `*${t('pos.whatsapp.saleReceipt')} ${success}*%0a%0a${lines}${discountLine}%0a%0a*${t('pos.receipt.total')}: ${formatMoney(lastReceipt.total, currency)}*${foreignLine}${paymentLine}${pointsLine}%0a%0a${t('pos.receipt.thanks')}`;
     // FIX: this used to always open wa.me/?text=... with no recipient, even
     // when a real customer (with a real phone on file) was picked at
     // checkout -- the cashier had to manually pick the contact every time.
@@ -989,8 +997,11 @@ export function POSPage() {
       : `${t('pos.whatsapp.payment')}: ${paymentLabel(lastReceipt.paymentMethod)}`;
     const discountLine = lastReceipt.discountTotal > 0 ? `${t('pos.discount.total')}: -${formatMoney(lastReceipt.discountTotal, currency)}\n` : '';
     const pointsLine = lastReceipt.pointsEarned && lastReceipt.pointsEarned > 0 ? `\n${t('pos.discount.pointsEarned', { points: lastReceipt.pointsEarned })}` : '';
+    const foreignLine = lastReceipt.foreignCurrency && lastReceipt.foreignAmount != null
+      ? `${t('pos.currency.toCollectLabel')}: ${lastReceipt.foreignAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${lastReceipt.foreignCurrency}\n`
+      : '';
     const subject = `${t('pos.whatsapp.saleReceipt')} ${success}`;
-    const body = `${lines}\n${discountLine}\n${t('pos.receipt.total')}: ${formatMoney(lastReceipt.total, currency)}\n${paymentLine}${pointsLine}\n\n${t('pos.receipt.thanks')}`;
+    const body = `${lines}\n${discountLine}\n${t('pos.receipt.total')}: ${formatMoney(lastReceipt.total, currency)}\n${foreignLine}${paymentLine}${pointsLine}\n\n${t('pos.receipt.thanks')}`;
     window.location.href = `mailto:${lastReceipt.customerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 

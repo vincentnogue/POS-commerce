@@ -931,6 +931,7 @@ export const en: Record<string, string> = {
   "pos.currency.title": "Payment currency",
   "pos.currency.home": "home",
   "pos.currency.toCollect": "To collect: {amount} {currency}",
+  "pos.currency.toCollectLabel": "Collected (equivalent)",
   "pos.paymentMethod": "Payment method",
   "pos.pay.cash": "Cash",
   "pos.pay.card": "Card",

@@ -931,6 +931,7 @@ export const fr: Record<string, string> = {
   "pos.currency.title": "Devise de paiement",
   "pos.currency.home": "principale",
   "pos.currency.toCollect": "À encaisser : {amount} {currency}",
+  "pos.currency.toCollectLabel": "Encaissé (équivalent)",
   "pos.paymentMethod": "Moyen de paiement",
   "pos.pay.cash": "Espèces",
   "pos.pay.card": "Carte",

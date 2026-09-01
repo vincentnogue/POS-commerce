@@ -22,6 +22,8 @@ type SaleRow = {
   payment_status: string;
   customer_id: string | null;
   user_id: string | null;
+  currency?: string | null;
+  exchange_rate?: number | null;
   customer?: { name: string; email: string | null } | null;
 };
 
@@ -100,7 +102,7 @@ export function SaleHistoryTab() {
 
     let query = supabase
       .from('sales')
-      .select('id, reference, sale_date, subtotal, tax_total, discount_total, total, payment_method, payment_reference, payment_status, customer_id, user_id, customer:customers(name, email)')
+      .select('id, reference, sale_date, subtotal, tax_total, discount_total, total, payment_method, payment_reference, payment_status, customer_id, user_id, currency, exchange_rate, customer:customers(name, email)')
       .eq('tenant_id', tenant.id)
       .order('sale_date', { ascending: false })
       .limit(100);
@@ -170,6 +172,8 @@ export function SaleHistoryTab() {
         paymentReference: sale.payment_reference,
         staffName: sale.user_id ? staffNames[sale.user_id] ?? null : null,
         discountTotal: Number(sale.discount_total ?? 0),
+        foreignCurrency: sale.currency && sale.currency !== currency ? sale.currency : null,
+        foreignAmount: sale.currency && sale.currency !== currency && sale.exchange_rate ? Number(sale.total) / Number(sale.exchange_rate) : null,
       },
       {
         title: t('pos.receipt.title'),
@@ -187,6 +191,7 @@ export function SaleHistoryTab() {
         keepProof: t('pos.receipt.keepProof'),
         staffLabel: t('pos.history.staffLabel'),
         discountLabel: t('pos.discount.total'),
+        foreignAmountLabel: t('pos.currency.toCollectLabel'),
         paymentMethodLabel: paymentLabel,
       },
       { businessName: tenant?.name ?? '', currency, lang, locale, formatMoney },
