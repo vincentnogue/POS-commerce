@@ -314,17 +314,56 @@ function formatUSD(n: number): string {
 //      file link, not a YouTube watch-page URL — YouTube embeds need an
 //      <iframe>, which this background-video treatment isn't built for).
 //
-// Until real footage is provided, these point at free, licensed stock
-// clips (Mixkit — commercial use OK, no attribution required) as a
-// placeholder so the page isn't broken in the meantime.
-const HERO_VIDEO = {
-  src: 'https://assets.mixkit.co/videos/15914/15914-360.mp4',
-  poster: 'https://assets.mixkit.co/videos/15914/15914-thumb-360-1.jpg',
-};
-const CTA_VIDEO = {
-  src: 'https://assets.mixkit.co/videos/49137/49137-360.mp4',
-  poster: 'https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg',
-};
+// Real footage — 3 clips that autoplay in sequence for the main hero
+// (see VideoCarousel below): each plays once, then hands off to the next,
+// looping back to the first. 2 more clips do the same for the second/
+// bottom hero band near the footer.
+const HERO_VIDEOS = [
+  { src: '/videos/hero-1.mp4', poster: '/videos/hero-1-poster.jpg' },
+  { src: '/videos/hero-2.mp4', poster: '/videos/hero-2-poster.jpg' },
+  { src: '/videos/hero-3.mp4', poster: '/videos/hero-3-poster.jpg' },
+];
+const CTA_VIDEOS = [
+  { src: '/videos/bottom-1.mp4', poster: '/videos/bottom-1-poster.jpg' },
+  { src: '/videos/bottom-2.mp4', poster: '/videos/bottom-2-poster.jpg' },
+];
+
+// Plays a list of background videos back-to-back: each clip autoplays once
+// (no native loop), and on its 'ended' event we advance to the next clip,
+// wrapping back to the first — a lightweight after-play carousel with no
+// extra deps. Falls back to the first clip's poster frame (fully static)
+// for users who prefer reduced motion, same as the previous single-video
+// behavior.
+function VideoCarousel({ videos, className, reducedMotion }: { videos: { src: string; poster: string }[]; className?: string; reducedMotion: boolean }) {
+  const [index, setIndex] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (reducedMotion) return;
+    const el = videoRef.current;
+    if (!el) return;
+    el.load();
+    el.play().catch(() => {});
+  }, [index, reducedMotion]);
+
+  if (reducedMotion) {
+    return <img src={videos[0].poster} alt="" className={className} />;
+  }
+
+  return (
+    <video
+      ref={videoRef}
+      autoPlay
+      muted
+      playsInline
+      poster={videos[index].poster}
+      className={className}
+      onEnded={() => setIndex((i) => (i + 1) % videos.length)}
+    >
+      <source src={videos[index].src} type="video/mp4" />
+    </video>
+  );
+}
 
 // Cycles through: empty → items added one by one → paid → brief pause → reset.
 // Fully static (final, paid state) when the user prefers reduced motion.
@@ -710,28 +749,16 @@ export function LandingPage() {
       {/* Hero Section — the product demo is the focal visual; video adds
           ambient motion behind it (muted, looped, no controls) */}
       <section className="relative bg-ink-950 overflow-hidden">
-        {/* Background video layer — see HERO_VIDEO near the top of this file
-            to swap in real footage. Falls back to a static poster frame
-            for reduced-motion users instead of autoplaying. */}
+        {/* Background video layer — 3 real clips in HERO_VIDEOS near the
+            top of this file, playing in sequence via VideoCarousel. Falls
+            back to a static poster frame for reduced-motion users instead
+            of autoplaying. */}
         <div className="absolute inset-0" aria-hidden="true">
-          {heroReducedMotion ? (
-            <img
-              src={HERO_VIDEO.poster}
-              alt=""
-              className="w-full h-full object-cover opacity-80"
-            />
-          ) : (
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster={HERO_VIDEO.poster}
-              className="w-full h-full object-cover opacity-80"
-            >
-              <source src={HERO_VIDEO.src} type="video/mp4" />
-            </video>
-          )}
+          <VideoCarousel
+            videos={HERO_VIDEOS}
+            reducedMotion={heroReducedMotion}
+            className="w-full h-full object-cover opacity-80"
+          />
           <div className="absolute inset-0 bg-ink-950/55" />
         </div>
 
@@ -1286,27 +1313,15 @@ export function LandingPage() {
       </section>
 
       {/* Second hero — full video-backed CTA band before the footer.
-          See CTA_VIDEO near the top of this file to swap in real footage. */}
+          2 real clips in CTA_VIDEOS near the top of this file, playing
+          in sequence via VideoCarousel. */}
       <section className="relative bg-ink-950 overflow-hidden">
         <div className="absolute inset-0" aria-hidden="true">
-          {heroReducedMotion ? (
-            <img
-              src={CTA_VIDEO.poster}
-              alt=""
-              className="w-full h-full object-cover opacity-80"
-            />
-          ) : (
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster={CTA_VIDEO.poster}
-              className="w-full h-full object-cover opacity-80"
-            >
-              <source src={CTA_VIDEO.src} type="video/mp4" />
-            </video>
-          )}
+          <VideoCarousel
+            videos={CTA_VIDEOS}
+            reducedMotion={heroReducedMotion}
+            className="w-full h-full object-cover opacity-80"
+          />
           <div className="absolute inset-0 bg-ink-950/60" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_20%,rgba(20,181,148,0.18),transparent)]" />
         </div>
