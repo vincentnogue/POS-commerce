@@ -141,7 +141,7 @@ export function SaleHistoryTab() {
   };
 
   const paymentLabel = (m: string | null) =>
-    m === 'cash' ? t('pos.pay.cash') : m === 'card' ? t('pos.pay.cardLabel') : m === 'mobile_money' ? t('pos.pay.mobileMoney') : (m ?? '—');
+    m === 'cash' ? t('pos.pay.cash') : m === 'card' ? t('pos.pay.cardLabel') : m === 'mobile_money' ? t('pos.pay.mobileMoney') : m === 'gift_card' ? t('pos.pay.giftCard') : m === 'split' ? t('pos.split.label') : (m ?? '—');
 
   const reprint = async (sale: SaleRow) => {
     // BUG FIX: this used to fetch line items (await) BEFORE printSaleReceipt
