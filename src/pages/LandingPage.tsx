@@ -999,6 +999,39 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Technology partners — "meet your customers wherever they shop"
+          style layout (photo left, badge/heading/copy right), matching the
+          requested reference design. No named partner logos here — those
+          (Sellia, OpenAI) belong on the Marketplace page where they're
+          real, connectable providers; this section stays generic so it
+          never gets ahead of what's actually shown there. */}
+      <section className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="rounded-2xl overflow-hidden shadow-lg">
+            <img
+              src="/sections/retail-store.jpg"
+              alt=""
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+          <div>
+            <span className="inline-block text-xs font-bold tracking-widest text-brand-600 bg-brand-50 dark:bg-brand-900/30 dark:text-brand-300 rounded-full px-4 py-1.5 mb-5">
+              {t('pLanding.techPartners.badge')}
+            </span>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-5">
+              {t('pLanding.techPartners.title')}
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+              {t('pLanding.techPartners.desc')}
+            </p>
+            <Link to="/marketplace" className="inline-flex items-center gap-2 font-semibold text-brand-600 hover:text-brand-700">
+              {t('pLanding.techPartners.cta')} <ArrowRight size={18} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Integrations showcase — "connect to the tools you already use"
           style layout (badge/heading/copy left, icon grid right), matching
           the requested reference design. Reuses the same live
