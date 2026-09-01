@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, Pencil, Trash2, Package, Download, Image as ImageIcon, X, Tags } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, Download, Image as ImageIcon, X, Tags, Sparkles } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -33,6 +33,7 @@ export function ProductsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState<any>(EMPTY);
+  const [aiGenerating, setAiGenerating] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -77,6 +78,29 @@ export function ProductsPage() {
   }, [products, search, catFilter]);
 
   const openNew = () => { setEditing(null); setForm(EMPTY); setModalOpen(true); };
+
+  // Uses whichever AI provider the tenant has connected in the Marketplace
+  // (ai-generate-text edge function) — this is the actual feature the
+  // 'Claude'/'ChatGPT'/'Gemini' marketplace cards promise ("Generate
+  // product descriptions...") but that nothing previously delivered on.
+  const generateDescription = async () => {
+    if (!tenant) return;
+    if (!form.name?.trim()) { toast('error', t('products.ai.err.needName')); return; }
+    setAiGenerating(true);
+    const category = categories.find((c) => c.id === form.category_id)?.name;
+    const prompt = t('products.ai.promptBase', { name: form.name }) + (category ? t('products.ai.promptCategory', { category }) : '');
+    const { data, error } = await supabase.functions.invoke('ai-generate-text', {
+      body: { tenant_id: tenant.id, prompt, max_tokens: 200 },
+    });
+    setAiGenerating(false);
+    if (error || !data?.success) {
+      const notConnected = data?.error === 'NOT_CONNECTED';
+      toast('error', notConnected ? t('products.ai.err.notConnected') : (data?.message || error?.message || t('products.ai.err.generic')));
+      return;
+    }
+    setForm({ ...form, description: data.text });
+  };
+
   const openEdit = (p: Product) => {
     setEditing(p);
     setForm({ name: p.name, sku: p.sku ?? '', barcode: p.barcode ?? '', description: p.description ?? '', cost_price: Number(p.cost_price), sale_price: Number(p.sale_price), tax_rate: Number(p.tax_rate), unit: p.unit, low_stock_threshold: p.low_stock_threshold, category_id: p.category_id ?? '', image_url: p.image_url ?? '', sizes: variantsToSizesText(p.variants) });
@@ -313,7 +337,26 @@ export function ProductsPage() {
               <input value={form.sizes} onChange={(e) => setForm({ ...form, sizes: e.target.value })} className="input" placeholder={t('products.field.sizesPlaceholder')} />
             </Field>
           </div>
-          <div className="sm:col-span-2"><Field label={t('products.field.description')}><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input min-h-[70px]" /></Field></div>
+          <div className="sm:col-span-2">
+            <Field
+              label={
+                <span className="flex items-center justify-between">
+                  {t('products.field.description')}
+                  <button
+                    type="button"
+                    onClick={generateDescription}
+                    disabled={aiGenerating}
+                    title={t('products.ai.generate')}
+                    className="flex items-center gap-1 text-xs font-normal text-brand-600 hover:text-brand-700 disabled:opacity-50"
+                  >
+                    <Sparkles size={13} className={aiGenerating ? 'animate-pulse' : ''} /> {aiGenerating ? t('products.ai.generating') : t('products.ai.generate')}
+                  </button>
+                </span>
+              }
+            >
+              <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input min-h-[70px]" />
+            </Field>
+          </div>
         </div>
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={() => setModalOpen(false)} className="btn-ghost">{t('common.cancel')}</button>

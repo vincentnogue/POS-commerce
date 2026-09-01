@@ -303,6 +303,94 @@ async function testTwilio(credentials: Record<string, string>): Promise<TestConn
   }
 }
 
+// The three AI providers (anthropic_claude, openai_chatgpt, google_gemini)
+// share one auth_schema shape ({ api_key }), so each test is a minimal,
+// cheap live call against the real API — not just a format check — using
+// the smallest request each provider allows, so a merchant's free-tier key
+// isn't burned by the mere act of connecting it.
+async function testAnthropicClaude(credentials: Record<string, string>): Promise<TestConnectionResponse> {
+  try {
+    const apiKey = credentials.api_key;
+    if (!apiKey) return { success: false, message: "Missing api_key", error: "MISSING_CREDENTIAL" };
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-3-5-haiku-20241022",
+        max_tokens: 1,
+        messages: [{ role: "user", content: "hi" }],
+      }),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { success: false, message: "Invalid Anthropic API key", error: "INVALID_CREDENTIALS" };
+    }
+    // Any other non-2xx (rate limit, overload, model deprecation) still
+    // proves the key itself authenticated, so treat it as a pass — we're
+    // validating the credential, not the model's current availability.
+    if (!response.ok && response.status !== 429 && response.status !== 529) {
+      const body = await response.json().catch(() => ({}));
+      return { success: false, message: body?.error?.message || `Anthropic API error (${response.status})`, error: "CONNECTION_ERROR" };
+    }
+
+    return { success: true, message: "Successfully connected to Claude (Anthropic)" };
+  } catch (err) {
+    return { success: false, message: `Anthropic test failed: ${err.message}`, error: "CONNECTION_ERROR" };
+  }
+}
+
+async function testOpenAIChatGPT(credentials: Record<string, string>): Promise<TestConnectionResponse> {
+  try {
+    const apiKey = credentials.api_key;
+    if (!apiKey) return { success: false, message: "Missing api_key", error: "MISSING_CREDENTIAL" };
+
+    const response = await fetch("https://api.openai.com/v1/models", {
+      method: "GET",
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+
+    if (response.status === 401) {
+      return { success: false, message: "Invalid OpenAI API key", error: "INVALID_CREDENTIALS" };
+    }
+    if (!response.ok && response.status !== 429) {
+      const body = await response.json().catch(() => ({}));
+      return { success: false, message: body?.error?.message || `OpenAI API error (${response.status})`, error: "CONNECTION_ERROR" };
+    }
+
+    return { success: true, message: "Successfully connected to ChatGPT (OpenAI)" };
+  } catch (err) {
+    return { success: false, message: `OpenAI test failed: ${err.message}`, error: "CONNECTION_ERROR" };
+  }
+}
+
+async function testGoogleGemini(credentials: Record<string, string>): Promise<TestConnectionResponse> {
+  try {
+    const apiKey = credentials.api_key;
+    if (!apiKey) return { success: false, message: "Missing api_key", error: "MISSING_CREDENTIAL" };
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`, {
+      method: "GET",
+    });
+
+    if (response.status === 400 || response.status === 401 || response.status === 403) {
+      return { success: false, message: "Invalid Google AI API key", error: "INVALID_CREDENTIALS" };
+    }
+    if (!response.ok && response.status !== 429) {
+      const body = await response.json().catch(() => ({}));
+      return { success: false, message: body?.error?.message || `Google AI API error (${response.status})`, error: "CONNECTION_ERROR" };
+    }
+
+    return { success: true, message: "Successfully connected to Google Gemini" };
+  } catch (err) {
+    return { success: false, message: `Google Gemini test failed: ${err.message}`, error: "CONNECTION_ERROR" };
+  }
+}
+
 // Router: dispatch test based on provider
 async function testConnection(
   provider: string,
@@ -323,6 +411,12 @@ async function testConnection(
       return testSellia(credentials);
     case "twilio":
       return testTwilio(credentials);
+    case "anthropic_claude":
+      return testAnthropicClaude(credentials);
+    case "openai_chatgpt":
+      return testOpenAIChatGPT(credentials);
+    case "google_gemini":
+      return testGoogleGemini(credentials);
     default:
       return { success: false, message: `Provider ${provider} not supported yet`, error: "UNSUPPORTED_PROVIDER" };
   }
