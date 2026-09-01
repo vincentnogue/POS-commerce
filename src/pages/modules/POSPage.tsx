@@ -11,6 +11,7 @@ import { printDayReport } from '../../lib/dayReport';
 import { SaleHistoryTab } from './SaleHistoryTab';
 import { ReturnsTab } from './ReturnsTab';
 import type { Product, Customer } from '../../lib/types';
+import { issueGiftCard as apiIssueGiftCard, redeemGiftCard as apiRedeemGiftCard, getGiftCardStatus as apiGetGiftCardStatus } from '../../lib/giftCards';
 
 type CartItem = {
   product: Product;
@@ -251,15 +252,16 @@ export function POSPage() {
     if (!amt || amt <= 0) { setIssueErr(t('pos.giftCard.err.amountInvalid')); return; }
     setIssuing(true);
     setIssueErr(null);
-    const { data, error } = await supabase.rpc('issue_gift_card', {
-      p_tenant_id: tenant.id,
-      p_amount: amt,
-      p_customer_id: customer?.id ?? null,
-      p_code: issueCustomCode.trim() || null,
+    const { data, error } = await apiIssueGiftCard({
+      tenantId: tenant.id,
+      amount: amt,
+      customerId: customer?.id ?? null,
+      storeId: storeId ?? null,
+      code: issueCustomCode.trim() || null,
     });
     setIssuing(false);
-    if (error) { setIssueErr(error.message); return; }
-    setIssuedCard(data as { code: string; balance: number });
+    if (error) { setIssueErr(error); return; }
+    if (data) setIssuedCard({ code: data.code, balance: data.balance });
   };
 
   const resetIssueGiftCard = () => {
@@ -544,7 +546,6 @@ export function POSPage() {
     let finalPaymentReference: string | null = paymentMethod === 'cash' ? null : paymentReference.trim();
     let paid: number;
     let tendersToRecord: { method: string; amount: number; reference: string | null }[];
-    let redeemedGiftCardId: string | null = null;
 
     if (splitPayment) {
       const validTenders = splitTenders.filter((t) => Number(t.amount) > 0);
@@ -574,15 +575,16 @@ export function POSPage() {
         if (!giftCardCode.trim()) { toast('error', t('pos.giftCard.err.codeRequired')); return; }
         // Always re-verify against the current total right before the
         // sale, even if it was already checked once — the cart/discount
-        // may have changed since, and this call has no side effects.
-        const { data: gc, error: gcErr } = await supabase.rpc('check_gift_card', {
-          p_tenant_id: tenant.id,
-          p_code: giftCardCode.trim(),
-          p_amount: total,
-        });
-        if (gcErr) { toast('error', gcErr.message); return; }
-        setGiftCardCheck(gc as { id: string; balance: number });
-        redeemedGiftCardId = (gc as { id: string })?.id ?? null;
+        // may have changed since, and this lookup has no side effects.
+        // get_gift_card_status doesn't take an amount, so the balance vs
+        // total comparison happens here; redeem_gift_card below is still
+        // the hard backstop against overdraw server-side.
+        const { data: gc, error: gcErr } = await apiGetGiftCardStatus({ tenantId: tenant.id, code: giftCardCode.trim() });
+        if (gcErr) { toast('error', gcErr); return; }
+        if (!gc?.found) { toast('error', t('pos.giftCard.err.notFound')); return; }
+        if (gc.status !== 'active') { toast('error', t('pos.giftCard.err.notActive')); return; }
+        if ((gc.balance ?? 0) < total) { toast('error', t('pos.giftCard.err.insufficientBalance')); return; }
+        setGiftCardCheck({ id: gc.id ?? '', balance: gc.balance ?? 0 });
         finalPaymentReference = giftCardCode.trim().toUpperCase();
       }
       // BUG FIX: `Number(paidAmount) || total` treated an explicit "0" the
@@ -658,17 +660,26 @@ export function POSPage() {
       return;
     }
 
-    // Gift card: actually spend it now that the sale exists (mirrors the
-    // loyalty pattern above) — was already validated with a fresh,
-    // non-mutating check_gift_card call right before the sale was created.
-    if (paymentMethod === 'gift_card' && redeemedGiftCardId) {
-      const { error: gcRedeemErr } = await supabase.rpc('redeem_gift_card', {
-        p_tenant_id: tenant.id,
-        p_gift_card_id: redeemedGiftCardId,
-        p_amount: total,
-        p_sale_id: sale.id,
+    // Gift card: actually spend it now that the sale exists — sale_id is
+    // passed so redeem_gift_card auto-inserts the matching sale_payments
+    // row (see migration 0068_gift_cards.sql), same reconciliation trail
+    // as every other tender. Was already validated moments ago via
+    // get_gift_card_status, but redeem_gift_card is still the hard,
+    // overdraw-proof backstop server-side. Unlike the loyalty/discount
+    // best-effort calls above, a failure here means the sale is marked
+    // paid without an actual gift-card payment record — surfaced loudly
+    // (not just logged) so staff know to reconcile it manually.
+    if (paymentMethod === 'gift_card' && giftCardCode.trim()) {
+      const { error: gcRedeemErr } = await apiRedeemGiftCard({
+        tenantId: tenant.id,
+        code: giftCardCode.trim(),
+        amount: total,
+        saleId: sale.id,
       });
-      if (gcRedeemErr) console.error('redeem_gift_card failed (non-blocking):', gcRedeemErr.message);
+      if (gcRedeemErr) {
+        console.error('redeem_gift_card failed:', gcRedeemErr);
+        toast('error', t('pos.giftCard.err.redeemFailedAfterSale', { ref }));
+      }
     }
 
     // Loyalty points: redeem what was selected (deducts the customer's
@@ -1400,10 +1411,13 @@ export function POSPage() {
                     if (!tenant) return;
                     setCheckingGiftCard(true);
                     setGiftCardErr(null);
-                    const { data, error } = await supabase.rpc('check_gift_card', { p_tenant_id: tenant.id, p_code: giftCardCode.trim(), p_amount: total });
+                    const { data, error } = await apiGetGiftCardStatus({ tenantId: tenant.id, code: giftCardCode.trim() });
                     setCheckingGiftCard(false);
-                    if (error) { setGiftCardErr(error.message); setGiftCardCheck(null); return; }
-                    setGiftCardCheck(data as { id: string; balance: number });
+                    if (error) { setGiftCardErr(error); setGiftCardCheck(null); return; }
+                    if (!data?.found) { setGiftCardErr(t('pos.giftCard.err.notFound')); setGiftCardCheck(null); return; }
+                    if (data.status !== 'active') { setGiftCardErr(t('pos.giftCard.err.notActive')); setGiftCardCheck(null); return; }
+                    if ((data.balance ?? 0) < total) { setGiftCardErr(t('pos.giftCard.err.insufficientBalance')); setGiftCardCheck(null); return; }
+                    setGiftCardCheck({ id: data.id ?? '', balance: data.balance ?? 0 });
                   }}
                   className="btn-ghost shrink-0 py-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
