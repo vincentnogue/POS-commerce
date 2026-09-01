@@ -783,22 +783,23 @@ export function LandingPage() {
           ambient motion behind it (muted, looped, no controls) */}
       <section className="relative bg-ink-950 overflow-hidden">
         {/* Background video layer — 3 real clips in HERO_VIDEOS near the
-            top of this file, playing in sequence via VideoCarousel. Falls
-            back to a static poster frame for reduced-motion users instead
-            of autoplaying. */}
+            top of this file, playing in sequence via VideoCarousel. Full
+            opacity + a left-to-right gradient (not a flat tint) so the
+            footage stays genuinely visible on the right/demo side, with
+            just enough darkening on the left/text side for legibility.
+            Falls back to a static poster frame for reduced-motion users
+            instead of autoplaying. */}
         <div className="absolute inset-0" aria-hidden="true">
           <VideoCarousel
             videos={HERO_VIDEOS}
             reducedMotion={heroReducedMotion}
-            className="w-full h-full object-cover opacity-80"
+            className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-ink-950/55" />
+          <div className="absolute inset-0 bg-gradient-to-r from-ink-950/80 via-ink-950/45 to-ink-950/15" />
         </div>
 
-        {/* Ambient gradient + grid, layered above the video */}
+        {/* Fine grid texture, layered above the video */}
         <div className="absolute inset-0" aria-hidden="true">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(46,140,102,0.25),transparent)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_85%_60%,rgba(20,181,148,0.12),transparent)]" />
           <div
             className="absolute inset-0 opacity-[0.04]"
             style={{
@@ -995,47 +996,6 @@ export function LandingPage() {
               <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{t(`pLanding.feature.${f.key}.desc`)}</p>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* Technology partners — "meet your customers wherever they shop"
-          style layout (photo left, badge/heading/copy right), matching the
-          requested reference design. Only 2 real, named partners: OpenAI
-          (AI capabilities) and Sellia (customer engagement) — logos sized
-          large and unmissable per brand direction, no invented feature
-          claims attached to either name. */}
-      <section className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="rounded-2xl overflow-hidden shadow-lg">
-            <img
-              src="/sections/retail-store.jpg"
-              alt=""
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-          </div>
-          <div>
-            <span className="inline-block text-xs font-bold tracking-widest text-brand-600 bg-brand-50 dark:bg-brand-900/30 dark:text-brand-300 rounded-full px-4 py-1.5 mb-5">
-              {t('pLanding.techPartners.badge')}
-            </span>
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-5">
-              {t('pLanding.techPartners.title')}
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-              {t('pLanding.techPartners.desc')}
-            </p>
-            <div className="flex flex-wrap items-center gap-6 mb-8">
-              <div className="flex items-center h-20 px-8 rounded-xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 shadow-sm">
-                <img src="/partners/sellia.png" alt="Sellia" className="h-10 w-auto object-contain" />
-              </div>
-              <div className="flex items-center h-20 px-8 rounded-xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 shadow-sm">
-                <img src="/partners/openai.svg" alt="OpenAI" className="h-9 w-auto object-contain dark:invert" />
-              </div>
-            </div>
-            <a href="#features" className="inline-flex items-center gap-2 font-semibold text-brand-600 hover:text-brand-700">
-              {t('pLanding.techPartners.cta')} <ArrowRight size={18} />
-            </a>
-          </div>
         </div>
       </section>
 
@@ -1440,10 +1400,9 @@ export function LandingPage() {
           <VideoCarousel
             videos={CTA_VIDEOS}
             reducedMotion={heroReducedMotion}
-            className="w-full h-full object-cover opacity-80"
+            className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-ink-950/60" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_20%,rgba(20,181,148,0.18),transparent)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_65%_at_50%_50%,rgba(14,18,14,0.72),rgba(14,18,14,0.3)_65%,rgba(14,18,14,0.1)_100%)]" />
         </div>
 
         <div className="relative max-w-4xl mx-auto px-4 py-24 lg:px-8 text-center">
