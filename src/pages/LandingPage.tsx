@@ -594,6 +594,39 @@ const LANDING_PLANS: PricingPlan[] = REAL_PLANS.map((p) => ({
   badge: p.popular ? 'LE PLUS CHOISI' : undefined,
 }));
 
+// Cycles a grid tile through a small set of real provider logos — one
+// visible at a time, crossfading to the next on an interval. Used to pack
+// many real integration logos into a compact grid without needing one
+// tile per provider (space-efficient "changes side, shows another logo"
+// effect requested for the integrations showcase).
+function RotatingLogoTile({ providers, delayMs = 0 }: { providers: EcosystemProvider[]; delayMs?: number }) {
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    if (providers.length <= 1) return;
+    const start = setTimeout(() => {
+      const id = setInterval(() => setIndex((i) => (i + 1) % providers.length), 3200);
+      return () => clearInterval(id);
+    }, delayMs);
+    return () => clearTimeout(start);
+  }, [providers.length, delayMs]);
+
+  const provider = providers[index % providers.length];
+  if (!provider) return null;
+
+  return (
+    <div className="relative aspect-square rounded-2xl bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 shadow-sm flex items-center justify-center p-4 overflow-hidden">
+      <img
+        key={provider.provider_key}
+        src={provider.logo_url}
+        alt={provider.provider_name}
+        title={provider.provider_name}
+        loading="lazy"
+        className="max-h-[70%] max-w-[70%] object-contain animate-[fadein_0.5s_ease-in-out]"
+      />
+    </div>
+  );
+}
+
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeFeatureTab, setActiveFeatureTab] = useState(0);
@@ -964,6 +997,93 @@ export function LandingPage() {
           ))}
         </div>
       </section>
+
+      {/* Technology partners — "meet your customers wherever they shop"
+          style layout (photo left, badge/heading/copy right), matching the
+          requested reference design. Only 2 real, named partners: OpenAI
+          (AI capabilities) and Sellia (customer engagement) — logos sized
+          large and unmissable per brand direction, no invented feature
+          claims attached to either name. */}
+      <section className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="rounded-2xl overflow-hidden shadow-lg">
+            <img
+              src="/sections/retail-store.jpg"
+              alt=""
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+          <div>
+            <span className="inline-block text-xs font-bold tracking-widest text-brand-600 bg-brand-50 dark:bg-brand-900/30 dark:text-brand-300 rounded-full px-4 py-1.5 mb-5">
+              {t('pLanding.techPartners.badge')}
+            </span>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-5">
+              {t('pLanding.techPartners.title')}
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+              {t('pLanding.techPartners.desc')}
+            </p>
+            <div className="flex flex-wrap items-center gap-6 mb-8">
+              <div className="flex items-center h-20 px-8 rounded-xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 shadow-sm">
+                <img src="/partners/sellia.png" alt="Sellia" className="h-10 w-auto object-contain" />
+              </div>
+              <div className="flex items-center h-20 px-8 rounded-xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 shadow-sm">
+                <img src="/partners/openai.svg" alt="OpenAI" className="h-9 w-auto object-contain dark:invert" />
+              </div>
+            </div>
+            <a href="#features" className="inline-flex items-center gap-2 font-semibold text-brand-600 hover:text-brand-700">
+              {t('pLanding.techPartners.cta')} <ArrowRight size={18} />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Integrations showcase — "connect to the tools you already use"
+          style layout (badge/heading/copy left, icon grid right), matching
+          the requested reference design. Reuses the same live
+          integration_providers data as the ecosystem strip above the fold
+          (never invents providers) — packed into a compact grid where each
+          tile cycles through several real logos (RotatingLogoTile) instead
+          of listing one tile per provider, to keep the grid small. Only
+          rendered once real data has loaded, same guard as the strip. */}
+      {ecosystemProviders.length > 0 && (
+        <section className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <span className="inline-block text-xs font-bold tracking-widest text-brand-600 bg-brand-50 dark:bg-brand-900/30 dark:text-brand-300 rounded-full px-4 py-1.5 mb-5">
+                {t('pLanding.ecosystem.heading')}
+              </span>
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-5">
+                {t('pLanding.integrationsGrid.title')}
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+                {t('pLanding.integrationsGrid.desc')}
+              </p>
+              <Link to="/marketplace" className="inline-flex items-center gap-2 font-semibold text-brand-600 hover:text-brand-700">
+                {t('pLanding.integrationsGrid.cta')} <ArrowRight size={18} />
+              </Link>
+            </div>
+            <div className="grid grid-cols-4 gap-3 sm:gap-4">
+              {Array.from({ length: Math.min(16, Math.max(8, ecosystemProviders.length)) }).map((_, tileIndex) => {
+                // Round-robin: each tile owns every Nth provider (N = tile
+                // count) so tiles cycle through different logos, not the
+                // same one in sync.
+                const tileCount = Math.min(16, Math.max(8, ecosystemProviders.length));
+                const tileProviders = ecosystemProviders.filter((_, i) => i % tileCount === tileIndex);
+                if (tileProviders.length === 0) return null;
+                return (
+                  <RotatingLogoTile
+                    key={tileIndex}
+                    providers={tileProviders}
+                    delayMs={tileIndex * 350}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Industries teaser — links to the real dedicated page
           (IndustrySolutionsPage) rather than duplicating its content here.
