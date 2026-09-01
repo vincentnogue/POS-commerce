@@ -169,7 +169,7 @@ export function ReportsPage() {
   };
 
   const paymentMethodLabel = (m: string | null) =>
-    m === 'cash' ? t('pos.pay.cash') : m === 'card' ? t('pos.pay.cardLabel') : m === 'mobile_money' ? t('pos.pay.mobileMoney') : (m ?? '—');
+    m === 'cash' ? t('pos.pay.cash') : m === 'card' ? t('pos.pay.cardLabel') : m === 'mobile_money' ? t('pos.pay.mobileMoney') : m === 'gift_card' ? t('pos.pay.giftCard') : m === 'split' ? t('pos.split.label') : (m ?? '—');
 
   return (
     <div>
@@ -330,6 +330,8 @@ export function ReportsPage() {
                 { value: 'cash', label: t('pos.pay.cash') },
                 { value: 'card', label: t('pos.pay.cardLabel') },
                 { value: 'mobile_money', label: t('pos.pay.mobileMoney') },
+                { value: 'gift_card', label: t('pos.pay.giftCard') },
+                { value: 'split', label: t('pos.split.label') },
               ]}
             />
             <button

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart, Mail, Lock as LockIcon, Percent, Gift } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart, Mail, Lock as LockIcon, Percent, Gift, PauseCircle, Clock } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -11,7 +11,9 @@ import { printDayReport } from '../../lib/dayReport';
 import { SaleHistoryTab } from './SaleHistoryTab';
 import { ReturnsTab } from './ReturnsTab';
 import type { Product, Customer } from '../../lib/types';
+import type { HeldSale, HeldSaleCartLine, HeldSaleContext } from '../../lib/types';
 import { getGiftCardStatus, redeemGiftCard, type GiftCardLookup } from '../../lib/giftCards';
+import { listHeldSales, holdSale, deleteHeldSale } from '../../lib/heldSales';
 
 type CartItem = {
   product: Product;
@@ -186,6 +188,21 @@ export function POSPage() {
   }, [tenant, storeId]);
 
   useEffect(() => { loadDaySession(); }, [loadDaySession]);
+
+  // --- Park / Hold Sale (see migration 0069 / heldSales.ts) ---
+  const [heldSales, setHeldSales] = useState<HeldSale[]>([]);
+  const [heldSalesModalOpen, setHeldSalesModalOpen] = useState(false);
+  const [heldSearch, setHeldSearch] = useState('');
+  const [holdSubmitting, setHoldSubmitting] = useState(false);
+
+  const loadHeldSales = useCallback(async () => {
+    if (!tenant) return;
+    const { data, error } = await listHeldSales(tenant.id, storeId);
+    if (error) { console.error('listHeldSales failed:', error); return; }
+    setHeldSales(data);
+  }, [tenant, storeId]);
+
+  useEffect(() => { loadHeldSales(); }, [loadHeldSales]);
 
   const openDay = async () => {
     if (!tenant || !user || locked) return;
@@ -433,6 +450,106 @@ export function POSPage() {
 
   const splitTotal = splitTenders.reduce((s, t) => s + (Number(t.amount) || 0), 0);
   const splitRemaining = total - splitTotal;
+
+  // --- Park / Hold Sale (see migration 0069 / heldSales.ts) ---
+  // Placed here (after subtotal/discountTotal/total are computed above)
+  // since holding a sale needs those totals; loadHeldSales/list state is
+  // declared earlier since it only depends on tenant/storeId.
+  const holdCurrentSale = async () => {
+    if (!tenant || cart.length === 0 || locked) return;
+    setHoldSubmitting(true);
+    const cartSnapshot: HeldSaleCartLine[] = cart.map((i) => ({
+      product_id: i.product.id,
+      quantity: i.quantity,
+      unit_price: i.unit_price,
+    }));
+    const context: HeldSaleContext = {
+      customerId: customer?.id ?? null,
+      manualDiscountAmount,
+      discountApproverName: discountApproval?.approver_name ?? null,
+      redeemPointsInput,
+      deliveryChoice,
+    };
+    const heldByMember = members.find((m) => m.user_id === user?.id);
+    const { error } = await holdSale({
+      tenantId: tenant.id,
+      storeId,
+      customerId: customer?.id ?? null,
+      daySessionId: daySession?.id ?? null,
+      reference: `HOLD-${Date.now().toString().slice(-8)}`,
+      cartSnapshot,
+      context,
+      subtotal,
+      discountTotal,
+      total,
+      heldBy: heldByMember?.id ?? null,
+    });
+    setHoldSubmitting(false);
+    if (error) { toast('error', error); return; }
+    setCart([]);
+    resetDiscountState();
+    setCustomer(null);
+    setDeliveryChoice('delivered');
+    toast('success', t('pos.hold.toastHeld'));
+    loadHeldSales();
+  };
+
+  const resumeHeldSale = async (hs: HeldSale) => {
+    if (cart.length > 0) {
+      toast('error', t('pos.hold.err.cartNotEmpty'));
+      return;
+    }
+    // Claim the row first: delete-then-rehydrate (rather than the reverse)
+    // means if another till resumed the same held sale a moment earlier,
+    // "deleted" comes back false here and we bail out cleanly instead of
+    // both tills ending up with the same cart.
+    const { error: delErr, deleted } = await deleteHeldSale(hs.id);
+    if (delErr) { toast('error', delErr); return; }
+    if (!deleted) {
+      toast('error', t('pos.hold.err.alreadyResumed'));
+      loadHeldSales();
+      return;
+    }
+    const missing: string[] = [];
+    const newCart: CartItem[] = [];
+    for (const line of hs.cart_snapshot) {
+      const product = products.find((p) => p.id === line.product_id);
+      if (!product) { missing.push(line.product_id); continue; }
+      newCart.push({ product, quantity: line.quantity, unit_price: line.unit_price });
+    }
+    setCart(newCart);
+    if (hs.customer_id) {
+      const c = customers.find((cu) => cu.id === hs.customer_id);
+      if (c) setCustomer(c);
+    }
+    if (hs.context) {
+      setManualDiscountAmount(hs.context.manualDiscountAmount ?? '');
+      setDiscountApproval(hs.context.discountApproverName ? { approver_name: hs.context.discountApproverName } : null);
+      setRedeemPointsInput(hs.context.redeemPointsInput ?? '');
+      setDeliveryChoice(hs.context.deliveryChoice ?? 'delivered');
+    }
+    setHeldSalesModalOpen(false);
+    if (missing.length > 0) {
+      toast('error', t('pos.hold.err.someItemsGone', { count: missing.length }));
+    } else {
+      toast('success', t('pos.hold.toastResumed'));
+    }
+    loadHeldSales();
+  };
+
+  const cancelHeldSale = async (hs: HeldSale) => {
+    if (!confirm(t('pos.hold.confirmCancel', { reference: hs.reference }))) return;
+    const { error } = await deleteHeldSale(hs.id);
+    if (error) { toast('error', error); return; }
+    loadHeldSales();
+  };
+
+  const filteredHeldSales = heldSales.filter((hs) => {
+    const q = heldSearch.toLowerCase().trim();
+    if (!q) return true;
+    const custName = customers.find((c) => c.id === hs.customer_id)?.name?.toLowerCase() ?? '';
+    return hs.reference.toLowerCase().includes(q) || custName.includes(q);
+  });
 
   // Look up a gift card's live balance/status before checkout so the
   // cashier finds out about an expired/insufficient/unknown card while
@@ -713,7 +830,7 @@ export function POSPage() {
     resetDiscountState();
   };
 
-  const paymentLabel = (m: string) => m === 'cash' ? t('pos.pay.cash') : m === 'card' ? t('pos.pay.cardLabel') : m === 'mobile_money' ? t('pos.pay.mobileMoney') : m === 'split' ? t('pos.split.label') : m;
+  const paymentLabel = (m: string) => m === 'cash' ? t('pos.pay.cash') : m === 'card' ? t('pos.pay.cardLabel') : m === 'mobile_money' ? t('pos.pay.mobileMoney') : m === 'gift_card' ? t('pos.pay.giftCard') : m === 'split' ? t('pos.split.label') : m;
 
   const printReceipt = () => {
     if (!success || !lastReceipt) return;
@@ -944,9 +1061,35 @@ export function POSPage() {
 
         {/* Cart */}
         <div className="card flex flex-col p-5">
-          <h3 className="mb-3 flex items-center gap-2 font-medium text-ink-900 dark:text-ink-50">
-            <Receipt size={18} /> {t('pos.cart')} ({cart.length})
-          </h3>
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="flex items-center gap-2 font-medium text-ink-900 dark:text-ink-50">
+              <Receipt size={18} /> {t('pos.cart')} ({cart.length})
+            </h3>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setHeldSalesModalOpen(true)}
+                title={t('pos.hold.viewHeld')}
+                className="relative rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-900/25 hover:text-brand-600"
+              >
+                <Clock size={16} />
+                {heldSales.length > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-[10px] font-medium text-white">
+                    {heldSales.length}
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={holdCurrentSale}
+                disabled={cart.length === 0 || locked || holdSubmitting}
+                title={t('pos.hold.button')}
+                className="btn-ghost px-2 py-1 text-xs disabled:opacity-40"
+              >
+                <PauseCircle size={15} /> {t('pos.hold.button')}
+              </button>
+            </div>
+          </div>
           {cart.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
               <ShoppingCart size={28} className="mb-2 text-ink-300" />
@@ -1374,6 +1517,41 @@ export function POSPage() {
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={() => setCloseDayModal(false)} className="btn-ghost">{t('common.cancel')}</button>
           <button onClick={closeDay} disabled={daySubmitting} className="btn-primary">{t('pos.day.closeBtn')}</button>
+        </div>
+      </Modal>
+
+      {/* Park / Hold Sale — held carts list */}
+      <Modal open={heldSalesModalOpen} onClose={() => setHeldSalesModalOpen(false)} title={t('pos.hold.modalTitle')}>
+        <div className="space-y-3">
+          <input
+            type="text"
+            value={heldSearch}
+            onChange={(e) => setHeldSearch(e.target.value)}
+            className="input"
+            placeholder={t('pos.hold.searchPlaceholder')}
+          />
+          {filteredHeldSales.length === 0 ? (
+            <p className="py-6 text-center text-sm text-ink-400 dark:text-ink-500">{t('pos.hold.empty')}</p>
+          ) : (
+            <div className="max-h-96 space-y-2 overflow-y-auto scroll-thin">
+              {filteredHeldSales.map((hs) => (
+                <div key={hs.id} className="flex items-center justify-between rounded-xl border border-ink-200 dark:border-ink-700 p-3">
+                  <div>
+                    <p className="font-mono text-sm font-medium text-ink-900 dark:text-ink-50">{hs.reference}</p>
+                    <p className="text-xs text-ink-500 dark:text-ink-400">
+                      {customers.find((c) => c.id === hs.customer_id)?.name ?? t('pos.hold.noCustomer')}
+                      {' · '}{hs.cart_snapshot.length} {t('pos.hold.items')}
+                      {' · '}{formatMoney(hs.total, currency)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => resumeHeldSale(hs)} className="btn-primary px-3 py-1.5 text-xs">{t('pos.hold.resume')}</button>
+                    <button onClick={() => cancelHeldSale(hs)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-error-50 dark:hover:bg-error-900/25 hover:text-error-600"><X size={15} /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </Modal>
     </div>

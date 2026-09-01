@@ -432,6 +432,39 @@ export type GiftCardTransaction = {
   created_at: string;
 };
 
+// Park/Hold Sale (see migration 0069). Not linked to public.sales — see
+// the migration's comment for why a held cart needs its own table.
+export type HeldSaleCartLine = {
+  product_id: string;
+  quantity: number;
+  unit_price: number;
+};
+
+export type HeldSaleContext = {
+  customerId: string | null;
+  manualDiscountAmount: string;
+  discountApproverName: string | null;
+  redeemPointsInput: string;
+  deliveryChoice: 'delivered' | 'pending';
+};
+
+export type HeldSale = {
+  id: string;
+  tenant_id: string;
+  store_id: string | null;
+  customer_id: string | null;
+  day_session_id: string | null;
+  reference: string;
+  cart_snapshot: HeldSaleCartLine[];
+  context: HeldSaleContext | null;
+  subtotal: number;
+  discount_total: number;
+  total: number;
+  held_by: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
 export const MODULES = [
   'dashboard', 'pos', 'products', 'stock', 'stores', 'invoices',
   'deliveries', 'customers', 'suppliers', 'expenses', 'purchases',
