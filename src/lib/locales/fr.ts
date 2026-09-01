@@ -1659,6 +1659,7 @@ export const fr: Record<string, string> = {
   "pLanding.industries.professional.desc": "Facturation, gestion clients et paiements flexibles.",
   "pLanding.industries.link": "Voir comment ça s'adapte",
   "pLanding.featureTabs.title": "Une seule plateforme pour chaque partie de votre commerce",
+  "pLanding.featureTabs.subtitle": "De la caisse au bilan comptable — 8 modules connectés, une seule connexion, aucune ressaisie, où que vous vendiez dans le monde.",
   "pLanding.featureTabs.pos.tabLabel": "Point de vente",
   "pLanding.featureTabs.pos.title": "Un encaissement conçu pour la rapidité",
   "pLanding.featureTabs.pos.desc": "Scannez, vendez et faites sortir vos clients rapidement — sur l'écran que votre équipe utilise déjà.",

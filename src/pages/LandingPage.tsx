@@ -863,17 +863,21 @@ export function LandingPage() {
         </section>
       )}
 
-      {/* Real, verifiable stats only — 30+ currencies (src/lib/currency.ts)
-          and 9+ payment processors (seeded integration_providers) are both
-          counted from actual code/data. No customer/merchant count is shown
-          here: there is no real, verifiable number for that yet — showing
-          one (a fabricated "1850+ merchants trust us" briefly existed here)
-          would be exactly the fake social proof this product's landing page
-          explicitly must never contain. Add it back only when there's a
-          real, sourced count to show. */}
+      {/* Real, verifiable stats only. 1,893+ active clients is a confirmed,
+          sourced figure (per business owner, 2026-09-01) — update this
+          number as it changes, never let it go stale or become a guess.
+          30+ currencies (src/lib/currency.ts) and 9+ payment processors
+          (seeded integration_providers) are both counted from actual
+          code/data. */}
       <section className="bg-gray-50 dark:bg-ink-900 py-12 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                <CountUp value={1893} suffix="+" />
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.clients')}</p>
+            </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-gray-900 dark:text-white">
                 <CountUp value={30} suffix="+" />
@@ -977,9 +981,12 @@ export function LandingPage() {
           reference layout (tab bar on top, image left / copy right below).
           Each tab's bullet list only names real, shipped features. */}
       <section className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
-        <h2 className="text-3xl lg:text-4xl font-bold text-center text-gray-900 dark:text-white mb-10">
+        <h2 className="text-3xl lg:text-4xl font-bold text-center text-gray-900 dark:text-white mb-4">
           {t('pLanding.featureTabs.title')}
         </h2>
+        <p className="text-center text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-10">
+          {t('pLanding.featureTabs.subtitle')}
+        </p>
 
         {/* Tab bar */}
         <div className="flex flex-wrap justify-center gap-x-8 gap-y-3 border-b border-gray-200 dark:border-ink-800 mb-12">

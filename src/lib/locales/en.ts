@@ -1659,6 +1659,7 @@ export const en: Record<string, string> = {
   "pLanding.industries.professional.desc": "Invoicing, client management and flexible billing.",
   "pLanding.industries.link": "See how it fits",
   "pLanding.featureTabs.title": "One platform built for every part of your business",
+  "pLanding.featureTabs.subtitle": "From the till to the balance sheet — 8 connected modules, one login, no data re-entry, wherever in the world you sell.",
   "pLanding.featureTabs.pos.tabLabel": "Point of sale",
   "pLanding.featureTabs.pos.title": "A checkout built for speed",
   "pLanding.featureTabs.pos.desc": "Scan, sell and get customers out the door fast — on any screen your staff already use.",
