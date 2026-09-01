@@ -432,6 +432,27 @@ export type GiftCardTransaction = {
   created_at: string;
 };
 
+// Promotions engine (see migration 0070) — cart-level, MVP scope only
+// (no category/product scoping or multi-buy yet). Not gated by a plan
+// module (like time_clock_entries), so it's available on every tier.
+export type PromotionType = 'percent' | 'fixed';
+
+export type Promotion = {
+  id: string;
+  tenant_id: string;
+  name: string;
+  type: PromotionType;
+  value: number;
+  requires_code: boolean;
+  code: string | null;
+  min_purchase: number | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export const MODULES = [
   'dashboard', 'pos', 'products', 'stock', 'stores', 'invoices',
   'deliveries', 'customers', 'suppliers', 'expenses', 'purchases',

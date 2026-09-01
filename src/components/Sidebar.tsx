@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ShoppingCart, Package, Boxes, Store,
   FileText, Truck, Users, Building2, Receipt, Wallet, ClipboardList,
   FileBarChart, Calculator, UserCog, Settings, Shield, Crown,
-  ChevronDown, LogOut, X, Globe, Lock, Puzzle, Clock3,
+  ChevronDown, LogOut, X, Globe, Lock, Puzzle, Clock3, Tag,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../lib/i18n';
@@ -38,6 +38,7 @@ const NAV: NavItem[] = [
   { to: '/accounting', labelKey: 'nav.accounting', icon: Calculator, module: 'accounting' },
   { to: '/users', labelKey: 'nav.users', icon: UserCog, module: 'users' },
   { to: '/timeclock', labelKey: 'nav.timeclock', icon: Clock3 },
+  { to: '/promotions', labelKey: 'nav.promotions', icon: Tag },
   { to: '/administration', labelKey: 'nav.administration', icon: Shield, module: 'administration' },
   { to: '/marketplace', labelKey: 'nav.marketplace', icon: Puzzle, module: 'marketplace' },
   { to: '/settings', labelKey: 'nav.settings', icon: Settings, module: 'settings' },

@@ -50,6 +50,7 @@ const ExpensesPage = lazy(() => import('./pages/modules/ExpensesPage').then((m) 
 const PurchasesPage = lazy(() => import('./pages/modules/PurchasesPage').then((m) => ({ default: m.PurchasesPage })));
 const QuotesPage = lazy(() => import('./pages/modules/QuotesPage').then((m) => ({ default: m.QuotesPage })));
 const TimeClockPage = lazy(() => import('./pages/modules/TimeClockPage').then((m) => ({ default: m.TimeClockPage })));
+const PromotionsPage = lazy(() => import('./pages/modules/PromotionsPage').then((m) => ({ default: m.PromotionsPage })));
 const ReportsPage = lazy(() => import('./pages/modules/ReportsPage').then((m) => ({ default: m.ReportsPage })));
 const AccountingPage = lazy(() => import('./pages/modules/AccountingPage').then((m) => ({ default: m.AccountingPage })));
 const UsersPage = lazy(() => import('./pages/modules/UsersPage').then((m) => ({ default: m.UsersPage })));
@@ -145,6 +146,7 @@ export default function App() {
                       <Route path="/accounting" element={<AccountingPage />} />
                       <Route path="/users" element={<UsersPage />} />
                       <Route path="/timeclock" element={<TimeClockPage />} />
+                      <Route path="/promotions" element={<PromotionsPage />} />
                       <Route path="/administration" element={<AdministrationPage />} />
                       <Route path="/marketplace" element={<MarketplacePage />} />
                       <Route path="/integration/:id" element={<IntegrationDetailPage />} />
