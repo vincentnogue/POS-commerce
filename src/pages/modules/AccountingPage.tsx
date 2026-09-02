@@ -47,7 +47,7 @@ export function AccountingPage() {
   useEffect(() => { (async () => {
     if (!tenant) return;
     const [s, e, p] = await Promise.all([
-      supabase.from('sales').select('*').eq('tenant_id', tenant.id).gte('sale_date', start).lte('sale_date', end),
+      supabase.from('sales').select('*').eq('tenant_id', tenant.id).gte('sale_date', start).lte('sale_date', end).neq('sale_status', 'cancelled'),
       supabase.from('expenses').select('*').eq('tenant_id', tenant.id).gte('expense_date', start).lte('expense_date', end),
       supabase.from('purchases').select('*').eq('tenant_id', tenant.id).gte('purchase_date', start).lte('purchase_date', end),
     ]);

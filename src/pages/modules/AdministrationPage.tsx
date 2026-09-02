@@ -366,7 +366,7 @@ function TeamRoles({ tenantId }: { tenantId: string }) {
       if (!tenantId) return;
       const [m, s, r] = await Promise.all([
         supabase.from('tenant_members').select('*').eq('tenant_id', tenantId),
-        supabase.from('sales').select('user_id, total, sale_date').eq('tenant_id', tenantId),
+        supabase.from('sales').select('user_id, total, sale_date').eq('tenant_id', tenantId).neq('sale_status', 'cancelled'),
         supabase.from('custom_roles').select('id, name').eq('tenant_id', tenantId),
       ]);
       const salesMap: Record<string, number> = {};
