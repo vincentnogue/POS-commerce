@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Search, Printer, Receipt, FileText, Download, Mail } from 'lucide-react';
+import { Search, Printer, Receipt, FileText, Download, Mail, Ban } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -20,6 +20,7 @@ type SaleRow = {
   payment_method: string | null;
   payment_reference: string | null;
   payment_status: string;
+  sale_status: string;
   customer_id: string | null;
   user_id: string | null;
   currency?: string | null;
@@ -57,6 +58,17 @@ export function SaleHistoryTab() {
   const [viewInvoice, setViewInvoice] = useState<Invoice | null>(null);
   const [viewItems, setViewItems] = useState<InvoiceItem[]>([]);
   const [viewCustomer, setViewCustomer] = useState<Customer | null>(null);
+
+  // Void Transaction (see migration 0079/void_sale) — manager-PIN-gated,
+  // same-calendar-day only (enforced server-side; the button is disabled
+  // client-side too so a cashier isn't invited to try something that will
+  // just fail).
+  const [voidSale, setVoidSale] = useState<SaleRow | null>(null);
+  const [voidStaffCode, setVoidStaffCode] = useState('');
+  const [voidPin, setVoidPin] = useState('');
+  const [voidReason, setVoidReason] = useState('');
+  const [voidErr, setVoidErr] = useState<string | null>(null);
+  const [voidSubmitting, setVoidSubmitting] = useState(false);
 
   useEffect(() => {
     if (!tenant) return;
@@ -102,7 +114,7 @@ export function SaleHistoryTab() {
 
     let query = supabase
       .from('sales')
-      .select('id, reference, sale_date, subtotal, tax_total, discount_total, total, payment_method, payment_reference, payment_status, customer_id, user_id, currency, exchange_rate, customer:customers(name, email)')
+      .select('id, reference, sale_date, subtotal, tax_total, discount_total, total, payment_method, payment_reference, payment_status, sale_status, customer_id, user_id, currency, exchange_rate, customer:customers(name, email)')
       .eq('tenant_id', tenant.id)
       .order('sale_date', { ascending: false })
       .limit(100);
@@ -144,6 +156,35 @@ export function SaleHistoryTab() {
 
   const paymentLabel = (m: string | null) =>
     m === 'cash' ? t('pos.pay.cash') : m === 'card' ? t('pos.pay.cardLabel') : m === 'mobile_money' ? t('pos.pay.mobileMoney') : m === 'gift_card' ? t('pos.pay.giftCard') : m === 'split' ? t('pos.split.label') : (m ?? '—');
+
+  const isVoidableToday = (sale: SaleRow) => new Date(sale.sale_date).toDateString() === new Date().toDateString();
+
+  const openVoid = (sale: SaleRow) => {
+    setVoidSale(sale);
+    setVoidStaffCode('');
+    setVoidPin('');
+    setVoidReason('');
+    setVoidErr(null);
+  };
+
+  const submitVoid = async () => {
+    if (!tenant || !voidSale) return;
+    if (!voidStaffCode.trim() || !voidPin.trim()) { setVoidErr(t('pos.history.void.err.pinRequired')); return; }
+    setVoidSubmitting(true);
+    setVoidErr(null);
+    const { data, error } = await supabase.rpc('void_sale', {
+      p_tenant_id: tenant.id,
+      p_sale_id: voidSale.id,
+      p_staff_code: voidStaffCode.trim(),
+      p_pin: voidPin.trim(),
+      p_reason: voidReason.trim() || null,
+    });
+    setVoidSubmitting(false);
+    if (error || !data) { setVoidErr(error?.message || t('pos.history.void.err.generic')); return; }
+    setSales((rows) => rows.map((s) => (s.id === voidSale.id ? { ...s, sale_status: 'cancelled' } : s)));
+    toast('success', t('pos.history.void.toastVoided', { reference: voidSale.reference }));
+    setVoidSale(null);
+  };
 
   const reprint = async (sale: SaleRow) => {
     // BUG FIX: this used to fetch line items (await) BEFORE printSaleReceipt
@@ -302,7 +343,14 @@ export function SaleHistoryTab() {
             <tbody>
               {sales.map((s) => (
                 <tr key={s.id} className="border-b border-ink-50 dark:border-ink-800 last:border-0">
-                  <td className="py-2.5 font-medium text-ink-900 dark:text-ink-50">{s.reference}</td>
+                  <td className="py-2.5 font-medium text-ink-900 dark:text-ink-50">
+                    {s.reference}
+                    {s.sale_status === 'cancelled' && (
+                      <span className="ml-2 rounded-full bg-error-50 px-2 py-0.5 text-[11px] font-medium text-error-600 dark:bg-error-900/25">
+                        {t('pos.history.void.badge')}
+                      </span>
+                    )}
+                  </td>
                   <td className="py-2.5 text-ink-600 dark:text-ink-300">{new Date(s.sale_date).toLocaleString(locale)}</td>
                   <td className="py-2.5 text-ink-600 dark:text-ink-300">{s.customer?.name ?? '—'}</td>
                   <td className="py-2.5 text-ink-600 dark:text-ink-300">{s.user_id ? staffNames[s.user_id] ?? '—' : '—'}</td>
@@ -321,6 +369,16 @@ export function SaleHistoryTab() {
                         <FileText size={13} className="inline -mt-0.5 mr-1" />
                         {invoiceBusy === s.id ? t('common.loading') : invoiceBySale[s.id] ? t('pos.history.viewInvoice') : t('pos.history.generateInvoice')}
                       </button>
+                      {s.sale_status !== 'cancelled' && (
+                        <button
+                          onClick={() => openVoid(s)}
+                          disabled={!isVoidableToday(s)}
+                          title={isVoidableToday(s) ? t('pos.history.void.button') : t('pos.history.void.notToday')}
+                          className="rounded-full border border-ink-200 dark:border-ink-700 px-2.5 py-1 text-xs font-medium text-error-600 transition hover:bg-error-50 dark:hover:bg-error-900/25 disabled:opacity-40"
+                        >
+                          <Ban size={13} className="inline -mt-0.5 mr-1" /> {t('pos.history.void.button')}
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -329,6 +387,40 @@ export function SaleHistoryTab() {
           </table>
         </div>
       )}
+
+      {/* Void Transaction (see migration 0079) */}
+      <Modal open={!!voidSale} onClose={() => setVoidSale(null)} title={t('pos.history.void.modalTitle', { reference: voidSale?.reference ?? '' })} maxWidth="max-w-sm">
+        <div className="space-y-3">
+          <p className="text-sm text-ink-600 dark:text-ink-300">{t('pos.history.void.warning')}</p>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              value={voidStaffCode}
+              onChange={(e) => setVoidStaffCode(e.target.value)}
+              className="input"
+              placeholder={t('pos.discount.approverStaffId')}
+            />
+            <input
+              type="password"
+              inputMode="numeric"
+              value={voidPin}
+              onChange={(e) => setVoidPin(e.target.value.replace(/[^0-9]/g, ''))}
+              className="input"
+              placeholder={t('pos.discount.approverPin')}
+            />
+          </div>
+          <div>
+            <label className="label">{t('pos.history.void.reasonLabel')}</label>
+            <textarea value={voidReason} onChange={(e) => setVoidReason(e.target.value)} className="input" rows={2} placeholder={t('pos.history.void.reasonPlaceholder')} />
+          </div>
+          {voidErr && <p className="text-xs font-medium text-error-600">{voidErr}</p>}
+        </div>
+        <div className="mt-6 flex justify-end gap-2">
+          <button onClick={() => setVoidSale(null)} className="btn-ghost">{t('common.cancel')}</button>
+          <button onClick={submitVoid} disabled={voidSubmitting} className="btn-primary disabled:opacity-50">
+            {voidSubmitting ? t('common.loading') : t('pos.history.void.confirm')}
+          </button>
+        </div>
+      </Modal>
 
       {/* Real invoice viewer — same PDF as the Invoices module
           (src/lib/invoicePdf.ts), opened either for an invoice already

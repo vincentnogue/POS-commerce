@@ -54,6 +54,7 @@ export function DashboardPage() {
         .from('sales')
         .select('*')
         .eq('tenant_id', tenant.id)
+        .neq('sale_status', 'cancelled')
         .order('sale_date', { ascending: false })
         .limit(200);
       setSales((salesData as Sale[]) ?? []);
