@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings as SettingsIcon, Building2, Globe, Shield, CreditCard, Bell, Palette, Upload, Image as ImageIcon } from 'lucide-react';
+import { Settings as SettingsIcon, Building2, Globe, Shield, CreditCard, Bell, Palette, Upload, Image as ImageIcon, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { CURRENCIES, getCountry } from '../../lib/localization';
 import { PageHeader, Badge, Modal, useToast } from '../../components/ui';
 import { Field } from '../../components/DataTable';
-import type { Plan } from '../../lib/types';
+import type { Plan, TenantCurrency } from '../../lib/types';
 
 type Tab = 'company' | 'localization' | 'security' | 'billing' | 'notifications' | 'appearance';
 
@@ -37,6 +37,14 @@ export function SettingsPage() {
   const [showPwdModal, setShowPwdModal] = useState(false);
   const [pwdForm, setPwdForm] = useState({ next: '' });
   const [pwdError, setPwdError] = useState<string | null>(null);
+  // Accepted foreign currencies (see migration 0074) — the tenant's own
+  // currency stays fixed (see the "locked" block above), this is only
+  // about additional currencies a cashier can collect payment in.
+  const [tenantCurrencies, setTenantCurrencies] = useState<TenantCurrency[]>([]);
+  const [currencyModalOpen, setCurrencyModalOpen] = useState(false);
+  const [currencyForm, setCurrencyForm] = useState({ currency_code: '', rate_to_tenant_currency: '' });
+  const [currencySaving, setCurrencySaving] = useState(false);
+  const [currencyErr, setCurrencyErr] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: tenant?.name ?? '',
     business_type: tenant?.business_type ?? '',
@@ -191,6 +199,44 @@ export function SettingsPage() {
     });
   }, [tenant]);
 
+  const loadCurrencies = () => {
+    if (!tenant) return;
+    supabase.from('tenant_currencies').select('*').eq('tenant_id', tenant.id).order('currency_code')
+      .then(({ data }) => setTenantCurrencies((data as TenantCurrency[]) ?? []));
+  };
+  useEffect(loadCurrencies, [tenant]);
+
+  const openNewCurrency = () => { setCurrencyForm({ currency_code: '', rate_to_tenant_currency: '' }); setCurrencyErr(null); setCurrencyModalOpen(true); };
+
+  const saveCurrency = async () => {
+    if (!tenant) return;
+    const code = currencyForm.currency_code.trim().toUpperCase();
+    const rate = Number(currencyForm.rate_to_tenant_currency);
+    if (!code || code.length !== 3) { setCurrencyErr(t('settings.currencies.err.codeInvalid')); return; }
+    if (!rate || rate <= 0) { setCurrencyErr(t('settings.currencies.err.rateInvalid')); return; }
+    setCurrencySaving(true);
+    setCurrencyErr(null);
+    const { error } = await supabase.from('tenant_currencies').upsert(
+      { tenant_id: tenant.id, currency_code: code, rate_to_tenant_currency: rate, is_active: true, updated_at: new Date().toISOString() },
+      { onConflict: 'tenant_id,currency_code' }
+    );
+    setCurrencySaving(false);
+    if (error) { setCurrencyErr(error.message); return; }
+    setCurrencyModalOpen(false);
+    loadCurrencies();
+  };
+
+  const toggleCurrencyActive = async (c: TenantCurrency) => {
+    await supabase.from('tenant_currencies').update({ is_active: !c.is_active, updated_at: new Date().toISOString() }).eq('id', c.id);
+    loadCurrencies();
+  };
+
+  const removeCurrency = async (c: TenantCurrency) => {
+    if (!window.confirm(t('settings.currencies.confirmDelete'))) return;
+    await supabase.from('tenant_currencies').delete().eq('id', c.id);
+    loadCurrencies();
+  };
+
   const saveNotifs = async () => {
     if (!tenant) return;
     const { data: existing } = await supabase.from('notification_prefs').select('id').eq('tenant_id', tenant.id).maybeSingle();
@@ -312,6 +358,36 @@ export function SettingsPage() {
                     <p className="font-medium text-ink-700 dark:text-ink-200">{t('settings.localization.whyLocked')}</p>
                     <p className="mt-1">{t('settings.localization.lockedExplanation')}</p>
                   </div>
+                </div>
+                <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-ink-900 dark:text-ink-50">{t('settings.currencies.title')}</p>
+                      <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{t('settings.currencies.subtitle')}</p>
+                    </div>
+                    <button onClick={openNewCurrency} className="btn-ghost text-sm"><Plus size={14} /> {t('settings.currencies.add')}</button>
+                  </div>
+                  {tenantCurrencies.filter((c) => c.currency_code !== tenant?.currency).length === 0 ? (
+                    <p className="mt-3 text-xs text-ink-400 dark:text-ink-500">{t('settings.currencies.empty')}</p>
+                  ) : (
+                    <div className="mt-3 space-y-2">
+                      {tenantCurrencies.filter((c) => c.currency_code !== tenant?.currency).map((c) => (
+                        <div key={c.id} className="flex items-center justify-between rounded-lg border border-ink-100 dark:border-ink-800 px-3 py-2 text-sm">
+                          <div>
+                            <span className="font-medium text-ink-900 dark:text-ink-50">{c.currency_code}</span>
+                            <span className="ml-2 text-ink-500 dark:text-ink-400">1 {c.currency_code} = {c.rate_to_tenant_currency} {tenant?.currency}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <button onClick={() => toggleCurrencyActive(c)} className={`text-xs font-semibold ${c.is_active ? 'text-success-700' : 'text-ink-400'}`}>
+                              {c.is_active ? t('promotions.status.active') : t('promotions.status.inactive')}
+                            </button>
+                            <button onClick={() => removeCurrency(c)} className="text-ink-400 hover:text-error-600"><Trash2 size={14} /></button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <p className="mt-3 text-xs text-ink-400 dark:text-ink-500">{t('settings.currencies.note')}</p>
                 </div>
                 {country && country.mobileMoney.length > 0 && (
                   <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-4">
@@ -488,6 +564,35 @@ export function SettingsPage() {
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={() => setShowPwdModal(false)} className="btn-ghost">{t('common.cancel')}</button>
           <button onClick={changePassword} className="btn-primary">{t('common.save')}</button>
+        </div>
+      </Modal>
+
+      <Modal open={currencyModalOpen} onClose={() => setCurrencyModalOpen(false)} title={t('settings.currencies.add')}>
+        <div className="space-y-4">
+          <Field label={t('settings.currencies.codeLabel')} hint={t('settings.currencies.codeHint')}>
+            <input
+              value={currencyForm.currency_code}
+              onChange={(e) => setCurrencyForm((f) => ({ ...f, currency_code: e.target.value.toUpperCase().slice(0, 3) }))}
+              className="input"
+              placeholder="USD"
+              maxLength={3}
+            />
+          </Field>
+          <Field label={t('settings.currencies.rateLabel')} hint={t('settings.currencies.rateHint', { home: tenant?.currency ?? '' })}>
+            <input
+              type="number"
+              min={0}
+              step="0.0001"
+              value={currencyForm.rate_to_tenant_currency}
+              onChange={(e) => setCurrencyForm((f) => ({ ...f, rate_to_tenant_currency: e.target.value }))}
+              className="input"
+            />
+          </Field>
+          {currencyErr && <p className="text-sm text-error-600">{currencyErr}</p>}
+        </div>
+        <div className="mt-6 flex justify-end gap-2">
+          <button onClick={() => setCurrencyModalOpen(false)} className="btn-ghost">{t('common.cancel')}</button>
+          <button onClick={saveCurrency} disabled={currencySaving} className="btn-primary disabled:opacity-50">{t('common.save')}</button>
         </div>
       </Modal>
     </div>

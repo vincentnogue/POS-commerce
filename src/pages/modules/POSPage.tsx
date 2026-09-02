@@ -10,7 +10,7 @@ import { printSaleReceipt } from '../../lib/receipt';
 import { printDayReport } from '../../lib/dayReport';
 import { SaleHistoryTab } from './SaleHistoryTab';
 import { ReturnsTab } from './ReturnsTab';
-import type { Product, Customer, Promotion } from '../../lib/types';
+import type { Product, Customer, Promotion, TenantCurrency } from '../../lib/types';
 import { issueGiftCard as apiIssueGiftCard, redeemGiftCard as apiRedeemGiftCard, getGiftCardStatus as apiGetGiftCardStatus } from '../../lib/giftCards';
 
 type CartItem = {
@@ -126,7 +126,7 @@ export function POSPage() {
   ]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
-  const [lastReceipt, setLastReceipt] = useState<{ items: CartItem[]; total: number; paymentMethod: string; paymentReference: string; customerName: string | null; customerPhone: string | null; customerEmail: string | null; discountTotal: number; pointsEarned: number | null } | null>(null);
+  const [lastReceipt, setLastReceipt] = useState<{ items: CartItem[]; total: number; paymentMethod: string; paymentReference: string; customerName: string | null; customerPhone: string | null; customerEmail: string | null; discountTotal: number; pointsEarned: number | null; foreignCurrency: string | null; foreignAmount: number | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [deliveryChoice, setDeliveryChoice] = useState<'delivered' | 'pending'>('delivered');
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -174,6 +174,14 @@ export function POSPage() {
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<Promotion | null>(null);
   const [couponErr, setCouponErr] = useState<string | null>(null);
+  // Multi-currency (see migration 0074): the tenant's own currency stays
+  // what all internal totals/reports are computed in — a foreign
+  // currency selected here only tags the sale (currency + the rate that
+  // applied at the time) and shows the cashier the equivalent amount to
+  // collect. It never changes how total/paid_amount/payment_status are
+  // computed, so single-currency tenants are entirely unaffected.
+  const [tenantCurrencies, setTenantCurrencies] = useState<TenantCurrency[]>([]);
+  const [saleCurrency, setSaleCurrency] = useState<string>('');
 
   const currency = tenant?.currency ?? 'XOF';
 
@@ -221,6 +229,14 @@ export function POSPage() {
     if (!tenant) return;
     supabase.from('promotions').select('*').eq('tenant_id', tenant.id).eq('is_active', true)
       .then(({ data }) => setPromotions((data as Promotion[]) ?? []));
+    supabase.from('tenant_currencies').select('*').eq('tenant_id', tenant.id).eq('is_active', true)
+      .then(({ data }) => setTenantCurrencies((data as TenantCurrency[]) ?? []));
+  }, [tenant]);
+
+  useEffect(() => {
+    if (!tenant) return;
+    supabase.from('tenant_currencies').select('*').eq('tenant_id', tenant.id).eq('is_active', true)
+      .then(({ data }) => setTenantCurrencies((data as TenantCurrency[]) ?? []));
   }, [tenant]);
 
   const holdSale = async () => {
@@ -528,6 +544,14 @@ export function POSPage() {
   const discountTotal = manualDiscountValue + (loyaltyDiscountEnabled ? loyaltyDiscountValue : 0) + promotionValue;
   const total = Math.max(0, subtotal + taxTotal - discountTotal);
 
+  // Foreign currencies this tenant accepts (excludes its own home
+  // currency, which is always the implicit default and isn't a
+  // selectable "foreign" option here).
+  const foreignCurrencies = tenantCurrencies.filter((c) => c.currency_code !== tenant?.currency);
+  const activeSaleCurrency = saleCurrency || tenant?.currency || currency;
+  const saleCurrencyRate = activeSaleCurrency === tenant?.currency ? 1 : (foreignCurrencies.find((c) => c.currency_code === activeSaleCurrency)?.rate_to_tenant_currency ?? 1);
+  const totalInSaleCurrency = total / saleCurrencyRate;
+
   // Verifies (and, if above the tenant's threshold, requires manager
   // Staff ID + PIN for) a manual discount via check_manual_discount — no
   // side effects server-side, so safe to call ahead of the actual sale;
@@ -687,6 +711,8 @@ export function POSPage() {
         subtotal,
         tax_total: taxTotal,
         discount_total: discountTotal,
+        currency: activeSaleCurrency,
+        exchange_rate: saleCurrencyRate,
         total,
         paid_amount: paid,
         payment_method: finalPaymentMethod,
@@ -876,6 +902,8 @@ export function POSPage() {
       customerEmail: customer?.email ?? null,
       discountTotal,
       pointsEarned: pointsEarnedForReceipt,
+      foreignCurrency: activeSaleCurrency !== tenant?.currency ? activeSaleCurrency : null,
+      foreignAmount: activeSaleCurrency !== tenant?.currency ? totalInSaleCurrency : null,
     });
     setCart([]);
     setPaymentReference('');
@@ -890,6 +918,7 @@ export function POSPage() {
     setGiftCardCode('');
     setGiftCardCheck(null);
     setGiftCardErr(null);
+    setSaleCurrency('');
   };
 
   const paymentLabel = (m: string) => m === 'cash' ? t('pos.pay.cash') : m === 'card' ? t('pos.pay.cardLabel') : m === 'mobile_money' ? t('pos.pay.mobileMoney') : m === 'gift_card' ? t('pos.pay.giftCard') : m === 'split' ? t('pos.split.label') : m;
@@ -906,6 +935,8 @@ export function POSPage() {
         paymentReference: lastReceipt.paymentReference || null,
         discountTotal: lastReceipt.discountTotal,
         pointsEarned: lastReceipt.pointsEarned,
+        foreignCurrency: lastReceipt.foreignCurrency,
+        foreignAmount: lastReceipt.foreignAmount,
       },
       {
         title: t('pos.receipt.title'),
@@ -923,6 +954,7 @@ export function POSPage() {
         keepProof: t('pos.receipt.keepProof'),
         discountLabel: t('pos.discount.total'),
         pointsEarnedLabel: (points) => t('pos.discount.pointsEarned', { points }),
+        foreignAmountLabel: t('pos.currency.toCollectLabel'),
         paymentMethodLabel: paymentLabel,
       },
       { businessName: tenant?.name ?? '', currency, lang, locale, formatMoney },
@@ -937,7 +969,10 @@ export function POSPage() {
       : `%0a${t('pos.whatsapp.payment')} : ${paymentLabel(lastReceipt.paymentMethod)}`;
     const discountLine = lastReceipt.discountTotal > 0 ? `%0a${t('pos.discount.total')}: -${formatMoney(lastReceipt.discountTotal, currency)}` : '';
     const pointsLine = lastReceipt.pointsEarned && lastReceipt.pointsEarned > 0 ? `%0a${t('pos.discount.pointsEarned', { points: lastReceipt.pointsEarned })}` : '';
-    const msg = `*${t('pos.whatsapp.saleReceipt')} ${success}*%0a%0a${lines}${discountLine}%0a%0a*${t('pos.receipt.total')}: ${formatMoney(lastReceipt.total, currency)}*${paymentLine}${pointsLine}%0a%0a${t('pos.receipt.thanks')}`;
+    const foreignLine = lastReceipt.foreignCurrency && lastReceipt.foreignAmount != null
+      ? `%0a${t('pos.currency.toCollectLabel')}: ${lastReceipt.foreignAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${lastReceipt.foreignCurrency}`
+      : '';
+    const msg = `*${t('pos.whatsapp.saleReceipt')} ${success}*%0a%0a${lines}${discountLine}%0a%0a*${t('pos.receipt.total')}: ${formatMoney(lastReceipt.total, currency)}*${foreignLine}${paymentLine}${pointsLine}%0a%0a${t('pos.receipt.thanks')}`;
     // FIX: this used to always open wa.me/?text=... with no recipient, even
     // when a real customer (with a real phone on file) was picked at
     // checkout -- the cashier had to manually pick the contact every time.
@@ -962,8 +997,11 @@ export function POSPage() {
       : `${t('pos.whatsapp.payment')}: ${paymentLabel(lastReceipt.paymentMethod)}`;
     const discountLine = lastReceipt.discountTotal > 0 ? `${t('pos.discount.total')}: -${formatMoney(lastReceipt.discountTotal, currency)}\n` : '';
     const pointsLine = lastReceipt.pointsEarned && lastReceipt.pointsEarned > 0 ? `\n${t('pos.discount.pointsEarned', { points: lastReceipt.pointsEarned })}` : '';
+    const foreignLine = lastReceipt.foreignCurrency && lastReceipt.foreignAmount != null
+      ? `${t('pos.currency.toCollectLabel')}: ${lastReceipt.foreignAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${lastReceipt.foreignCurrency}\n`
+      : '';
     const subject = `${t('pos.whatsapp.saleReceipt')} ${success}`;
-    const body = `${lines}\n${discountLine}\n${t('pos.receipt.total')}: ${formatMoney(lastReceipt.total, currency)}\n${paymentLine}${pointsLine}\n\n${t('pos.receipt.thanks')}`;
+    const body = `${lines}\n${discountLine}\n${t('pos.receipt.total')}: ${formatMoney(lastReceipt.total, currency)}\n${foreignLine}${paymentLine}${pointsLine}\n\n${t('pos.receipt.thanks')}`;
     window.location.href = `mailto:${lastReceipt.customerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
@@ -1403,6 +1441,21 @@ export function POSPage() {
                   </div>
                   {couponErr && <p className="text-xs font-medium text-error-600">{couponErr}</p>}
                 </>
+              )}
+            </div>
+          )}
+
+          {foreignCurrencies.length > 0 && (
+            <div className="rounded-xl border border-ink-200 dark:border-ink-700 p-3 space-y-2">
+              <p className="label mb-0">{t('pos.currency.title')}</p>
+              <select value={activeSaleCurrency} onChange={(e) => setSaleCurrency(e.target.value)} className="input">
+                <option value={tenant?.currency}>{tenant?.currency} ({t('pos.currency.home')})</option>
+                {foreignCurrencies.map((c) => <option key={c.id} value={c.currency_code}>{c.currency_code}</option>)}
+              </select>
+              {activeSaleCurrency !== tenant?.currency && (
+                <p className="text-xs font-medium text-brand-700">
+                  {t('pos.currency.toCollect', { amount: totalInSaleCurrency.toLocaleString(undefined, { maximumFractionDigits: 2 }), currency: activeSaleCurrency })}
+                </p>
               )}
             </div>
           )}

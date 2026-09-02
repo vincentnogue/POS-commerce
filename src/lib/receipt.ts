@@ -22,6 +22,12 @@ export type ReceiptData = {
   staffName?: string | null;
   discountTotal?: number;
   pointsEarned?: number | null;
+  // Multi-currency (see migration 0074): when a sale is collected in a
+  // currency other than the tenant's own, show the converted amount
+  // actually collected alongside the home-currency total the rest of
+  // the receipt (and every report) is computed in.
+  foreignCurrency?: string | null;
+  foreignAmount?: number | null;
 };
 
 export type ReceiptLabels = {
@@ -41,6 +47,7 @@ export type ReceiptLabels = {
   staffLabel?: string;
   discountLabel?: string;
   pointsEarnedLabel?: (points: number) => string;
+  foreignAmountLabel?: string;
   paymentMethodLabel: (method: string) => string;
 };
 
@@ -100,6 +107,7 @@ export function printSaleReceipt(
     <table><thead><tr><th>${labels.designation}</th><th style="text-align:right">${labels.qty}</th><th style="text-align:right">${labels.price}</th><th style="text-align:right">${labels.total}</th></tr></thead><tbody>${rows}</tbody></table>
     ${data.discountTotal && data.discountTotal > 0 && labels.discountLabel ? `<div class="meta"><span>${labels.discountLabel}</span><span>-${opts.formatMoney(data.discountTotal, opts.currency)}</span></div>` : ''}
     <div class="total-row"><span>${labels.total}</span><span>${opts.formatMoney(data.total, opts.currency)}</span></div>
+    ${data.foreignCurrency && data.foreignAmount != null && labels.foreignAmountLabel ? `<div class="meta"><span>${labels.foreignAmountLabel}</span><span>${data.foreignAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${data.foreignCurrency}</span></div>` : ''}
     <div class="payment-block">
       <div class="payment-row"><span class="label">${labels.paymentMode}</span><span class="value">${labels.paymentMethodLabel(data.paymentMethod)}</span></div>
       ${data.paymentReference ? `<div class="payment-row"><span class="label">${labels.refLabel}</span><span class="value">${data.paymentReference}</span></div>` : ''}
