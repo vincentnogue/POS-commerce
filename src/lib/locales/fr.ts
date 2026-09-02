@@ -1177,6 +1177,7 @@ export const fr: Record<string, string> = {
   "users.module.administration": "Administration",
   "users.module.marketplace": "Marketplace",
   "users.module.settings": "Paramètres",
+  "users.module.promotions": "Promotions",
   "users.action.view": "Voir",
   "users.action.create": "Créer",
   "users.action.update": "Modifier",

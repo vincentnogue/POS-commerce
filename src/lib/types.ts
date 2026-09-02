@@ -462,6 +462,7 @@ export const MODULES = [
   'dashboard', 'pos', 'products', 'stock', 'stores', 'invoices',
   'deliveries', 'customers', 'suppliers', 'expenses', 'purchases',
   'quotes', 'reports', 'accounting', 'users', 'administration', 'marketplace', 'settings',
+  'promotions',
 ] as const;
 export type ModuleCode = (typeof MODULES)[number];
 
@@ -487,6 +488,7 @@ export const DEFAULT_PERMISSIONS: Record<Role, Permissions> = {
     purchases: { view: true, create: true }, quotes: { view: true, create: true, update: true },
     reports: { view: true }, accounting: { view: true }, users: { view: true },
     marketplace: { view: true }, administration: {}, settings: { view: true, update: true },
+    promotions: { view: true, create: true, update: true },
   } as Permissions,
   staff: {
     dashboard: { view: true }, pos: { view: true, create: true },
@@ -497,6 +499,10 @@ export const DEFAULT_PERMISSIONS: Record<Role, Permissions> = {
     purchases: {}, quotes: { view: true, create: true },
     reports: {}, accounting: {}, users: {},
     marketplace: { view: true }, administration: {}, settings: { view: true },
+    // Staff need read access so the POS checkout can load and apply
+    // active promotions for every cashier, not just managers — but
+    // creating/editing/deleting promotions stays manager+ only.
+    promotions: { view: true },
   } as Permissions,
   viewer: {
     dashboard: { view: true }, pos: { view: true },
@@ -507,6 +513,7 @@ export const DEFAULT_PERMISSIONS: Record<Role, Permissions> = {
     purchases: {}, quotes: { view: true },
     reports: { view: true }, accounting: {},
     users: {}, marketplace: { view: true }, administration: {}, settings: { view: true },
+    promotions: { view: true },
   } as Permissions,
 };
 

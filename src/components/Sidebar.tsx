@@ -39,7 +39,7 @@ const NAV: NavItem[] = [
   { to: '/users', labelKey: 'nav.users', icon: UserCog, module: 'users' },
   { to: '/timeclock', labelKey: 'nav.timeclock', icon: Clock3 },
   { to: '/tasks', labelKey: 'nav.tasks', icon: ClipboardCheck },
-  { to: '/promotions', labelKey: 'nav.promotions', icon: Tag },
+  { to: '/promotions', labelKey: 'nav.promotions', icon: Tag, module: 'promotions' },
   { to: '/administration', labelKey: 'nav.administration', icon: Shield, module: 'administration' },
   { to: '/marketplace', labelKey: 'nav.marketplace', icon: Puzzle, module: 'marketplace' },
   { to: '/settings', labelKey: 'nav.settings', icon: Settings, module: 'settings' },
