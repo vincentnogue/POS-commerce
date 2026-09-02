@@ -72,12 +72,19 @@ export function ReportsPage() {
     return inPeriod && inStore;
   }), [sales, storeFilter, sinceDate]);
 
+  // Revenue/KPI math must exclude a voided sale (see void_sale, migration
+  // 0079) — it never happened financially. filteredSales itself stays
+  // unfiltered by status so the register table below can still show a
+  // cancelled transaction for audit visibility; only the aggregates use
+  // this narrower set.
+  const revenueSales = useMemo(() => filteredSales.filter((s) => s.sale_status !== 'cancelled'), [filteredSales]);
+
   // Sales-by-store breakdown (Dynamics-365-Commerce-style store comparison):
   // always computed off the period alone, ignoring storeFilter, so the
   // comparison table keeps showing every store even while one is selected
   // elsewhere on the page — clicking a row here is what drives storeFilter.
   const salesByStore = useMemo(() => {
-    const periodSales = sales.filter((s) => new Date(s.sale_date).getTime() >= sinceDate);
+    const periodSales = sales.filter((s) => new Date(s.sale_date).getTime() >= sinceDate && s.sale_status !== 'cancelled');
     const map = new Map<string, { id: string; name: string; revenue: number; count: number }>();
     periodSales.forEach((s) => {
       const id = s.store_id ?? '__none__';
@@ -94,7 +101,7 @@ export function ReportsPage() {
 
   const filteredExpenses = useMemo(() => expenses.filter((e) => new Date(e.expense_date).getTime() >= sinceDate && (!storeFilter || e.store_id === storeFilter)), [expenses, sinceDate, storeFilter]);
 
-  const revenue = filteredSales.reduce((s, x) => s + Number(x.total), 0);
+  const revenue = revenueSales.reduce((s, x) => s + Number(x.total), 0);
   const expensesTotal = filteredExpenses.reduce((s, x) => s + Number(x.amount), 0);
   const profit = revenue - expensesTotal;
   const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
@@ -103,7 +110,7 @@ export function ReportsPage() {
   const days = Number(period);
   const chartData = Array.from({ length: Math.min(days, 30) }).map((_, i) => {
     const d = new Date(Date.now() - (Math.min(days, 30) - 1 - i) * 86400000);
-    const dayRev = filteredSales.filter((s) => { const sd = new Date(s.sale_date); return sd.toDateString() === d.toDateString(); }).reduce((s, x) => s + Number(x.total), 0);
+    const dayRev = revenueSales.filter((s) => { const sd = new Date(s.sale_date); return sd.toDateString() === d.toDateString(); }).reduce((s, x) => s + Number(x.total), 0);
     const dayExp = filteredExpenses.filter((e) => new Date(e.expense_date).toDateString() === d.toDateString()).reduce((s, x) => s + Number(x.amount), 0);
     return { date: d.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { day: '2-digit', month: '2-digit' }), revenu: dayRev, depenses: dayExp };
   });
@@ -111,9 +118,9 @@ export function ReportsPage() {
   const [topProducts, setTopProducts] = useState<{ name: string; revenue: number }[]>([]);
 
   useEffect(() => {
-    if (!tenant || filteredSales.length === 0) { setTopProducts([]); return; }
+    if (!tenant || revenueSales.length === 0) { setTopProducts([]); return; }
     (async () => {
-      const saleIds = filteredSales.map((s) => s.id);
+      const saleIds = revenueSales.map((s) => s.id);
       const { data: items } = await supabase
         .from('sale_items')
         .select('product_id, quantity, unit_price, product:products(name)')
@@ -131,7 +138,7 @@ export function ReportsPage() {
           .slice(0, 6),
       );
     })();
-  }, [tenant, filteredSales, t]);
+  }, [tenant, revenueSales, t]);
 
   // Category distribution
   const catData = categories.map((c) => ({
@@ -180,7 +187,7 @@ export function ReportsPage() {
           <div className="flex gap-2">
             <Select value={period} onChange={setPeriod} options={PERIODS.map((p) => ({ value: p.value, label: t(p.labelKey) }))} />
             <Select value={storeFilter} onChange={setStoreFilter} placeholder={t('reports.allStores')} options={stores.map((s) => ({ value: s.id, label: s.name }))} />
-            <button onClick={() => exportCSV('rapport.csv', filteredSales.map((s) => ({ reference: s.reference, date: s.sale_date, total: s.total, paiement: s.payment_method })))} className="btn-ghost"><Download size={16} /> {t('common.export')}</button>
+            <button onClick={() => exportCSV('rapport.csv', revenueSales.map((s) => ({ reference: s.reference, date: s.sale_date, total: s.total, paiement: s.payment_method })))} className="btn-ghost"><Download size={16} /> {t('common.export')}</button>
           </div>
         }
       />
@@ -374,8 +381,8 @@ export function ReportsPage() {
                     <td className="py-2.5 text-ink-600 dark:text-ink-300">{s.user_id ? staffNames[s.user_id] ?? '—' : '—'}</td>
                     <td className="py-2.5 text-ink-600 dark:text-ink-300">{paymentMethodLabel(s.payment_method)}</td>
                     <td className="py-2.5">
-                      <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${s.sale_status === 'completed' ? 'bg-success-50 text-success-700 dark:bg-success-900/25' : 'bg-warning-50 text-warning-700 dark:bg-warning-900/25'}`}>
-                        {s.sale_status}
+                      <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${s.sale_status === 'completed' ? 'bg-success-50 text-success-700 dark:bg-success-900/25' : s.sale_status === 'cancelled' ? 'bg-error-50 text-error-600 dark:bg-error-900/25' : 'bg-warning-50 text-warning-700 dark:bg-warning-900/25'}`}>
+                        {t(`reports.saleStatus.${s.sale_status}`)}
                       </span>
                     </td>
                     <td className="py-2.5 text-right font-medium text-ink-900 dark:text-ink-50">{formatMoney(Number(s.total), currency)}</td>
