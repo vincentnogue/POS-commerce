@@ -738,6 +738,17 @@ export function POSPage() {
       return;
     }
 
+    // Commission (migration 0075 + RPC in 0078): best-effort, non-blocking
+    // like the loyalty/gift-card calls below — the sale is already
+    // completed and paid, a missing commission row just means it needs a
+    // manual reconciliation, never a reason to fail or roll back the sale.
+    if (member) {
+      const { error: commissionErr } = await supabase.rpc('compute_sale_commission', {
+        p_tenant_id: tenant.id, p_sale_id: sale.id, p_member_id: member.id,
+      });
+      if (commissionErr) console.error('compute_sale_commission failed (non-blocking):', commissionErr.message);
+    }
+
     // Actually consume the serials/batches now that each sale_items row
     // has a real id to link them to — the availability was already
     // checked above, but these calls are still the hard, race-proof
