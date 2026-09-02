@@ -1644,6 +1644,8 @@ export const fr: Record<string, string> = {
   "pLanding.nav.blog": "Blog",
   "pLanding.nav.login": "Connexion",
   "pLanding.nav.cta": "Essai gratuit",
+  "pLanding.nav.openMenu": "Ouvrir le menu",
+  "pLanding.nav.closeMenu": "Fermer le menu",
   "pLanding.nav.themeLight": "Passer en mode clair",
   "pLanding.nav.themeDark": "Passer en mode sombre",
   "pLanding.hero.badge": "Développé par LiAfrik — Dubaï & Afrique",

@@ -734,6 +734,9 @@ export function LandingPage() {
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               className="md:hidden p-2 text-gray-700 dark:text-gray-300"
+              aria-expanded={menuOpen}
+              aria-controls="landing-mobile-menu"
+              aria-label={menuOpen ? t('pLanding.nav.closeMenu') : t('pLanding.nav.openMenu')}
             >
               {menuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -741,6 +744,7 @@ export function LandingPage() {
 
           {menuOpen && (
             <motion.div
+              id="landing-mobile-menu"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
