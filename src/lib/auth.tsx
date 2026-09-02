@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, createContext, useContext, useMemo } from 'react';
 import type { ReactNode } from 'react';
-import { supabase } from './supabase';
+import { supabase, setRememberMePreference } from './supabase';
 import type { Member, Role, Tenant, Permissions, ModuleCode, PermissionAction, CustomRole } from './types';
 import { DEFAULT_PERMISSIONS } from './types';
 import type { Subscription } from './access';
@@ -24,7 +24,8 @@ type AuthContextValue = {
   access: ReturnType<typeof computeAccess>;
   planModules: string[] | null;
   isSuperAdmin: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: string | null }>;
+  signInWithGoogle: () => Promise<{ error: string | null }>;
   signUp: (email: string, password: string) => Promise<{ error: string | null; data: any }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -198,8 +199,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [loadProfile]);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, rememberMe: boolean = true) => {
+    // Must be set BEFORE signInWithPassword: the session Supabase writes
+    // as a result of this call needs to already land in the right store.
+    setRememberMePreference(rememberMe);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return { error: translateAuthError(error?.message ?? null) };
+  };
+
+  const signInWithGoogle = async () => {
+    // Google sign-in always keeps the session past a browser restart —
+    // there's no "remember me" checkbox in the OAuth redirect flow, and
+    // that's the expectation most people already have of "sign in with
+    // Google" elsewhere.
+    setRememberMePreference(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/dashboard` },
+    });
     return { error: translateAuthError(error?.message ?? null) };
   };
 
@@ -256,7 +273,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user, member, tenant, tenants, permissions, customRole, can, loading, subscription, access, planModules, isSuperAdmin,
-        signIn, signUp, signOut, refreshProfile, switchTenant, activeTenantId,
+        signIn, signInWithGoogle, signUp, signOut, refreshProfile, switchTenant, activeTenantId,
       }}
     >
       {children}

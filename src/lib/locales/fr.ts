@@ -2116,6 +2116,9 @@ export const fr: Record<string, string> = {
   "login.submit": "Se connecter",
   "login.noAccount": "Pas encore de compte ?",
   "login.createAccount": "Créer un compte",
+  "login.rememberMe": "Se souvenir de moi",
+  "login.orDivider": "ou",
+  "login.googleSignIn": "Continuer avec Google",
 
   // Signup page
   "signup.hero.titleLine1": "Démarrez gratuitement,",
