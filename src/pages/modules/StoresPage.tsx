@@ -7,7 +7,7 @@ import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components
 import { Field } from '../../components/DataTable';
 import type { Store, Member, StoreAssignment } from '../../lib/types';
 
-const EMPTY = { name: '', city: '', address: '', phone: '', latitude: '', longitude: '' };
+const EMPTY = { name: '', city: '', address: '', phone: '', latitude: '', longitude: '', location_type: 'store' };
 
 export function StoresPage() {
   const { tenant, can } = useAuth();
@@ -52,6 +52,7 @@ export function StoresPage() {
       phone: s.phone ?? '',
       latitude: s.latitude ?? '',
       longitude: s.longitude ?? '',
+      location_type: s.location_type ?? 'store',
     });
     setModalOpen(true);
   };
@@ -66,6 +67,7 @@ export function StoresPage() {
       phone: form.phone || null,
       latitude: form.latitude ? Number(form.latitude) : null,
       longitude: form.longitude ? Number(form.longitude) : null,
+      location_type: form.location_type || 'store',
     };
     if (editing) {
       if (canUpdate) {
@@ -138,7 +140,10 @@ export function StoresPage() {
                   </div>
                   <Badge tone={s.is_active ? 'success' : 'neutral'}>{s.is_active ? t('stores.active') : t('stores.inactive')}</Badge>
                 </div>
-                <h3 className="mt-3 text-lg font-medium text-ink-900 dark:text-ink-50">{s.name}</h3>
+                <h3 className="mt-3 text-lg font-medium text-ink-900 dark:text-ink-50 flex items-center gap-2">
+                  {s.name}
+                  {s.location_type === 'warehouse' && <Badge tone="neutral">{t('stores.warehouse')}</Badge>}
+                </h3>
                 <div className="mt-2 space-y-1 text-sm text-ink-500 dark:text-ink-400">
                   {s.address && <p className="flex items-start gap-1.5"><MapPin size={14} className="mt-0.5 shrink-0" /> {s.address}</p>}
                   {s.city && <p className="pl-5">{s.city}</p>}
@@ -180,6 +185,12 @@ export function StoresPage() {
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? t('stores.editTitle') : t('stores.newTitle')}>
         <div className="space-y-4">
           <Field label={t('stores.field.name')}><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" placeholder={t('stores.field.namePlaceholder')} /></Field>
+          <Field label={t('stores.field.locationType')}>
+            <select value={form.location_type} onChange={(e) => setForm({ ...form, location_type: e.target.value })} className="input">
+              <option value="store">{t('stores.field.locationType.store')}</option>
+              <option value="warehouse">{t('stores.field.locationType.warehouse')}</option>
+            </select>
+          </Field>
           <Field label={t('common.address')}><input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="input" /></Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label={t('common.city')}><input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="input" /></Field>

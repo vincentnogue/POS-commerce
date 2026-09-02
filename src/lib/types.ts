@@ -28,6 +28,7 @@ export type Tenant = {
   loyalty_point_value?: number;
 };
 
+export type StoreLocationType = 'store' | 'warehouse';
 export type Store = {
   id: string;
   tenant_id: string;
@@ -38,6 +39,7 @@ export type Store = {
   is_active: boolean;
   latitude: number | null;
   longitude: number | null;
+  location_type: StoreLocationType;
 };
 
 export type StoreAssignment = {
@@ -537,7 +539,6 @@ export type TenantCurrency = { id: string; tenant_id: string; currency_code: str
 export type PriceList = { id: string; tenant_id: string; name: string; currency: string | null; store_id: string | null; is_active: boolean; starts_at: string | null; ends_at: string | null; created_at: string };
 export type PriceListItem = { id: string; price_list_id: string; product_id: string; price: number; min_quantity: number };
 
-export type StoreLocationType = 'store' | 'warehouse';
 export type Wishlist = { id: string; tenant_id: string; customer_id: string; product_id: string; created_at: string };
 
 export type TaskPriority = 'low' | 'normal' | 'high' | 'urgent';

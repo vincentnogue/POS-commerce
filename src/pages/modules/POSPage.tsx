@@ -233,12 +233,6 @@ export function POSPage() {
       .then(({ data }) => setTenantCurrencies((data as TenantCurrency[]) ?? []));
   }, [tenant]);
 
-  useEffect(() => {
-    if (!tenant) return;
-    supabase.from('tenant_currencies').select('*').eq('tenant_id', tenant.id).eq('is_active', true)
-      .then(({ data }) => setTenantCurrencies((data as TenantCurrency[]) ?? []));
-  }, [tenant]);
-
   const holdSale = async () => {
     if (!tenant || cart.length === 0) return;
     setHoldingSale(true);
