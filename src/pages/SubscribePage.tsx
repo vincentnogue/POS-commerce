@@ -194,7 +194,7 @@ export function SubscribePage() {
                 <ul className="mt-4 space-y-2 text-sm text-ink-600 dark:text-ink-300">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-2">
-                      <Check size={15} className="mt-0.5 shrink-0 text-success-500" /> {t(f)}
+                      <Check size={15} className="mt-0.5 shrink-0 text-success-500" /> {t(`plan.feature.${f}`)}
                     </li>
                   ))}
                 </ul>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Menu, X, Globe, ChevronDown, ArrowRight, MapPin,
@@ -574,25 +574,31 @@ function PosLiveDemo() {
   );
 }
 
-const PLAN_DESCRIPTIONS: Record<string, string> = {
-  starter: 'Idéal pour démarrer votre commerce',
-  pro: 'Pour les commerces en croissance',
-  premium: 'Fonctionnalités avancées et support prioritaire',
-  entreprise: 'Pour les grandes organisations multi-boutiques',
+// Plan descriptions and CTA copy are i18n keys (plan.landingDesc.*), not
+// literal text — see buildLandingPlans() below, called from inside the
+// component where t() is available. PLAN_DESCRIPTION_KEYS just maps a
+// plan code to which description key it uses.
+const PLAN_DESCRIPTION_KEYS: Record<string, string> = {
+  starter: 'plan.landingDesc.starter',
+  pro: 'plan.landingDesc.pro',
+  premium: 'plan.landingDesc.premium',
+  entreprise: 'plan.landingDesc.entreprise',
 };
 
-const LANDING_PLANS: PricingPlan[] = REAL_PLANS.map((p) => ({
-  id: p.code,
-  name: p.name,
-  description: PLAN_DESCRIPTIONS[p.code] ?? '',
-  basePrice: p.priceMonthly,
-  features: p.features.slice(0, 6).map((f) => ({ name: f, included: true })),
-  cta: p.code === 'entreprise'
-    ? { text: 'Contacter les ventes', href: '/contact' }
-    : { text: 'Essayer gratuitement', href: '/signup' },
-  popular: p.popular,
-  badge: p.popular ? 'LE PLUS CHOISI' : undefined,
-}));
+function buildLandingPlans(t: (key: string) => string): PricingPlan[] {
+  return REAL_PLANS.map((p) => ({
+    id: p.code,
+    name: t(`plan.name.${p.code}`),
+    description: t(PLAN_DESCRIPTION_KEYS[p.code] ?? ''),
+    basePrice: p.priceMonthly,
+    features: p.features.slice(0, 6).map((f) => ({ name: t(`plan.feature.${f}`), included: true })),
+    cta: p.code === 'entreprise'
+      ? { text: t('plan.landingCta.contactSales'), href: '/contact' }
+      : { text: t('plan.landingCta.tryFree'), href: '/signup' },
+    popular: p.popular,
+    badge: p.popular ? t('plan.landingBadge.mostPopular') : undefined,
+  }));
+}
 
 // Cycles a grid tile through a small set of real provider logos — one
 // visible at a time, crossfading to the next on an interval. Used to pack
@@ -627,6 +633,24 @@ function RotatingLogoTile({ providers, delayMs = 0 }: { providers: EcosystemProv
   );
 }
 
+// Product catalog for the "Let's get busy" POS checkout mockup (a purely
+// decorative visual, not live data) — names go through i18n
+// (pLanding.busyHero.mockup.*) same as everything else; prices are display
+// text only (fake demo receipt), not real currency conversion.
+const MOCKUP_PRODUCTS = [
+  { key: 'water', labelKey: 'productWater', price: '$1.50', icon: Coffee, tint: 'from-sky-100 to-sky-50 text-sky-600' },
+  { key: 'almonds', labelKey: 'productAlmonds', price: '$4.20', icon: Package, tint: 'from-amber-100 to-amber-50 text-amber-600' },
+  { key: 'tote', labelKey: 'productTote', price: '$8.00', icon: Shirt, tint: 'from-brand-100 to-brand-50 text-brand-600' },
+  { key: 'mug', labelKey: 'productMug', price: '$6.50', icon: Coffee, tint: 'from-flow-100 to-flow-50 text-flow-600' },
+  { key: 'notebook', labelKey: 'productNotebook', price: '$3.10', icon: FileText, tint: 'from-violet-100 to-violet-50 text-violet-600' },
+  { key: 'candle', labelKey: 'productCandle', price: '$9.90', icon: Sparkles, tint: 'from-rose-100 to-rose-50 text-rose-600' },
+];
+const MOCKUP_CART_LINES = [
+  { key: 'almonds', labelKey: 'productAlmonds', qty: 1, price: '$4.20' },
+  { key: 'tote', labelKey: 'productTote', qty: 1, price: '$8.00' },
+  { key: 'mug', labelKey: 'productMug', qty: 1, price: '$6.50' },
+];
+
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeFeatureTab, setActiveFeatureTab] = useState(0);
@@ -636,6 +660,7 @@ export function LandingPage() {
   const navigate = useNavigate();
   const heroReducedMotion = usePrefersReducedMotion();
   const [ecosystemProviders, setEcosystemProviders] = useState<EcosystemProvider[]>([]);
+  const landingPlans = useMemo(() => buildLandingPlans(t), [t]);
 
   // Real integrations only — pulled live from the same integration_providers
   // table that powers /marketplace (public SELECT policy, no auth needed).
@@ -1206,7 +1231,7 @@ export function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-10 items-stretch">
-            {LANDING_PLANS.map((plan) => (
+            {landingPlans.map((plan) => (
               <PricingCard
                 key={plan.id}
                 plan={plan}
@@ -1328,39 +1353,32 @@ export function LandingPage() {
                       {/* Search */}
                       <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 mb-2.5">
                         <Search size={10} className="text-gray-400" />
-                        <span className="text-[8px] text-gray-400">Search or scan barcode…</span>
+                        <span className="text-[8px] text-gray-400">{t('pLanding.busyHero.mockup.searchPlaceholder')}</span>
                       </div>
                       {/* Category tabs */}
                       <div className="flex gap-1.5 mb-2.5">
                         {[
-                          { label: 'All', active: true },
-                          { label: 'Drinks', active: false },
-                          { label: 'Snacks', active: false },
-                          { label: 'Home', active: false },
+                          { labelKey: 'catAll', active: true },
+                          { labelKey: 'catDrinks', active: false },
+                          { labelKey: 'catSnacks', active: false },
+                          { labelKey: 'catHome', active: false },
                         ].map((cat) => (
                           <span
-                            key={cat.label}
+                            key={cat.labelKey}
                             className={`text-[8px] font-semibold px-2 py-1 rounded-full ${cat.active ? 'bg-brand-600 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
                           >
-                            {cat.label}
+                            {t(`pLanding.busyHero.mockup.${cat.labelKey}`)}
                           </span>
                         ))}
                       </div>
                       {/* Product grid */}
                       <div className="grid grid-cols-3 gap-1.5">
-                        {[
-                          { name: 'Sparkling water', price: '$1.50', icon: Coffee, tint: 'from-sky-100 to-sky-50 text-sky-600' },
-                          { name: 'Roasted almonds', price: '$4.20', icon: Package, tint: 'from-amber-100 to-amber-50 text-amber-600' },
-                          { name: 'Cotton tote', price: '$8.00', icon: Shirt, tint: 'from-brand-100 to-brand-50 text-brand-600' },
-                          { name: 'Ceramic mug', price: '$6.50', icon: Coffee, tint: 'from-flow-100 to-flow-50 text-flow-600' },
-                          { name: 'Notebook A5', price: '$3.10', icon: FileText, tint: 'from-violet-100 to-violet-50 text-violet-600' },
-                          { name: 'Candle 200g', price: '$9.90', icon: Sparkles, tint: 'from-rose-100 to-rose-50 text-rose-600' },
-                        ].map((p) => (
-                          <div key={p.name} className="rounded-lg bg-white border border-gray-100 p-1.5 shadow-sm">
+                        {MOCKUP_PRODUCTS.map((p) => (
+                          <div key={p.key} className="rounded-lg bg-white border border-gray-100 p-1.5 shadow-sm">
                             <div className={`h-7 rounded-md bg-gradient-to-br ${p.tint} flex items-center justify-center mb-1`}>
                               <p.icon size={11} strokeWidth={2} />
                             </div>
-                            <p className="text-[6.5px] font-medium text-ink-700 leading-tight truncate">{p.name}</p>
+                            <p className="text-[6.5px] font-medium text-ink-700 leading-tight truncate">{t(`pLanding.busyHero.mockup.${p.labelKey}`)}</p>
                             <p className="text-[7.5px] font-bold text-brand-600">{p.price}</p>
                           </div>
                         ))}
@@ -1369,37 +1387,33 @@ export function LandingPage() {
 
                     {/* Right: cart */}
                     <div className="flex-1 bg-ink-950 p-3.5 flex flex-col">
-                      <p className="text-[8px] font-semibold text-white/50 tracking-wide mb-2">CURRENT SALE · #INV-0842</p>
+                      <p className="text-[8px] font-semibold text-white/50 tracking-wide mb-2">{t('pLanding.busyHero.mockup.currentSale')}</p>
                       <div className="space-y-1.5 mb-2.5 flex-1">
-                        {[
-                          { name: 'Roasted almonds', qty: 1, price: '$4.20' },
-                          { name: 'Cotton tote', qty: 1, price: '$8.00' },
-                          { name: 'Ceramic mug', qty: 1, price: '$6.50' },
-                        ].map((line) => (
-                          <div key={line.name} className="flex items-center justify-between">
-                            <span className="text-[7.5px] text-white/80 truncate">{line.qty}× {line.name}</span>
+                        {MOCKUP_CART_LINES.map((line) => (
+                          <div key={line.key} className="flex items-center justify-between">
+                            <span className="text-[7.5px] text-white/80 truncate">{line.qty}× {t(`pLanding.busyHero.mockup.${line.labelKey}`)}</span>
                             <span className="text-[7.5px] font-semibold text-white">{line.price}</span>
                           </div>
                         ))}
                       </div>
                       <div className="border-t border-white/10 pt-2 space-y-1 mb-2.5">
                         <div className="flex items-center justify-between text-[7px] text-white/50">
-                          <span className="flex items-center gap-1"><Percent size={8} /> Tax</span>
+                          <span className="flex items-center gap-1"><Percent size={8} /> {t('pLanding.busyHero.mockup.tax')}</span>
                           <span>$0.00</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-[9px] font-semibold text-white">Total</span>
+                          <span className="text-[9px] font-semibold text-white">{t('pLanding.busyHero.mockup.total')}</span>
                           <span className="text-lg font-bold text-flow-400">$18.70</span>
                         </div>
                       </div>
                       <div className="flex gap-1.5">
                         <div className="flex-1 flex items-center justify-center gap-1 bg-white/10 rounded-md py-1.5">
                           <Banknote size={10} className="text-flow-400" />
-                          <span className="text-[7px] font-medium text-white/80">Cash</span>
+                          <span className="text-[7px] font-medium text-white/80">{t('pLanding.busyHero.mockup.cash')}</span>
                         </div>
                         <div className="flex-1 flex items-center justify-center gap-1 bg-flow-500 rounded-md py-1.5">
                           <CreditCard size={10} className="text-white" />
-                          <span className="text-[7px] font-medium text-white">Card</span>
+                          <span className="text-[7px] font-medium text-white">{t('pLanding.busyHero.mockup.card')}</span>
                         </div>
                       </div>
                     </div>

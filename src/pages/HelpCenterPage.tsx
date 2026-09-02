@@ -1,6 +1,7 @@
 import { useState, type SVGProps } from 'react';
 import { Search, ChevronDown, BookOpen, Zap, Shield, Users, CreditCard, Globe, Check, X } from 'lucide-react';
 import { PLANS, TRIAL_DAYS } from '../lib/plans';
+import { en } from '../lib/locales/en';
 
 interface FAQItem {
   id: string;
@@ -58,7 +59,7 @@ const FAQ_ITEMS: FAQItem[] = [
     id: 'team',
     category: 'Team Management',
     question: 'How many team members can I add?',
-    answer: PLANS.map((p) => `${p.name}: ${p.maxUsers}`).join(' · ') + '. Each member gets a role (admin, manager, cashier...) that controls exactly which modules they can see and use.',
+    answer: PLANS.map((p) => `${en[`plan.name.${p.code}`] ?? p.name}: ${p.maxUsers}`).join(' · ') + '. Each member gets a role (admin, manager, cashier...) that controls exactly which modules they can see and use.',
     icon: Users,
   },
   {
@@ -235,7 +236,7 @@ export function HelpCenterPage() {
                   <th className="text-left py-4 px-4 font-semibold text-ink-900 dark:text-white">&nbsp;</th>
                   {PLANS.map((p) => (
                     <th key={p.code} className="text-center py-4 px-4 font-semibold">
-                      <div className="text-ink-600 dark:text-ink-300">{p.name}</div>
+                      <div className="text-ink-600 dark:text-ink-300">{en[`plan.name.${p.code}`] ?? p.name}</div>
                       <div className="text-xs text-ink-500 dark:text-ink-400">${p.priceMonthly}/mo</div>
                     </th>
                   ))}
@@ -262,7 +263,7 @@ export function HelpCenterPage() {
                 </tr>
                 {Array.from(new Set(PLANS.flatMap((p) => p.features))).map((feature, idx) => (
                   <tr key={feature} className={idx % 2 === 0 ? 'bg-white dark:bg-ink-950' : 'bg-ink-50/50 dark:bg-ink-900/30'}>
-                    <td className="py-3 px-4 text-ink-900 dark:text-ink-100 font-medium">{feature}</td>
+                    <td className="py-3 px-4 text-ink-900 dark:text-ink-100 font-medium">{en[`plan.feature.${feature}`] ?? feature}</td>
                     {PLANS.map((p) => (
                       <td key={p.code} className="text-center py-3 px-4">
                         {p.features.includes(feature) ? (
@@ -289,7 +290,7 @@ export function HelpCenterPage() {
               const isLast = i === PLANS.length - 1;
               return (
                 <div key={p.code} className={`p-6 rounded-lg ${palette.bg} border ${palette.border}`}>
-                  <h3 className={`font-bold mb-2 ${palette.title}`}>{p.name} (${p.priceMonthly}/mo)</h3>
+                  <h3 className={`font-bold mb-2 ${palette.title}`}>{en[`plan.name.${p.code}`] ?? p.name} (${p.priceMonthly}/mo)</h3>
                   <p className={`text-sm mb-4 ${palette.text}`}>{p.maxUsers} users &middot; {p.maxStores} store{p.maxStores > 1 ? 's' : ''}</p>
                   <a
                     href={isLast ? '/contact' : '/signup'}

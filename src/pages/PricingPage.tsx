@@ -4,6 +4,7 @@ import { Globe, ArrowRight, ArrowLeft, Radio, WifiOff, Check, X } from 'lucide-r
 import { type PricingPlan } from '../components/PricingCard';
 import { CountryFlagsMarquee } from '../components/CountryFlagsMarquee';
 import { PLANS as REAL_PLANS } from '../lib/plans';
+import { fr } from '../lib/locales/fr';
 import {
   getExchangeRates,
   convertPrice,
@@ -32,7 +33,7 @@ const PLANS: PricingPlan[] = REAL_PLANS.map((p) => ({
   name: p.name,
   description: PLAN_DESCRIPTIONS[p.code] ?? '',
   basePrice: p.priceMonthly,
-  features: p.features.map((f) => ({ name: f, included: true })),
+  features: p.features.map((f) => ({ name: fr[`plan.feature.${f}`] ?? f, included: true })),
   cta: p.code === 'entreprise'
     ? { text: 'Contacter les ventes', href: '/contact' }
     : { text: 'Essayer gratuitement', href: '/signup' },
@@ -273,7 +274,7 @@ export function PricingPage() {
                 </tr>
                 {ALL_FEATURES.map((feature) => (
                   <tr key={feature} className="border-b border-ink-100 dark:border-ink-700/50 last:border-0 hover:bg-brand-50/60 dark:hover:bg-ink-900/40">
-                    <td className="px-4 py-2.5 text-ink-900 dark:text-ink-50 sticky left-0 bg-white dark:bg-ink-800">{feature}</td>
+                    <td className="px-4 py-2.5 text-ink-900 dark:text-ink-50 sticky left-0 bg-white dark:bg-ink-800">{fr[`plan.feature.${feature}`] ?? feature}</td>
                     {REAL_PLANS.map((p) => (
                       <td key={p.code} className={`px-4 py-2.5 text-center ${p.popular ? 'bg-brand-50/40 dark:bg-brand-500/5' : ''}`}>
                         {p.features.includes(feature) ? (

@@ -5,6 +5,11 @@ export type Plan = {
   maxUsers: number;
   maxStores: number;
   maxProducts: number;
+  // Feature i18n keys (see plan.feature.* in locales/{fr,en}.ts) — NOT
+  // display text. Every consumer must call t(`plan.feature.${id}`), same
+  // as they already call t(`plan.name.${code}`) for the plan name. Kept
+  // as stable IDs here (not French/English strings) so this single
+  // source of truth works for every language, not just one.
   features: string[];
   highlight: boolean;
   popular?: boolean;
@@ -18,12 +23,7 @@ export const PLANS: Plan[] = [
     maxUsers: 2,
     maxStores: 1,
     maxProducts: 50,
-    features: [
-      'Système de caisse (POS)',
-      'Gestion du stock',
-      'Gestion des clients',
-      'Support communautaire',
-    ],
+    features: ['pos', 'stock', 'customers', 'communitySupport'],
     highlight: false,
   },
   {
@@ -33,16 +33,7 @@ export const PLANS: Plan[] = [
     maxUsers: 5,
     maxStores: 2,
     maxProducts: 500,
-    features: [
-      'Système de caisse (POS)',
-      'Gestion du stock',
-      'Gestion des clients',
-      'Factures automatiques',
-      'Gestion livraisons',
-      'Gestion fournisseurs',
-      'Rapports avancés',
-      'Support email (24h)',
-    ],
+    features: ['pos', 'stock', 'customers', 'autoInvoices', 'deliveries', 'suppliers', 'advancedReports', 'emailSupport24h'],
     highlight: true,
     popular: true,
   },
@@ -53,18 +44,7 @@ export const PLANS: Plan[] = [
     maxUsers: 15,
     maxStores: 5,
     maxProducts: 10000,
-    features: [
-      'Système de caisse (POS)',
-      'Gestion du stock',
-      'Gestion des clients',
-      'Factures automatiques',
-      'Gestion livraisons',
-      'Gestion fournisseurs',
-      'Rapports avancés',
-      'Comptabilité complète',
-      'Rôles et permissions personnalisés',
-      'Support prioritaire (2h)',
-    ],
+    features: ['pos', 'stock', 'customers', 'autoInvoices', 'deliveries', 'suppliers', 'advancedReports', 'fullAccounting', 'customRoles', 'prioritySupport2h'],
     highlight: false,
   },
   {
@@ -74,22 +54,7 @@ export const PLANS: Plan[] = [
     maxUsers: 50,
     maxStores: 20,
     maxProducts: 100000,
-    features: [
-      'Système de caisse (POS)',
-      'Gestion du stock',
-      'Gestion des clients',
-      'Factures automatiques',
-      'Gestion livraisons',
-      'Gestion fournisseurs',
-      'Rapports avancés',
-      'Comptabilité complète',
-      'Rôles et permissions personnalisés',
-      'Automatisations avancées',
-      'API REST complète',
-      'Gestionnaire dédié',
-      'Support 24/7',
-      'SLA garanti (99.9%)',
-    ],
+    features: ['pos', 'stock', 'customers', 'autoInvoices', 'deliveries', 'suppliers', 'advancedReports', 'fullAccounting', 'customRoles', 'advancedAutomations', 'fullRestApi', 'dedicatedManager', 'support247', 'slaGuarantee'],
     highlight: false,
   },
 ];
