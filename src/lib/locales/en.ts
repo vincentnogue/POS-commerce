@@ -1052,6 +1052,7 @@ export const en: Record<string, string> = {
   "pos.whatsapp.saleReceipt": "Sale receipt",
   "pos.whatsapp.payment": "Payment",
   "pos.whatsapp.ref": "Ref",
+  "pos.whatsapp.autoReceiptTemplate": "Hi ${name}, thanks for your purchase! Receipt ${reference} — Total: ${total}.",
 
   // Users & Roles module
   "users.title": "Users & Roles",
@@ -1210,6 +1211,11 @@ export const en: Record<string, string> = {
   "settings.notifications.title": "Notifications",
   "settings.notifications.desc": "Choose the alerts you want to receive.",
   "settings.notifications.save": "Save preferences",
+  "settings.notifications.customerTitle": "Customer notifications",
+  "settings.notifications.customerDesc": "Unlike the alerts above (which notify you), this sends a message directly to your customer.",
+  "settings.notifications.autoWhatsapp": "Automatically send the receipt via WhatsApp after every sale",
+  "settings.notifications.autoWhatsappNeedsConnection": "Requires connecting Twilio in the Marketplace.",
+  "settings.notifications.goToMarketplace": "Go to Marketplace",
   "settings.notif.sales": "Recorded sales",
   "settings.notif.low_stock": "Low stock",
   "settings.notif.unpaid_invoices": "Unpaid invoices",

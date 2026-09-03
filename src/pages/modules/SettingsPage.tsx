@@ -34,6 +34,9 @@ export function SettingsPage() {
   const [stampUrl, setStampUrl] = useState<string | null>(null);
   const [planInfo, setPlanInfo] = useState<Plan | null>(null);
   const [notifPrefs, setNotifPrefs] = useState<NotifPrefs>(Object.fromEntries(NOTIF_KEYS.map((k) => [k, true])));
+  const [autoWhatsAppReceipt, setAutoWhatsAppReceipt] = useState(tenant?.notification_settings?.auto_send_receipt_whatsapp ?? false);
+  const [autoWhatsAppSaving, setAutoWhatsAppSaving] = useState(false);
+  const [twilioConnected, setTwilioConnected] = useState<boolean | null>(null);
   const [showPwdModal, setShowPwdModal] = useState(false);
   const [pwdForm, setPwdForm] = useState({ next: '' });
   const [pwdError, setPwdError] = useState<string | null>(null);
@@ -150,6 +153,39 @@ export function SettingsPage() {
   };
 
   useState(() => { loadBranding(); });
+
+  // Whether Twilio (the one comms provider with a real send function
+  // behind it — see notifications-twilio) is actually connected, so the
+  // toggle below can say plainly why it's disabled instead of silently
+  // doing nothing when turned on with no connection behind it.
+  useEffect(() => {
+    if (!tenant?.id) return;
+    let cancelled = false;
+    (async () => {
+      const { data: provider } = await supabase.from('integration_providers').select('id').eq('provider_key', 'twilio').maybeSingle();
+      if (!provider) { if (!cancelled) setTwilioConnected(false); return; }
+      const { data: connection } = await supabase
+        .from('integration_connections')
+        .select('id')
+        .eq('tenant_id', tenant.id)
+        .eq('provider_id', provider.id)
+        .eq('status', 'connected')
+        .maybeSingle();
+      if (!cancelled) setTwilioConnected(!!connection);
+    })();
+    return () => { cancelled = true; };
+  }, [tenant?.id]);
+
+  const saveAutoWhatsAppReceipt = async (value: boolean) => {
+    if (!tenant) return;
+    setAutoWhatsAppSaving(true);
+    const { error } = await supabase.from('tenants').update({
+      notification_settings: { ...(tenant.notification_settings ?? {}), auto_send_receipt_whatsapp: value },
+    }).eq('id', tenant.id);
+    setAutoWhatsAppSaving(false);
+    if (error) { toast('error', error.message); setAutoWhatsAppReceipt(!value); return; }
+    await refreshProfile();
+  };
 
   const uploadAsset = async (file: File, type: 'logo' | 'stamp') => {
     if (!tenant) return;
@@ -464,6 +500,32 @@ export function SettingsPage() {
               </div>
               <button onClick={saveNotifs} className="btn-primary mt-4">{t('settings.notifications.save')}</button>
               {saved && <span className="ml-3 text-sm font-medium text-success-700">✓ {t('settings.saved')}</span>}
+
+              <div className="mt-8 border-t border-ink-200 pt-6 dark:border-ink-700">
+                <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t('settings.notifications.customerTitle')}</h3>
+                <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{t('settings.notifications.customerDesc')}</p>
+
+                <label className="mt-4 flex items-center justify-between rounded-xl border border-ink-200 p-3 dark:border-ink-700">
+                  <div>
+                    <span className="text-sm text-ink-700 dark:text-ink-200">{t('settings.notifications.autoWhatsapp')}</span>
+                    {twilioConnected === false && (
+                      <p className="mt-1 text-xs text-warning-600 dark:text-warning-500">
+                        {t('settings.notifications.autoWhatsappNeedsConnection')}{' '}
+                        <button type="button" onClick={() => navigate('/marketplace')} className="underline">
+                          {t('settings.notifications.goToMarketplace')}
+                        </button>
+                      </p>
+                    )}
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={autoWhatsAppReceipt}
+                    disabled={autoWhatsAppSaving || twilioConnected !== true}
+                    onChange={(e) => { setAutoWhatsAppReceipt(e.target.checked); saveAutoWhatsAppReceipt(e.target.checked); }}
+                    className="h-4 w-4 accent-brand-500 disabled:opacity-40"
+                  />
+                </label>
+              </div>
             </div>
           )}
 

@@ -26,6 +26,7 @@ export type Tenant = {
   manual_discount_requires_approval_above?: number;
   loyalty_points_per_currency?: number;
   loyalty_point_value?: number;
+  notification_settings?: { auto_send_receipt_whatsapp?: boolean } | null;
 };
 
 export type Store = {
