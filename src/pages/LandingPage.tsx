@@ -326,6 +326,23 @@ const CTA_VIDEO = {
   poster: 'https://assets.mixkit.co/videos/49137/49137-thumb-360-4.jpg',
 };
 
+// Background video that gracefully degrades to its poster frame if the
+// source fails to load (broken link, ad-blocker, offline dev environment,
+// a since-rotated hosting URL, etc.) — before this, a failed <video> load
+// simply rendered nothing (no onError handling), leaving a blank/black
+// panel behind the hero copy instead of the always-available poster.
+function BackgroundVideo({ src, poster, className }: { src: string; poster: string; className: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return <img src={poster} alt="" className={className} />;
+  }
+  return (
+    <video autoPlay muted loop playsInline poster={poster} className={className} onError={() => setFailed(true)}>
+      <source src={src} type="video/mp4" onError={() => setFailed(true)} />
+    </video>
+  );
+}
+
 // Cycles through: empty → items added one by one → paid → brief pause → reset.
 // Fully static (final, paid state) when the user prefers reduced motion.
 function usePosDemoStep() {
@@ -721,16 +738,7 @@ export function LandingPage() {
               className="w-full h-full object-cover opacity-80"
             />
           ) : (
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster={HERO_VIDEO.poster}
-              className="w-full h-full object-cover opacity-80"
-            >
-              <source src={HERO_VIDEO.src} type="video/mp4" />
-            </video>
+            <BackgroundVideo src={HERO_VIDEO.src} poster={HERO_VIDEO.poster} className="w-full h-full object-cover opacity-80" />
           )}
           <div className="absolute inset-0 bg-ink-950/55" />
         </div>
@@ -863,11 +871,14 @@ export function LandingPage() {
         </section>
       )}
 
-      {/* Real, verifiable stats only — 30+ currencies (src/lib/currency.ts)
-          and 9+ payment processors (seeded integration_providers) are both
-          counted from actual code/data. No customer/merchant count is shown
-          here: there is no real, verifiable number for that yet — showing
-          one (a fabricated "1850+ merchants trust us" briefly existed here)
+      {/* Real, verifiable stats only — 30 currencies (src/lib/currency.ts,
+          CURRENCY_CONFIG) and 12 payment processors (category='payments'
+          rows in the seeded integration_providers migrations) are both
+          counted directly from actual code/data, not estimated — recount
+          both whenever a currency or payment provider is added/removed so
+          this stays accurate. No customer/merchant count is shown here:
+          there is no real, verifiable number for that yet — showing one
+          (a fabricated "1850+ merchants trust us" briefly existed here)
           would be exactly the fake social proof this product's landing page
           explicitly must never contain. Add it back only when there's a
           real, sourced count to show. */}
@@ -876,13 +887,13 @@ export function LandingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             <div className="text-center">
               <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                <CountUp value={30} suffix="+" />
+                <CountUp value={30} />
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.currencies')}</p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                <CountUp value={9} suffix="+" />
+                <CountUp value={12} suffix="+" />
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.processors')}</p>
             </div>
@@ -1289,16 +1300,7 @@ export function LandingPage() {
               className="w-full h-full object-cover opacity-80"
             />
           ) : (
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster={CTA_VIDEO.poster}
-              className="w-full h-full object-cover opacity-80"
-            >
-              <source src={CTA_VIDEO.src} type="video/mp4" />
-            </video>
+            <BackgroundVideo src={CTA_VIDEO.src} poster={CTA_VIDEO.poster} className="w-full h-full object-cover opacity-80" />
           )}
           <div className="absolute inset-0 bg-ink-950/60" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_20%,rgba(20,181,148,0.18),transparent)]" />
