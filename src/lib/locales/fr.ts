@@ -228,6 +228,7 @@ export const fr: Record<string, string> = {
   "subscribe.mobileMoney": "Mobile Money",
   "subscribe.psp.paystack": "Paystack",
   "subscribe.psp.payunit": "PayUnit",
+  "subscribe.psp.paddle": "Paddle",
   "subscribe.noPspConfigured": "Aucun moyen de paiement n'est configuré pour le moment. Contactez le support.",
   "subscribe.popular": "Populaire",
   "subscribe.perYear": "an",
