@@ -420,8 +420,14 @@ function PosLiveDemo() {
       {/* Backing layer for depth — slight offset, no heavy 3D */}
       <div className="absolute inset-0 translate-x-3 translate-y-4 rotate-2 rounded-3xl bg-ink-800/60 border border-ink-700/60 hidden sm:block" aria-hidden="true" />
 
-      {/* Main POS panel */}
-      <div className="relative rounded-3xl border border-ink-700/80 bg-ink-900/95 backdrop-blur shadow-2xl shadow-black/40 overflow-hidden">
+      {/* Main POS panel — deliberately translucent ("frosted glass") rather
+          than a flat opaque card: this sits directly over the hero's
+          background video, and an opaque panel here was hiding most of
+          the footage on the right side (the only part not already
+          darkened by the left-side legibility gradient). Heavy blur
+          keeps every number/line fully legible over any frame of video,
+          while still letting the motion show through. */}
+      <div className="relative rounded-3xl border border-ink-700/80 bg-ink-900/55 backdrop-blur-2xl shadow-2xl shadow-black/40 overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-ink-800">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-action-500" />

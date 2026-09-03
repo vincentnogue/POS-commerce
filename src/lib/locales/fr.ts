@@ -1247,6 +1247,7 @@ export const fr: Record<string, string> = {
   "users.module.administration": "Administration",
   "users.module.marketplace": "Marketplace",
   "users.module.settings": "Paramètres",
+  "users.module.promotions": "Promotions",
   "users.action.view": "Voir",
   "users.action.create": "Créer",
   "users.action.update": "Modifier",
@@ -2185,6 +2186,9 @@ export const fr: Record<string, string> = {
   "login.submit": "Se connecter",
   "login.noAccount": "Pas encore de compte ?",
   "login.createAccount": "Créer un compte",
+  "login.rememberMe": "Se souvenir de moi",
+  "login.orDivider": "ou",
+  "login.googleSignIn": "Continuer avec Google",
 
   // Signup page
   "signup.hero.titleLine1": "Démarrez gratuitement,",
