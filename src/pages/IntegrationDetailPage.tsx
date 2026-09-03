@@ -1,182 +1,121 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, X, Shield, ChevronDown, ExternalLink } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { ArrowLeft, ExternalLink, ShieldCheck, Zap, CheckCircle, Lock } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { useTenant } from '../lib/tenant';
+import { IntegrationConnectionModal, type IntegrationProviderLike, type IntegrationConnectionLike } from '../components/IntegrationConnectionModal';
 
-interface PlanAccess {
-  plan: string;
-  features: { feature: string; included: boolean }[];
-  canConnect: boolean;
-  apiLimit?: string;
+// Rebuilt from scratch. The previous version of this page hardcoded a
+// fake data blob (INTEGRATION_DETAILS) for exactly 2 of the 25+ real
+// entries in `integration_providers` — invented country/currency counts,
+// invented per-plan feature matrices, invented pricing, and a "Connect"
+// button with no onClick that did nothing. Opening any integration other
+// than Stripe or PayPal simply showed "Integration not found".
+//
+// Every field shown below now comes from the same `integration_providers`
+// / `integration_connections` tables the working Marketplace grid reads,
+// and "Connect" opens the exact same IntegrationConnectionModal the grid
+// uses — so every app in the marketplace, not just two of them, gets a
+// real detail page with a real, working connect flow.
+
+interface Provider extends IntegrationProviderLike {
+  description: string;
+  logo_url: string | null;
+  category: string;
+  subcategory: string;
+  auth_type: string;
+  minimum_plan: string | null;
+  webhook_support: boolean;
+  is_featured: boolean;
 }
 
-const INTEGRATION_DETAILS: Record<string, any> = {
-  stripe: {
-    name: 'Stripe',
-    logo: '💳',
-    description: 'Process payments globally with the most trusted payment processor',
-    countries: 195,
-    currencies: 135,
-    volume: '1M+ transactions/day',
-    pricing: '2.9% + $0.30 per transaction',
-    features: [
-      'Real-time payment processing',
-      'Subscription billing & recurring charges',
-      'Automated invoicing',
-      'Chargeback & fraud protection',
-      'Multi-currency support',
-      'Webhook events & API',
-      'PCI DSS compliance',
-      '24/7 support',
-    ],
-    plans: [
-      {
-        plan: 'Starter ($9/mo)',
-        features: [
-          { feature: 'Basic payment processing', included: true },
-          { feature: 'USD only', included: true },
-          { feature: 'Webhook notifications', included: true },
-          { feature: 'Multi-currency support', included: false },
-          { feature: 'Advanced fraud tools', included: false },
-          { feature: 'Payout scheduling', included: false },
-        ],
-        canConnect: true,
-        apiLimit: '100 calls/min',
-      },
-      {
-        plan: 'Professional ($19/mo)',
-        features: [
-          { feature: 'Full payment processing', included: true },
-          { feature: 'Multi-currency (50+)', included: true },
-          { feature: 'Webhook notifications', included: true },
-          { feature: 'Basic fraud detection', included: true },
-          { feature: 'Advanced fraud tools', included: false },
-          { feature: 'Payout scheduling', included: false },
-        ],
-        canConnect: true,
-        apiLimit: '500 calls/min',
-      },
-      {
-        plan: 'Business ($49/mo)',
-        features: [
-          { feature: 'Full payment processing', included: true },
-          { feature: 'Multi-currency (135+)', included: true },
-          { feature: 'Advanced webhooks', included: true },
-          { feature: 'Advanced fraud detection', included: true },
-          { feature: 'Payout scheduling', included: true },
-          { feature: 'Custom integrations', included: true },
-        ],
-        canConnect: true,
-        apiLimit: '1000 calls/min',
-      },
-      {
-        plan: 'Enterprise ($119/mo)',
-        features: [
-          { feature: 'Full payment processing', included: true },
-          { feature: 'All currencies (135+)', included: true },
-          { feature: 'Advanced webhooks', included: true },
-          { feature: 'Advanced fraud detection', included: true },
-          { feature: 'Payout scheduling', included: true },
-          { feature: 'Custom integrations', included: true },
-        ],
-        canConnect: true,
-        apiLimit: 'Unlimited',
-      },
-    ],
-    docs: 'https://stripe.com/docs',
-    support: 'https://support.stripe.com',
-  },
-  paypal: {
-    name: 'PayPal',
-    logo: '🅿️',
-    description: 'Accept payments from 300M+ PayPal users worldwide',
-    countries: 200,
-    currencies: 100,
-    volume: '2M+ transactions/day',
-    pricing: '2.99% + $0.30 per transaction',
-    features: [
-      'PayPal wallet integration',
-      'Credit card processing',
-      'Local payment methods',
-      'Subscription & recurring billing',
-      'Buyer & seller protection',
-      'Smart Payment Buttons',
-      'Cryptocurrency ready',
-      'Advanced reporting',
-    ],
-    plans: [
-      {
-        plan: 'Starter ($9/mo)',
-        features: [
-          { feature: 'PayPal wallet only', included: true },
-          { feature: 'Single currency', included: true },
-          { feature: 'Basic reporting', included: true },
-          { feature: 'Credit card processing', included: false },
-          { feature: 'Webhooks', included: false },
-        ],
-        canConnect: true,
-        apiLimit: '100 calls/min',
-      },
-      {
-        plan: 'Professional ($19/mo)',
-        features: [
-          { feature: 'PayPal wallet', included: true },
-          { feature: 'Multi-currency (50+)', included: true },
-          { feature: 'Advanced reporting', included: true },
-          { feature: 'Credit card processing', included: true },
-          { feature: 'Webhooks', included: false },
-        ],
-        canConnect: true,
-        apiLimit: '500 calls/min',
-      },
-      {
-        plan: 'Business ($49/mo)',
-        features: [
-          { feature: 'Full payment methods', included: true },
-          { feature: 'Multi-currency (100+)', included: true },
-          { feature: 'Advanced reporting', included: true },
-          { feature: 'Webhooks & APIs', included: true },
-          { feature: 'Custom integration', included: true },
-        ],
-        canConnect: true,
-        apiLimit: '1000 calls/min',
-      },
-      {
-        plan: 'Enterprise ($119/mo)',
-        features: [
-          { feature: 'All payment methods', included: true },
-          { feature: 'All currencies (100+)', included: true },
-          { feature: 'Advanced APIs', included: true },
-          { feature: 'Custom integration', included: true },
-          { feature: 'Dedicated support', included: true },
-        ],
-        canConnect: true,
-        apiLimit: 'Unlimited',
-      },
-    ],
-    docs: 'https://developer.paypal.com/docs',
-    support: 'https://www.paypal.com/us/webapps/mpp/contact-us',
-  },
+const PLAN_LABEL: Record<string, string> = {
+  basic: 'Starter', starter: 'Starter', pro: 'Pro', premium: 'Premium', entreprise: 'Entreprise',
 };
+const PLAN_HIERARCHY = ['basic', 'starter', 'pro', 'premium', 'entreprise'];
+
+function authTypeLabel(authType: string): string {
+  if (authType === 'oauth2' || authType === 'oauth') return 'OAuth';
+  if (authType.startsWith('api_key')) return 'API Key';
+  return authType.replace(/_/g, ' ');
+}
+
+function capabilityLabel(cap: string): string {
+  return cap.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 export function IntegrationDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
+  const { tenant } = useTenant();
 
-  const integration = INTEGRATION_DETAILS[id || ''];
+  const [provider, setProvider] = useState<Provider | null>(null);
+  const [connection, setConnection] = useState<IntegrationConnectionLike | undefined>(undefined);
+  const [planCode, setPlanCode] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
-  if (!integration) {
+  const load = useCallback(async () => {
+    if (!id) return;
+    setLoading(true);
+    const { data: providerRow } = await supabase
+      .from('integration_providers')
+      .select('*')
+      .ilike('provider_key', id)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (!providerRow) {
+      setNotFound(true);
+      setLoading(false);
+      return;
+    }
+    setProvider(providerRow as Provider);
+
+    if (tenant?.id) {
+      const { data: connectionRow } = await supabase
+        .from('integration_connections')
+        .select('*')
+        .eq('tenant_id', tenant.id)
+        .eq('provider_id', providerRow.id)
+        .maybeSingle();
+      setConnection(connectionRow ?? undefined);
+    }
+
+    if (tenant?.plan_id) {
+      const { data: planRow } = await supabase.from('plans').select('code').eq('id', tenant.plan_id).maybeSingle();
+      setPlanCode(planRow?.code ?? null);
+    }
+    setLoading(false);
+  }, [id, tenant?.id, tenant?.plan_id]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const isLocked = (() => {
+    if (!provider?.minimum_plan) return false;
+    const currentIdx = PLAN_HIERARCHY.indexOf(planCode?.toLowerCase() || 'starter');
+    const requiredIdx = PLAN_HIERARCHY.indexOf(provider.minimum_plan.toLowerCase());
+    return currentIdx < requiredIdx;
+  })();
+
+  const isConnected = connection?.status === 'connected';
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-ink-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-ink-200 border-t-brand-500" />
+      </div>
+    );
+  }
+
+  if (notFound || !provider) {
     return (
       <div className="min-h-screen bg-white dark:bg-ink-950">
-        <div className="max-w-6xl mx-auto px-6 py-12">
-          <button
-            onClick={() => navigate('/marketplace')}
-            className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-8"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Back to Marketplace
-          </button>
-          <p className="text-gray-900 dark:text-white text-lg">Integration not found</p>
+        <div className="mx-auto max-w-3xl px-6 py-16 text-center">
+          <p className="mb-6 text-lg text-ink-700 dark:text-ink-300">This integration isn't available.</p>
+          <Link to="/marketplace" className="btn-primary inline-flex">
+            <ArrowLeft size={16} /> Back to Marketplace
+          </Link>
         </div>
       </div>
     );
@@ -185,189 +124,138 @@ export function IntegrationDetailPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-ink-950">
       {/* Header */}
-      <div className="border-b border-gray-200 dark:border-ink-700 bg-gray-50 dark:bg-ink-900">
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <button
-            onClick={() => navigate('/marketplace')}
-            className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-6"
-          >
-            <ArrowLeft className="w-5 h-5" />
+      <div className="border-b border-ink-200 bg-ink-50 dark:border-ink-700 dark:bg-ink-900">
+        <div className="mx-auto max-w-5xl px-6 py-8">
+          <Link to="/marketplace" className="mb-6 inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+            <ArrowLeft className="h-5 w-5" />
             Back to Marketplace
-          </button>
+          </Link>
 
-          <div className="flex items-start gap-6">
-            <div className="text-6xl">{integration.logo}</div>
-            <div className="flex-1">
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                {integration.name}
-              </h1>
-              <p className="text-xl text-gray-600 dark:text-ink-300 mb-6">{integration.description}</p>
+          <div className="flex items-start gap-5">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700">
+              {provider.logo_url ? (
+                <img src={provider.logo_url} alt={provider.provider_name} className="h-11 w-11 object-contain" />
+              ) : (
+                <Zap className="h-7 w-7 text-ink-400" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-3xl font-bold text-ink-900 dark:text-white">{provider.provider_name}</h1>
+                {provider.is_featured && (
+                  <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-semibold text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">
+                    Featured
+                  </span>
+                )}
+                {isConnected && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-success-100 px-2.5 py-0.5 text-xs font-semibold text-success-700 dark:bg-success-900/30 dark:text-success-400">
+                    <CheckCircle size={12} /> Connected
+                  </span>
+                )}
+              </div>
+              <p className="mt-2 text-lg text-ink-600 dark:text-ink-300">{provider.description}</p>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 dark:text-ink-400 mb-1">Countries</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{integration.countries}</p>
-                </div>
-                <div className="bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 dark:text-ink-400 mb-1">Currencies</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{integration.currencies}</p>
-                </div>
-                <div className="bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 dark:text-ink-400 mb-1">Volume</p>
-                  <p className="text-sm font-bold text-gray-900 dark:text-white">{integration.volume}</p>
-                </div>
-                <div className="bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 dark:text-ink-400 mb-1">Pricing</p>
-                  <p className="text-sm font-bold text-gray-900 dark:text-white">{integration.pricing}</p>
-                </div>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <span className="rounded-full border border-ink-200 bg-white px-3 py-1 text-xs font-medium capitalize text-ink-600 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-300">
+                  {provider.category}
+                </span>
+                <span className="rounded-full border border-ink-200 bg-white px-3 py-1 text-xs font-medium capitalize text-ink-600 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-300">
+                  {provider.subcategory}
+                </span>
+                <span className="rounded-full border border-ink-200 bg-white px-3 py-1 text-xs font-medium text-ink-600 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-300">
+                  {authTypeLabel(provider.auth_type)}
+                </span>
+                {provider.webhook_support && (
+                  <span className="rounded-full border border-ink-200 bg-white px-3 py-1 text-xs font-medium text-ink-600 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-300">
+                    Webhooks
+                  </span>
+                )}
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        {/* Features */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Key Features</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {integration.features.map((feature: string, idx: number) => (
-              <div key={idx} className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-ink-800 rounded-lg border border-gray-200 dark:border-ink-700">
-                <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-1" />
-                <span className="text-gray-700 dark:text-ink-100">{feature}</span>
+      {/* Main content */}
+      <div className="mx-auto max-w-5xl px-6 py-12">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
+          {/* Capabilities */}
+          <div className="lg:col-span-2">
+            <h2 className="mb-5 text-xl font-bold text-ink-900 dark:text-white">Capabilities</h2>
+            {provider.capabilities?.length ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {provider.capabilities.map((cap) => (
+                  <div key={cap} className="flex items-center gap-2.5 rounded-lg border border-ink-200 bg-ink-50 p-3 dark:border-ink-700 dark:bg-ink-800">
+                    <CheckCircle className="h-4 w-4 shrink-0 text-success-600" />
+                    <span className="text-sm text-ink-700 dark:text-ink-200">{capabilityLabel(cap)}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            ) : (
+              <p className="text-sm text-ink-500 dark:text-ink-400">No capabilities listed for this integration yet.</p>
+            )}
 
-        {/* Plan Comparison Matrix */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Plan Access Levels</h2>
-          <p className="text-gray-600 dark:text-ink-300 mb-8">
-            Click on each plan to see what features are available
-          </p>
-
-          <div className="space-y-4">
-            {integration.plans.map((plan: PlanAccess, idx: number) => {
-              const isExpanded = expandedPlan === `${id}-${idx}`;
-
-              return (
-                <div key={idx} className="rounded-lg border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-800 overflow-hidden">
-                  <button
-                    onClick={() => setExpandedPlan(isExpanded ? null : `${id}-${idx}`)}
-                    className="w-full px-6 py-5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-ink-700 transition text-left"
-                  >
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">{plan.plan}</h3>
-                      {plan.apiLimit && (
-                        <p className="text-sm text-gray-500 dark:text-ink-400 mt-1">API Limit: {plan.apiLimit}</p>
-                      )}
-                    </div>
-                    <ChevronDown
-                      className={`w-6 h-6 text-gray-400 transition transform flex-shrink-0 ${
-                        isExpanded ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </button>
-
-                  {isExpanded && (
-                    <div className="px-6 py-6 bg-gray-50 dark:bg-ink-700 border-t border-gray-200 dark:border-ink-600">
-                      <div className="space-y-3 mb-6">
-                        {plan.features.map((item: any, fIdx: number) => (
-                          <div key={fIdx} className="flex items-center gap-3">
-                            {item.included ? (
-                              <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                            ) : (
-                              <X className="w-5 h-5 text-gray-300 dark:text-ink-600 flex-shrink-0" />
-                            )}
-                            <span
-                              className={`text-base ${
-                                item.included
-                                  ? 'text-gray-900 dark:text-white'
-                                  : 'text-gray-400 dark:text-ink-500 line-through'
-                              }`}
-                            >
-                              {item.feature}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-
-                      <button
-                        className={`w-full px-6 py-3 rounded-full font-semibold transition ${
-                          plan.canConnect
-                            ? 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700'
-                            : 'bg-gray-200 dark:bg-ink-600 text-gray-500 dark:text-ink-400 cursor-not-allowed'
-                        }`}
-                        disabled={!plan.canConnect}
-                      >
-                        {plan.canConnect ? `Connect ${integration.name}` : 'Upgrade to enable'}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Security Section */}
-        <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-8 mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-            <Shield className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            Security & Compliance
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <p className="font-bold text-gray-900 dark:text-white mb-2">🔐 Encryption</p>
-              <p className="text-gray-700 dark:text-ink-300">AES-256-GCM encryption for all credentials</p>
+            <div className="mt-10 rounded-lg border border-ink-200 bg-ink-50 p-6 dark:border-ink-700 dark:bg-ink-800">
+              <h3 className="mb-3 flex items-center gap-2 font-bold text-ink-900 dark:text-white">
+                <ShieldCheck className="h-5 w-5 text-brand-500" />
+                Security
+              </h3>
+              <p className="text-sm text-ink-600 dark:text-ink-400">
+                Credentials are encrypted at rest and scoped to your organization only — never shared across tenants.
+                Authentication method: <strong className="text-ink-800 dark:text-ink-200">{authTypeLabel(provider.auth_type)}</strong>.
+              </p>
             </div>
-            <div>
-              <p className="font-bold text-gray-900 dark:text-white mb-2">✅ Compliance</p>
-              <p className="text-gray-700 dark:text-ink-300">PCI DSS, SOC 2 Type II, GDPR compliant</p>
-            </div>
-            <div>
-              <p className="font-bold text-gray-900 dark:text-white mb-2">🔔 Webhooks</p>
-              <p className="text-gray-700 dark:text-ink-300">HMAC-SHA256 signed verification</p>
-            </div>
-          </div>
-        </div>
 
-        {/* Resources */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <a
-            href={integration.docs}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-6 rounded-lg bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 hover:border-blue-500 dark:hover:border-blue-500 transition"
-          >
-            <div className="flex items-center justify-between">
+            <a
+              href={provider.documentation_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 flex items-center justify-between rounded-lg border border-ink-200 bg-white p-5 transition hover:border-brand-300 dark:border-ink-700 dark:bg-ink-800 dark:hover:border-brand-500"
+            >
               <div>
-                <p className="font-bold text-gray-900 dark:text-white mb-1">📚 Documentation</p>
-                <p className="text-sm text-gray-600 dark:text-ink-400">Read official docs</p>
+                <p className="mb-1 font-bold text-ink-900 dark:text-white">Documentation</p>
+                <p className="text-sm text-ink-500 dark:text-ink-400">Read the official integration docs</p>
               </div>
-              <ExternalLink className="w-5 h-5 text-gray-400" />
-            </div>
-          </a>
+              <ExternalLink className="h-5 w-5 text-ink-400" />
+            </a>
+          </div>
 
-          <a
-            href={integration.support}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-6 rounded-lg bg-white dark:bg-ink-800 border border-gray-200 dark:border-ink-700 hover:border-blue-500 dark:hover:border-blue-500 transition"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-bold text-gray-900 dark:text-white mb-1">🆘 Support</p>
-                <p className="text-sm text-gray-600 dark:text-ink-400">Get help from {integration.name}</p>
-              </div>
-              <ExternalLink className="w-5 h-5 text-gray-400" />
+          {/* Connect sidebar */}
+          <div>
+            <div className="sticky top-6 rounded-2xl2 border border-ink-200 bg-white p-6 shadow-soft dark:border-ink-700 dark:bg-ink-800">
+              {isConnected ? (
+                <>
+                  <div className="mb-4 rounded-lg border border-success-100 bg-success-50 p-3 text-sm text-success-700 dark:border-success-600/40 dark:bg-success-600/20 dark:text-success-400">
+                    Connected{connection?.account_name ? ` — ${connection.account_name}` : ''}
+                  </div>
+                  <button onClick={() => setShowModal(true)} className="btn-ghost w-full">Manage connection</button>
+                </>
+              ) : isLocked ? (
+                <>
+                  <div className="mb-4 flex items-center gap-2 rounded-lg bg-warning-50 p-3 text-sm text-warning-700 dark:bg-warning-600/20 dark:text-warning-400">
+                    <Lock size={16} className="shrink-0" />
+                    Requires the {PLAN_LABEL[provider.minimum_plan?.toLowerCase() ?? ''] ?? provider.minimum_plan} plan or higher.
+                  </div>
+                  <Link to="/pricing" className="btn-primary w-full justify-center">Upgrade plan</Link>
+                </>
+              ) : (
+                <button onClick={() => setShowModal(true)} className="btn-primary w-full justify-center">
+                  Connect {provider.provider_name}
+                </button>
+              )}
             </div>
-          </a>
+          </div>
         </div>
       </div>
+
+      {showModal && (
+        <IntegrationConnectionModal
+          provider={provider}
+          connection={connection}
+          onClose={() => setShowModal(false)}
+          onSuccess={() => { setShowModal(false); load(); }}
+        />
+      )}
     </div>
   );
 }

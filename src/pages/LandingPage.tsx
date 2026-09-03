@@ -967,9 +967,12 @@ export function LandingPage() {
       {/* Real, verifiable stats only. 1,893+ active clients is a confirmed,
           sourced figure (per business owner, 2026-09-01) — update this
           number as it changes, never let it go stale or become a guess.
-          30+ currencies (src/lib/currency.ts) and 9+ payment processors
-          (seeded integration_providers) are both counted from actual
-          code/data. */}
+          30 currencies (src/lib/currency.ts, CURRENCY_CONFIG) and 12
+          payment processors (category='payments' rows in the seeded
+          integration_providers migrations) are both counted directly from
+          actual code/data, not estimated — recount both whenever a
+          currency or payment provider is added/removed so this stays
+          accurate. */}
       <section className="bg-gray-50 dark:bg-ink-900 py-12 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
@@ -981,13 +984,13 @@ export function LandingPage() {
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                <CountUp value={30} suffix="+" />
+                <CountUp value={30} />
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.currencies')}</p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                <CountUp value={9} suffix="+" />
+                <CountUp value={12} suffix="+" />
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.processors')}</p>
             </div>
@@ -1674,6 +1677,10 @@ export function LandingPage() {
               <ul className="space-y-2.5 text-sm text-ink-400">
                 <li><Link to="/privacy" className="transition hover:text-brand-400">{t('pLanding.footer.privacy')}</Link></li>
                 <li><Link to="/terms" className="transition hover:text-brand-400">{t('pLanding.footer.terms')}</Link></li>
+                <li><Link to="/refund-policy" className="transition hover:text-brand-400">{t('pLanding.footer.refundPolicy')}</Link></li>
+                <li><Link to="/cookie-policy" className="transition hover:text-brand-400">{t('pLanding.footer.cookiePolicy')}</Link></li>
+                <li><Link to="/acceptable-use" className="transition hover:text-brand-400">{t('pLanding.footer.acceptableUse')}</Link></li>
+                <li><Link to="/sla" className="transition hover:text-brand-400">{t('pLanding.footer.sla')}</Link></li>
                 <li><Link to="/legal" className="transition hover:text-brand-400">{t('pLanding.footer.legalNotice')}</Link></li>
               </ul>
             </div>

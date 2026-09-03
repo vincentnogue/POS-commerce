@@ -584,6 +584,42 @@ export function POSPage() {
   const splitTotal = splitTenders.reduce((s, t) => s + (Number(t.amount) || 0), 0);
   const splitRemaining = total - splitTotal;
 
+  // Looks up the tenant's active Twilio connection and sends the sale
+  // receipt via WhatsApp (falls back to SMS if the account has no WhatsApp
+  // sender configured — notifications-twilio reports that via its error
+  // message, so we just try WhatsApp first since that's what the setting
+  // says it's for). Two small queries instead of caching the connection:
+  // this only runs when the setting is on and a sale just completed, so
+  // it's not a hot path.
+  const sendAutomaticWhatsAppReceipt = async (tenantId: string, phone: string, name: string | null, reference: string, saleTotal: number) => {
+    const { data: twilioProvider } = await supabase.from('integration_providers').select('id').eq('provider_key', 'twilio').maybeSingle();
+    if (!twilioProvider) return;
+    const { data: connection } = await supabase
+      .from('integration_connections')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('provider_id', twilioProvider.id)
+      .eq('status', 'connected')
+      .maybeSingle();
+    if (!connection) return;
+
+    await supabase.functions.invoke('notifications-twilio', {
+      body: {
+        tenant_id: tenantId,
+        connection_id: connection.id,
+        action: 'send_whatsapp',
+        channel: 'whatsapp',
+        recipients: [{ phone, name: name ?? undefined }],
+        template: t('pos.whatsapp.autoReceiptTemplate'),
+        variables: {
+          name: name ?? '',
+          reference,
+          total: formatMoney(saleTotal, currency),
+        },
+      },
+    });
+  };
+
   const checkout = async () => {
     if (!tenant || cart.length === 0 || locked) return;
     if (!daySession) {
@@ -758,6 +794,17 @@ export function POSPage() {
       return;
     }
 
+    // Commission (migration 0075 + RPC in 0078): best-effort, non-blocking
+    // like the loyalty/gift-card calls below — the sale is already
+    // completed and paid, a missing commission row just means it needs a
+    // manual reconciliation, never a reason to fail or roll back the sale.
+    if (member) {
+      const { error: commissionErr } = await supabase.rpc('compute_sale_commission', {
+        p_tenant_id: tenant.id, p_sale_id: sale.id, p_member_id: member.id,
+      });
+      if (commissionErr) console.error('compute_sale_commission failed (non-blocking):', commissionErr.message);
+    }
+
     // Actually consume the serials/batches now that each sale_items row
     // has a real id to link them to — the availability was already
     // checked above, but these calls are still the hard, race-proof
@@ -899,6 +946,20 @@ export function POSPage() {
       foreignCurrency: activeSaleCurrency !== tenant?.currency ? activeSaleCurrency : null,
       foreignAmount: activeSaleCurrency !== tenant?.currency ? totalInSaleCurrency : null,
     });
+
+    // Automatic WhatsApp receipt (migration 0079 + notifications-twilio):
+    // the marketplace lets a tenant "connect" Twilio/WhatsApp, but nothing
+    // ever called the working notifications-twilio function afterwards —
+    // connecting had zero effect anywhere in the app. This is the first
+    // real consumer of that connection. Best-effort and silent on failure,
+    // same posture as commission/loyalty: the sale is already done, a
+    // missed WhatsApp receipt is not a reason to interrupt the cashier.
+    if (tenant.notification_settings?.auto_send_receipt_whatsapp && customer?.phone) {
+      sendAutomaticWhatsAppReceipt(tenant.id, customer.phone, customer.name, ref, total).catch((err) =>
+        console.error('sendAutomaticWhatsAppReceipt failed (non-blocking):', err)
+      );
+    }
+
     setCart([]);
     setPaymentReference('');
     setPaidAmount('');

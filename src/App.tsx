@@ -31,6 +31,10 @@ const PricingPage = lazy(() => import('./pages/PricingPage').then((m) => ({ defa
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })));
 const TermsPage = lazy(() => import('./pages/TermsPage').then((m) => ({ default: m.TermsPage })));
 const LegalPage = lazy(() => import('./pages/LegalPage').then((m) => ({ default: m.LegalPage })));
+const RefundPolicyPage = lazy(() => import('./pages/RefundPolicyPage').then((m) => ({ default: m.RefundPolicyPage })));
+const CookiePolicyPage = lazy(() => import('./pages/CookiePolicyPage').then((m) => ({ default: m.CookiePolicyPage })));
+const AcceptableUsePage = lazy(() => import('./pages/AcceptableUsePage').then((m) => ({ default: m.AcceptableUsePage })));
+const SlaPage = lazy(() => import('./pages/SlaPage').then((m) => ({ default: m.SlaPage })));
 const AboutPage = lazy(() => import('./pages/AboutPage').then((m) => ({ default: m.AboutPage })));
 const BlogPage = lazy(() => import('./pages/BlogPage').then((m) => ({ default: m.BlogPage })));
 const CareersPage = lazy(() => import('./pages/CareersPage').then((m) => ({ default: m.CareersPage })));
@@ -58,6 +62,7 @@ const PurchasesPage = lazy(() => import('./pages/modules/PurchasesPage').then((m
 const QuotesPage = lazy(() => import('./pages/modules/QuotesPage').then((m) => ({ default: m.QuotesPage })));
 const TimeClockPage = lazy(() => import('./pages/modules/TimeClockPage').then((m) => ({ default: m.TimeClockPage })));
 const TasksPage = lazy(() => import('./pages/modules/TasksPage').then((m) => ({ default: m.TasksPage })));
+const CommissionsPage = lazy(() => import('./pages/modules/CommissionsPage').then((m) => ({ default: m.CommissionsPage })));
 const PromotionsPage = lazy(() => import('./pages/modules/PromotionsPage').then((m) => ({ default: m.PromotionsPage })));
 const ReportsPage = lazy(() => import('./pages/modules/ReportsPage').then((m) => ({ default: m.ReportsPage })));
 const AccountingPage = lazy(() => import('./pages/modules/AccountingPage').then((m) => ({ default: m.AccountingPage })));
@@ -91,6 +96,10 @@ export default function App() {
                     <Route path="/privacy" element={<PrivacyPage />} />
                     <Route path="/terms" element={<TermsPage />} />
                     <Route path="/legal" element={<LegalPage />} />
+                    <Route path="/refund-policy" element={<RefundPolicyPage />} />
+                    <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+                    <Route path="/acceptable-use" element={<AcceptableUsePage />} />
+                    <Route path="/sla" element={<SlaPage />} />
                     <Route path="/about" element={<AboutPage />} />
                     <Route path="/blog" element={<BlogPage />} />
                     <Route path="/careers" element={<CareersPage />} />
@@ -155,6 +164,7 @@ export default function App() {
                       <Route path="/users" element={<UsersPage />} />
                       <Route path="/timeclock" element={<TimeClockPage />} />
                       <Route path="/tasks" element={<TasksPage />} />
+                      <Route path="/commissions" element={<CommissionsPage />} />
                       <Route path="/promotions" element={<PromotionsPage />} />
                       <Route path="/administration" element={<AdministrationPage />} />
                       <Route path="/marketplace" element={<MarketplacePage />} />
