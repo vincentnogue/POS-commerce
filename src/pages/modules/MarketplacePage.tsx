@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../lib/auth';
 import { useTenant } from '../../lib/tenant';
-import { Search, Grid, List, Plus, CheckCircle, AlertCircle, ExternalLink, Trash2 } from 'lucide-react';
-import { IntegrationCredentialForm } from '../../components/IntegrationCredentialForm';
+import { Search, Grid, List, Plus, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
+import { IntegrationConnectionModal } from '../../components/IntegrationConnectionModal';
 
 interface IntegrationProvider {
   id: string;
@@ -523,130 +523,7 @@ function IntegrationCard({ provider, connection, isLocked, onConnect, viewMode }
   );
 }
 
-interface ConnectionModalProps {
-  provider: IntegrationProvider;
-  connection: IntegrationConnection | undefined;
-  onClose: () => void;
-  onSuccess: () => void;
-}
-
-function IntegrationConnectionModal({ provider, connection, onClose, onSuccess }: ConnectionModalProps) {
-  const { tenant } = useTenant();
-  const [showForm, setShowForm] = useState(!connection || connection.status === 'disconnected' || connection.status === 'error');
-  const [disconnecting, setDisconnecting] = useState(false);
-
-  const handleDisconnect = async () => {
-    if (!connection || !tenant?.id) return;
-
-    setDisconnecting(true);
-    try {
-      const { error } = await supabase
-        .from('integration_connections')
-        .update({ status: 'disconnected', disconnected_at: new Date().toISOString() })
-        .eq('id', connection.id)
-        .eq('tenant_id', tenant.id);
-
-      if (error) throw error;
-
-      onSuccess();
-    } catch (err) {
-      console.error('Failed to disconnect:', err);
-    } finally {
-      setDisconnecting(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 p-4 z-50">
-      <div className="w-full max-w-md bg-white dark:bg-ink-800 rounded-lg shadow-xl">
-        {/* Header */}
-        <div className="border-b border-ink-200 dark:border-ink-700 p-6">
-          <h2 className="text-xl font-bold text-ink-900 dark:text-white">
-            {connection?.status === 'connected' ? 'Manage' : 'Connect'} {provider.provider_name}
-          </h2>
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-ink-500 hover:text-ink-700 dark:hover:text-ink-300"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="p-6">
-          {connection?.status === 'connected' && !showForm ? (
-            // Connected state
-            <div className="space-y-6">
-              <div className="rounded-lg bg-success-50 dark:bg-success-600/20 border border-success-100 dark:border-success-600/40 p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="w-5 h-5 text-success-600 dark:text-success-500" />
-                  <span className="font-semibold text-success-600 dark:text-success-500">Connected</span>
-                </div>
-                <p className="text-sm text-success-600 dark:text-success-500">
-                  Account: <strong>{connection.account_name || 'Connected account'}</strong>
-                </p>
-                {connection.last_tested_at && (
-                  <p className="text-xs text-success-600 dark:text-success-500 mt-2">
-                    Last tested: {new Date(connection.last_tested_at).toLocaleString()}
-                  </p>
-                )}
-              </div>
-
-              {/* Webhook status */}
-              {provider.capabilities.includes('webhooks') && (
-                <div className="p-4 bg-ink-50 dark:bg-ink-700 rounded-lg">
-                  <p className="text-sm font-medium text-ink-900 dark:text-white mb-2">Webhook Status</p>
-                  <p className="text-xs text-ink-600 dark:text-ink-400">
-                    Webhooks are configured and ready to receive events.
-                  </p>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="w-full px-4 py-2 border border-ink-300 dark:border-ink-600 rounded-full text-ink-900 dark:text-white font-medium hover:bg-ink-50 dark:hover:bg-ink-700 transition-colors"
-                >
-                  Update Credentials
-                </button>
-                <button
-                  onClick={handleDisconnect}
-                  disabled={disconnecting}
-                  className="w-full px-4 py-2 border border-error-100 dark:border-error-500 rounded-full text-error-500 dark:text-error-500 font-medium hover:bg-error-50 dark:hover:bg-error-600/20 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  {disconnecting ? 'Disconnecting...' : 'Disconnect'}
-                </button>
-              </div>
-
-              <a
-                href={provider.documentation_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 text-sm text-brand-500 dark:text-brand-400 hover:text-brand-600 mt-4"
-              >
-                <ExternalLink className="w-4 h-4" />
-                View Documentation
-              </a>
-            </div>
-          ) : (
-            // Form state
-            <>
-              <IntegrationCredentialForm
-                providerKey={provider.provider_key}
-                providerName={provider.provider_name}
-                authSchema={provider.auth_schema || { type: 'object', properties: {}, required: [] }}
-                tenantId={tenant?.id || ''}
-                onSuccess={() => {
-                  setShowForm(false);
-                  onSuccess();
-                }}
-                onCancel={onClose}
-              />
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+// IntegrationConnectionModal moved to src/components/IntegrationConnectionModal.tsx
+// so the exact same connect/manage/disconnect flow backs the marketplace
+// grid, the list view, AND the /integration/:id detail page — see that
+// file's header comment for why this was extracted.
