@@ -1986,7 +1986,8 @@ export const en: Record<string, string> = {
   "pLanding.footer.cookiePolicy": "Cookie policy",
   "pLanding.footer.acceptableUse": "Acceptable use",
   "pLanding.footer.sla": "Service level agreement",
-  "pLanding.footer.rights": "© {year} POS Flow — built by LiAfrik, Dubai & Africa. All rights reserved.",
+  "pLanding.footer.rightsPrefix": "© {year} POS Flow — built by ",
+  "pLanding.footer.rightsSuffix": ", Dubai & Africa. All rights reserved.",
 
   "resources.title": "Resource Center",
   "resources.subtitle": "Guides, documentation, news and support — everything you need to get the most out of POS Flow.",
