@@ -1,82 +1,56 @@
 import { useState, type SVGProps } from 'react';
 import { Search, ChevronDown, BookOpen, Zap, Shield, Users, CreditCard, Globe, Check, X } from 'lucide-react';
 import { PLANS, TRIAL_DAYS } from '../lib/plans';
-import { en } from '../lib/locales/en';
+import { useI18n } from '../lib/i18n';
 
 interface FAQItem {
   id: string;
-  category: string;
-  question: string;
-  answer: string;
+  categoryKey: string;
+  questionKey: string;
+  answerKey: string;
+  answerVars?: Record<string, string>;
   icon?: typeof BookOpen;
 }
 
-// FIX: every fact below is now checked against the actual product instead of
-// being generic SaaS boilerplate. In particular this used to claim "SOC 2
-// Type II compliance" -- a specific, verifiable certification this product
-// does not hold -- and plan numbers that didn't match src/lib/plans.ts (the
-// real plans are Starter/Pro/Premium/Entreprise, not
-// Starter/Professional/Business/Enterprise, and team-member limits were
-// invented). See the Plan comparison table further down, which now renders
-// PLANS directly instead of a separately hand-typed (and driftable) table.
-const FAQ_ITEMS: FAQItem[] = [
-  {
-    id: 'getting-started',
-    category: 'Getting Started',
-    question: 'How do I set up my workspace?',
-    answer: 'Sign up with your email, confirm your account, and the onboarding wizard walks you through creating your first store and inviting your team. No credit card is required during the trial.',
-    icon: Zap,
-  },
-  {
-    id: 'integrations',
-    category: 'Integrations',
-    question: 'What integrations are available?',
-    answer: "The Marketplace lists every connectable provider -- payments (Stripe, PayPal, Adyen, Mollie, Flutterwave, Paystack, M-Pesa, Wave Money, PayUnit), shipping (DHL), messaging (Twilio, WhatsApp Business), and POS Flow's own webhooks/API. Some providers require a specific plan or higher; the required plan is shown on each provider's card in the Marketplace.",
-    icon: Globe,
-  },
-  {
-    id: 'payment-methods',
-    category: 'Payments & Billing',
-    question: 'What payment methods can my customers pay with?',
-    answer: "At the POS, a sale can be split across cash, card, and mobile money in any combination. For online payments, it depends on which payment provider you've connected in Marketplace (Stripe, PayPal, Adyen, Mollie, Flutterwave, Paystack, M-Pesa, or Wave Money).",
-    icon: CreditCard,
-  },
-  {
-    id: 'trial',
-    category: 'Trial & Subscription',
-    question: 'How long is the trial period?',
-    answer: `Every plan includes a ${TRIAL_DAYS}-day free trial, no credit card required. Billing is monthly or annual (annual gets you 2 months free). You can cancel anytime from Settings; your access stays active until the end of the period you already paid for.`,
-    icon: Zap,
-  },
-  {
-    id: 'security',
-    category: 'Security & Data',
-    question: 'How is my data protected?',
-    answer: "Your data lives in a Postgres database (via Supabase) with Row Level Security policies on every table, so one tenant's data is never visible to another's queries -- it's enforced by the database itself, not just application code. All traffic runs over HTTPS/TLS, and staff PIN codes are stored hashed (bcrypt), never in plain text.",
-    icon: Shield,
-  },
-  {
-    id: 'team',
-    category: 'Team Management',
-    question: 'How many team members can I add?',
-    answer: PLANS.map((p) => `${en[`plan.name.${p.code}`] ?? p.name}: ${p.maxUsers}`).join(' · ') + '. Each member gets a role (admin, manager, cashier...) that controls exactly which modules they can see and use.',
-    icon: Users,
-  },
-  {
-    id: 'api',
-    category: 'API & Developers',
-    question: 'Is there an API I can use?',
-    answer: 'Full REST API access ("API REST complète") is included on the Entreprise plan. Other plans can still receive webhooks and connect pre-built integrations from the Marketplace.',
-    icon: Zap,
-  },
-  {
-    id: 'billing',
-    category: 'Billing',
-    question: 'Can I change or cancel my plan?',
-    answer: "Yes -- upgrade or downgrade anytime from Settings. If you cancel, your account stays fully active until the end of the period you've already paid for.",
-    icon: CreditCard,
-  },
-];
+// Fully bilingual now: every question/answer is a help.* i18n key (see
+// locales/{fr,en}.ts) instead of hardcoded English text. Most of this
+// content reuses the help.* keys that already existed in both locale
+// files but were never wired to any component — this page is what they
+// were written for. A few items (integrations, API, split payments,
+// members-per-plan, deeper security detail) had no matching keys yet;
+// those were added alongside this rewrite. Team member counts and plan
+// names come from the real PLANS data (src/lib/plans.ts) via
+// help.team.a3's {list} placeholder, so they can never drift out of sync
+// with what Pricing/Settings actually offer.
+function useFaqItems(t: (key: string, vars?: Record<string, string | number>) => string): FAQItem[] {
+  const membersList = PLANS.map((p) => `${t(`plan.name.${p.code}`)}: ${p.maxUsers}`).join(' · ');
+  return [
+    { id: 'quickstart-1', categoryKey: 'help.cat.quickstart', questionKey: 'help.quickstart.q1', answerKey: 'help.quickstart.a1', answerVars: { days: String(TRIAL_DAYS) }, icon: Zap },
+    { id: 'quickstart-2', categoryKey: 'help.cat.quickstart', questionKey: 'help.quickstart.q2', answerKey: 'help.quickstart.a2', icon: Zap },
+    { id: 'quickstart-3', categoryKey: 'help.cat.quickstart', questionKey: 'help.quickstart.q3', answerKey: 'help.quickstart.a3', answerVars: { days: String(TRIAL_DAYS) }, icon: Zap },
+    { id: 'pos-1', categoryKey: 'help.cat.pos', questionKey: 'help.pos.q1', answerKey: 'help.pos.a1', icon: CreditCard },
+    { id: 'pos-2', categoryKey: 'help.cat.pos', questionKey: 'help.pos.q2', answerKey: 'help.pos.a2', icon: CreditCard },
+    { id: 'pos-3', categoryKey: 'help.cat.pos', questionKey: 'help.pos.q3', answerKey: 'help.pos.a3', icon: CreditCard },
+    { id: 'pos-4', categoryKey: 'help.cat.pos', questionKey: 'help.pos.q4', answerKey: 'help.pos.a4', icon: CreditCard },
+    { id: 'stock-1', categoryKey: 'help.cat.stock', questionKey: 'help.stock.q1', answerKey: 'help.stock.a1', icon: BookOpen },
+    { id: 'stock-2', categoryKey: 'help.cat.stock', questionKey: 'help.stock.q2', answerKey: 'help.stock.a2', icon: BookOpen },
+    { id: 'stock-3', categoryKey: 'help.cat.stock', questionKey: 'help.stock.q3', answerKey: 'help.stock.a3', icon: BookOpen },
+    { id: 'invoicing-1', categoryKey: 'help.cat.invoicing', questionKey: 'help.invoicing.q1', answerKey: 'help.invoicing.a1', icon: BookOpen },
+    { id: 'invoicing-2', categoryKey: 'help.cat.invoicing', questionKey: 'help.invoicing.q2', answerKey: 'help.invoicing.a2', icon: BookOpen },
+    { id: 'invoicing-3', categoryKey: 'help.cat.invoicing', questionKey: 'help.invoicing.q3', answerKey: 'help.invoicing.a3', icon: BookOpen },
+    { id: 'subscription-1', categoryKey: 'help.cat.subscription', questionKey: 'help.subscription.q1', answerKey: 'help.subscription.a1', icon: CreditCard },
+    { id: 'subscription-2', categoryKey: 'help.cat.subscription', questionKey: 'help.subscription.q2', answerKey: 'help.subscription.a2', icon: CreditCard },
+    { id: 'subscription-3', categoryKey: 'help.cat.subscription', questionKey: 'help.subscription.q3', answerKey: 'help.subscription.a3', icon: CreditCard },
+    { id: 'team-1', categoryKey: 'help.cat.team', questionKey: 'help.team.q1', answerKey: 'help.team.a1', icon: Users },
+    { id: 'team-2', categoryKey: 'help.cat.team', questionKey: 'help.team.q2', answerKey: 'help.team.a2', icon: Users },
+    { id: 'team-3', categoryKey: 'help.cat.team', questionKey: 'help.team.q3', answerKey: 'help.team.a3', answerVars: { list: membersList }, icon: Users },
+    { id: 'security-1', categoryKey: 'help.cat.security', questionKey: 'help.security.q1', answerKey: 'help.security.a1', icon: Shield },
+    { id: 'security-2', categoryKey: 'help.cat.security', questionKey: 'help.security.q2', answerKey: 'help.security.a2', icon: Shield },
+    { id: 'security-3', categoryKey: 'help.cat.security', questionKey: 'help.security.q3', answerKey: 'help.security.a3', icon: Shield },
+    { id: 'integrations-1', categoryKey: 'help.cat.integrations', questionKey: 'help.integrations.q1', answerKey: 'help.integrations.a1', icon: Globe },
+    { id: 'api-1', categoryKey: 'help.cat.api', questionKey: 'help.api.q1', answerKey: 'help.api.a1', icon: Zap },
+  ];
+}
 
 // BUG FIX: this page used to hardcode a dark gradient background with no
 // `dark:` variants at all (`bg-gradient-to-br from-ink-950 via-brand-950
@@ -86,21 +60,26 @@ const FAQ_ITEMS: FAQItem[] = [
 // the same light-by-default / dark-as-override pattern used elsewhere in
 // the app (see Sidebar.tsx: `bg-brand-50 dark:bg-ink-900`).
 export function HelpCenterPage() {
+  const { t } = useI18n();
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const filteredFAQs = FAQ_ITEMS.filter((item) => {
-    const matchesSearch =
-      item.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.answer.toLowerCase().includes(searchTerm.toLowerCase());
+  const faqItems = useFaqItems(t);
 
-    const matchesCategory = !selectedCategory || item.category === selectedCategory;
+  const filteredFAQs = faqItems.filter((item) => {
+    const question = t(item.questionKey);
+    const answer = t(item.answerKey, item.answerVars);
+    const matchesSearch =
+      question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      answer.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesCategory = !selectedCategory || item.categoryKey === selectedCategory;
 
     return matchesSearch && matchesCategory;
   });
 
-  const categories = Array.from(new Set(FAQ_ITEMS.map((item) => item.category)));
+  const categories = Array.from(new Set(faqItems.map((item) => item.categoryKey)));
 
   return (
     <div className="min-h-screen bg-brand-50 dark:bg-ink-900">
@@ -125,9 +104,9 @@ export function HelpCenterPage() {
           </div>
         </div>
         <div className="relative max-w-4xl mx-auto px-6 text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">Help Center</h1>
+          <h1 className="text-4xl font-bold text-white mb-4">{t('help.title')}</h1>
           <p className="text-xl text-white/90">
-            Find answers to common questions and get support
+            {t('help.hero.subtitle')}
           </p>
         </div>
       </div>
@@ -138,7 +117,7 @@ export function HelpCenterPage() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-400 dark:text-ink-500" />
             <input
               type="text"
-              placeholder="Search help articles..."
+              placeholder={t('help.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-4 rounded-lg bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 text-ink-900 dark:text-ink-50 placeholder-ink-400 dark:placeholder-ink-500 focus:border-flow-500 focus:outline-none transition"
@@ -155,19 +134,19 @@ export function HelpCenterPage() {
                 : 'bg-white dark:bg-ink-800 text-ink-600 dark:text-ink-300 border border-ink-200 dark:border-ink-700 hover:bg-ink-100 dark:hover:bg-ink-700/50'
             }`}
           >
-            All Categories
+            {t('help.allCategories')}
           </button>
-          {categories.map((category) => (
+          {categories.map((categoryKey) => (
             <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
+              key={categoryKey}
+              onClick={() => setSelectedCategory(categoryKey)}
               className={`px-4 py-2 rounded-full font-medium transition ${
-                selectedCategory === category
+                selectedCategory === categoryKey
                   ? 'bg-flow-500 text-white'
                   : 'bg-white dark:bg-ink-800 text-ink-600 dark:text-ink-300 border border-ink-200 dark:border-ink-700 hover:bg-ink-100 dark:hover:bg-ink-700/50'
               }`}
             >
-              {category}
+              {t(categoryKey)}
             </button>
           ))}
         </div>
@@ -190,8 +169,8 @@ export function HelpCenterPage() {
                     <div className="flex items-center gap-3">
                       <Icon className="w-5 h-5 text-flow-500 dark:text-flow-400 flex-shrink-0" />
                       <div>
-                        <p className="font-semibold text-ink-900 dark:text-ink-50">{item.question}</p>
-                        <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">{item.category}</p>
+                        <p className="font-semibold text-ink-900 dark:text-ink-50">{t(item.questionKey)}</p>
+                        <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">{t(item.categoryKey)}</p>
                       </div>
                     </div>
                     <ChevronDown
@@ -203,7 +182,7 @@ export function HelpCenterPage() {
 
                   {isExpanded && (
                     <div className="px-6 py-4 bg-brand-50/60 dark:bg-ink-900/40 border-t border-ink-200 dark:border-ink-700/50">
-                      <p className="text-ink-700 dark:text-ink-200 leading-relaxed">{item.answer}</p>
+                      <p className="text-ink-700 dark:text-ink-200 leading-relaxed">{t(item.answerKey, item.answerVars)}</p>
                     </div>
                   )}
                 </div>
@@ -212,7 +191,7 @@ export function HelpCenterPage() {
           ) : (
             <div className="text-center py-12">
               <SearchIcon className="w-12 h-12 text-ink-300 dark:text-ink-600 mx-auto mb-4" />
-              <p className="text-ink-500 dark:text-ink-300">No results found. Try a different search term.</p>
+              <p className="text-ink-500 dark:text-ink-300">{t('help.noResultsSimple')}</p>
             </div>
           )}
         </div>
@@ -224,9 +203,9 @@ export function HelpCenterPage() {
             first since those are the concrete, checkable facts; features
             listed below as a checklist union across all four plans. */}
         <div className="my-16 py-12 border-y border-ink-200 dark:border-ink-700">
-          <h2 className="text-3xl font-bold text-ink-900 dark:text-white mb-4 text-center">Plan Access Levels</h2>
+          <h2 className="text-3xl font-bold text-ink-900 dark:text-white mb-4 text-center">{t('help.planLevels.title')}</h2>
           <p className="text-center text-ink-600 dark:text-ink-300 mb-8 max-w-2xl mx-auto">
-            Choose the plan that fits your needs. See exactly what you get at each level.
+            {t('help.planLevels.desc')}
           </p>
 
           <div className="overflow-x-auto">
@@ -236,7 +215,7 @@ export function HelpCenterPage() {
                   <th className="text-left py-4 px-4 font-semibold text-ink-900 dark:text-white">&nbsp;</th>
                   {PLANS.map((p) => (
                     <th key={p.code} className="text-center py-4 px-4 font-semibold">
-                      <div className="text-ink-600 dark:text-ink-300">{en[`plan.name.${p.code}`] ?? p.name}</div>
+                      <div className="text-ink-600 dark:text-ink-300">{t(`plan.name.${p.code}`)}</div>
                       <div className="text-xs text-ink-500 dark:text-ink-400">${p.priceMonthly}/mo</div>
                     </th>
                   ))}
@@ -244,26 +223,26 @@ export function HelpCenterPage() {
               </thead>
               <tbody>
                 <tr className="bg-white dark:bg-ink-950">
-                  <td className="py-3 px-4 text-ink-900 dark:text-ink-100 font-medium">Team members</td>
+                  <td className="py-3 px-4 text-ink-900 dark:text-ink-100 font-medium">{t('help.planLevels.teamMembers')}</td>
                   {PLANS.map((p) => (
                     <td key={p.code} className="text-center py-3 px-4 text-ink-700 dark:text-ink-200">{p.maxUsers}</td>
                   ))}
                 </tr>
                 <tr className="bg-ink-50/50 dark:bg-ink-900/30">
-                  <td className="py-3 px-4 text-ink-900 dark:text-ink-100 font-medium">Stores</td>
+                  <td className="py-3 px-4 text-ink-900 dark:text-ink-100 font-medium">{t('help.planLevels.stores')}</td>
                   {PLANS.map((p) => (
                     <td key={p.code} className="text-center py-3 px-4 text-ink-700 dark:text-ink-200">{p.maxStores}</td>
                   ))}
                 </tr>
                 <tr className="bg-white dark:bg-ink-950">
-                  <td className="py-3 px-4 text-ink-900 dark:text-ink-100 font-medium">Products</td>
+                  <td className="py-3 px-4 text-ink-900 dark:text-ink-100 font-medium">{t('help.planLevels.products')}</td>
                   {PLANS.map((p) => (
                     <td key={p.code} className="text-center py-3 px-4 text-ink-700 dark:text-ink-200">{p.maxProducts.toLocaleString()}</td>
                   ))}
                 </tr>
                 {Array.from(new Set(PLANS.flatMap((p) => p.features))).map((feature, idx) => (
                   <tr key={feature} className={idx % 2 === 0 ? 'bg-white dark:bg-ink-950' : 'bg-ink-50/50 dark:bg-ink-900/30'}>
-                    <td className="py-3 px-4 text-ink-900 dark:text-ink-100 font-medium">{en[`plan.feature.${feature}`] ?? feature}</td>
+                    <td className="py-3 px-4 text-ink-900 dark:text-ink-100 font-medium">{t(`plan.feature.${feature}`)}</td>
                     {PLANS.map((p) => (
                       <td key={p.code} className="text-center py-3 px-4">
                         {p.features.includes(feature) ? (
@@ -290,13 +269,15 @@ export function HelpCenterPage() {
               const isLast = i === PLANS.length - 1;
               return (
                 <div key={p.code} className={`p-6 rounded-lg ${palette.bg} border ${palette.border}`}>
-                  <h3 className={`font-bold mb-2 ${palette.title}`}>{en[`plan.name.${p.code}`] ?? p.name} (${p.priceMonthly}/mo)</h3>
-                  <p className={`text-sm mb-4 ${palette.text}`}>{p.maxUsers} users &middot; {p.maxStores} store{p.maxStores > 1 ? 's' : ''}</p>
+                  <h3 className={`font-bold mb-2 ${palette.title}`}>{t(`plan.name.${p.code}`)} (${p.priceMonthly}/mo)</h3>
+                  <p className={`text-sm mb-4 ${palette.text}`}>
+                    {p.maxUsers} {t('help.planLevels.userPlural')} &middot; {p.maxStores} {t(p.maxStores > 1 ? 'help.planLevels.storePlural' : 'help.planLevels.storeSingular')}
+                  </p>
                   <a
                     href={isLast ? '/contact' : '/signup'}
                     className={`inline-block px-4 py-2 rounded-full text-white text-sm font-medium transition ${palette.btn}`}
                   >
-                    {isLast ? 'Contact Sales' : 'Try for Free'}
+                    {isLast ? t('plan.landingCta.contactSales') : t('plan.landingCta.tryFree')}
                   </a>
                 </div>
               );
@@ -306,14 +287,14 @@ export function HelpCenterPage() {
 
         {/* Contact Section — the only two real customer-facing addresses. */}
         <div className="rounded-lg bg-gradient-to-r from-brand-500/10 to-flow-500/10 border border-brand-500/30 p-8">
-          <h2 className="text-2xl font-bold text-ink-900 dark:text-white mb-6">Didn't find what you're looking for?</h2>
+          <h2 className="text-2xl font-bold text-ink-900 dark:text-white mb-6">{t('help.contact.title')}</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <a
               href="mailto:support@liafrik.com"
               className="p-4 rounded-lg bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 hover:border-flow-500/50 transition"
             >
-              <p className="font-semibold text-ink-900 dark:text-white mb-2">Email Support</p>
+              <p className="font-semibold text-ink-900 dark:text-white mb-2">{t('help.contact.emailSupport')}</p>
               <p className="text-sm text-ink-600 dark:text-ink-300">support@liafrik.com</p>
             </a>
 
@@ -321,7 +302,7 @@ export function HelpCenterPage() {
               href="mailto:cs@liafrik.com"
               className="p-4 rounded-lg bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 hover:border-flow-500/50 transition"
             >
-              <p className="font-semibold text-ink-900 dark:text-white mb-2">Customer Service</p>
+              <p className="font-semibold text-ink-900 dark:text-white mb-2">{t('help.contact.customerService')}</p>
               <p className="text-sm text-ink-600 dark:text-ink-300">cs@liafrik.com</p>
             </a>
           </div>
@@ -332,21 +313,21 @@ export function HelpCenterPage() {
             Policy" used to link to "#" (nowhere); removed rather than left
             as dead links. */}
         <div className="mt-12 rounded-lg bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 p-8 shadow-soft">
-          <h2 className="text-xl font-bold text-ink-900 dark:text-white mb-6">Quick Links</h2>
+          <h2 className="text-xl font-bold text-ink-900 dark:text-white mb-6">{t('help.quickLinks.title')}</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[
-              { label: 'Documentation', href: '/documentation' },
-              { label: 'Terms of Service', href: '/terms' },
-              { label: 'Privacy Policy', href: '/privacy' },
-              { label: 'Pricing', href: '/pricing' },
-              { label: 'Contact Sales', href: '/contact' },
+              { labelKey: 'help.quickLinks.documentation', href: '/documentation' },
+              { labelKey: 'help.quickLinks.termsOfService', href: '/terms' },
+              { labelKey: 'help.quickLinks.privacyPolicy', href: '/privacy' },
+              { labelKey: 'help.quickLinks.pricing', href: '/pricing' },
+              { labelKey: 'help.quickLinks.contactSales', href: '/contact' },
             ].map((link) => (
               <a
-                key={link.label}
+                key={link.labelKey}
                 href={link.href}
                 className="text-flow-600 dark:text-flow-300 hover:text-flow-500 dark:hover:text-flow-200 transition text-sm font-medium"
               >
-                → {link.label}
+                → {t(link.labelKey)}
               </a>
             ))}
           </div>
