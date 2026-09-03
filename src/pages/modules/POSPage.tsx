@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart, Mail, Lock as LockIcon, Percent, Gift, PauseCircle, Tag } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart, Mail, Lock as LockIcon, Percent, Gift, PauseCircle, Tag, WifiOff, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -12,6 +12,8 @@ import { SaleHistoryTab } from './SaleHistoryTab';
 import { ReturnsTab } from './ReturnsTab';
 import type { Product, Customer, Promotion, TenantCurrency } from '../../lib/types';
 import { issueGiftCard as apiIssueGiftCard, redeemGiftCard as apiRedeemGiftCard, getGiftCardStatus as apiGetGiftCardStatus } from '../../lib/giftCards';
+import { useOnlineStatus } from '../../lib/useOnlineStatus';
+import { queueOfflineSale, getQueuedSales, removeQueuedSale, type OfflineSalePayload } from '../../lib/offlineQueue';
 
 type CartItem = {
   product: Product;
@@ -182,6 +184,109 @@ export function POSPage() {
   // computed, so single-currency tenants are entirely unaffected.
   const [tenantCurrencies, setTenantCurrencies] = useState<TenantCurrency[]>([]);
   const [saleCurrency, setSaleCurrency] = useState<string>('');
+
+  // --- Offline sales queue (see src/lib/offlineQueue.ts for the full
+  // rationale/scope: only plain cash sales with no split/gift-card/
+  // loyalty-redeem/tracked-items can be queued offline; anything riskier
+  // is blocked with an explanation instead, both handled in checkout()
+  // below). isOnline drives both the banner and whether checkout() takes
+  // the offline branch at all.
+  const isOnline = useOnlineStatus();
+  const [pendingOfflineSales, setPendingOfflineSales] = useState<OfflineSalePayload[]>([]);
+  const [syncingOffline, setSyncingOffline] = useState(false);
+
+  const refreshOfflineQueue = useCallback(async () => {
+    try {
+      setPendingOfflineSales(await getQueuedSales());
+    } catch (e) {
+      console.error('Failed to read offline sales queue:', e);
+    }
+  }, []);
+
+  useEffect(() => { refreshOfflineQueue(); }, [refreshOfflineQueue]);
+
+  // Replays each queued offline sale through the same three inserts a
+  // normal cash sale uses online (sales, sale_payments, sale_items — stock
+  // decrements via the same DB trigger as any other sale_items insert, see
+  // migration 0018). Runs in queued order, one at a time, so two offline
+  // sales of the same last unit are resolved in the order they actually
+  // happened rather than racing each other. A failure (e.g. the day
+  // session was closed elsewhere, or stock genuinely ran out in the
+  // meantime) leaves that sale in the queue and stops the run — it is
+  // never silently dropped or retried in a loop.
+  const syncPendingOfflineSales = useCallback(async () => {
+    if (syncingOffline) return;
+    const queued = await getQueuedSales();
+    if (queued.length === 0) return;
+    setSyncingOffline(true);
+    let syncedCount = 0;
+    for (const sale of queued) {
+      const { data: insertedSale, error: saleErr } = await supabase
+        .from('sales')
+        .insert({
+          tenant_id: sale.tenant_id,
+          store_id: sale.store_id,
+          customer_id: sale.customer_id,
+          reference: sale.reference,
+          subtotal: sale.subtotal,
+          tax_total: sale.tax_total,
+          discount_total: sale.discount_total,
+          currency: sale.currency,
+          exchange_rate: 1,
+          total: sale.total,
+          paid_amount: sale.total,
+          payment_method: 'cash',
+          payment_reference: null,
+          payment_status: 'paid',
+          sale_status: 'completed',
+          notes: sale.notes,
+          user_id: sale.user_id,
+          day_session_id: sale.day_session_id,
+        })
+        .select()
+        .single();
+      if (saleErr || !insertedSale) {
+        console.error('Offline sale sync failed (kept in queue):', saleErr?.message, sale.reference);
+        toast('error', t('pos.offline.syncFailed', { ref: sale.reference, msg: saleErr?.message ?? '' }));
+        break;
+      }
+      const { error: paymentsErr } = await supabase.from('sale_payments').insert({
+        tenant_id: sale.tenant_id, sale_id: insertedSale.id, method: 'cash', amount: sale.total, reference: null,
+      });
+      if (paymentsErr) console.error('sale_payments insert failed during offline sync (non-blocking):', paymentsErr.message);
+      const { error: itemsErr } = await supabase.from('sale_items').insert(
+        sale.items.map((i) => ({
+          sale_id: insertedSale.id,
+          product_id: i.product_id,
+          name: i.name,
+          quantity: i.quantity,
+          unit_price: i.unit_price,
+          discount: 0,
+          tax_rate: i.tax_rate,
+          total: i.total,
+        }))
+      );
+      if (itemsErr) {
+        console.error('sale_items insert failed during offline sync:', itemsErr.message, sale.reference);
+        toast('error', t('pos.offline.syncFailed', { ref: sale.reference, msg: itemsErr.message }));
+        break;
+      }
+      await removeQueuedSale(sale.id);
+      syncedCount++;
+    }
+    setSyncingOffline(false);
+    await refreshOfflineQueue();
+    if (syncedCount > 0) toast('success', t('pos.offline.syncedCount', { count: syncedCount }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncingOffline, refreshOfflineQueue, toast, t]);
+
+  // Auto-sync the moment connectivity actually comes back — the cashier
+  // shouldn't have to remember to press a button, though one is still
+  // offered in the banner for a manual retry.
+  useEffect(() => {
+    if (isOnline) syncPendingOfflineSales();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOnline]);
 
   const currency = tenant?.currency ?? 'XOF';
 
@@ -590,6 +695,85 @@ export function POSPage() {
       toast('error', t('pos.day.err.mustOpenFirst'));
       return;
     }
+
+    // --- Offline branch --------------------------------------------
+    // Only the plain-cash, nothing-fancy case is safe to queue locally
+    // (see src/lib/offlineQueue.ts for the full reasoning) — anything
+    // that needs a live check against server state (a non-cash tender,
+    // split payment, gift card, loyalty-point redemption, or a serial/
+    // batch tracked item) is blocked here with a specific reason instead
+    // of silently attempted or silently dropped.
+    if (!isOnline) {
+      const blockedReasons: string[] = [];
+      if (paymentMethod !== 'cash') blockedReasons.push(t('pos.offline.reason.nonCash'));
+      if (splitPayment) blockedReasons.push(t('pos.offline.reason.split'));
+      if (loyaltyDiscountEnabled && Number(redeemPointsInput) > 0) blockedReasons.push(t('pos.offline.reason.loyalty'));
+      if (cart.some((i) => i.product.tracking_mode === 'serial' || i.product.tracking_mode === 'batch')) {
+        blockedReasons.push(t('pos.offline.reason.tracked'));
+      }
+      if (blockedReasons.length > 0) {
+        toast('error', t('pos.offline.err.blocked', { reasons: blockedReasons.join(', ') }));
+        return;
+      }
+
+      const ref = `VTE-${Date.now().toString().slice(-8)}`;
+      const payload: OfflineSalePayload = {
+        id: crypto.randomUUID(),
+        tenant_id: tenant.id,
+        store_id: storeId,
+        day_session_id: daySession.id,
+        user_id: user?.id ?? null,
+        customer_id: customer?.id ?? null,
+        reference: ref,
+        currency: tenant.currency ?? 'XOF',
+        subtotal,
+        tax_total: taxTotal,
+        discount_total: discountTotal,
+        total,
+        notes: t('pos.offline.saleNote'),
+        queued_at: new Date().toISOString(),
+        items: cart.map((i) => ({
+          product_id: i.product.id,
+          name: i.product.name,
+          quantity: i.quantity,
+          unit_price: i.unit_price,
+          tax_rate: Number(i.product.tax_rate),
+          total: i.quantity * i.unit_price * (1 + Number(i.product.tax_rate) / 100),
+        })),
+      };
+      try {
+        await queueOfflineSale(payload);
+      } catch (e) {
+        toast('error', t('pos.offline.err.queueFailed'));
+        console.error('Failed to queue offline sale:', e);
+        return;
+      }
+      await refreshOfflineQueue();
+      toast('success', t('pos.offline.queued', { ref }));
+      setSuccess(ref);
+      setLastReceipt({
+        items: cart,
+        total,
+        paymentMethod: 'cash',
+        paymentReference: '',
+        customerName: customer?.name ?? null,
+        customerPhone: customer?.phone ?? null,
+        customerEmail: customer?.email ?? null,
+        discountTotal,
+        pointsEarned: null,
+        foreignCurrency: null,
+        foreignAmount: null,
+      });
+      setCart([]);
+      setPaymentReference('');
+      setPaidAmount('');
+      setCheckoutOpen(false);
+      setCustomer(null);
+      setCustomerSearch('');
+      resetDiscountState();
+      return;
+    }
+
     // A pending manual discount that was typed but never verified (e.g.
     // the manager PIN step was skipped) must not silently make it into
     // the sale — either it's approved (discountApproval set) or it's
@@ -1051,6 +1235,35 @@ export function POSPage() {
               )}
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Offline / pending-sync banner. Only shows when there's something
+          to say — offline right now, or sales still waiting to sync. */}
+      {(!isOnline || pendingOfflineSales.length > 0) && (
+        <div className={`mb-4 flex flex-wrap items-center gap-3 rounded-lg border px-4 py-3 text-sm ${
+          !isOnline
+            ? 'border-warning-300 bg-warning-50 text-warning-800 dark:border-warning-500/30 dark:bg-warning-900/20 dark:text-warning-200'
+            : 'border-brand-300 bg-brand-50 text-brand-800 dark:border-brand-500/30 dark:bg-brand-900/20 dark:text-brand-200'
+        }`}>
+          {!isOnline ? <WifiOff size={16} className="shrink-0" /> : <RefreshCw size={16} className={`shrink-0 ${syncingOffline ? 'animate-spin' : ''}`} />}
+          <span className="flex-1">
+            {!isOnline
+              ? t('pos.offline.bannerOffline')
+              : syncingOffline
+                ? t('pos.offline.bannerSyncing')
+                : t('pos.offline.bannerPending', { count: pendingOfflineSales.length })}
+          </span>
+          {pendingOfflineSales.length > 0 && (
+            <span className="rounded-full bg-white/60 dark:bg-ink-950/40 px-2.5 py-0.5 text-xs font-semibold">
+              {t('pos.offline.pendingCount', { count: pendingOfflineSales.length })}
+            </span>
+          )}
+          {isOnline && pendingOfflineSales.length > 0 && !syncingOffline && (
+            <button onClick={syncPendingOfflineSales} className="btn-ghost !py-1 !px-3 text-xs">
+              {t('pos.offline.syncNow')}
+            </button>
+          )}
         </div>
       )}
 
