@@ -36,6 +36,7 @@ export const en: Record<string, string> = {
 
   // Header
   "header.search": "Search...",
+  "header.openSidebar": "Open sidebar menu",
   "header.notifications": "Notifications",
   "header.markAllRead": "Mark all read",
   "header.noNotifs": "No notifications",
@@ -2293,6 +2294,7 @@ export const en: Record<string, string> = {
   "support.status.closed": "Conversation closed",
   "support.requestHuman": "Talk to a team member",
   "support.inputPlaceholder": "Type your message…",
+  "support.send": "Send message",
 
   // Returns / Exchanges module
   "returns.searchPlaceholder": "Invoice number (e.g. VTE-12345678)",

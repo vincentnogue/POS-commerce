@@ -36,6 +36,7 @@ export const fr: Record<string, string> = {
 
   // Header
   "header.search": "Rechercher...",
+  "header.openSidebar": "Ouvrir le menu latéral",
   "header.notifications": "Notifications",
   "header.markAllRead": "Tout marquer lu",
   "header.noNotifs": "Aucune notification",
@@ -2296,6 +2297,7 @@ export const fr: Record<string, string> = {
   "support.status.closed": "Conversation clôturée",
   "support.requestHuman": "Parler à un membre de l'équipe",
   "support.inputPlaceholder": "Écrivez votre message…",
+  "support.send": "Envoyer le message",
 
   // Returns / Exchanges module
   "returns.searchPlaceholder": "Numéro de facture (ex: VTE-12345678)",

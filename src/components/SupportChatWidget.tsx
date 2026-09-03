@@ -179,7 +179,7 @@ export function SupportChatWidget() {
                   placeholder={t('support.inputPlaceholder')}
                   className="input flex-1 py-2 text-sm"
                 />
-                <button onClick={send} disabled={sending || !input.trim()} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white transition hover:bg-brand-600 disabled:opacity-40">
+                <button onClick={send} disabled={sending || !input.trim()} aria-label={t('support.send')} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white transition hover:bg-brand-600 disabled:opacity-40">
                   <Send size={15} />
                 </button>
               </div>
