@@ -1480,6 +1480,10 @@ export function LandingPage() {
               <ul className="space-y-2.5 text-sm text-ink-400">
                 <li><Link to="/privacy" className="transition hover:text-brand-400">{t('pLanding.footer.privacy')}</Link></li>
                 <li><Link to="/terms" className="transition hover:text-brand-400">{t('pLanding.footer.terms')}</Link></li>
+                <li><Link to="/refund-policy" className="transition hover:text-brand-400">{t('pLanding.footer.refundPolicy')}</Link></li>
+                <li><Link to="/cookie-policy" className="transition hover:text-brand-400">{t('pLanding.footer.cookiePolicy')}</Link></li>
+                <li><Link to="/acceptable-use" className="transition hover:text-brand-400">{t('pLanding.footer.acceptableUse')}</Link></li>
+                <li><Link to="/sla" className="transition hover:text-brand-400">{t('pLanding.footer.sla')}</Link></li>
                 <li><Link to="/legal" className="transition hover:text-brand-400">{t('pLanding.footer.legalNotice')}</Link></li>
               </ul>
             </div>
