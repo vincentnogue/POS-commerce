@@ -36,6 +36,7 @@ export const en: Record<string, string> = {
 
   // Header
   "header.search": "Search...",
+  "header.openSidebar": "Open sidebar menu",
   "header.notifications": "Notifications",
   "header.markAllRead": "Mark all read",
   "header.noNotifs": "No notifications",
@@ -1103,6 +1104,21 @@ export const en: Record<string, string> = {
   "pos.day.toast.closed": "Day closed.",
   "pos.day.err.invalidCash": "Invalid amount.",
   "pos.day.err.mustOpenFirst": "Open the day before ringing up a sale.",
+  "pos.offline.bannerOffline": "You're offline. Cash sales can still be completed and will sync automatically once you're back online.",
+  "pos.offline.bannerSyncing": "Back online — syncing pending offline sales…",
+  "pos.offline.bannerPending": "{count} offline sale(s) waiting to sync.",
+  "pos.offline.pendingCount": "{count} pending",
+  "pos.offline.syncNow": "Sync now",
+  "pos.offline.saleNote": "Completed offline, synced automatically.",
+  "pos.offline.queued": "Sale {ref} saved. It will sync automatically once you're back online.",
+  "pos.offline.reason.nonCash": "card/mobile money payments need a connection",
+  "pos.offline.reason.split": "split payments need a connection",
+  "pos.offline.reason.loyalty": "redeeming loyalty points needs a connection",
+  "pos.offline.reason.tracked": "serial/batch tracked items need a connection",
+  "pos.offline.err.blocked": "Can't complete this sale offline: {reasons}. Switch to a plain cash sale, or wait for your connection to come back.",
+  "pos.offline.err.queueFailed": "Couldn't save this sale locally. Please try again.",
+  "pos.offline.syncFailed": "Sale {ref} couldn't sync yet ({msg}) — it's still saved and will be retried.",
+  "pos.offline.syncedCount": "{count} offline sale(s) synced successfully.",
   "pos.lock.title": "Register locked",
   "pos.lock.desc": "Enter your Staff ID and PIN to unlock.",
   "pos.lock.confirmTitle": "Lock your account",
@@ -2348,6 +2364,7 @@ export const en: Record<string, string> = {
   "support.status.closed": "Conversation closed",
   "support.requestHuman": "Talk to a team member",
   "support.inputPlaceholder": "Type your message…",
+  "support.send": "Send message",
 
   // Returns / Exchanges module
   "returns.searchPlaceholder": "Invoice number (e.g. VTE-12345678)",

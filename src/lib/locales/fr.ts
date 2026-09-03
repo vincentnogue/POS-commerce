@@ -36,6 +36,7 @@ export const fr: Record<string, string> = {
 
   // Header
   "header.search": "Rechercher...",
+  "header.openSidebar": "Ouvrir le menu latéral",
   "header.notifications": "Notifications",
   "header.markAllRead": "Tout marquer lu",
   "header.noNotifs": "Aucune notification",
@@ -1103,6 +1104,21 @@ export const fr: Record<string, string> = {
   "pos.day.toast.closed": "Journée clôturée.",
   "pos.day.err.invalidCash": "Montant invalide.",
   "pos.day.err.mustOpenFirst": "Ouvrez la journée avant d'encaisser une vente.",
+  "pos.offline.bannerOffline": "Vous êtes hors-ligne. Les ventes en espèces peuvent toujours être encaissées et se synchroniseront automatiquement au retour de la connexion.",
+  "pos.offline.bannerSyncing": "Connexion rétablie — synchronisation des ventes en attente…",
+  "pos.offline.bannerPending": "{count} vente(s) hors-ligne en attente de synchronisation.",
+  "pos.offline.pendingCount": "{count} en attente",
+  "pos.offline.syncNow": "Synchroniser",
+  "pos.offline.saleNote": "Effectuée hors-ligne, synchronisée automatiquement.",
+  "pos.offline.queued": "Vente {ref} enregistrée. Elle se synchronisera automatiquement au retour de la connexion.",
+  "pos.offline.reason.nonCash": "les paiements par carte/mobile money nécessitent une connexion",
+  "pos.offline.reason.split": "les paiements scindés nécessitent une connexion",
+  "pos.offline.reason.loyalty": "l'utilisation de points de fidélité nécessite une connexion",
+  "pos.offline.reason.tracked": "les articles suivis par série/lot nécessitent une connexion",
+  "pos.offline.err.blocked": "Impossible de finaliser cette vente hors-ligne : {reasons}. Passez à une vente en espèces simple, ou attendez le retour de la connexion.",
+  "pos.offline.err.queueFailed": "Impossible d'enregistrer cette vente localement. Veuillez réessayer.",
+  "pos.offline.syncFailed": "La vente {ref} n'a pas pu être synchronisée ({msg}) — elle reste enregistrée et sera retentée.",
+  "pos.offline.syncedCount": "{count} vente(s) hors-ligne synchronisée(s) avec succès.",
   "pos.lock.title": "Caisse verrouillée",
   "pos.lock.desc": "Entrez votre Staff ID et votre code PIN pour déverrouiller.",
   "pos.lock.confirmTitle": "Verrouiller votre compte",
@@ -2351,6 +2367,7 @@ export const fr: Record<string, string> = {
   "support.status.closed": "Conversation clôturée",
   "support.requestHuman": "Parler à un membre de l'équipe",
   "support.inputPlaceholder": "Écrivez votre message…",
+  "support.send": "Envoyer le message",
 
   // Returns / Exchanges module
   "returns.searchPlaceholder": "Numéro de facture (ex: VTE-12345678)",

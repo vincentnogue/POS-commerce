@@ -60,7 +60,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-ink-100 dark:border-ink-800 bg-white/80 dark:bg-ink-800/80 px-4 backdrop-blur lg:px-6">
-      <button onClick={onOpenSidebar} className="rounded-full p-2 text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 lg:hidden">
+      <button onClick={onOpenSidebar} aria-label={t('header.openSidebar')} className="rounded-full p-2 text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 lg:hidden">
         <Menu size={20} />
       </button>
 
@@ -79,6 +79,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
         />
         <button
           onClick={() => setMobileSearchOpen((v) => !v)}
+          aria-label={t('header.search')}
           className={`rounded-full border border-ink-200 dark:border-ink-700 p-2 text-ink-600 dark:text-ink-300 sm:hidden ${mobileSearchOpen ? 'hidden' : ''}`}
         >
           <Search size={18} />
@@ -109,6 +110,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
           <button
             onClick={promptInstall}
             title={t('header.installApp')}
+            aria-label={t('header.installApp')}
             className="hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
           >
             <Download size={16} />

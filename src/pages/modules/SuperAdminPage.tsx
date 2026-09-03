@@ -1553,7 +1553,7 @@ function SuperSupport() {
                   placeholder={t('super.support.replyPlaceholder')}
                   className="input flex-1"
                 />
-                <button onClick={sendReply} disabled={sending || !reply.trim()} className="btn-primary"><Send size={15} /></button>
+                <button onClick={sendReply} disabled={sending || !reply.trim()} aria-label={t('support.send')} className="btn-primary"><Send size={15} /></button>
               </div>
             )}
           </>

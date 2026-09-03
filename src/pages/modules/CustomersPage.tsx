@@ -254,7 +254,7 @@ export function CustomersPage() {
           <div className="flex gap-2">
             <input value={tierForm.name} onChange={(e) => setTierForm({ ...tierForm, name: e.target.value })} placeholder={t('customers.tiers.namePlaceholder')} className="input" />
             <input type="number" min={0} value={tierForm.min_points} onChange={(e) => setTierForm({ ...tierForm, min_points: e.target.value })} placeholder={t('customers.tiers.minPointsPlaceholder')} className="input w-32" />
-            <button onClick={saveTier} className="btn-primary shrink-0"><Plus size={16} /></button>
+            <button onClick={saveTier} aria-label={t('common.add')} className="btn-primary shrink-0"><Plus size={16} /></button>
           </div>
           {tiers.length === 0 ? (
             <p className="py-2 text-center text-sm text-ink-400">{t('customers.tiers.empty')}</p>
@@ -265,7 +265,7 @@ export function CustomersPage() {
                   <span className="font-medium text-ink-900 dark:text-ink-50">{tr.name}</span>
                   <div className="flex items-center gap-3">
                     <span className="text-ink-500 dark:text-ink-400">{t('customers.tiers.fromPoints', { points: tr.min_points })}</span>
-                    <button onClick={() => removeTier(tr.id)} className="rounded-full p-1 text-error-500 hover:bg-error-50 dark:hover:bg-error-900/25"><XIcon size={14} /></button>
+                    <button onClick={() => removeTier(tr.id)} aria-label={t('common.delete')} className="rounded-full p-1 text-error-500 hover:bg-error-50 dark:hover:bg-error-900/25"><XIcon size={14} /></button>
                   </div>
                 </div>
               ))}
@@ -278,7 +278,7 @@ export function CustomersPage() {
           <p className="text-sm text-ink-500 dark:text-ink-400">{t('customers.segments.hint')}</p>
           <div className="flex gap-2">
             <input value={segmentForm.name} onChange={(e) => setSegmentForm({ name: e.target.value })} placeholder={t('customers.segments.namePlaceholder')} className="input" />
-            <button onClick={saveSegment} className="btn-primary shrink-0"><Plus size={16} /></button>
+            <button onClick={saveSegment} aria-label={t('common.add')} className="btn-primary shrink-0"><Plus size={16} /></button>
           </div>
           {segments.length === 0 ? (
             <p className="py-2 text-center text-sm text-ink-400">{t('customers.segments.empty')}</p>
@@ -287,7 +287,7 @@ export function CustomersPage() {
               {segments.map((s) => (
                 <div key={s.id} className="flex items-center justify-between rounded-lg border border-ink-100 dark:border-ink-800 px-3 py-2 text-sm">
                   <span className="font-medium text-ink-900 dark:text-ink-50">{s.name}</span>
-                  <button onClick={() => removeSegment(s.id)} className="rounded-full p-1 text-error-500 hover:bg-error-50 dark:hover:bg-error-900/25"><XIcon size={14} /></button>
+                  <button onClick={() => removeSegment(s.id)} aria-label={t('common.delete')} className="rounded-full p-1 text-error-500 hover:bg-error-50 dark:hover:bg-error-900/25"><XIcon size={14} /></button>
                 </div>
               ))}
             </div>
