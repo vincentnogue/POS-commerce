@@ -1,15 +1,51 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, Pencil, Trash2, Package, Download, Image as ImageIcon, X, Tags } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, Download, Upload, Image as ImageIcon, X, Tags } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { formatMoney } from '../../lib/localization';
 import { PageHeader, Modal, EmptyState, useToast } from '../../components/ui';
-import { DataTable, SearchInput, Field, exportCSV } from '../../components/DataTable';
+import { DataTable, SearchInput, Field, exportCSV, parseCSV } from '../../components/DataTable';
 import type { Product, Category } from '../../lib/types';
 
 const EMPTY = { name: '', sku: '', barcode: '', description: '', cost_price: 0, sale_price: 0, tax_rate: 0, unit: 'unité', low_stock_threshold: 5, category_id: '', image_url: '', sizes: '', tracking_mode: 'none' };
+
+// Migration/import: target product fields a CSV column can be mapped to.
+// 'name' is the only required one — everything else is optional so a
+// bare-bones export (just names and prices, say) still imports cleanly.
+const IMPORT_FIELDS = ['name', 'sku', 'barcode', 'category', 'costPrice', 'salePrice', 'taxRate', 'unit'] as const;
+type ImportField = typeof IMPORT_FIELDS[number];
+
+// Auto-suggests a mapping from a CSV's actual header row to our fields, by
+// matching common header names used across the systems people actually
+// migrate from (Square, Shopify, Odoo, Lightspeed, a plain spreadsheet —
+// in both English and French). This is a starting guess the person
+// reviews and corrects in the UI, never applied silently.
+const HEADER_HINTS: Record<ImportField, string[]> = {
+  name: ['name', 'nom', 'item name', 'product name', 'title', 'produit', 'désignation', 'designation'],
+  sku: ['sku', 'ref', 'référence', 'reference', 'code produit', 'product code'],
+  barcode: ['barcode', 'code-barres', 'code barre', 'ean', 'upc', 'gtin'],
+  category: ['category', 'catégorie', 'categorie', 'type', 'department', 'rayon'],
+  costPrice: ['cost', 'cost price', 'prix d\'achat', 'prix achat', 'purchase price', 'buy price'],
+  salePrice: ['price', 'sale price', 'prix de vente', 'prix vente', 'selling price', 'variant price', 'unit price'],
+  taxRate: ['tax', 'tax rate', 'taxe', 'tva', 'vat'],
+  unit: ['unit', 'unité', 'unite', 'uom'],
+};
+
+function guessMapping(headers: string[]): Record<ImportField, string> {
+  const mapping = {} as Record<ImportField, string>;
+  for (const field of IMPORT_FIELDS) {
+    const hints = HEADER_HINTS[field];
+    const match = headers.find((h) => hints.includes(h.trim().toLowerCase()));
+    mapping[field] = match ?? '';
+  }
+  return mapping;
+}
+
+function errMsg(e: unknown): string {
+  return e instanceof Error ? e.message : String(e);
+}
 
 // products.variants is stored as a JSON array (e.g. [{ type: 'size', value: 'M' }]).
 // The form only needs a simple comma-separated size list for now, so we
@@ -40,6 +76,14 @@ export function ProductsPage() {
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [editingCategoryName, setEditingCategoryName] = useState('');
   const [savingCategory, setSavingCategory] = useState(false);
+
+  // CSV import (migration tool) state
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [importHeaders, setImportHeaders] = useState<string[]>([]);
+  const [importRows, setImportRows] = useState<Record<string, string>[]>([]);
+  const [importFilename, setImportFilename] = useState('');
+  const [importMapping, setImportMapping] = useState<Record<ImportField, string>>({} as Record<ImportField, string>);
+  const [importing, setImporting] = useState(false);
 
   const currency = tenant?.currency ?? 'XOF';
   const isNew = params.get('new') === '1';
@@ -197,6 +241,149 @@ export function ProductsPage() {
     await reload();
   };
 
+  // --- CSV import (migration tool) -----------------------------------
+  const openImport = () => {
+    setImportHeaders([]);
+    setImportRows([]);
+    setImportFilename('');
+    setImportMapping({} as Record<ImportField, string>);
+    setImportModalOpen(true);
+  };
+
+  const handleImportFile = async (file: File) => {
+    try {
+      const { headers, rows } = await parseCSV(file);
+      setImportHeaders(headers);
+      setImportRows(rows);
+      setImportFilename(file.name);
+      setImportMapping(guessMapping(headers));
+    } catch (e: unknown) {
+      toast('error', t('products.import.toastError', { message: errMsg(e) }));
+    }
+  };
+
+  // Cell reader honoring the current column mapping — '' means "field not
+  // mapped to any column", not "column exists but is blank".
+  const mappedCell = (row: Record<string, string>, field: ImportField): string => {
+    const col = importMapping[field];
+    if (!col) return '';
+    return (row[col] ?? '').trim();
+  };
+
+  const previewMapped = useMemo(() => {
+    return importRows.map((row) => ({
+      name: mappedCell(row, 'name'),
+      sku: mappedCell(row, 'sku'),
+      barcode: mappedCell(row, 'barcode'),
+      category: mappedCell(row, 'category'),
+      costPrice: mappedCell(row, 'costPrice'),
+      salePrice: mappedCell(row, 'salePrice'),
+      taxRate: mappedCell(row, 'taxRate'),
+      unit: mappedCell(row, 'unit'),
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [importRows, importMapping]);
+
+  const newCategoryNames = useMemo(() => {
+    const existing = new Set(categories.map((c) => c.name.trim().toLowerCase()));
+    const seen = new Set<string>();
+    return previewMapped
+      .map((r) => r.category)
+      .filter((name) => name && !existing.has(name.trim().toLowerCase()))
+      .filter((name) => {
+        const key = name.trim().toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+  }, [previewMapped, categories]);
+
+  const parseNum = (s: string): number => {
+    const n = Number(String(s).replace(/[^\d.,-]/g, '').replace(',', '.'));
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const confirmImport = async () => {
+    if (!tenant) return;
+    setImporting(true);
+    try {
+      // 1) Create any categories the CSV references that don't exist yet,
+      // so rows can be linked to a real category_id in one pass.
+      const catByName = new Map(categories.map((c) => [c.name.trim().toLowerCase(), c.id]));
+      if (newCategoryNames.length > 0) {
+        const { data: createdCats, error: catError } = await supabase
+          .from('categories')
+          .insert(newCategoryNames.map((name) => ({ tenant_id: tenant.id, name, color: randomColor() })))
+          .select();
+        if (catError) throw catError;
+        for (const c of createdCats ?? []) catByName.set(c.name.trim().toLowerCase(), c.id);
+      }
+
+      // 2) Build insertable product rows, skipping any without a name
+      // (the one truly required field) rather than failing the whole
+      // import over a handful of bad rows.
+      const skippedRows: number[] = [];
+      const toInsert = previewMapped
+        .map((r, idx) => ({ r, idx }))
+        .filter(({ r, idx }) => {
+          if (!r.name) { skippedRows.push(idx + 1); return false; }
+          return true;
+        })
+        .map(({ r }) => ({
+          tenant_id: tenant.id,
+          category_id: r.category ? (catByName.get(r.category.trim().toLowerCase()) ?? null) : null,
+          name: r.name,
+          sku: r.sku || null,
+          barcode: r.barcode || null,
+          description: null,
+          cost_price: r.costPrice ? parseNum(r.costPrice) : 0,
+          sale_price: r.salePrice ? parseNum(r.salePrice) : 0,
+          tax_rate: r.taxRate ? parseNum(r.taxRate) : 0,
+          unit: r.unit || 'unité',
+          low_stock_threshold: 5,
+          image_url: null,
+          variants: [],
+          is_active: true,
+          tracking_mode: 'none',
+        }));
+
+      if (toInsert.length === 0) {
+        toast('error', t('products.import.toastError', { message: t('products.import.errorNoName', { row: 1 }) }));
+        setImporting(false);
+        return;
+      }
+
+      const { data: inserted, error: insertError } = await supabase
+        .from('products')
+        .insert(toInsert)
+        .select('id');
+      if (insertError) throw insertError;
+
+      // 3) Same as manual product creation: seed a zero-quantity inventory
+      // row per store for every newly imported product.
+      if (inserted && inserted.length > 0) {
+        const { data: stores } = await supabase.from('stores').select('id').eq('tenant_id', tenant.id);
+        if (stores && stores.length > 0) {
+          const invRows = inserted.flatMap((p) => stores.map((s) => ({ tenant_id: tenant.id, product_id: p.id, store_id: s.id, quantity: 0 })));
+          await supabase.from('inventory').insert(invRows);
+        }
+      }
+
+      if (skippedRows.length > 0) {
+        toast('error', t('products.import.toastPartial', { imported: toInsert.length, skipped: skippedRows.length }));
+      } else {
+        toast('success', t('products.import.toastSuccess', { count: toInsert.length }));
+      }
+      await reloadCategories();
+      await reload();
+      setImportModalOpen(false);
+    } catch (e: unknown) {
+      toast('error', t('products.import.toastError', { message: errMsg(e) }));
+    } finally {
+      setImporting(false);
+    }
+  };
+
   return (
     <div>
       <PageHeader
@@ -206,6 +393,9 @@ export function ProductsPage() {
           <div className="flex gap-2">
             {canSeeCost && <button onClick={() => exportCSV('produits.csv', filtered.map((p) => ({ name: p.name, sku: p.sku, prix_achat: p.cost_price, prix_vente: p.sale_price, categorie: catName(p.category_id) })))} className="btn-ghost">
               <Download size={16} /> {t('common.export')}
+            </button>}
+            {canCreate && <button onClick={openImport} className="btn-ghost">
+              <Upload size={16} /> {t('common.import')}
             </button>}
             {/* BUG FIX: this button used to be omitted entirely (`{canCreate && <button>}`)
                 whenever the permission check was false, which is indistinguishable from
@@ -383,6 +573,105 @@ export function ProductsPage() {
         </div>
         <div className="mt-6 flex justify-end">
           <button onClick={() => setCategoryModalOpen(false)} className="btn-ghost">{t('common.close')}</button>
+        </div>
+      </Modal>
+
+      {/* Migration tool: CSV import wizard — file → column mapping →
+          preview → confirm. Never inserts anything before the person has
+          seen and confirmed the mapped preview. */}
+      <Modal open={importModalOpen} onClose={() => setImportModalOpen(false)} title={t('products.import.title')}>
+        <p className="text-sm text-ink-500 dark:text-ink-400 mb-5">{t('products.import.intro')}</p>
+
+        <div className="mb-6">
+          <p className="mb-2 text-sm font-medium text-ink-900 dark:text-ink-50">{t('products.import.step1')}</p>
+          <label className="btn-ghost inline-flex cursor-pointer w-fit">
+            <Upload size={16} /> {t('products.import.chooseFile')}
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportFile(f); }}
+            />
+          </label>
+          {importFilename && (
+            <p className="mt-2 text-sm text-ink-600 dark:text-ink-300">
+              {t('products.import.fileSelected', { filename: importFilename, count: importRows.length })}
+            </p>
+          )}
+        </div>
+
+        {importHeaders.length > 0 && (
+          <>
+            <div className="mb-6">
+              <p className="mb-1 text-sm font-medium text-ink-900 dark:text-ink-50">{t('products.import.step2')}</p>
+              <p className="mb-3 text-xs text-ink-500 dark:text-ink-400">{t('products.import.mapHint')}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {IMPORT_FIELDS.map((field) => (
+                  <Field key={field} label={`${t(`products.import.field.${field}`)}${field === 'name' ? ` (${t('products.import.required')})` : ''}`}>
+                    <select
+                      value={importMapping[field] ?? ''}
+                      onChange={(e) => setImportMapping((m) => ({ ...m, [field]: e.target.value }))}
+                      className="input"
+                    >
+                      <option value="">{t('products.import.notMapped')}</option>
+                      {importHeaders.map((h) => <option key={h} value={h}>{h}</option>)}
+                    </select>
+                  </Field>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <p className="mb-2 text-sm font-medium text-ink-900 dark:text-ink-50">
+                {t('products.import.step3', { count: previewMapped.length })}
+              </p>
+              <div className="max-h-56 overflow-auto rounded-lg border border-ink-200 dark:border-ink-700">
+                <table className="w-full text-xs">
+                  <thead className="bg-ink-50 dark:bg-ink-800 sticky top-0">
+                    <tr>
+                      {IMPORT_FIELDS.map((f) => (
+                        <th key={f} className="px-2.5 py-2 text-left font-semibold text-ink-600 dark:text-ink-300 whitespace-nowrap">
+                          {t(`products.import.field.${f}`)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {previewMapped.slice(0, 8).map((r, i) => (
+                      <tr key={i} className="border-t border-ink-100 dark:border-ink-800">
+                        {IMPORT_FIELDS.map((f) => (
+                          <td key={f} className="px-2.5 py-1.5 text-ink-700 dark:text-ink-200 whitespace-nowrap">
+                            {r[f === 'costPrice' ? 'costPrice' : f === 'salePrice' ? 'salePrice' : f === 'taxRate' ? 'taxRate' : f] || '—'}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {previewMapped.length > 8 && (
+                <p className="mt-1.5 text-xs text-ink-400 dark:text-ink-500">
+                  {t('products.import.previewMore', { count: previewMapped.length - 8 })}
+                </p>
+              )}
+              {newCategoryNames.length > 0 && (
+                <p className="mt-2 text-xs text-flow-600 dark:text-flow-300">
+                  {t('products.import.newCategoriesNote', { count: newCategoryNames.length, names: newCategoryNames.join(', ') })}
+                </p>
+              )}
+            </div>
+          </>
+        )}
+
+        <div className="flex justify-end gap-2">
+          <button onClick={() => setImportModalOpen(false)} className="btn-ghost">{t('products.import.cancel')}</button>
+          <button
+            onClick={confirmImport}
+            disabled={importRows.length === 0 || importing || !importMapping.name}
+            className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {importing ? t('products.import.importing') : t('products.import.confirm', { count: previewMapped.filter((r) => r.name).length })}
+          </button>
         </div>
       </Modal>
     </div>

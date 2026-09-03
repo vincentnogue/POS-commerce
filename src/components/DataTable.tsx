@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
+import Papa from 'papaparse';
 import { useI18n } from '../lib/i18n';
 
 export function DataTable<T>({
@@ -105,4 +106,25 @@ export function exportCSV(filename: string, rows: Record<string, any>[]) {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+// Migration/import tool: parses a CSV file (any export from any other
+// system — Square, Odoo, Shopify, a spreadsheet, whatever) into rows the
+// caller can then map to real fields. Uses Papa Parse rather than a
+// hand-rolled splitter so quoted values containing commas/newlines (very
+// common in real-world exports, e.g. descriptions) are handled correctly.
+// header:true gives us the column names directly; skipEmptyLines avoids
+// phantom blank rows from trailing newlines.
+export function parseCSV(file: File): Promise<{ headers: string[]; rows: Record<string, string>[] }> {
+  return new Promise((resolve, reject) => {
+    Papa.parse<Record<string, string>>(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const headers = results.meta.fields ?? [];
+        resolve({ headers, rows: results.data });
+      },
+      error: (err: Error) => reject(err),
+    });
+  });
 }

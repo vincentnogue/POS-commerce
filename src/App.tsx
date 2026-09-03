@@ -7,7 +7,6 @@ import { CookieProvider } from './lib/cookies';
 import { CookieBanner } from './components/CookieBanner';
 import { SupportChatWidget } from './components/SupportChatWidget';
 import { ToastProvider } from './components/ui';
-import { AppLayout } from './components/AppLayout';
 import { RequireAuth, RequireActiveSubscription, RequireSuperAdmin } from './components/RouteGuards';
 
 // Every route is code-split: the initial bundle only ships the app shell
@@ -15,6 +14,14 @@ import { RequireAuth, RequireActiveSubscription, RequireSuperAdmin } from './com
 // the current URL, instead of all ~30 pages (and their dependencies, like
 // jsPDF for invoices) loading eagerly on every visit regardless of what
 // the person actually opened.
+//
+// PERF FIX: AppLayout (Sidebar + Header + TrialBanner, all using
+// framer-motion) used to be a plain top-level import — so it, and
+// everything it pulls in, shipped in the main bundle for EVERY visitor,
+// including an anonymous person just reading the landing page who will
+// never see the authenticated app shell at all. Made lazy like every
+// other route below.
+const AppLayout = lazy(() => import('./components/AppLayout').then((m) => ({ default: m.AppLayout })));
 const LandingPage = lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
 const SignupPage = lazy(() => import('./pages/SignupPage').then((m) => ({ default: m.SignupPage })));
