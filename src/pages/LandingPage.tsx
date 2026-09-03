@@ -4,7 +4,7 @@ import {
   Menu, X, Globe, ChevronDown, ArrowRight, MapPin,
   ShoppingCart, Package, Store, Plug, FileText, BarChart3,
   ShieldCheck, Wallet, Check, CheckCircle2, Smartphone, TrendingUp, Receipt, Moon, Sun,
-  Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent, Lock,
+  Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent, Lock, Instagram,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
@@ -318,6 +318,11 @@ function formatUSD(n: number): string {
 // (see VideoCarousel below): each plays once, then hands off to the next,
 // looping back to the first. 2 more clips do the same for the second/
 // bottom hero band near the footer.
+// PLACEHOLDER — no confirmed Instagram business handle for this project
+// yet. Update to the real @handle before this goes live; the "Follow us"
+// section below links to https://instagram.com/<this, without the @>.
+const INSTAGRAM_HANDLE = '@posflow';
+
 const HERO_VIDEOS = [
   { src: '/videos/hero-1.mp4', poster: '/videos/hero-1-poster.jpg' },
   { src: '/videos/hero-2.mp4', poster: '/videos/hero-2-poster.jpg' },
@@ -1577,6 +1582,39 @@ export function LandingPage() {
               {t('pLanding.keepFlowing.cta')} <ArrowRight size={18} />
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Instagram — "Follow us" band, not a live-fetched feed. No
+          Instagram Graph API access token or confirmed business handle is
+          configured for this project, so this deliberately does NOT
+          fabricate a grid of fake posts/photos — that would misrepresent
+          content as real Instagram activity when it isn't. INSTAGRAM_HANDLE
+          below is a placeholder; update it (and the href) to the real
+          handle. To swap this for an actual live feed once a Graph API
+          token exists, replace this section with calls to the Instagram
+          Graph API's /me/media endpoint server-side (never expose the
+          token client-side) and render real returned photos here. */}
+      <section className="relative overflow-hidden bg-gradient-to-r from-brand-600 to-flow-600 py-16">
+        <div className="absolute inset-0 bg-grid opacity-20" aria-hidden="true" />
+        <div className="relative mx-auto max-w-4xl px-4 text-center lg:px-8">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-4 py-1.5 text-xs font-bold tracking-widest text-white">
+            <Instagram size={14} /> {t('pLanding.instagram.badge')}
+          </span>
+          <h2 className="mt-5 text-2xl lg:text-3xl font-bold text-white">
+            {t('pLanding.instagram.title')}
+          </h2>
+          <p className="mt-3 text-white/80">
+            {t('pLanding.instagram.desc')}
+          </p>
+          <a
+            href={`https://instagram.com/${INSTAGRAM_HANDLE.replace('@', '')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-7 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-brand-700 shadow-lg transition hover:bg-white/90"
+          >
+            <Instagram size={17} /> {t('pLanding.instagram.cta', { handle: INSTAGRAM_HANDLE })}
+          </a>
         </div>
       </section>
 
