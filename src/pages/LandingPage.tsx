@@ -5,6 +5,7 @@ import {
   ShoppingCart, Package, Store, Plug, FileText, BarChart3,
   ShieldCheck, Wallet, Check, CheckCircle2, Smartphone, TrendingUp, Receipt, Moon, Sun,
   Search, Coffee, Shirt, Sparkles, CreditCard, Banknote, Percent, Lock, Instagram,
+  Facebook, Linkedin, Youtube,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
@@ -319,10 +320,10 @@ function formatUSD(n: number): string {
 // (see VideoCarousel below): each plays once, then hands off to the next,
 // looping back to the first. 2 more clips do the same for the second/
 // bottom hero band near the footer.
-// PLACEHOLDER — no confirmed Instagram business handle for this project
-// yet. Update to the real @handle before this goes live; the "Follow us"
-// section below links to https://instagram.com/<this, without the @>.
-const INSTAGRAM_HANDLE = '@posflow';
+// Real, confirmed Instagram business handle (given directly by the
+// business owner) — the "Follow us" section below links to
+// https://instagram.com/<this, without the @>.
+const INSTAGRAM_HANDLE = '@liafrik_tech';
 
 const HERO_VIDEOS = [
   { src: '/videos/hero-1.mp4', poster: '/videos/hero-1-poster.jpg' },
@@ -340,6 +341,18 @@ const CTA_VIDEOS = [
 // extra deps. Falls back to the first clip's poster frame (fully static)
 // for users who prefer reduced motion, same as the previous single-video
 // behavior.
+// lucide-react has no TikTok glyph — this is the one social icon in the
+// footer that needs a hand-drawn SVG. Sized and colored (currentColor) to
+// drop into the same row as the lucide icons (Facebook/Instagram/Linkedin/
+// Youtube) without looking out of place.
+function TikTokIcon({ size = 18, className }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M16.6 5.82c-.9-.98-1.4-2.26-1.4-3.62h-3.1v13.44a2.59 2.59 0 0 1-4.66 1.55 2.59 2.59 0 0 1 2.07-4.14c.28 0 .55.04.8.12V9.98a5.7 5.7 0 0 0-.8-.06 5.72 5.72 0 1 0 5.72 5.72V8.6a8.7 8.7 0 0 0 5.07 1.62V7.13a5.62 5.62 0 0 1-3.7-1.31Z" />
+    </svg>
+  );
+}
+
 function VideoCarousel({ videos, className, reducedMotion }: { videos: { src: string; poster: string }[]; className?: string; reducedMotion: boolean }) {
   const [index, setIndex] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -969,9 +982,12 @@ export function LandingPage() {
       {/* Real, verifiable stats only. 1,893+ active clients is a confirmed,
           sourced figure (per business owner, 2026-09-01) — update this
           number as it changes, never let it go stale or become a guess.
-          30+ currencies (src/lib/currency.ts) and 9+ payment processors
-          (seeded integration_providers) are both counted from actual
-          code/data. */}
+          30 currencies (src/lib/currency.ts, CURRENCY_CONFIG) and 12
+          payment processors (category='payments' rows in the seeded
+          integration_providers migrations) are both counted directly from
+          actual code/data, not estimated — recount both whenever a
+          currency or payment provider is added/removed so this stays
+          accurate. */}
       <section className="bg-gray-50 dark:bg-ink-900 py-12 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
@@ -983,13 +999,13 @@ export function LandingPage() {
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                <CountUp value={30} suffix="+" />
+                <CountUp value={30} />
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.currencies')}</p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                <CountUp value={9} suffix="+" />
+                <CountUp value={12} suffix="+" />
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.processors')}</p>
             </div>
@@ -1587,16 +1603,16 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Instagram — "Follow us" band, not a live-fetched feed. No
-          Instagram Graph API access token or confirmed business handle is
-          configured for this project, so this deliberately does NOT
-          fabricate a grid of fake posts/photos — that would misrepresent
-          content as real Instagram activity when it isn't. INSTAGRAM_HANDLE
-          below is a placeholder; update it (and the href) to the real
-          handle. To swap this for an actual live feed once a Graph API
-          token exists, replace this section with calls to the Instagram
-          Graph API's /me/media endpoint server-side (never expose the
-          token client-side) and render real returned photos here. */}
+      {/* Instagram — "Follow us" band, not a live-fetched feed. The handle
+          (@liafrik_tech) is real and confirmed by the business owner, but
+          no Instagram Graph API access token is configured for this
+          project yet, so this deliberately does NOT fabricate a grid of
+          fake posts/photos — that would misrepresent content as real
+          Instagram activity when it isn't. To turn this into an actual
+          live feed once a Graph API token exists, replace this section
+          with calls to the Instagram Graph API's /me/media endpoint
+          server-side (never expose the token client-side) and render the
+          real returned photos here. */}
       <section className="relative overflow-hidden bg-gradient-to-r from-brand-600 to-flow-600 py-16">
         <div className="absolute inset-0 bg-grid opacity-20" aria-hidden="true" />
         <div className="relative mx-auto max-w-4xl px-4 text-center lg:px-8">
@@ -1676,15 +1692,44 @@ export function LandingPage() {
               <ul className="space-y-2.5 text-sm text-ink-400">
                 <li><Link to="/privacy" className="transition hover:text-brand-400">{t('pLanding.footer.privacy')}</Link></li>
                 <li><Link to="/terms" className="transition hover:text-brand-400">{t('pLanding.footer.terms')}</Link></li>
+                <li><Link to="/refund-policy" className="transition hover:text-brand-400">{t('pLanding.footer.refundPolicy')}</Link></li>
+                <li><Link to="/cookie-policy" className="transition hover:text-brand-400">{t('pLanding.footer.cookiePolicy')}</Link></li>
+                <li><Link to="/acceptable-use" className="transition hover:text-brand-400">{t('pLanding.footer.acceptableUse')}</Link></li>
+                <li><Link to="/sla" className="transition hover:text-brand-400">{t('pLanding.footer.sla')}</Link></li>
                 <li><Link to="/legal" className="transition hover:text-brand-400">{t('pLanding.footer.legalNotice')}</Link></li>
               </ul>
             </div>
           </div>
 
-          <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 sm:flex-row">
+          <div className="mt-12 flex flex-col items-center gap-6 border-t border-white/10 pt-8 sm:flex-row sm:justify-between">
             <p className="text-sm text-ink-500">
-              {t('pLanding.footer.rights', { year: new Date().getFullYear() })}
+              {t('pLanding.footer.rightsPrefix', { year: new Date().getFullYear() })}
+              <a href="https://liafrik.com" target="_blank" rel="noopener noreferrer" className="text-ink-400 underline transition hover:text-brand-400">
+                LiAfrik
+              </a>
+              {t('pLanding.footer.rightsSuffix')}
             </p>
+
+            {/* Real, official accounts only — every URL here is one the
+                business owner gave directly, none guessed or templated. */}
+            <div className="flex items-center gap-4">
+              <a href="https://www.tiktok.com/@liyahgroup?_r=1&_t=ZS-9981XGgaxrE" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="text-ink-400 transition hover:text-brand-400">
+                <TikTokIcon size={18} />
+              </a>
+              <a href="https://www.facebook.com/share/1LMAGqsy3n/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-ink-400 transition hover:text-brand-400">
+                <Facebook size={18} />
+              </a>
+              <a href="https://www.instagram.com/liafrik_tech?igsi=eXBjdTc5NG42Zml4&utm_source=qr" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-ink-400 transition hover:text-brand-400">
+                <Instagram size={18} />
+              </a>
+              <a href="https://www.linkedin.com/company/liafrik/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-ink-400 transition hover:text-brand-400">
+                <Linkedin size={18} />
+              </a>
+              <a href="https://youtube.com/@liyah-n?si=D-lXwovYubw3sdaf" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="text-ink-400 transition hover:text-brand-400">
+                <Youtube size={18} />
+              </a>
+            </div>
+
             <button
               onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
               className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-sm text-ink-400 transition hover:border-brand-400/50 hover:text-brand-400"

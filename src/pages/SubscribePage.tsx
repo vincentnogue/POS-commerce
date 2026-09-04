@@ -7,14 +7,33 @@ import { useI18n } from '../lib/i18n';
 import { supabase } from '../lib/supabase';
 import { PLANS, annualPrice } from '../lib/plans';
 
-type PspId = 'stripe' | 'flutterwave' | 'paystack' | 'payunit';
+type PspId = 'stripe' | 'flutterwave' | 'paystack' | 'payunit' | 'paddle';
 
 const PSP_META: Record<PspId, { functionName: string; icon: typeof CreditCard; labelKey: string }> = {
   stripe: { functionName: 'stripe-checkout', icon: CreditCard, labelKey: 'subscribe.card' },
   flutterwave: { functionName: 'flutterwave-checkout', icon: Smartphone, labelKey: 'subscribe.mobileMoney' },
   paystack: { functionName: 'paystack-checkout', icon: Smartphone, labelKey: 'subscribe.psp.paystack' },
   payunit: { functionName: 'payunit-checkout', icon: Wallet, labelKey: 'subscribe.psp.payunit' },
+  paddle: { functionName: 'paddle-checkout', icon: CreditCard, labelKey: 'subscribe.psp.paddle' },
 };
+
+// Paddle Billing checkout is an overlay opened by Paddle.js in the
+// browser, not a redirect to a hosted URL like the other 4 PSPs — so it
+// needs its script loaded once, on demand, rather than at every page load.
+let paddleJsPromise: Promise<void> | null = null;
+function loadPaddleJs(): Promise<void> {
+  if ((window as any).Paddle) return Promise.resolve();
+  if (!paddleJsPromise) {
+    paddleJsPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.paddle.com/paddle/v2/paddle.js';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Paddle.js'));
+      document.head.appendChild(script);
+    });
+  }
+  return paddleJsPromise;
+}
 
 export function SubscribePage() {
   const { tenant, user, access } = useAuth();
@@ -29,6 +48,7 @@ export function SubscribePage() {
   // is real, and silently uses the one available PSP otherwise.
   const [activeProviders, setActiveProviders] = useState<PspId[] | null>(null);
   const [provider, setProvider] = useState<PspId | null>(null);
+  const [paddleConfig, setPaddleConfig] = useState<{ clientToken: string; sandbox: boolean } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
@@ -45,6 +65,9 @@ export function SubscribePage() {
         if (cancelled) return;
         setActiveProviders(active);
         setProvider(active[0] ?? null);
+        if (status.paddle && status.paddle_client_token) {
+          setPaddleConfig({ clientToken: status.paddle_client_token, sandbox: !!status.paddle_sandbox });
+        }
       } catch {
         // Backend unreachable — fail closed to Stripe (card payments are
         // the most universally reachable option) rather than showing a
@@ -69,6 +92,37 @@ export function SubscribePage() {
       };
 
       const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${PSP_META[provider].functionName}`;
+
+      if (provider === 'paddle') {
+        if (!paddleConfig) { setError(t('subscribe.error.init')); return; }
+        const plan = PLANS.find((p) => p.code === planCode);
+        if (!plan) return;
+        const amount = billing === 'annual' ? annualPrice(plan.priceMonthly) : plan.priceMonthly;
+
+        const res = await fetch(apiUrl, {
+          method: 'POST', headers: authHeaders,
+          body: JSON.stringify({
+            plan_code: planCode,
+            plan_name: t('plan.name.' + planCode),
+            billing,
+            amount_usd: amount,
+            tenant_id: tenant.id,
+          }),
+        });
+        const json = await res.json();
+        if (!res.ok) { setError(json.error ?? t('subscribe.error.init')); return; }
+
+        await loadPaddleJs();
+        const Paddle = (window as any).Paddle;
+        if (paddleConfig.sandbox) Paddle.Environment.set('sandbox');
+        Paddle.Initialize({ token: paddleConfig.clientToken });
+        Paddle.Checkout.open({
+          transactionId: json.transaction_id,
+          settings: { successUrl: `${window.location.origin}/dashboard?upgraded=1` },
+        });
+        return;
+      }
+
       const body = provider === 'stripe'
         ? {
             plan_code: planCode,

@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ShoppingCart, Package, Boxes, Store,
   FileText, Truck, Users, Building2, Receipt, Wallet, ClipboardList,
   FileBarChart, Calculator, UserCog, Settings, Shield, Crown,
-  ChevronDown, LogOut, X, Globe, Lock, Puzzle, Clock3, Tag, ClipboardCheck,
+  ChevronDown, LogOut, X, Globe, Lock, Puzzle, Clock3, Tag, ClipboardCheck, Percent,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../lib/i18n';
@@ -39,6 +39,7 @@ const NAV: NavItem[] = [
   { to: '/users', labelKey: 'nav.users', icon: UserCog, module: 'users' },
   { to: '/timeclock', labelKey: 'nav.timeclock', icon: Clock3 },
   { to: '/tasks', labelKey: 'nav.tasks', icon: ClipboardCheck },
+  { to: '/commissions', labelKey: 'nav.commissions', icon: Percent },
   { to: '/promotions', labelKey: 'nav.promotions', icon: Tag, module: 'promotions' },
   { to: '/administration', labelKey: 'nav.administration', icon: Shield, module: 'administration' },
   { to: '/marketplace', labelKey: 'nav.marketplace', icon: Puzzle, module: 'marketplace' },

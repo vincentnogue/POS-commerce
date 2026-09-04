@@ -141,10 +141,10 @@ export function IntegrationCredentialForm({
     <div className="w-full max-w-md space-y-6">
       {/* Title */}
       <div>
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+        <h2 className="text-xl font-bold text-ink-900 dark:text-white">
           Connect {providerName}
         </h2>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+        <p className="mt-1 text-sm text-ink-600 dark:text-ink-400">
           Provide your credentials. They will be encrypted and stored securely.
         </p>
       </div>
@@ -153,10 +153,10 @@ export function IntegrationCredentialForm({
       <div className="space-y-4">
         {fields.map(([fieldName, fieldConfig]) => (
           <div key={fieldName}>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1.5">
               {fieldConfig.title || fieldName}
               {authSchema.required?.includes(fieldName) && (
-                <span className="text-red-600 ml-1">*</span>
+                <span className="text-error-500 ml-1">*</span>
               )}
             </label>
             <input
@@ -168,10 +168,10 @@ export function IntegrationCredentialForm({
                 setErrors(errors.filter(err => err.field !== fieldName));
               }}
               placeholder={`Enter ${fieldConfig.title || fieldName}`}
-              className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
+              className="input"
             />
             {errors.find(e => e.field === fieldName) && (
-              <p className="mt-1 text-sm text-red-600">
+              <p className="mt-1 text-sm text-error-600">
                 {errors.find(e => e.field === fieldName)?.message}
               </p>
             )}
@@ -181,12 +181,12 @@ export function IntegrationCredentialForm({
 
       {/* General errors */}
       {errors.some(e => !e.field) && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <div className="p-3 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg">
           <div className="flex gap-2 items-start">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-error-600 flex-shrink-0 mt-0.5" />
             <div>
               {errors.map((err, i) => (
-                !err.field && <p key={i} className="text-sm text-red-700 dark:text-red-400">{err.message}</p>
+                !err.field && <p key={i} className="text-sm text-error-700 dark:text-error-400">{err.message}</p>
               ))}
             </div>
           </div>
@@ -197,35 +197,40 @@ export function IntegrationCredentialForm({
       {testResult && (
         <div className={`p-3 border rounded-lg ${
           testResult.success
-            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+            ? 'bg-success-50 dark:bg-success-900/20 border-success-200 dark:border-success-800'
+            : 'bg-error-50 dark:bg-error-900/20 border-error-200 dark:border-error-800'
         }`}>
           <div className="flex gap-2 items-start">
             {testResult.success ? (
-              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <CheckCircle className="w-5 h-5 text-success-600 flex-shrink-0 mt-0.5" />
             ) : (
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-error-600 flex-shrink-0 mt-0.5" />
             )}
-            <p className={`text-sm ${testResult.success ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+            <p className={`text-sm ${testResult.success ? 'text-success-700 dark:text-success-400' : 'text-error-700 dark:text-error-400'}`}>
               {testResult.message}
             </p>
           </div>
         </div>
       )}
 
-      {/* Actions */}
+      {/* Actions — same tokens as every other form in the app: btn-ghost
+          for Cancel, btn-primary (brand action color) for the primary
+          step, success color reserved for the confirming Save once the
+          test has actually passed. Previously these were raw
+          bg-blue-600/bg-green-600, the one visibly different button
+          style in the whole connection flow. */}
       <div className="flex gap-3 pt-4">
         <button
           onClick={onCancel}
           disabled={testing || saving}
-          className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-full text-slate-900 dark:text-white font-medium hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="btn-ghost flex-1"
         >
           Cancel
         </button>
         <button
           onClick={handleTestConnection}
           disabled={testing || saving}
-          className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+          className="btn-primary flex-1"
         >
           {testing && <Loader className="w-4 h-4 animate-spin" />}
           Test Connection
@@ -234,7 +239,7 @@ export function IntegrationCredentialForm({
           <button
             onClick={() => handleSaveConnection()}
             disabled={saving}
-            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-success-600 px-4 py-2 text-sm font-semibold text-white shadow-soft transition-all hover:bg-success-700 hover:shadow-float active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
           >
             {saving && <Loader className="w-4 h-4 animate-spin" />}
             Save
@@ -243,7 +248,7 @@ export function IntegrationCredentialForm({
       </div>
 
       {/* Help text */}
-      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-sm text-slate-600 dark:text-slate-400">
+      <div className="p-3 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-lg text-sm text-ink-600 dark:text-ink-400">
         <p>
           Your credentials are encrypted and stored securely. Only your organization can access them.
           Never shared between tenants.
