@@ -14,19 +14,21 @@ import { useToast } from './ui';
 // previously never-called) edge functions, show it as a scannable QR the
 // customer can pay from their own phone, and poll for confirmation.
 //
-// Scoped to exactly the 3 providers whose functions return a hosted
-// checkout URL well-suited to a QR code (Flutterwave, Paystack, PayUnit).
-// Stripe's function only supports PaymentIntents (an embedded card form,
-// not a shareable link) and M-Pesa/Orange Money push directly to a phone
-// number instead of returning a link — both are a different UI shape,
-// deliberately left for a follow-up rather than forced into this one.
+// Scoped to 4 providers whose functions return a hosted checkout URL
+// well-suited to a QR code (Flutterwave, Paystack, PayUnit, and now
+// Stripe via a real Checkout Session — a real, working action added to
+// stripe-payments alongside its createPaymentIntent, which only returns
+// a clientSecret meant for an embedded card form, not a shareable link).
+// M-Pesa/Orange Money push directly to a phone number instead of
+// returning a link — a different UI shape, deliberately left for a
+// follow-up rather than forced into this one.
 //
 // Each provider's edge function has its own real, already-audited
 // contract (see stripe-payments/flutterwave-payments/etc. — action names,
 // GET-vs-POST verify, body vs query-param action) — this does not
 // pretend they're uniform where they aren't.
 
-type QrProviderKey = 'flutterwave' | 'paystack' | 'payunit';
+type QrProviderKey = 'flutterwave' | 'paystack' | 'payunit' | 'stripe';
 
 interface ConnectedProvider {
   key: QrProviderKey;
@@ -90,17 +92,33 @@ async function createCheckoutLink(provider: QrProviderKey, req: Props, connectio
   }
 
   // payunit — action travels in the JSON body, not a query param
-  const res = await fetch(`${FUNCTIONS_BASE}/payunit-payments`, {
+  if (provider === 'payunit') {
+    const res = await fetch(`${FUNCTIONS_BASE}/payunit-payments`, {
+      method: 'POST', headers,
+      body: JSON.stringify({
+        action: 'initialize_payment', tenant_id: req.tenantId, connection_id: connectionId,
+        amount: req.amount, currency: req.currency, email: req.customerEmail ?? undefined, phone: req.customerPhone ?? undefined,
+        description: req.saleReference ?? 'POS sale',
+      }),
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.message ?? 'PayUnit error');
+    return { link: json.payment_url as string, reference: json.reference as string };
+  }
+
+  // stripe — Checkout Session (not create_payment_intent, which returns
+  // a clientSecret meant for an embedded card form, not a link)
+  const res = await fetch(`${FUNCTIONS_BASE}/stripe-payments?action=create_checkout_session`, {
     method: 'POST', headers,
     body: JSON.stringify({
-      action: 'initialize_payment', tenant_id: req.tenantId, connection_id: connectionId,
-      amount: req.amount, currency: req.currency, email: req.customerEmail ?? undefined, phone: req.customerPhone ?? undefined,
-      description: req.saleReference ?? 'POS sale',
+      tenant_id: req.tenantId, connection_id: connectionId, amount: req.amount, currency: req.currency,
+      description: req.saleReference ?? 'POS sale', customer_email: req.customerEmail ?? undefined,
+      return_url: `${window.location.origin}/pos?stripe_return=1`,
     }),
   });
   const json = await res.json();
-  if (!json.success) throw new Error(json.message ?? 'PayUnit error');
-  return { link: json.payment_url as string, reference: json.reference as string };
+  if (!json.success) throw new Error(json.message ?? 'Stripe error');
+  return { link: json.url as string, reference: json.sessionId as string };
 }
 
 // Returns true once the provider confirms the payment succeeded.
@@ -118,12 +136,18 @@ async function checkStatus(provider: QrProviderKey, tenantId: string, connection
     return json.success && ['success', 'successful'].includes(json.status);
   }
   // payunit
-  const res = await fetch(`${FUNCTIONS_BASE}/payunit-payments`, {
-    method: 'POST', headers,
-    body: JSON.stringify({ action: 'verify_payment', tenant_id: tenantId, connection_id: connectionId, transaction_reference: reference }),
-  });
+  if (provider === 'payunit') {
+    const res = await fetch(`${FUNCTIONS_BASE}/payunit-payments`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ action: 'verify_payment', tenant_id: tenantId, connection_id: connectionId, transaction_reference: reference }),
+    });
+    const json = await res.json();
+    return json.success && ['completed', 'success', 'successful'].includes(json.status);
+  }
+  // stripe — reference here is the Checkout Session id
+  const res = await fetch(`${FUNCTIONS_BASE}/stripe-payments?session_id=${encodeURIComponent(reference)}&connection_id=${encodeURIComponent(connectionId)}&tenant_id=${encodeURIComponent(tenantId)}`, { headers });
   const json = await res.json();
-  return json.success && ['completed', 'success', 'successful'].includes(json.status);
+  return json.success && json.status === 'paid';
 }
 
 export function OnlinePaymentModal(props: Props) {
@@ -145,7 +169,7 @@ export function OnlinePaymentModal(props: Props) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const keys: QrProviderKey[] = ['flutterwave', 'paystack', 'payunit'];
+      const keys: QrProviderKey[] = ['flutterwave', 'paystack', 'payunit', 'stripe'];
       const { data: providerRows } = await supabase.from('integration_providers').select('id, provider_key, provider_name').in('provider_key', keys);
       if (!providerRows?.length) { if (!cancelled) setLoadingProviders(false); return; }
       const { data: connections } = await supabase
