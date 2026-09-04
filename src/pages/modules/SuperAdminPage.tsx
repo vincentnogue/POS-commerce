@@ -4,15 +4,16 @@ import {
   Shield, Crown, Building2, Users, DollarSign, TrendingUp,
   Pencil, Trash2, Ban, Check, Plus, Activity, CreditCard,
   Search, AlertTriangle, Mail, Eye, Loader2, BarChart3, Award, UserCog, Headset, Send, Plug, MessageSquare, CalendarPlus,
+  FileEdit, Briefcase, Newspaper, ToggleLeft, ToggleRight,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useI18n } from '../../lib/i18n';
 import { convertToUSD } from '../../lib/localization';
 import { PageHeader, Modal, Badge, StatCard, EmptyState, Spinner, useToast } from '../../components/ui';
 import { Field } from '../../components/DataTable';
-import type { Tenant, Plan, CommercialCode, AuditLog } from '../../lib/types';
+import type { Tenant, Plan, CommercialCode, AuditLog, BlogPost, JobPosting } from '../../lib/types';
 
-type Tab = 'overview' | 'tenants' | 'employees' | 'subscriptions' | 'admins' | 'staff' | 'plans' | 'codes' | 'performance' | 'audit' | 'monitoring' | 'comms' | 'messages' | 'support' | 'integrations';
+type Tab = 'overview' | 'tenants' | 'employees' | 'subscriptions' | 'admins' | 'staff' | 'plans' | 'codes' | 'performance' | 'audit' | 'monitoring' | 'comms' | 'messages' | 'support' | 'integrations' | 'content';
 
 // Sections a scoped staff member can ever be granted. Must mirror
 // GRANTABLE_SECTIONS in the platform-staff-manage edge function.
@@ -110,6 +111,7 @@ export function SuperAdminPage() {
     { id: 'audit', labelKey: 'super.tab.audit', icon: Shield },
     { id: 'comms', labelKey: 'super.tab.comms', icon: Mail },
     { id: 'messages', labelKey: 'super.tab.messages', icon: MessageSquare },
+    { id: 'content', labelKey: 'super.tab.content', icon: FileEdit },
     { id: 'support', labelKey: 'super.tab.support', icon: Headset },
   ];
 
@@ -162,6 +164,7 @@ export function SuperAdminPage() {
       {activeTab === 'audit' && <SuperAudit />}
       {activeTab === 'comms' && <SuperComms />}
       {activeTab === 'messages' && <SuperMessages />}
+      {activeTab === 'content' && <SuperContent />}
       {activeTab === 'support' && <SuperSupport />}
     </div>
   );
@@ -1480,6 +1483,273 @@ function SuperComms() {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Real gap found alongside SuperMessages: blog_posts and job_postings
+// (same migration 0006 as contact_messages) had a public-facing page each
+// (BlogPage.tsx, CareersPage.tsx) reading real rows — but no admin screen
+// anywhere to actually write those rows. Publishing an article or a job
+// listing meant going into the database directly. This is that missing
+// admin screen, same tab pattern as the rest of Super Admin.
+type ContentSubTab = 'blog' | 'jobs';
+const EMPTY_POST = { title: '', slug: '', excerpt: '', content: '', author: 'LIYHA GROUP', cover_url: '', published: false };
+const EMPTY_JOB = { title: '', department: '', location: '', type: 'full-time', description: '', requirements: '', salary_range: '', published: false };
+
+function SuperContent() {
+  const { t } = useI18n();
+  const [subTab, setSubTab] = useState<ContentSubTab>('blog');
+
+  return (
+    <div>
+      <div className="mb-4 flex gap-2">
+        <button onClick={() => setSubTab('blog')} className={`rounded-full px-4 py-1.5 text-sm font-medium ${subTab === 'blog' ? 'bg-brand-500 text-white' : 'bg-ink-100 text-ink-600 dark:bg-ink-800 dark:text-ink-300'}`}>
+          <Newspaper size={14} className="mr-1.5 inline" /> {t('super.content.blog')}
+        </button>
+        <button onClick={() => setSubTab('jobs')} className={`rounded-full px-4 py-1.5 text-sm font-medium ${subTab === 'jobs' ? 'bg-brand-500 text-white' : 'bg-ink-100 text-ink-600 dark:bg-ink-800 dark:text-ink-300'}`}>
+          <Briefcase size={14} className="mr-1.5 inline" /> {t('super.content.jobs')}
+        </button>
+      </div>
+      {subTab === 'blog' ? <SuperBlogManager /> : <SuperJobsManager />}
+    </div>
+  );
+}
+
+function SuperBlogManager() {
+  const { t, formatDateTime } = useI18n();
+  const toast = useToast();
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<BlogPost | null>(null);
+  const [form, setForm] = useState(EMPTY_POST);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from('blog_posts').select('*').order('created_at', { ascending: false });
+    setPosts((data as BlogPost[]) ?? []);
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+  const openNew = () => { setEditing(null); setForm(EMPTY_POST); setModalOpen(true); };
+  const openEdit = (p: BlogPost) => {
+    setEditing(p);
+    setForm({ title: p.title, slug: p.slug, excerpt: p.excerpt ?? '', content: p.content, author: p.author, cover_url: p.cover_url ?? '', published: p.published });
+    setModalOpen(true);
+  };
+
+  const save = async () => {
+    if (!form.title.trim() || !form.content.trim()) { toast('error', t('super.content.blog.err.required')); return; }
+    setSaving(true);
+    const payload = {
+      title: form.title.trim(),
+      slug: (form.slug.trim() || slugify(form.title)),
+      excerpt: form.excerpt.trim() || null,
+      content: form.content,
+      author: form.author.trim() || 'LIYHA GROUP',
+      cover_url: form.cover_url.trim() || null,
+      published: form.published,
+      published_at: form.published ? (editing?.published_at ?? new Date().toISOString()) : null,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = editing
+      ? await supabase.from('blog_posts').update(payload).eq('id', editing.id)
+      : await supabase.from('blog_posts').insert(payload);
+    setSaving(false);
+    if (error) { toast('error', error.message); return; }
+    toast('success', editing ? t('super.content.blog.toast.updated') : t('super.content.blog.toast.created'));
+    setModalOpen(false);
+    load();
+  };
+
+  const togglePublished = async (p: BlogPost) => {
+    const { error } = await supabase.from('blog_posts').update({
+      published: !p.published, published_at: !p.published ? new Date().toISOString() : p.published_at,
+    }).eq('id', p.id);
+    if (error) { toast('error', error.message); return; }
+    load();
+  };
+
+  const remove = async (p: BlogPost) => {
+    if (!confirm(t('super.content.blog.confirmDelete', { title: p.title }))) return;
+    const { error } = await supabase.from('blog_posts').delete().eq('id', p.id);
+    if (error) { toast('error', error.message); return; }
+    load();
+  };
+
+  return (
+    <div className="card p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t('super.content.blog.count', { count: posts.length })}</h3>
+        <button onClick={openNew} className="btn-primary"><Plus size={16} /> {t('super.content.blog.new')}</button>
+      </div>
+      {loading ? <Spinner /> : posts.length === 0 ? (
+        <EmptyState icon={Newspaper} title={t('super.content.blog.empty.title')} description={t('super.content.blog.empty.desc')} />
+      ) : (
+        <div className="space-y-1.5">
+          {posts.map((p) => (
+            <div key={p.id} className="flex items-center justify-between rounded-xl border border-ink-100 p-3 dark:border-ink-800">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="truncate font-medium text-ink-900 dark:text-ink-50">{p.title}</p>
+                  <Badge tone={p.published ? 'success' : 'neutral'}>{p.published ? t('super.content.published') : t('super.content.draft')}</Badge>
+                </div>
+                <p className="text-xs text-ink-500 dark:text-ink-400">/blog/{p.slug} {p.published_at && `· ${formatDateTime(p.published_at)}`}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                <button onClick={() => togglePublished(p)} className={p.published ? 'text-success-600' : 'text-ink-400'} title={p.published ? t('super.content.unpublish') : t('super.content.publish')}>
+                  {p.published ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                </button>
+                <button onClick={() => openEdit(p)} className="rounded-full p-1.5 text-ink-500 hover:bg-brand-50 dark:hover:bg-brand-900/25"><Pencil size={15} /></button>
+                <button onClick={() => remove(p)} className="rounded-full p-1.5 text-error-500 hover:bg-error-50 dark:hover:bg-error-900/25"><Trash2 size={15} /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? t('super.content.blog.editTitle') : t('super.content.blog.new')}>
+        <div className="space-y-3">
+          <Field label={t('super.content.blog.field.title')}><input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="input" /></Field>
+          <Field label={t('super.content.blog.field.slug')}>
+            <input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder={slugify(form.title) || 'mon-article'} className="input" />
+          </Field>
+          <Field label={t('super.content.blog.field.excerpt')}><textarea value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} className="input min-h-[60px]" /></Field>
+          <Field label={t('super.content.blog.field.content')}><textarea value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} className="input min-h-[200px] font-mono text-sm" /></Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={t('super.content.blog.field.author')}><input value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} className="input" /></Field>
+            <Field label={t('super.content.blog.field.coverUrl')}><input value={form.cover_url} onChange={(e) => setForm({ ...form, cover_url: e.target.value })} className="input" /></Field>
+          </div>
+          <label className="flex items-center gap-2 text-sm text-ink-700 dark:text-ink-200">
+            <input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} className="h-4 w-4 accent-brand-500" />
+            {t('super.content.blog.field.published')}
+          </label>
+          <button onClick={save} disabled={saving} className="btn-primary w-full justify-center disabled:opacity-50">{saving ? t('common.saving') : t('common.save')}</button>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+function SuperJobsManager() {
+  const { t } = useI18n();
+  const toast = useToast();
+  const [jobs, setJobs] = useState<JobPosting[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<JobPosting | null>(null);
+  const [form, setForm] = useState(EMPTY_JOB);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from('job_postings').select('*').order('created_at', { ascending: false });
+    setJobs((data as JobPosting[]) ?? []);
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const openNew = () => { setEditing(null); setForm(EMPTY_JOB); setModalOpen(true); };
+  const openEdit = (j: JobPosting) => {
+    setEditing(j);
+    setForm({ title: j.title, department: j.department ?? '', location: j.location ?? '', type: j.type, description: j.description, requirements: j.requirements ?? '', salary_range: j.salary_range ?? '', published: j.published });
+    setModalOpen(true);
+  };
+
+  const save = async () => {
+    if (!form.title.trim() || !form.description.trim()) { toast('error', t('super.content.jobs.err.required')); return; }
+    setSaving(true);
+    const payload = {
+      title: form.title.trim(), department: form.department.trim() || null, location: form.location.trim() || null,
+      type: form.type, description: form.description, requirements: form.requirements.trim() || null,
+      salary_range: form.salary_range.trim() || null, published: form.published, updated_at: new Date().toISOString(),
+    };
+    const { error } = editing
+      ? await supabase.from('job_postings').update(payload).eq('id', editing.id)
+      : await supabase.from('job_postings').insert(payload);
+    setSaving(false);
+    if (error) { toast('error', error.message); return; }
+    toast('success', editing ? t('super.content.jobs.toast.updated') : t('super.content.jobs.toast.created'));
+    setModalOpen(false);
+    load();
+  };
+
+  const togglePublished = async (j: JobPosting) => {
+    const { error } = await supabase.from('job_postings').update({ published: !j.published }).eq('id', j.id);
+    if (error) { toast('error', error.message); return; }
+    load();
+  };
+
+  const remove = async (j: JobPosting) => {
+    if (!confirm(t('super.content.jobs.confirmDelete', { title: j.title }))) return;
+    const { error } = await supabase.from('job_postings').delete().eq('id', j.id);
+    if (error) { toast('error', error.message); return; }
+    load();
+  };
+
+  return (
+    <div className="card p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-base font-medium text-ink-900 dark:text-ink-50">{t('super.content.jobs.count', { count: jobs.length })}</h3>
+        <button onClick={openNew} className="btn-primary"><Plus size={16} /> {t('super.content.jobs.new')}</button>
+      </div>
+      {loading ? <Spinner /> : jobs.length === 0 ? (
+        <EmptyState icon={Briefcase} title={t('super.content.jobs.empty.title')} description={t('super.content.jobs.empty.desc')} />
+      ) : (
+        <div className="space-y-1.5">
+          {jobs.map((j) => (
+            <div key={j.id} className="flex items-center justify-between rounded-xl border border-ink-100 p-3 dark:border-ink-800">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="truncate font-medium text-ink-900 dark:text-ink-50">{j.title}</p>
+                  <Badge tone={j.published ? 'success' : 'neutral'}>{j.published ? t('super.content.published') : t('super.content.draft')}</Badge>
+                </div>
+                <p className="text-xs text-ink-500 dark:text-ink-400">{[j.department, j.location, j.type].filter(Boolean).join(' · ')}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                <button onClick={() => togglePublished(j)} className={j.published ? 'text-success-600' : 'text-ink-400'} title={j.published ? t('super.content.unpublish') : t('super.content.publish')}>
+                  {j.published ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                </button>
+                <button onClick={() => openEdit(j)} className="rounded-full p-1.5 text-ink-500 hover:bg-brand-50 dark:hover:bg-brand-900/25"><Pencil size={15} /></button>
+                <button onClick={() => remove(j)} className="rounded-full p-1.5 text-error-500 hover:bg-error-50 dark:hover:bg-error-900/25"><Trash2 size={15} /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? t('super.content.jobs.editTitle') : t('super.content.jobs.new')}>
+        <div className="space-y-3">
+          <Field label={t('super.content.jobs.field.title')}><input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="input" /></Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={t('super.content.jobs.field.department')}><input value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} className="input" /></Field>
+            <Field label={t('super.content.jobs.field.location')}><input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className="input" /></Field>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={t('super.content.jobs.field.type')}>
+              <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="input">
+                <option value="full-time">{t('super.content.jobs.type.fullTime')}</option>
+                <option value="part-time">{t('super.content.jobs.type.partTime')}</option>
+                <option value="contract">{t('super.content.jobs.type.contract')}</option>
+                <option value="internship">{t('super.content.jobs.type.internship')}</option>
+              </select>
+            </Field>
+            <Field label={t('super.content.jobs.field.salaryRange')}><input value={form.salary_range} onChange={(e) => setForm({ ...form, salary_range: e.target.value })} className="input" /></Field>
+          </div>
+          <Field label={t('super.content.jobs.field.description')}><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input min-h-[120px]" /></Field>
+          <Field label={t('super.content.jobs.field.requirements')}><textarea value={form.requirements} onChange={(e) => setForm({ ...form, requirements: e.target.value })} className="input min-h-[80px]" /></Field>
+          <label className="flex items-center gap-2 text-sm text-ink-700 dark:text-ink-200">
+            <input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} className="h-4 w-4 accent-brand-500" />
+            {t('super.content.jobs.field.published')}
+          </label>
+          <button onClick={save} disabled={saving} className="btn-primary w-full justify-center disabled:opacity-50">{saving ? t('common.saving') : t('common.save')}</button>
+        </div>
+      </Modal>
     </div>
   );
 }
