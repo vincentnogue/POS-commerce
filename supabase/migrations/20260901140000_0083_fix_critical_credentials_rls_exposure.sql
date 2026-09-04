@@ -1,0 +1,31 @@
+-- CRITICAL SECURITY FIX — found during the security audit requested for
+-- this session.
+--
+-- Migration 0031 created this policy on integration_credentials (the
+-- table storing every tenant's encrypted third-party API keys/secrets —
+-- Twilio auth tokens, Stripe/Paddle/Flutterwave secret keys, etc.):
+--
+--   CREATE POLICY "Service role can access all credentials"
+--     ON public.integration_credentials FOR ALL
+--     USING (true); -- Service role bypasses RLS anyway
+--
+-- The comment's premise is correct (service_role DOES bypass RLS
+-- entirely, at the Postgres level, regardless of any policy) — which is
+-- exactly why this policy was unnecessary. But a CREATE POLICY with no
+-- "TO <role>" clause applies to PUBLIC, not just service_role. Combined
+-- with Supabase's default grants (anon/authenticated get table-level
+-- privileges by default; RLS policies are what's supposed to restrict
+-- that), this policy's "USING (true)" granted every authenticated user,
+-- of every tenant, unrestricted read/write access to every OTHER
+-- tenant's encrypted credentials via the standard PostgREST API — not a
+-- theoretical risk, a directly exploitable one via a plain REST call
+-- with any valid session token.
+--
+-- Fix: drop the policy. RLS is already enabled on this table (migration
+-- 0031), so with zero policies for anon/authenticated, those roles get
+-- the correct default-deny. service_role is unaffected either way, since
+-- it bypasses RLS regardless of policies — so nothing that actually
+-- needs access (the edge functions using SUPABASE_SERVICE_ROLE_KEY:
+-- notifications-twilio, stripe-payments, flutterwave-payments, etc.)
+-- loses anything.
+drop policy if exists "Service role can access all credentials" on public.integration_credentials;
