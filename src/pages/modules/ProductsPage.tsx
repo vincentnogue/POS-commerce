@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Plus, Pencil, Trash2, Package, Download, Upload, Image as ImageIcon, X, Tags } from 'lucide-react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { Plus, Pencil, Trash2, Package, Download, Upload, Image as ImageIcon, X, Tags, Sparkles } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -84,6 +84,54 @@ export function ProductsPage() {
   const [importFilename, setImportFilename] = useState('');
   const [importMapping, setImportMapping] = useState<Record<ImportField, string>>({} as Record<ImportField, string>);
   const [importing, setImporting] = useState(false);
+
+  // --- AI product description (real OpenAI integration, see
+  // supabase/functions/ai-generate) -----------------------------------
+  const [aiConnectionId, setAiConnectionId] = useState<string | null>(null);
+  const [aiGenerating, setAiGenerating] = useState(false);
+
+  useEffect(() => {
+    if (!tenant) return;
+    let cancelled = false;
+    (async () => {
+      const { data: provider } = await supabase.from('integration_providers').select('id').eq('provider_key', 'openai_chatgpt').maybeSingle();
+      if (!provider) return;
+      const { data: connection } = await supabase
+        .from('integration_connections')
+        .select('id, status')
+        .eq('tenant_id', tenant.id)
+        .eq('provider_id', provider.id)
+        .eq('status', 'connected')
+        .maybeSingle();
+      if (!cancelled) setAiConnectionId(connection?.id ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [tenant]);
+
+  const generateDescription = async () => {
+    if (!tenant || !aiConnectionId || !form.name.trim()) return;
+    setAiGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-generate', {
+        body: {
+          tenant_id: tenant.id,
+          connection_id: aiConnectionId,
+          action: 'product_description',
+          product_name: form.name.trim(),
+          category: catName(form.category_id) || undefined,
+        },
+      });
+      if (error || !data?.success) {
+        toast('error', t('products.ai.err', { message: data?.message ?? error?.message ?? '' }));
+        return;
+      }
+      setForm({ ...form, description: data.text });
+    } catch (e: unknown) {
+      toast('error', t('products.ai.err', { message: errMsg(e) }));
+    } finally {
+      setAiGenerating(false);
+    }
+  };
 
   const currency = tenant?.currency ?? 'XOF';
   const isNew = params.get('new') === '1';
@@ -511,7 +559,27 @@ export function ProductsPage() {
               <input value={form.sizes} onChange={(e) => setForm({ ...form, sizes: e.target.value })} className="input" placeholder={t('products.field.sizesPlaceholder')} />
             </Field>
           </div>
-          <div className="sm:col-span-2"><Field label={t('products.field.description')}><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input min-h-[70px]" /></Field></div>
+          <div className="sm:col-span-2">
+            <div className="mb-1 flex items-center justify-between">
+              <label className="label !mb-0">{t('products.field.description')}</label>
+              {aiConnectionId && (
+                <button
+                  type="button"
+                  onClick={generateDescription}
+                  disabled={aiGenerating || !form.name.trim()}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-flow-600 hover:text-flow-700 disabled:opacity-40"
+                >
+                  <Sparkles size={13} /> {aiGenerating ? t('products.ai.generating') : t('products.ai.generate')}
+                </button>
+              )}
+            </div>
+            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input min-h-[70px]" />
+            {!aiConnectionId && (
+              <p className="mt-1 text-xs text-ink-400 dark:text-ink-500">
+                {t('products.ai.notConnected')} <Link to="/marketplace" className="underline hover:text-brand-600">{t('products.ai.connectLink')}</Link>
+              </p>
+            )}
+          </div>
         </div>
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={() => setModalOpen(false)} className="btn-ghost">{t('common.cancel')}</button>

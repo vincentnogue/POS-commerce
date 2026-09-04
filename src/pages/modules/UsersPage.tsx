@@ -35,6 +35,7 @@ const MODULE_LABELS: Record<ModuleCode, string> = {
   marketplace: 'users.module.marketplace',
   settings: 'users.module.settings',
   promotions: 'users.module.promotions',
+  messages: 'users.module.messages',
 };
 
 const ACTION_LABELS: Record<PermissionAction, string> = {

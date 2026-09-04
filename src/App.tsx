@@ -64,6 +64,7 @@ const TimeClockPage = lazy(() => import('./pages/modules/TimeClockPage').then((m
 const TasksPage = lazy(() => import('./pages/modules/TasksPage').then((m) => ({ default: m.TasksPage })));
 const CommissionsPage = lazy(() => import('./pages/modules/CommissionsPage').then((m) => ({ default: m.CommissionsPage })));
 const PromotionsPage = lazy(() => import('./pages/modules/PromotionsPage').then((m) => ({ default: m.PromotionsPage })));
+const MessagesPage = lazy(() => import('./pages/modules/MessagesPage').then((m) => ({ default: m.MessagesPage })));
 const ReportsPage = lazy(() => import('./pages/modules/ReportsPage').then((m) => ({ default: m.ReportsPage })));
 const AccountingPage = lazy(() => import('./pages/modules/AccountingPage').then((m) => ({ default: m.AccountingPage })));
 const UsersPage = lazy(() => import('./pages/modules/UsersPage').then((m) => ({ default: m.UsersPage })));
@@ -166,6 +167,7 @@ export default function App() {
                       <Route path="/tasks" element={<TasksPage />} />
                       <Route path="/commissions" element={<CommissionsPage />} />
                       <Route path="/promotions" element={<PromotionsPage />} />
+                      <Route path="/messages" element={<MessagesPage />} />
                       <Route path="/administration" element={<AdministrationPage />} />
                       <Route path="/marketplace" element={<MarketplacePage />} />
                       <Route path="/integration/:id" element={<IntegrationDetailPage />} />

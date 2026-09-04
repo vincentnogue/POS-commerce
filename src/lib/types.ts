@@ -138,6 +138,20 @@ export type Customer = {
   segment_id?: string | null;
 };
 
+export type CustomerMessage = {
+  id: string;
+  tenant_id: string;
+  connection_id: string;
+  channel: 'sms' | 'whatsapp';
+  audience: string; // human-readable description of who it was sent to, e.g. "All customers", "Tier: Gold"
+  message: string;
+  recipient_count: number;
+  sent_count: number;
+  failed_count: number;
+  sent_by: string | null;
+  created_at: string;
+};
+
 export type Supplier = {
   id: string;
   tenant_id: string;
@@ -463,7 +477,7 @@ export const MODULES = [
   'dashboard', 'pos', 'products', 'stock', 'stores', 'invoices',
   'deliveries', 'customers', 'suppliers', 'expenses', 'purchases',
   'quotes', 'reports', 'accounting', 'users', 'administration', 'marketplace', 'settings',
-  'promotions',
+  'promotions', 'messages',
 ] as const;
 export type ModuleCode = (typeof MODULES)[number];
 
@@ -490,6 +504,11 @@ export const DEFAULT_PERMISSIONS: Record<Role, Permissions> = {
     reports: { view: true }, accounting: { view: true }, users: { view: true },
     marketplace: { view: true }, administration: {}, settings: { view: true, update: true },
     promotions: { view: true, create: true, update: true },
+    // Sending a bulk customer campaign costs real money (Twilio) and is a
+    // reputational risk if sent by mistake — manager+ only, same tier as
+    // promotions, but staff/viewer get no access at all (not even view),
+    // unlike promotions which staff can at least see.
+    messages: { view: true, create: true, update: true },
   } as Permissions,
   staff: {
     dashboard: { view: true }, pos: { view: true, create: true },
@@ -504,6 +523,7 @@ export const DEFAULT_PERMISSIONS: Record<Role, Permissions> = {
     // active promotions for every cashier, not just managers — but
     // creating/editing/deleting promotions stays manager+ only.
     promotions: { view: true },
+    messages: {},
   } as Permissions,
   viewer: {
     dashboard: { view: true }, pos: { view: true },
@@ -515,6 +535,7 @@ export const DEFAULT_PERMISSIONS: Record<Role, Permissions> = {
     reports: { view: true }, accounting: {},
     users: {}, marketplace: { view: true }, administration: {}, settings: { view: true },
     promotions: { view: true },
+    messages: {},
   } as Permissions,
 };
 
