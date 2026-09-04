@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -218,6 +219,50 @@ Deno.serve(async (req: Request) => {
         );
       }
 
+      // BUG FIX / SECURITY: strict multi-tenant isolation — same fix as
+      // flutterwave-payments/paystack-payments/payunit-payments. This
+      // function had zero authentication check: any authenticated caller
+      // could pass ANY tenant_id and create a PaymentIntent (or, worse,
+      // a refund) against a completely different tenant's Stripe account.
+      // Found during the security audit requested this session, alongside
+      // the integration_credentials RLS fix (migration 0083) — same root
+      // cause pattern, different layer (missing app-level check here vs.
+      // an overly-permissive DB policy there).
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+      const authHeader = req.headers.get("Authorization") ?? "";
+      const bearerToken = authHeader.replace("Bearer ", "");
+      const callerClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: `Bearer ${bearerToken}` } },
+      });
+      const { data: callerData, error: callerErr } = await callerClient.auth.getUser();
+      if (callerErr || !callerData.user) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Non authentifié" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const adminClient = createClient(supabaseUrl, serviceRoleKey);
+      const { data: callerMember } = await adminClient
+        .from("tenant_members")
+        .select("role")
+        .eq("tenant_id", body.tenant_id)
+        .eq("user_id", callerData.user.id)
+        .maybeSingle();
+
+      if (!callerMember) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Accès refusé pour ce tenant" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (action === "create_refund" && !["admin", "manager", "super_admin"].includes(callerMember.role)) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Permission insuffisante pour un remboursement" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       // Get Stripe credentials
       const { secretKey, error: credError } = await getStripeCredentials(
         supabaseUrl,
@@ -286,6 +331,36 @@ Deno.serve(async (req: Request) => {
         return new Response(
           JSON.stringify({ success: false, message: "Missing required parameters" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Same fix as the POST path above — a GET with no auth check would
+      // let anyone poll another tenant's payment intent status by guessing
+      // or reusing an id/connection_id pair.
+      const anonKeyGet = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+      const authHeaderGet = req.headers.get("Authorization") ?? "";
+      const bearerTokenGet = authHeaderGet.replace("Bearer ", "");
+      const callerClientGet = createClient(supabaseUrl, anonKeyGet, {
+        global: { headers: { Authorization: `Bearer ${bearerTokenGet}` } },
+      });
+      const { data: callerDataGet, error: callerErrGet } = await callerClientGet.auth.getUser();
+      if (callerErrGet || !callerDataGet.user) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Non authentifié" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const adminClientGet = createClient(supabaseUrl, serviceRoleKey);
+      const { data: callerMemberGet } = await adminClientGet
+        .from("tenant_members")
+        .select("id")
+        .eq("tenant_id", tenantId)
+        .eq("user_id", callerDataGet.user.id)
+        .maybeSingle();
+      if (!callerMemberGet) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Accès refusé pour ce tenant" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
