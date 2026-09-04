@@ -1,0 +1,37 @@
+# Security headers — Cloudflare Pages reads this file (same syntax as
+# Netlify's _headers). Before this file existed, the site shipped with
+# ZERO security headers: no HSTS, no clickjacking protection, no
+# MIME-sniffing protection, no CSP at all. _redirects already confirmed
+# Cloudflare Pages is the real deploy target, so this is the correct
+# mechanism rather than a vercel.json the platform would never read.
+#
+# CSP notes (why it isn't stricter):
+# - img-src allows any https: source because provider logos are DB-driven
+#   (integration_providers.logo_url) and still partly point at external
+#   CDNs (cdn.worldvectorlogo.com, cdn.simpleicons.org) pending a full
+#   self-hosting cleanup that's in progress but not finished — an
+#   allowlist of today's hosts would silently break the next provider
+#   added with a different logo host. blob:/data: covers client-side
+#   generated QR codes and canvas exports (invoices, receipts).
+# - connect-src allows *.supabase.co (REST, Realtime websocket, Storage,
+#   Edge Functions — the project ref is only known at runtime via
+#   VITE_SUPABASE_URL, so a wildcard is the only option that doesn't
+#   silently break the app if the project is ever migrated) and the
+#   payment-adjacent hosts actually loaded (api.paddle.com for Paddle.js's
+#   own calls once initialized).
+# - frame-src/script-src allow cdn.paddle.com and *.paddle.com — Paddle's
+#   checkout overlay is an iframe it injects itself; blocking it would
+#   silently break the one real, working subscription PSP added this
+#   session.
+# - 'unsafe-inline' stays on style-src (Tailwind's runtime + inline
+#   style attributes used throughout the app) — removing it would break
+#   the UI, not just tighten security, and there is no build-time nonce
+#   pipeline in this Vite setup to do it properly. Documented rather than
+#   silently accepted.
+/*
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(self "https://cdn.paddle.com")
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.paddle.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.paddle.com https://sandbox-api.paddle.com; frame-src 'self' https://*.paddle.com; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'
