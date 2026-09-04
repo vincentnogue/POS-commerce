@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,9 +29,50 @@ interface StripeRefundRequest {
 }
 
 /**
- * Create a Stripe payment intent
- * Used for online payments (POS Flow → Stripe → Customer)
+ * Create a Stripe Checkout Session — unlike createPaymentIntent above
+ * (a clientSecret meant for an embedded Stripe Elements card form),
+ * this returns a hosted, shareable checkout URL. That's the shape POS
+ * checkout actually needs for a QR code: a link the customer can open on
+ * their own phone, not something requiring Stripe.js embedded in the
+ * cashier's screen.
  */
+async function createCheckoutSession(
+  secretKey: string,
+  request: StripePaymentRequest
+): Promise<{ url: string; sessionId: string; error?: string }> {
+  try {
+    const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${secretKey}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        mode: "payment",
+        "line_items[0][price_data][currency]": request.currency.toLowerCase(),
+        "line_items[0][price_data][product_data][name]": request.description || "POS Flow Payment",
+        "line_items[0][price_data][unit_amount]": Math.round(request.amount * 100).toString(),
+        "line_items[0][quantity]": "1",
+        "metadata[tenant_id]": request.tenant_id,
+        "metadata[sale_id]": request.sale_id || "",
+        "metadata[invoice_id]": request.invoice_id || "",
+        ...(request.customer_email && { customer_email: request.customer_email }),
+        success_url: request.return_url || "https://pos.liafrik.com/pos?stripe_paid=1",
+        cancel_url: request.return_url || "https://pos.liafrik.com/pos?stripe_canceled=1",
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      return { url: "", sessionId: "", error: error.error?.message };
+    }
+
+    const session = await response.json();
+    return { url: session.url, sessionId: session.id };
+  } catch (err) {
+    return { url: "", sessionId: "", error: err.message };
+  }
+}
 async function createPaymentIntent(
   secretKey: string,
   request: StripePaymentRequest
@@ -218,6 +260,50 @@ Deno.serve(async (req: Request) => {
         );
       }
 
+      // BUG FIX / SECURITY: strict multi-tenant isolation — same fix as
+      // flutterwave-payments/paystack-payments/payunit-payments. This
+      // function had zero authentication check: any authenticated caller
+      // could pass ANY tenant_id and create a PaymentIntent (or, worse,
+      // a refund) against a completely different tenant's Stripe account.
+      // Found during the security audit requested this session, alongside
+      // the integration_credentials RLS fix (migration 0083) — same root
+      // cause pattern, different layer (missing app-level check here vs.
+      // an overly-permissive DB policy there).
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+      const authHeader = req.headers.get("Authorization") ?? "";
+      const bearerToken = authHeader.replace("Bearer ", "");
+      const callerClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: `Bearer ${bearerToken}` } },
+      });
+      const { data: callerData, error: callerErr } = await callerClient.auth.getUser();
+      if (callerErr || !callerData.user) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Non authentifié" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const adminClient = createClient(supabaseUrl, serviceRoleKey);
+      const { data: callerMember } = await adminClient
+        .from("tenant_members")
+        .select("role")
+        .eq("tenant_id", body.tenant_id)
+        .eq("user_id", callerData.user.id)
+        .maybeSingle();
+
+      if (!callerMember) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Accès refusé pour ce tenant" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (action === "create_refund" && !["admin", "manager", "super_admin"].includes(callerMember.role)) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Permission insuffisante pour un remboursement" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       // Get Stripe credentials
       const { secretKey, error: credError } = await getStripeCredentials(
         supabaseUrl,
@@ -233,7 +319,22 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      if (action === "create_payment_intent") {
+      if (action === "create_checkout_session") {
+        const paymentReq = body as StripePaymentRequest;
+        const result = await createCheckoutSession(secretKey, paymentReq);
+
+        if (result.error) {
+          return new Response(
+            JSON.stringify({ success: false, message: result.error }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        return new Response(
+          JSON.stringify({ success: true, url: result.url, sessionId: result.sessionId }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      } else if (action === "create_payment_intent") {
         const paymentReq = body as StripePaymentRequest;
         const result = await createPaymentIntent(secretKey, paymentReq);
 
@@ -279,13 +380,44 @@ Deno.serve(async (req: Request) => {
       }
     } else if (req.method === "GET") {
       const paymentIntentId = url.searchParams.get("payment_intent_id");
+      const sessionId = url.searchParams.get("session_id");
       const connectionId = url.searchParams.get("connection_id");
       const tenantId = url.searchParams.get("tenant_id");
 
-      if (!paymentIntentId || !connectionId || !tenantId) {
+      if ((!paymentIntentId && !sessionId) || !connectionId || !tenantId) {
         return new Response(
           JSON.stringify({ success: false, message: "Missing required parameters" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Same fix as the POST path above — a GET with no auth check would
+      // let anyone poll another tenant's payment intent status by guessing
+      // or reusing an id/connection_id pair.
+      const anonKeyGet = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+      const authHeaderGet = req.headers.get("Authorization") ?? "";
+      const bearerTokenGet = authHeaderGet.replace("Bearer ", "");
+      const callerClientGet = createClient(supabaseUrl, anonKeyGet, {
+        global: { headers: { Authorization: `Bearer ${bearerTokenGet}` } },
+      });
+      const { data: callerDataGet, error: callerErrGet } = await callerClientGet.auth.getUser();
+      if (callerErrGet || !callerDataGet.user) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Non authentifié" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const adminClientGet = createClient(supabaseUrl, serviceRoleKey);
+      const { data: callerMemberGet } = await adminClientGet
+        .from("tenant_members")
+        .select("id")
+        .eq("tenant_id", tenantId)
+        .eq("user_id", callerDataGet.user.id)
+        .maybeSingle();
+      if (!callerMemberGet) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Accès refusé pour ce tenant" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
@@ -300,6 +432,24 @@ Deno.serve(async (req: Request) => {
         return new Response(
           JSON.stringify({ success: false, message: credError || "No Stripe credentials" }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (sessionId) {
+        const sessionRes = await fetch(`https://api.stripe.com/v1/checkout/sessions/${sessionId}`, {
+          headers: { Authorization: `Bearer ${secretKey}` },
+        });
+        if (!sessionRes.ok) {
+          const err = await sessionRes.json();
+          return new Response(
+            JSON.stringify({ success: false, message: err.error?.message ?? "Stripe error" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        const session = await sessionRes.json();
+        return new Response(
+          JSON.stringify({ success: true, status: session.payment_status, sessionId: session.id }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
