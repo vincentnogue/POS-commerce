@@ -19,5 +19,12 @@ Disallow: /administration
 Disallow: /superadmin
 Disallow: /onboarding
 Disallow: /reset-password
+Disallow: /stores
+Disallow: /timeclock
+Disallow: /tasks
+Disallow: /promotions
+Disallow: /marketplace
+Disallow: /integration
+Disallow: /subscribe
 
 Sitemap: https://pos.liafrik.com/sitemap.xml

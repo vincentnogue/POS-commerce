@@ -4,9 +4,11 @@ import { FooterPageLayout } from '../components/FooterPageLayout';
 import { supabase } from '../lib/supabase';
 import type { JobPosting } from '../lib/types';
 import { useI18n } from '../lib/i18n';
+import { useDocumentMeta } from '../lib/useDocumentMeta';
 
 export function CareersPage() {
   const { t } = useI18n();
+  useDocumentMeta(t('seo.careers.title'), t('seo.careers.desc'));
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [loading, setLoading] = useState(true);
 

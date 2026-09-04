@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { Copy, BookOpen, Search, ChevronDown } from 'lucide-react';
+import { useDocumentMeta } from '../lib/useDocumentMeta';
 
 export function DocumentationPage() {
+  useDocumentMeta(
+    'Documentation — POS Flow API & Developer Docs',
+    'Technical documentation for POS Flow: API reference, integration guides, and developer resources.'
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedSection, setExpandedSection] = useState<string | null>('getting-started');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);

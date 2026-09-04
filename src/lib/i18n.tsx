@@ -24,9 +24,18 @@ type I18nContextValue = {
 const I18nContext = createContext<I18nContextValue | undefined>(undefined);
 
 const STORAGE_KEY = 'liafrik_lang';
+const URL_PARAM = 'lang';
 
 function getInitialLang(): Lang {
   if (typeof window === 'undefined') return 'fr';
+  // BUG FIX: the ?lang= query param was never actually read anywhere —
+  // <link rel="alternate" hreflang="en" href=".../?lang=en"> in
+  // index.html pointed search engines at a URL that, once loaded, fell
+  // straight back to localStorage/browser language and could render in
+  // the wrong language. hreflang only works if each annotated URL
+  // reliably renders in the language it claims to.
+  const fromUrl = new URLSearchParams(window.location.search).get(URL_PARAM);
+  if (fromUrl === 'fr' || fromUrl === 'en') return fromUrl;
   const stored = localStorage.getItem(STORAGE_KEY) as Lang | null;
   if (stored === 'fr' || stored === 'en') return stored;
   const browser = navigator.language.slice(0, 2).toLowerCase();

@@ -9,6 +9,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { useI18n } from '../lib/i18n';
+import { useDocumentMeta } from '../lib/useDocumentMeta';
 import { useTheme } from '../lib/theme';
 import { supabase } from '../lib/supabase';
 import { PricingCard, type PricingPlan } from '../components/PricingCard';
@@ -667,6 +668,7 @@ export function LandingPage() {
   const [activeFeatureTab, setActiveFeatureTab] = useState(0);
   const [email, setEmail] = useState('');
   const { lang, setLang, t } = useI18n();
+  useDocumentMeta(t('seo.landing.title'), t('seo.landing.desc'));
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
   const heroReducedMotion = usePrefersReducedMotion();

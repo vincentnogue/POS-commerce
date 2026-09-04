@@ -2,9 +2,11 @@ import { motion } from 'framer-motion';
 import { Building2, Globe2, Heart, Target } from 'lucide-react';
 import { FooterPageLayout } from '../components/FooterPageLayout';
 import { useI18n } from '../lib/i18n';
+import { useDocumentMeta } from '../lib/useDocumentMeta';
 
 export function AboutPage() {
   const { t } = useI18n();
+  useDocumentMeta(t('seo.about.title'), t('seo.about.desc'));
   return (
     <FooterPageLayout title={t('about.title')}>
       <p className="text-lg">{t('about.intro')}</p>

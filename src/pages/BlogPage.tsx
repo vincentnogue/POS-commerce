@@ -5,9 +5,11 @@ import { FooterPageLayout } from '../components/FooterPageLayout';
 import { supabase } from '../lib/supabase';
 import type { BlogPost } from '../lib/types';
 import { useI18n } from '../lib/i18n';
+import { useDocumentMeta } from '../lib/useDocumentMeta';
 
 export function BlogPage() {
   const { t, lang } = useI18n();
+  useDocumentMeta(t('seo.blog.title'), t('seo.blog.desc'));
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
 

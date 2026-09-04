@@ -5,6 +5,8 @@ import { type PricingPlan } from '../components/PricingCard';
 import { CountryFlagsMarquee } from '../components/CountryFlagsMarquee';
 import { PLANS as REAL_PLANS, TRIAL_DAYS } from '../lib/plans';
 import { useI18n } from '../lib/i18n';
+import { useDocumentMeta } from '../lib/useDocumentMeta';
+import { useJsonLd } from '../lib/useJsonLd';
 import {
   getExchangeRates,
   convertPrice,
@@ -63,6 +65,25 @@ function formatUpdatedAt(iso: string | null, locale: string): string {
 // indicator instead of silently presenting stale numbers as current.
 export function PricingPage() {
   const { t, lang } = useI18n();
+  useDocumentMeta(t('seo.pricing.title'), t('seo.pricing.desc'));
+  // FAQPage structured data — built from the exact same t() calls
+  // rendered in the FAQ section below, so this can never drift out of
+  // sync with the real, visible page content.
+  useJsonLd({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      { q: t('pricing2.faq1.q'), a: t('pricing2.faq1.a') },
+      { q: t('pricing2.faq2.q'), a: t('pricing2.faq2.a', { days: TRIAL_DAYS }) },
+      { q: t('pricing2.faq3.q'), a: t('pricing2.faq3.a') },
+      { q: t('pricing2.faq4.q'), a: t('pricing2.faq4.a', { days: TRIAL_DAYS }) },
+      { q: t('pricing2.faq5.q'), a: t('pricing2.faq5.a', { planName: t('plan.name.entreprise') }) },
+    ].map(({ q, a }) => ({
+      '@type': 'Question',
+      name: q,
+      acceptedAnswer: { '@type': 'Answer', text: a },
+    })),
+  });
   const [currency, setCurrency] = useState<string>('USD');
   const [convertedPrices, setConvertedPrices] = useState<Record<string, ConvertedPrice>>({});
   const [rates, setRates] = useState<ExchangeRate | null>(null);

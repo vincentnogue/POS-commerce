@@ -3,9 +3,11 @@ import { Mail, MapPin, Send, CheckCircle2, Headset } from 'lucide-react';
 import { FooterPageLayout } from '../components/FooterPageLayout';
 import { supabase } from '../lib/supabase';
 import { useI18n } from '../lib/i18n';
+import { useDocumentMeta } from '../lib/useDocumentMeta';
 
 export function ContactPage() {
   const { t } = useI18n();
+  useDocumentMeta(t('seo.contact.title'), t('seo.contact.desc'));
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('');

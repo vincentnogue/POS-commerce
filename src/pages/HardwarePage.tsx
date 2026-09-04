@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Check, ArrowRight, ArrowLeft } from 'lucide-react';
+import { useDocumentMeta } from '../lib/useDocumentMeta';
 
 
 interface Device {
@@ -84,6 +85,10 @@ const DEVICES: Device[] = [
 ];
 
 export function HardwarePage() {
+  useDocumentMeta(
+    'Hardware — Professional POS Devices | POS Flow',
+    'Terminals, receipt printers, barcode scanners, and cash drawers compatible with POS Flow. Built for daily retail use.'
+  );
   const navigate = useNavigate();
 
   return (

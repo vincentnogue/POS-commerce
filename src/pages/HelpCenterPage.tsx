@@ -2,6 +2,7 @@ import { useState, type SVGProps } from 'react';
 import { Search, ChevronDown, BookOpen, Zap, Shield, Users, CreditCard, Globe, Check, X } from 'lucide-react';
 import { PLANS, TRIAL_DAYS } from '../lib/plans';
 import { useI18n } from '../lib/i18n';
+import { useDocumentMeta } from '../lib/useDocumentMeta';
 
 interface FAQItem {
   id: string;
@@ -61,6 +62,7 @@ function useFaqItems(t: (key: string, vars?: Record<string, string | number>) =>
 // the app (see Sidebar.tsx: `bg-brand-50 dark:bg-ink-900`).
 export function HelpCenterPage() {
   const { t } = useI18n();
+  useDocumentMeta(t('seo.help.title'), t('seo.help.desc'));
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);

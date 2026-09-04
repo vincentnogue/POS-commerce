@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { TrendingUp, Award, Users, BarChart3, ArrowRight, ArrowLeft } from 'lucide-react';
+import { useDocumentMeta } from '../lib/useDocumentMeta';
 
 interface CaseStudy {
   id: number;
@@ -70,6 +71,10 @@ const CASE_STUDIES: CaseStudy[] = [
 ];
 
 export function CaseStudiesPage() {
+  useDocumentMeta(
+    'Case Studies — Real Businesses Using POS Flow',
+    'See how real merchants use POS Flow to run their business, from single stores to multi-location retailers.'
+  );
   const navigate = useNavigate();
 
   return (

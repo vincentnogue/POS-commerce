@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Heart, Clock, BarChart3, Users, ShoppingCart, Mail, ArrowRight, Check, ArrowLeft } from 'lucide-react';
+import { useDocumentMeta } from '../lib/useDocumentMeta';
 
 interface AddOn {
   id: string;
@@ -118,6 +119,10 @@ const ADD_ONS: AddOn[] = [
 ];
 
 export function AddOnsPage() {
+  useDocumentMeta(
+    'Add-ons — Extend POS Flow',
+    'Optional add-ons and modules to extend what POS Flow can do for your business.'
+  );
   const navigate = useNavigate();
 
   return (

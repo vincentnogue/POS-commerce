@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { useI18n } from '../lib/i18n';
+import { useDocumentMeta } from '../lib/useDocumentMeta';
 import { useTheme } from '../lib/theme';
 import { supabase } from '../lib/supabase';
 import type { BlogPost } from '../lib/types';
@@ -55,6 +56,7 @@ const RESOURCE_CARDS = [
 
 export function ResourcesPage() {
   const { t, lang } = useI18n();
+  useDocumentMeta(t('seo.resources.title'), t('seo.resources.desc'));
   const { theme, toggle } = useTheme();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);

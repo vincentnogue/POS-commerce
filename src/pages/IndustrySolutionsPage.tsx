@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { TrendingUp, Check, ArrowRight, ArrowLeft } from 'lucide-react';
+import { useDocumentMeta } from '../lib/useDocumentMeta';
 
 interface Industry {
   id: string;
@@ -103,6 +104,10 @@ const INDUSTRIES: Industry[] = [
 ];
 
 export function IndustrySolutionsPage() {
+  useDocumentMeta(
+    'Industry Solutions — POS Flow for Every Business Type',
+    'See how POS Flow adapts to your industry: retail, restaurants, salons, grocery, and more, with the features each one actually needs.'
+  );
   const navigate = useNavigate();
 
   return (
