@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Shield, Crown, Building2, Users, DollarSign, TrendingUp,
   Pencil, Trash2, Ban, Check, Plus, Activity, CreditCard,
-  Search, AlertTriangle, Mail, Eye, Loader2, BarChart3, Award, UserCog, Headset, Send, Plug, MessageSquare,
+  Search, AlertTriangle, Mail, Eye, Loader2, BarChart3, Award, UserCog, Headset, Send, Plug, MessageSquare, CalendarPlus,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useI18n } from '../../lib/i18n';
@@ -252,17 +252,25 @@ function SuperTenants() {
   const toast = useToast();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [subs, setSubs] = useState<Record<string, any>>({});
   const [search, setSearch] = useState('');
   const [impersonating, setImpersonating] = useState<Tenant | null>(null);
+  const [extending, setExtending] = useState<Tenant | null>(null);
 
-  useEffect(() => { (async () => {
-    const [ten, p] = await Promise.all([
+  const load = useCallback(async () => {
+    const [ten, p, s] = await Promise.all([
       supabase.from('tenants').select('*').order('created_at', { ascending: false }),
       supabase.from('plans').select('*'),
+      supabase.from('subscriptions').select('*'),
     ]);
     setTenants((ten.data as Tenant[]) ?? []);
     setPlans((p.data as Plan[]) ?? []);
-  })(); }, []);
+    const byTenant: Record<string, any> = {};
+    (s.data ?? []).forEach((row: any) => { byTenant[row.tenant_id] = row; });
+    setSubs(byTenant);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
 
   const planName = (id: string | null) => plans.find((p) => p.id === id)?.name ?? '—';
   const filtered = tenants.filter((ten) => !search || ten.name.toLowerCase().includes(search.toLowerCase()) || ten.country_name.toLowerCase().includes(search.toLowerCase()));
@@ -290,12 +298,30 @@ function SuperTenants() {
     setTimeout(() => window.location.reload(), 1500);
   };
 
+  // Reads the SAME fields tenant_access_active() actually gates access on
+  // (subscriptions.trial_ends_at / .status — see migration 0047), instead
+  // of recomputing trial status from tenants.created_at + 14 days the way
+  // this used to. That old computation could never reflect an extension —
+  // it ignored trial_ends_at entirely, so even a super admin who extended
+  // someone's trial via raw SQL would still see them shown as expired
+  // once 14 days from signup had passed. This is why extension needed to
+  // be fixed here, not just given a button.
   const subStatus = (ten: Tenant) => {
     if (ten.status === 'suspended') return { tone: 'error' as const, labelKey: 'super.tenants.statusSuspended' };
-    const created = new Date(ten.created_at);
-    const trialEnd = new Date(created.getTime() + 14 * 86400000); // FIX: real trial is 14 days, not 7 — keep in sync with TRIAL_DAYS (lib/access.ts, lib/plans.ts) and tenant_access_active()
-    if (new Date() < trialEnd) return { tone: 'warning' as const, labelKey: 'super.tenants.statusTrial' };
-    return { tone: 'success' as const, labelKey: 'super.tenants.statusActive' };
+    const sub = subs[ten.id];
+    if (!sub) {
+      const trialEnd = new Date(new Date(ten.created_at).getTime() + 14 * 86400000);
+      return new Date() < trialEnd
+        ? { tone: 'warning' as const, labelKey: 'super.tenants.statusTrial' }
+        : { tone: 'error' as const, labelKey: 'super.tenants.statusExpired' };
+    }
+    if (sub.trial_ends_at && new Date() < new Date(sub.trial_ends_at)) {
+      return { tone: 'warning' as const, labelKey: 'super.tenants.statusTrial' };
+    }
+    if (sub.status === 'active' || sub.status === 'past_due') {
+      return { tone: sub.status === 'active' ? ('success' as const) : ('warning' as const), labelKey: sub.status === 'active' ? 'super.tenants.statusActive' : 'super.tenants.statusPastDue' };
+    }
+    return { tone: 'error' as const, labelKey: 'super.tenants.statusExpired' };
   };
 
   return (
@@ -310,20 +336,25 @@ function SuperTenants() {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead><tr className="border-b border-ink-100 dark:border-ink-800 text-left text-xs uppercase text-ink-500 dark:text-ink-400">
-            <th className="pb-2 font-medium">{t('super.tenants.company')}</th><th className="pb-2 font-medium">{t('super.tenants.country')}</th><th className="pb-2 font-medium">{t('super.tenants.plan')}</th><th className="pb-2 font-medium">{t('super.tenants.status')}</th><th className="pb-2 font-medium">{t('super.tenants.created')}</th><th className="pb-2 font-medium text-right">{t('super.tenants.actions')}</th>
+            <th className="pb-2 font-medium">{t('super.tenants.company')}</th><th className="pb-2 font-medium">{t('super.tenants.country')}</th><th className="pb-2 font-medium">{t('super.tenants.plan')}</th><th className="pb-2 font-medium">{t('super.tenants.status')}</th><th className="pb-2 font-medium">{t('super.tenants.periodEnd')}</th><th className="pb-2 font-medium">{t('super.tenants.created')}</th><th className="pb-2 font-medium text-right">{t('super.tenants.actions')}</th>
           </tr></thead>
           <tbody>
             {filtered.map((ten) => {
               const ss = subStatus(ten);
+              const sub = subs[ten.id];
+              const periodEnd = sub?.trial_ends_at && (!sub.current_period_end || new Date(sub.trial_ends_at) > new Date(sub.current_period_end))
+                ? sub.trial_ends_at : sub?.current_period_end;
               return (
                 <tr key={ten.id} className="border-b border-ink-50 dark:border-ink-800">
                   <td className="py-3"><p className="font-medium text-ink-900 dark:text-ink-50">{ten.name}</p><p className="text-xs text-ink-500 dark:text-ink-400">{ten.city}</p></td>
                   <td className="py-3 text-ink-600 dark:text-ink-300">{ten.country_name}</td>
                   <td className="py-3"><Badge tone="brand">{planName(ten.plan_id)}</Badge></td>
                   <td className="py-3"><Badge tone={ss.tone}>{t(ss.labelKey)}</Badge></td>
+                  <td className="py-3 text-ink-500 dark:text-ink-400 text-xs">{periodEnd ? formatDate(periodEnd) : '—'}</td>
                   <td className="py-3 text-ink-500 dark:text-ink-400 text-xs">{formatDate(ten.created_at)}</td>
                   <td className="py-3">
                     <div className="flex items-center justify-end gap-1">
+                      <button onClick={() => setExtending(ten)} className="rounded-full p-1.5 text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/25" title={t('super.tenants.extend')}><CalendarPlus size={15} /></button>
                       <button onClick={() => impersonate(ten)} className="rounded-full p-1.5 text-ink-500 dark:text-ink-400 hover:bg-flow-50 dark:hover:bg-flow-900/25 hover:text-flow-600" title={t('super.tenants.impersonate')}><Eye size={15} /></button>
                       <button onClick={() => toggleStatus(ten)} className={`rounded-full p-1.5 ${ten.status === 'active' ? 'text-error-600 hover:bg-error-50 dark:hover:bg-error-900/25' : 'text-success-600 hover:bg-success-50 dark:hover:bg-success-900/25'}`} title={ten.status === 'active' ? t('super.tenants.suspend') : t('super.tenants.activate')}>
                         {ten.status === 'active' ? <Ban size={15} /> : <Check size={15} />}
@@ -340,7 +371,135 @@ function SuperTenants() {
       <Modal open={!!impersonating} onClose={() => setImpersonating(null)} title={t('super.tenants.impersonationTitle')}>
         <p className="text-sm text-ink-600 dark:text-ink-300">{t('super.tenants.impersonationDesc', { name: impersonating?.name ?? '' })}</p>
       </Modal>
+      {extending && (
+        <ExtendSubscriptionModal
+          tenant={extending}
+          currentPeriodEnd={subs[extending.id]?.current_period_end ?? subs[extending.id]?.trial_ends_at ?? extending.created_at}
+          onClose={() => setExtending(null)}
+          onExtended={() => { setExtending(null); load(); }}
+        />
+      )}
     </div>
+  );
+}
+
+// Real extension, immediately visible in the dashboard: calls
+// super_admin_extend_subscription (migration 0082), which writes
+// subscriptions.trial_ends_at/current_period_end/status — the exact
+// fields tenant_access_active() reads for gating and this same page reads
+// for the status badge — then the caller re-fetches (see onExtended
+// above), so the new date and status show up immediately, not just in
+// the database.
+function ExtendSubscriptionModal({
+  tenant, currentPeriodEnd, onClose, onExtended,
+}: { tenant: Tenant; currentPeriodEnd: string; onClose: () => void; onExtended: () => void }) {
+  const { t, formatDate } = useI18n();
+  const toast = useToast();
+  const [mode, setMode] = useState<'quick' | 'custom' | 'date'>('quick');
+  const [customAmount, setCustomAmount] = useState('1');
+  const [customUnit, setCustomUnit] = useState<'days' | 'months' | 'years'>('months');
+  const [customDate, setCustomDate] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const baseDate = new Date(currentPeriodEnd) > new Date() ? new Date(currentPeriodEnd) : new Date();
+
+  const computeQuick = (amount: number, unit: 'days' | 'months' | 'years') => {
+    const d = new Date(baseDate);
+    if (unit === 'days') d.setDate(d.getDate() + amount);
+    if (unit === 'months') d.setMonth(d.getMonth() + amount);
+    if (unit === 'years') d.setFullYear(d.getFullYear() + amount);
+    return d;
+  };
+
+  const submit = async (newDate: Date) => {
+    setSubmitting(true);
+    const { error } = await supabase.rpc('super_admin_extend_subscription', {
+      p_tenant_id: tenant.id,
+      p_new_period_end: newDate.toISOString(),
+      p_reactivate: true,
+    });
+    setSubmitting(false);
+    if (error) { toast('error', error.message); return; }
+    toast('success', t('super.tenants.extend.success', { name: tenant.name, date: formatDate(newDate.toISOString()) }));
+    onExtended();
+  };
+
+  const quickOptions: { amount: number; unit: 'days' | 'months' | 'years'; labelKey: string }[] = [
+    { amount: 7, unit: 'days', labelKey: 'super.tenants.extend.plus7d' },
+    { amount: 14, unit: 'days', labelKey: 'super.tenants.extend.plus14d' },
+    { amount: 1, unit: 'months', labelKey: 'super.tenants.extend.plus1m' },
+    { amount: 3, unit: 'months', labelKey: 'super.tenants.extend.plus3m' },
+    { amount: 1, unit: 'years', labelKey: 'super.tenants.extend.plus1y' },
+  ];
+
+  return (
+    <Modal open onClose={onClose} title={t('super.tenants.extend.title', { name: tenant.name })}>
+      <div className="space-y-4">
+        <p className="text-sm text-ink-500 dark:text-ink-400">
+          {t('super.tenants.extend.currentEnd', { date: formatDate(currentPeriodEnd) })}
+        </p>
+
+        <div className="flex gap-2 rounded-full bg-ink-100 p-1 dark:bg-ink-800">
+          {(['quick', 'custom', 'date'] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className={`flex-1 rounded-full px-3 py-1.5 text-sm font-medium transition ${mode === m ? 'bg-white text-ink-900 shadow-soft dark:bg-ink-700 dark:text-white' : 'text-ink-500 dark:text-ink-400'}`}
+            >
+              {t(`super.tenants.extend.mode.${m}`)}
+            </button>
+          ))}
+        </div>
+
+        {mode === 'quick' && (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {quickOptions.map((opt) => (
+              <button
+                key={opt.labelKey}
+                disabled={submitting}
+                onClick={() => submit(computeQuick(opt.amount, opt.unit))}
+                className="rounded-xl border border-ink-200 p-3 text-center text-sm font-medium text-ink-700 transition hover:border-brand-300 hover:bg-brand-50 disabled:opacity-50 dark:border-ink-700 dark:text-ink-200 dark:hover:bg-brand-900/20"
+              >
+                {t(opt.labelKey)}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {mode === 'custom' && (
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <input type="number" min={1} value={customAmount} onChange={(e) => setCustomAmount(e.target.value)} className="input w-24" />
+              <select value={customUnit} onChange={(e) => setCustomUnit(e.target.value as any)} className="input flex-1">
+                <option value="days">{t('super.tenants.extend.unit.days')}</option>
+                <option value="months">{t('super.tenants.extend.unit.months')}</option>
+                <option value="years">{t('super.tenants.extend.unit.years')}</option>
+              </select>
+            </div>
+            <button
+              disabled={submitting || !Number(customAmount)}
+              onClick={() => submit(computeQuick(Number(customAmount), customUnit))}
+              className="btn-primary w-full justify-center disabled:opacity-50"
+            >
+              {submitting ? t('common.saving') : t('super.tenants.extend.apply')}
+            </button>
+          </div>
+        )}
+
+        {mode === 'date' && (
+          <div className="space-y-3">
+            <input type="date" value={customDate} onChange={(e) => setCustomDate(e.target.value)} min={new Date().toISOString().slice(0, 10)} className="input" />
+            <button
+              disabled={submitting || !customDate}
+              onClick={() => submit(new Date(customDate + 'T23:59:59'))}
+              className="btn-primary w-full justify-center disabled:opacity-50"
+            >
+              {submitting ? t('common.saving') : t('super.tenants.extend.apply')}
+            </button>
+          </div>
+        )}
+      </div>
+    </Modal>
   );
 }
 
