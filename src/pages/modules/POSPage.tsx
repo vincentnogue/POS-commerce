@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart, Mail, Lock as LockIcon, Percent, Gift, PauseCircle, Tag, WifiOff, RefreshCw } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart, Mail, Lock as LockIcon, Percent, Gift, PauseCircle, Tag, WifiOff, RefreshCw, QrCode } from 'lucide-react';
+import { OnlinePaymentModal } from '../../components/OnlinePaymentModal';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -118,6 +119,7 @@ export function POSPage() {
   };
   const [paidAmount, setPaidAmount] = useState('');
   const [paymentReference, setPaymentReference] = useState('');
+  const [showOnlinePayment, setShowOnlinePayment] = useState(false);
   const [giftCardCode, setGiftCardCode] = useState('');
   const [giftCardCheck, setGiftCardCheck] = useState<{ id: string; balance: number } | null>(null);
   const [giftCardErr, setGiftCardErr] = useState<string | null>(null);
@@ -1853,13 +1855,18 @@ export function POSPage() {
                 {paymentMethod === 'card' ? t('pos.cardRefLabel') : t('pos.mobileRefLabel')}
                 <span className="ml-1 text-error-500">*</span>
               </label>
-              <input
-                type="text"
-                value={paymentReference}
-                onChange={(e) => setPaymentReference(e.target.value)}
-                className="input"
-                placeholder={paymentMethod === 'card' ? t('pos.cardRefPlaceholder') : t('pos.mobileRefPlaceholder')}
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={paymentReference}
+                  onChange={(e) => setPaymentReference(e.target.value)}
+                  className="input"
+                  placeholder={paymentMethod === 'card' ? t('pos.cardRefPlaceholder') : t('pos.mobileRefPlaceholder')}
+                />
+                <button type="button" onClick={() => setShowOnlinePayment(true)} className="btn-ghost shrink-0" title={t('pos.onlinePayment.generate')}>
+                  <QrCode size={16} />
+                </button>
+              </div>
               <p className="mt-1 text-xs text-ink-400 dark:text-ink-500">{t('pos.refHelp')}</p>
             </div>
           )}
@@ -1986,6 +1993,19 @@ export function POSPage() {
           <button onClick={closeDay} disabled={daySubmitting} className="btn-primary">{t('pos.day.closeBtn')}</button>
         </div>
       </Modal>
+      {showOnlinePayment && tenant && (
+        <OnlinePaymentModal
+          tenantId={tenant.id}
+          amount={total}
+          currency={currency}
+          customerEmail={customer?.email}
+          customerName={customer?.name}
+          customerPhone={customer?.phone}
+          saleReference={`POS-${Date.now()}`}
+          onClose={() => setShowOnlinePayment(false)}
+          onConfirmed={(ref) => { setPaymentReference(ref); setShowOnlinePayment(false); }}
+        />
+      )}
     </div>
   );
 }
