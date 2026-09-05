@@ -260,7 +260,7 @@ Deno.serve(async (req: Request) => {
       if (!body.tenant_id || !body.connection_id) {
         return new Response(
           JSON.stringify({ success: false, message: "Missing required fields" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
@@ -324,7 +324,7 @@ Deno.serve(async (req: Request) => {
       if (credError || !apiKey) {
         return new Response(
           JSON.stringify({ success: false, message: credError || "No DHL credentials" }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
@@ -332,7 +332,7 @@ Deno.serve(async (req: Request) => {
         if (!body.shipment) {
           return new Response(
             JSON.stringify({ success: false, message: "Missing shipment data" }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
@@ -340,7 +340,7 @@ Deno.serve(async (req: Request) => {
         if (result.error) {
           return new Response(
             JSON.stringify({ success: false, message: result.error }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
@@ -357,7 +357,7 @@ Deno.serve(async (req: Request) => {
         if (!body.shipment_id) {
           return new Response(
             JSON.stringify({ success: false, message: "Missing shipment_id" }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
@@ -365,7 +365,7 @@ Deno.serve(async (req: Request) => {
         if (result.error) {
           return new Response(
             JSON.stringify({ success: false, message: result.error }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
@@ -381,7 +381,7 @@ Deno.serve(async (req: Request) => {
         if (!body.tracking_number) {
           return new Response(
             JSON.stringify({ success: false, message: "Missing tracking_number" }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
@@ -389,7 +389,7 @@ Deno.serve(async (req: Request) => {
         if (result.error) {
           return new Response(
             JSON.stringify({ success: false, message: result.error }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
@@ -407,7 +407,7 @@ Deno.serve(async (req: Request) => {
 
     return new Response(
       JSON.stringify({ success: false, message: "Invalid request" }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
     console.error("DHL error:", err);
