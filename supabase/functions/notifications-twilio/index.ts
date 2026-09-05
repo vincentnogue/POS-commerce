@@ -237,9 +237,15 @@ Deno.serve(async (req: Request) => {
     const body = (await req.json()) as NotificationRequest;
 
     if (!body.tenant_id || !body.connection_id || !body.recipients?.length) {
+      // BUG FIX: same masking issue fixed in integration-test-connection/
+      // ai-generate — supabase.functions.invoke() (used by MessagesPage.tsx
+      // and the auto-WhatsApp-receipt call in POSPage.tsx) replaces this
+      // message with a generic "non-2xx status code" string for ANY
+      // non-2xx response. A failed send attempt is valid response data,
+      // not an HTTP-level error.
       return new Response(
         JSON.stringify({ success: false, message: "Missing required fields" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -295,7 +301,7 @@ Deno.serve(async (req: Request) => {
     if (credError || !accountSid || !authToken) {
       return new Response(
         JSON.stringify({ success: false, message: credError || "No Twilio credentials" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 

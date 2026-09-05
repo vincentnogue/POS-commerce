@@ -110,9 +110,17 @@ Deno.serve(async (req: Request) => {
 
     const body = (await req.json()) as GenerateRequest;
     if (!body.tenant_id || !body.connection_id || !body.action) {
+      // BUG FIX: same masking issue fixed in integration-test-connection —
+      // supabase.functions.invoke() replaces this message with a generic
+      // "non-2xx status code" string on the frontend for ANY non-2xx
+      // response (confirmed here too: ProductsPage.tsx's error handling
+      // falls through to the generic SDK message whenever this returned
+      // 400/401/502). A failed generation attempt is valid response data,
+      // not an HTTP-level error — the business-logic responses below now
+      // return 200, success:false carries the outcome.
       return new Response(
         JSON.stringify({ success: false, message: "Missing required fields" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -155,7 +163,7 @@ Deno.serve(async (req: Request) => {
     if (credError || !apiKey) {
       return new Response(
         JSON.stringify({ success: false, message: credError || "No OpenAI API key connected" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -163,14 +171,14 @@ Deno.serve(async (req: Request) => {
       if (!body.product_name) {
         return new Response(
           JSON.stringify({ success: false, message: "product_name is required" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       const { text, error } = await generateProductDescription(apiKey, body.product_name, body.category);
       if (error || !text) {
         return new Response(
           JSON.stringify({ success: false, message: error || "Generation failed" }),
-          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       return new Response(
@@ -181,7 +189,7 @@ Deno.serve(async (req: Request) => {
 
     return new Response(
       JSON.stringify({ success: false, message: `Unknown action: ${body.action}` }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
     console.error("ai-generate error:", err);
