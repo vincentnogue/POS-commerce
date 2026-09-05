@@ -1546,6 +1546,11 @@ export const fr: Record<string, string> = {
   "super.content.blog.field.author": "Auteur",
   "super.content.blog.field.coverUrl": "URL image de couverture",
   "super.content.blog.field.published": "Publié (visible sur /blog)",
+  "super.content.blog.seo.title": "Référencement (SEO)",
+  "super.content.blog.seo.metaTitle": "Titre SEO (optionnel)",
+  "super.content.blog.seo.metaTitleHint": "Si vide, utilise le titre de l'article.",
+  "super.content.blog.seo.metaDescription": "Description SEO (optionnel)",
+  "super.content.blog.seo.metaDescriptionHint": "Si vide, utilise l'extrait.",
   "super.content.jobs.count": "{count} offre(s)",
   "super.content.jobs.new": "Nouvelle offre",
   "super.content.jobs.editTitle": "Modifier l'offre",
@@ -2364,6 +2369,9 @@ export const fr: Record<string, string> = {
   "blog.intro": "Conseils, analyses et actualités sur la gestion commerciale, en Afrique et ailleurs.",
   "blog.empty": "Aucun article pour le moment.",
   "blog.readMore": "Lire l'article",
+  "blog.backToList": "Retour aux articles",
+  "blog.notFound.title": "Article introuvable",
+  "blog.notFound.desc": "Cet article n'existe pas ou n'est plus publié.",
 
   // Login page
   "login.hero.titleLine1": "La gestion commerciale,",

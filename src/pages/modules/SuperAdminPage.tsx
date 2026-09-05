@@ -1494,7 +1494,7 @@ function SuperComms() {
 // listing meant going into the database directly. This is that missing
 // admin screen, same tab pattern as the rest of Super Admin.
 type ContentSubTab = 'blog' | 'jobs';
-const EMPTY_POST = { title: '', slug: '', excerpt: '', content: '', author: 'LIYHA GROUP', cover_url: '', published: false };
+const EMPTY_POST = { title: '', slug: '', excerpt: '', content: '', author: 'LIYHA GROUP', cover_url: '', published: false, meta_title: '', meta_description: '' };
 const EMPTY_JOB = { title: '', department: '', location: '', type: 'full-time', description: '', requirements: '', salary_range: '', published: false };
 
 function SuperContent() {
@@ -1539,7 +1539,7 @@ function SuperBlogManager() {
   const openNew = () => { setEditing(null); setForm(EMPTY_POST); setModalOpen(true); };
   const openEdit = (p: BlogPost) => {
     setEditing(p);
-    setForm({ title: p.title, slug: p.slug, excerpt: p.excerpt ?? '', content: p.content, author: p.author, cover_url: p.cover_url ?? '', published: p.published });
+    setForm({ title: p.title, slug: p.slug, excerpt: p.excerpt ?? '', content: p.content, author: p.author, cover_url: p.cover_url ?? '', published: p.published, meta_title: p.meta_title ?? '', meta_description: p.meta_description ?? '' });
     setModalOpen(true);
   };
 
@@ -1554,6 +1554,8 @@ function SuperBlogManager() {
       author: form.author.trim() || 'LIYHA GROUP',
       cover_url: form.cover_url.trim() || null,
       published: form.published,
+      meta_title: form.meta_title.trim() || null,
+      meta_description: form.meta_description.trim() || null,
       published_at: form.published ? (editing?.published_at ?? new Date().toISOString()) : null,
       updated_at: new Date().toISOString(),
     };
@@ -1629,6 +1631,21 @@ function SuperBlogManager() {
             <input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} className="h-4 w-4 accent-brand-500" />
             {t('super.content.blog.field.published')}
           </label>
+
+          <div className="rounded-xl border border-ink-200 p-3 dark:border-ink-700">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-400">{t('super.content.blog.seo.title')}</p>
+            <div className="space-y-3">
+              <Field label={t('super.content.blog.seo.metaTitle')}>
+                <input value={form.meta_title} onChange={(e) => setForm({ ...form, meta_title: e.target.value })} placeholder={form.title} className="input" maxLength={70} />
+                <p className="mt-1 text-xs text-ink-400">{form.meta_title.length}/70 · {t('super.content.blog.seo.metaTitleHint')}</p>
+              </Field>
+              <Field label={t('super.content.blog.seo.metaDescription')}>
+                <textarea value={form.meta_description} onChange={(e) => setForm({ ...form, meta_description: e.target.value })} placeholder={form.excerpt} className="input min-h-[60px]" maxLength={160} />
+                <p className="mt-1 text-xs text-ink-400">{form.meta_description.length}/160 · {t('super.content.blog.seo.metaDescriptionHint')}</p>
+              </Field>
+            </div>
+          </div>
+
           <button onClick={save} disabled={saving} className="btn-primary w-full justify-center disabled:opacity-50">{saving ? t('common.saving') : t('common.save')}</button>
         </div>
       </Modal>

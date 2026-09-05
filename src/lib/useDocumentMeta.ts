@@ -14,26 +14,43 @@ import { useEffect } from 'react';
 // does) see the updated values by the time they render the page, which
 // is the standard lightweight approach for client-rendered SPAs that
 // don't have a server-rendering layer.
-export function useDocumentMeta(title: string, description?: string) {
+//
+// Extended for blog posts (og/image/url) — these were previously frozen
+// to the site's generic homepage OG tags for every URL, meaning sharing
+// a specific /blog/:slug link on WhatsApp/Twitter/LinkedIn always showed
+// the homepage's title/description/image instead of that article's own.
+export function useDocumentMeta(title: string, description?: string, options?: { image?: string; url?: string; type?: string }) {
   useEffect(() => {
     const previousTitle = document.title;
     document.title = title;
 
-    let previousDescription: string | null = null;
-    let metaEl: HTMLMetaElement | null = null;
+    const restoreFns: Array<() => void> = [];
+
+    const setMeta = (selector: string, attr: 'content', value: string) => {
+      const el = document.querySelector(selector) as HTMLMetaElement | null;
+      if (!el) return;
+      const previous = el.getAttribute(attr);
+      el.setAttribute(attr, value);
+      restoreFns.push(() => { if (previous !== null) el.setAttribute(attr, previous); });
+    };
+
     if (description) {
-      metaEl = document.querySelector('meta[name="description"]');
-      if (metaEl) {
-        previousDescription = metaEl.getAttribute('content');
-        metaEl.setAttribute('content', description);
-      }
+      setMeta('meta[name="description"]', 'content', description);
+      setMeta('meta[property="og:description"]', 'content', description);
+      setMeta('meta[name="twitter:description"]', 'content', description);
     }
+    setMeta('meta[property="og:title"]', 'content', title);
+    setMeta('meta[name="twitter:title"]', 'content', title);
+    if (options?.image) {
+      setMeta('meta[property="og:image"]', 'content', options.image);
+      setMeta('meta[name="twitter:image"]', 'content', options.image);
+    }
+    if (options?.url) setMeta('meta[property="og:url"]', 'content', options.url);
+    if (options?.type) setMeta('meta[property="og:type"]', 'content', options.type);
 
     return () => {
       document.title = previousTitle;
-      if (metaEl && previousDescription !== null) {
-        metaEl.setAttribute('content', previousDescription);
-      }
+      restoreFns.forEach((fn) => fn());
     };
-  }, [title, description]);
+  }, [title, description, options?.image, options?.url, options?.type]);
 }

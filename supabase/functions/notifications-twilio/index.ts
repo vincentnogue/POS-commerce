@@ -237,9 +237,15 @@ Deno.serve(async (req: Request) => {
     const body = (await req.json()) as NotificationRequest;
 
     if (!body.tenant_id || !body.connection_id || !body.recipients?.length) {
+      // BUG FIX: same masking issue fixed in integration-test-connection/
+      // ai-generate — supabase.functions.invoke() (used by MessagesPage.tsx
+      // and the auto-WhatsApp-receipt call in POSPage.tsx) replaces this
+      // message with a generic "non-2xx status code" string for ANY
+      // non-2xx response. A failed send attempt is valid response data,
+      // not an HTTP-level error.
       return new Response(
         JSON.stringify({ success: false, message: "Missing required fields" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -309,8 +315,13 @@ Deno.serve(async (req: Request) => {
     const allowed = await rlRes.json().catch(() => true);
     if (allowed === false) {
       return new Response(
+        // BUG FIX: same masking issue fixed elsewhere in this function's
+        // other responses — a rate-limit rejection is a valid outcome of
+        // an otherwise-legitimate request, not an infrastructure
+        // failure, so it gets 200 + success:false rather than a status
+        // the frontend SDK would mask with a generic message.
         JSON.stringify({ success: false, message: isBulk ? "Daily campaign limit reached — try again tomorrow" : "Rate limit reached — try again in a bit" }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -321,7 +332,7 @@ Deno.serve(async (req: Request) => {
     if (credError || !accountSid || !authToken) {
       return new Response(
         JSON.stringify({ success: false, message: credError || "No Twilio credentials" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
