@@ -7,16 +7,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-// Makes the "ChatGPT (OpenAI)" Marketplace integration actually do
-// something. Before this function existed, a merchant could connect
-// their OpenAI API key (the generic integration-save-connection flow
-// already handled storing it), but nothing in the app ever read it back
-// or called OpenAI with it — the integration's promised capabilities
-// ("Generate product descriptions, draft customer replies, and
-// summarize sales/reports data") were pure marketing copy with no real
-// feature behind them. This is the first real one: generating a product
-// description from its name/category, called from the "Generate with
-// AI" button in ProductsPage.tsx.
+// Makes both the "ChatGPT (OpenAI)" AND "Claude (Anthropic)" Marketplace
+// integrations actually do something. Before this function existed, a
+// merchant could connect either provider's API key (the generic
+// integration-save-connection flow already handled storing it), but
+// nothing in the app ever read it back or called either provider with
+// it — both integrations' promised capabilities ("Generate product
+// descriptions, draft customer replies, and summarize sales/reports
+// data") were pure marketing copy with no real feature behind them.
+// This is the first real one: generating a product description from its
+// name/category, called from the "Generate with AI" button in
+// ProductsPage.tsx. The provider actually used is whichever the tenant
+// has connected — provider_key is looked up server-side from
+// connection_id rather than trusted from the client, same reasoning as
+// every credential lookup in this file.
 interface GenerateRequest {
   tenant_id: string;
   connection_id: string;
@@ -25,12 +29,30 @@ interface GenerateRequest {
   category?: string;
 }
 
-async function getOpenAiKey(
+async function getProviderCredential(
   supabaseUrl: string,
   serviceRoleKey: string,
   connectionId: string,
   tenantId: string
-): Promise<{ apiKey?: string; error?: string }> {
+): Promise<{ apiKey?: string; providerKey?: "openai_chatgpt" | "anthropic_claude"; error?: string }> {
+  const connRes = await fetch(
+    `${supabaseUrl}/rest/v1/integration_connections?id=eq.${connectionId}&tenant_id=eq.${tenantId}&select=provider_id`,
+    { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } }
+  );
+  if (!connRes.ok) return { error: "Failed to retrieve connection" };
+  const conns = await connRes.json();
+  if (!conns[0]) return { error: "Connection not found" };
+
+  const provRes = await fetch(
+    `${supabaseUrl}/rest/v1/integration_providers?id=eq.${conns[0].provider_id}&select=provider_key`,
+    { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } }
+  );
+  const provs = await provRes.json();
+  const providerKey = provs[0]?.provider_key;
+  if (providerKey !== "openai_chatgpt" && providerKey !== "anthropic_claude") {
+    return { error: "Connection is not an AI provider" };
+  }
+
   const res = await fetch(
     `${supabaseUrl}/rest/v1/integration_credentials?connection_id=eq.${connectionId}&tenant_id=eq.${tenantId}`,
     {
@@ -49,17 +71,19 @@ async function getOpenAiKey(
   if (typeof credentialData === "string" && credentialData.startsWith("enc_")) {
     const decoded = atob(credentialData.replace("enc_", ""));
     const parsed = JSON.parse(decoded);
-    return { apiKey: parsed.api_key };
+    return { apiKey: parsed.api_key, providerKey };
   }
   return { error: "Invalid credential format" };
 }
 
-async function generateProductDescription(apiKey: string, productName: string, category?: string): Promise<{ text?: string; error?: string }> {
-  try {
-    const prompt = category
-      ? `Write a concise, appealing product description (max 2 sentences, no markdown) for a retail product called "${productName}" in the "${category}" category.`
-      : `Write a concise, appealing product description (max 2 sentences, no markdown) for a retail product called "${productName}".`;
+function buildPrompt(productName: string, category?: string): string {
+  return category
+    ? `Write a concise, appealing product description (max 2 sentences, no markdown) for a retail product called "${productName}" in the "${category}" category.`
+    : `Write a concise, appealing product description (max 2 sentences, no markdown) for a retail product called "${productName}".`;
+}
 
+async function generateWithOpenAi(apiKey: string, productName: string, category?: string): Promise<{ text?: string; error?: string }> {
+  try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -68,7 +92,7 @@ async function generateProductDescription(apiKey: string, productName: string, c
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        messages: [{ role: "user", content: prompt }],
+        messages: [{ role: "user", content: buildPrompt(productName, category) }],
         max_tokens: 120,
         temperature: 0.7,
       }),
@@ -81,6 +105,35 @@ async function generateProductDescription(apiKey: string, productName: string, c
     const data = await response.json();
     const text = data?.choices?.[0]?.message?.content?.trim();
     if (!text) return { error: "OpenAI returned an empty response" };
+    return { text };
+  } catch (err) {
+    return { error: err.message };
+  }
+}
+
+async function generateWithAnthropic(apiKey: string, productName: string, category?: string): Promise<{ text?: string; error?: string }> {
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 120,
+        messages: [{ role: "user", content: buildPrompt(productName, category) }],
+      }),
+    });
+
+    if (!response.ok) {
+      const errBody = await response.json().catch(() => ({}));
+      return { error: errBody?.error?.message || `Anthropic error (${response.status})` };
+    }
+    const data = await response.json();
+    const text = data?.content?.[0]?.text?.trim();
+    if (!text) return { error: "Anthropic returned an empty response" };
     return { text };
   } catch (err) {
     return { error: err.message };
@@ -151,10 +204,29 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { apiKey, error: credError } = await getOpenAiKey(supabaseUrl, serviceRoleKey, body.connection_id, body.tenant_id);
-    if (credError || !apiKey) {
+    // RATE LIMIT: each call costs the tenant real OpenAI usage. Without
+    // this, a bug, a compromised session, or a malicious staff member
+    // could burn through a merchant's OpenAI quota in seconds by looping
+    // this endpoint. 30 generations/hour is generous for actively
+    // editing a product catalog, well below anything a real cashier/
+    // manager workflow would hit, but stops a runaway loop.
+    const rlRes = await fetch(`${supabaseUrl}/rest/v1/rpc/check_rate_limit`, {
+      method: "POST",
+      headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_tenant_id: body.tenant_id, p_function_name: "ai-generate", p_max_calls: 30, p_window_minutes: 60 }),
+    });
+    const allowed = await rlRes.json().catch(() => true); // fail-open if the RPC itself errors
+    if (allowed === false) {
       return new Response(
-        JSON.stringify({ success: false, message: credError || "No OpenAI API key connected" }),
+        JSON.stringify({ success: false, message: "Rate limit reached — try again in a bit" }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { apiKey, providerKey, error: credError } = await getProviderCredential(supabaseUrl, serviceRoleKey, body.connection_id, body.tenant_id);
+    if (credError || !apiKey || !providerKey) {
+      return new Response(
+        JSON.stringify({ success: false, message: credError || "No AI provider connected" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -166,7 +238,9 @@ Deno.serve(async (req: Request) => {
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      const { text, error } = await generateProductDescription(apiKey, body.product_name, body.category);
+      const { text, error } = providerKey === "anthropic_claude"
+        ? await generateWithAnthropic(apiKey, body.product_name, body.category)
+        : await generateWithOpenAi(apiKey, body.product_name, body.category);
       if (error || !text) {
         return new Response(
           JSON.stringify({ success: false, message: error || "Generation failed" }),
@@ -174,7 +248,7 @@ Deno.serve(async (req: Request) => {
         );
       }
       return new Response(
-        JSON.stringify({ success: true, text }),
+        JSON.stringify({ success: true, text, provider: providerKey }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

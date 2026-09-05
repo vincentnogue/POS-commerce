@@ -288,6 +288,32 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // RATE LIMIT: each message costs the tenant real Twilio usage, and a
+    // bulk send reaches real customers — a runaway loop here means real
+    // money spent and real people spammed. Single transactional sends
+    // (POS receipts) are rate-limited separately and generously from
+    // bulk campaigns, since a busy store can legitimately ring up many
+    // sales per hour but has no reason to launch dozens of broadcast
+    // campaigns in that time.
+    const isBulk = body.recipients.length > 1;
+    const rlRes = await fetch(`${supabaseUrl}/rest/v1/rpc/check_rate_limit`, {
+      method: "POST",
+      headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        p_tenant_id: body.tenant_id,
+        p_function_name: isBulk ? "notifications-twilio:bulk" : "notifications-twilio:single",
+        p_max_calls: isBulk ? 10 : 200,
+        p_window_minutes: isBulk ? 1440 : 60,
+      }),
+    });
+    const allowed = await rlRes.json().catch(() => true);
+    if (allowed === false) {
+      return new Response(
+        JSON.stringify({ success: false, message: isBulk ? "Daily campaign limit reached — try again tomorrow" : "Rate limit reached — try again in a bit" }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Get Twilio credentials
     const { accountSid, authToken, fromNumber, fromWhatsApp, error: credError } =
       await getTwilioCredentials(supabaseUrl, serviceRoleKey, body.connection_id, body.tenant_id);

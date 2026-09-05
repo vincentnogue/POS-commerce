@@ -2546,7 +2546,7 @@ export const fr: Record<string, string> = {
   "products.import.toastError": "Échec de l'import : {message}",
   "products.ai.generate": "Générer avec l'IA",
   "products.ai.generating": "Génération…",
-  "products.ai.notConnected": "Connectez OpenAI (ChatGPT) pour générer des descriptions automatiquement.",
+  "products.ai.notConnected": "Connectez OpenAI (ChatGPT) ou Claude (Anthropic) pour générer des descriptions automatiquement.",
   "products.ai.connectLink": "Connecter dans le Marketplace",
   "products.ai.err": "Impossible de générer une description : {message}",
   "messages.title": "Messages",

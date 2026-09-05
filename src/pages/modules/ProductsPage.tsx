@@ -94,13 +94,16 @@ export function ProductsPage() {
     if (!tenant) return;
     let cancelled = false;
     (async () => {
-      const { data: provider } = await supabase.from('integration_providers').select('id').eq('provider_key', 'openai_chatgpt').maybeSingle();
-      if (!provider) return;
+      // Either connected AI provider works — ai-generate resolves the
+      // actual provider server-side from connection_id, so this just
+      // needs to find whichever one (if any) the tenant has connected.
+      const { data: providers } = await supabase.from('integration_providers').select('id').in('provider_key', ['openai_chatgpt', 'anthropic_claude']);
+      if (!providers || providers.length === 0) return;
       const { data: connection } = await supabase
         .from('integration_connections')
         .select('id, status')
         .eq('tenant_id', tenant.id)
-        .eq('provider_id', provider.id)
+        .in('provider_id', providers.map((p) => p.id))
         .eq('status', 'connected')
         .maybeSingle();
       if (!cancelled) setAiConnectionId(connection?.id ?? null);

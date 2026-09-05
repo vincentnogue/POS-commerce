@@ -332,6 +332,21 @@ Deno.serve(async (req: Request) => {
         );
       }
 
+      // RATE LIMIT: each payment prompts a real customer's phone for a
+      // real transaction. 30/hour is generous for real checkout volume.
+      const rlRes = await fetch(`${supabaseUrl}/rest/v1/rpc/check_rate_limit`, {
+        method: "POST",
+        headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ p_tenant_id: body.tenant_id, p_function_name: "orange-money-payments", p_max_calls: 30, p_window_minutes: 60 }),
+      });
+      const allowed = await rlRes.json().catch(() => true);
+      if (allowed === false) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Rate limit reached — try again in a bit" }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       // Get Orange Money credentials
       const { apiKey, clientId, clientSecret, error: credError } =
         await getOrangeMoneyCredentials(supabaseUrl, serviceRoleKey, body.connection_id, body.tenant_id);

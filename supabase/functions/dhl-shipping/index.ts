@@ -298,6 +298,21 @@ Deno.serve(async (req: Request) => {
         );
       }
 
+      // RATE LIMIT: each shipment created is a real DHL label with a
+      // real cost. 20/hour is generous for real order volume.
+      const rlRes = await fetch(`${supabaseUrl}/rest/v1/rpc/check_rate_limit`, {
+        method: "POST",
+        headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ p_tenant_id: body.tenant_id, p_function_name: "dhl-shipping", p_max_calls: 20, p_window_minutes: 60 }),
+      });
+      const allowed = await rlRes.json().catch(() => true);
+      if (allowed === false) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Rate limit reached — try again in a bit" }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       // Get DHL credentials
       const { apiKey, error: credError } = await getDhlCredentials(
         supabaseUrl,

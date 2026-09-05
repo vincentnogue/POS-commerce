@@ -2543,7 +2543,7 @@ export const en: Record<string, string> = {
   "products.import.toastError": "Import failed: {message}",
   "products.ai.generate": "Generate with AI",
   "products.ai.generating": "Generating…",
-  "products.ai.notConnected": "Connect OpenAI (ChatGPT) to auto-generate descriptions.",
+  "products.ai.notConnected": "Connect OpenAI (ChatGPT) or Claude (Anthropic) to auto-generate descriptions.",
   "products.ai.connectLink": "Connect in Marketplace",
   "products.ai.err": "Couldn't generate a description: {message}",
   "messages.title": "Messages",
