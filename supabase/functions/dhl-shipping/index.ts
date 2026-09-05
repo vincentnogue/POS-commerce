@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -260,6 +261,40 @@ Deno.serve(async (req: Request) => {
         return new Response(
           JSON.stringify({ success: false, message: "Missing required fields" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // SECURITY: strict multi-tenant isolation — same fix/rationale as
+      // stripe-payments and the other payment functions. Without this,
+      // any authenticated user of ANY tenant could pass a different
+      // tenant's connection_id and create a real DHL shipment (real
+      // shipping cost + logistics disruption) charged to that tenant's
+      // account. Found during a follow-up security audit of every edge
+      // function after the stripe-payments fix.
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+      const authHeader = req.headers.get("Authorization") ?? "";
+      const bearerToken = authHeader.replace("Bearer ", "");
+      const callerClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: `Bearer ${bearerToken}` } },
+      });
+      const { data: callerData, error: callerErr } = await callerClient.auth.getUser();
+      if (callerErr || !callerData.user) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Not authenticated" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const adminClient = createClient(supabaseUrl, serviceRoleKey);
+      const { data: callerMember } = await adminClient
+        .from("tenant_members")
+        .select("role")
+        .eq("tenant_id", body.tenant_id)
+        .eq("user_id", callerData.user.id)
+        .maybeSingle();
+      if (!callerMember) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Access denied for this tenant" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 

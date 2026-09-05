@@ -152,6 +152,33 @@ serve(async (req: Request) => {
   try {
     const payload = await req.json() as AccessCheckRequest;
 
+    // SECURITY: strict identity verification — same fix/rationale as
+    // stripe-payments and the other functions fixed in this audit. This
+    // function used to trust payload.user_id and payload.tenant_id at
+    // face value with no check that the actual caller (via their Bearer
+    // token) really was that user — so anyone could pass, say, a
+    // super_admin's user_id from a different tenant and get back
+    // 'allowed: true' / 'super_admin_or_admin_access', bypassing every
+    // marketplace permission check (connect, view credentials, delete,
+    // webhooks...) for a tenant they don't belong to. Found during a
+    // follow-up security audit of every edge function after the
+    // stripe-payments fix. The frontend (MarketplacePage.tsx) already
+    // sends the real user's Bearer token, so this only needed reading.
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const bearerToken = authHeader.replace('Bearer ', '');
+    const callerClient = createClient(
+      Deno.env.get('SUPABASE_URL') || '',
+      Deno.env.get('SUPABASE_ANON_KEY') || '',
+      { global: { headers: { Authorization: `Bearer ${bearerToken}` } } }
+    );
+    const { data: callerData, error: callerErr } = await callerClient.auth.getUser();
+    if (callerErr || !callerData.user || callerData.user.id !== payload.user_id) {
+      return new Response(
+        JSON.stringify({ error: 'Not authenticated as the requested user', allowed: false }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     const result = await checkMarketplaceAccess(payload);
 
     return new Response(JSON.stringify(result), {
