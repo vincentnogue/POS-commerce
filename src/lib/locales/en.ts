@@ -1546,6 +1546,11 @@ export const en: Record<string, string> = {
   "super.content.blog.field.author": "Author",
   "super.content.blog.field.coverUrl": "Cover image URL",
   "super.content.blog.field.published": "Published (visible on /blog)",
+  "super.content.blog.seo.title": "Search engine optimization (SEO)",
+  "super.content.blog.seo.metaTitle": "SEO title (optional)",
+  "super.content.blog.seo.metaTitleHint": "If empty, uses the article's title.",
+  "super.content.blog.seo.metaDescription": "SEO description (optional)",
+  "super.content.blog.seo.metaDescriptionHint": "If empty, uses the excerpt.",
   "super.content.jobs.count": "{count} listing(s)",
   "super.content.jobs.new": "New listing",
   "super.content.jobs.editTitle": "Edit listing",
@@ -2361,6 +2366,9 @@ export const en: Record<string, string> = {
   "blog.intro": "Tips, insights and news on business management, in Africa and beyond.",
   "blog.empty": "No articles yet.",
   "blog.readMore": "Read article",
+  "blog.backToList": "Back to articles",
+  "blog.notFound.title": "Article not found",
+  "blog.notFound.desc": "This article doesn't exist or is no longer published.",
 
   // Login page
   "login.hero.titleLine1": "Business management,",

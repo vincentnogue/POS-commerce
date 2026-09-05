@@ -392,6 +392,8 @@ export type BlogPost = {
   cover_url: string | null;
   published: boolean;
   published_at: string | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
 };
 
 export type JobPosting = {
