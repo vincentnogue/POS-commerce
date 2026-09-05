@@ -13,6 +13,7 @@ import { printDayReport } from '../../lib/dayReport';
 import { SaleHistoryTab } from './SaleHistoryTab';
 import { ReturnsTab } from './ReturnsTab';
 import type { Product, Customer, Promotion, TenantCurrency } from '../../lib/types';
+import { calcSubtotal, calcTaxTotal, calcManualDiscountValue, calcLoyaltyDiscountValue, calcPromotionValue, calcDiscountTotal, calcTotal } from '../../lib/cartMath';
 import { issueGiftCard as apiIssueGiftCard, redeemGiftCard as apiRedeemGiftCard, getGiftCardStatus as apiGetGiftCardStatus } from '../../lib/giftCards';
 import { useOnlineStatus } from '../../lib/useOnlineStatus';
 import { queueOfflineSale, getQueuedSales, removeQueuedSale, type OfflineSalePayload } from '../../lib/offlineQueue';
@@ -596,8 +597,8 @@ export function POSPage() {
 
   const removeItem = (id: string) => setCart((c) => c.filter((i) => i.product.id !== id));
 
-  const subtotal = cart.reduce((s, i) => s + i.quantity * i.unit_price, 0);
-  const taxTotal = cart.reduce((s, i) => s + i.quantity * i.unit_price * (Number(i.product.tax_rate) / 100), 0);
+  const subtotal = calcSubtotal(cart);
+  const taxTotal = calcTaxTotal(cart);
 
   // Discount config for this tenant (see migration 0067): which
   // mechanism(s) are on, and the rules for each.
@@ -608,9 +609,9 @@ export function POSPage() {
   const requiresManagerApproval = Number(manualDiscountAmount || 0) > discountThreshold;
   // Manual discount only actually reduces the total once verified via
   // check_manual_discount (below) — until then it's just a draft input.
-  const manualDiscountValue = discountApproval ? Math.max(0, Number(manualDiscountAmount) || 0) : 0;
+  const manualDiscountValue = calcManualDiscountValue(!!discountApproval, Number(manualDiscountAmount));
   const loyaltyRedeemPoints = customer ? Math.max(0, Math.min(Math.floor(Number(redeemPointsInput) || 0), customer.loyalty_points ?? 0)) : 0;
-  const loyaltyDiscountValue = loyaltyRedeemPoints * Number(tenant?.loyalty_point_value ?? 0.01);
+  const loyaltyDiscountValue = calcLoyaltyDiscountValue(loyaltyRedeemPoints, Number(tenant?.loyalty_point_value ?? 0.01));
 
   // Promotions: match active ones against the current subtotal. Only one
   // promotion applies per sale — a valid coupon takes priority over the
@@ -622,7 +623,7 @@ export function POSPage() {
     if (p.ends_at && new Date(p.ends_at).getTime() < now) return false;
     return true;
   });
-  const promoValueFor = (p: Promotion, base: number) => (p.type === 'percent' ? base * (p.value / 100) : Math.min(p.value, base));
+  const promoValueFor = calcPromotionValue;
   const bestAutoPromotion = activePromotions
     .filter((p) => !p.requires_code && (p.min_purchase == null || subtotal >= p.min_purchase))
     .reduce<Promotion | null>((best, p) => (!best || promoValueFor(p, subtotal) > promoValueFor(best, subtotal) ? p : best), null);
@@ -644,8 +645,8 @@ export function POSPage() {
   };
   const clearCoupon = () => { setAppliedCoupon(null); setCouponCode(''); setCouponErr(null); };
 
-  const discountTotal = manualDiscountValue + (loyaltyDiscountEnabled ? loyaltyDiscountValue : 0) + promotionValue;
-  const total = Math.max(0, subtotal + taxTotal - discountTotal);
+  const discountTotal = calcDiscountTotal({ manualDiscountValue, loyaltyDiscountEnabled, loyaltyDiscountValue, promotionValue });
+  const total = calcTotal(subtotal, taxTotal, discountTotal);
 
   // Foreign currencies this tenant accepts (excludes its own home
   // currency, which is always the implicit default and isn't a

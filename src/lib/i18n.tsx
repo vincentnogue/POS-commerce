@@ -1,11 +1,9 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import { fr } from './locales/fr';
-import { en } from './locales/en';
+import { translate, type Lang } from './translate';
 
-export type Lang = 'fr' | 'en';
+export type { Lang };
 
-const dict: Record<Lang, Record<string, string>> = { fr, en };
 const LOCALE_MAP: Record<Lang, string> = {
   fr: 'fr-FR',
   en: 'en-US',
@@ -84,11 +82,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     [locale]
   );
 
-  const t = useCallback((key: string, vars?: Record<string, string | number>) => {
-    const raw = dict[lang][key] ?? dict.fr[key] ?? key;
-    if (!vars) return raw;
-    return raw.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ''));
-  }, [lang]);
+  const t = useCallback((key: string, vars?: Record<string, string | number>) => translate(lang, key, vars), [lang]);
 
   return (
     <I18nContext.Provider value={{ lang, locale, setLang, t, formatDate, formatDateTime, formatNumber }}>
