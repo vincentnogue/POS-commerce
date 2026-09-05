@@ -18,6 +18,16 @@ update public.plans set included_modules = array_append(included_modules, 'promo
 
 drop policy if exists promotions_tenant_access on public.promotions;
 
+-- BUG FIX: applied once via the Supabase SQL Editor (during the CI outage
+-- caused by the migration-timestamp collision fixed alongside this), so
+-- `supabase db push` failed on "policy already exists" the next time it
+-- tried to run this file — CI never marks a migration as applied unless
+-- the whole file succeeds, so that one failure would have kept blocking
+-- every migration after it, forever. Adding `drop policy if exists`
+-- before each CREATE POLICY (the same pattern already used correctly by
+-- e.g. migration 0085) makes this file safe to run again with no effect
+-- the second time.
+drop policy if exists "promotions_select_member" on public.promotions;
 create policy "promotions_select_member" on public.promotions for select
   to authenticated using (
     (exists (select 1 from public.tenant_members tm where tm.tenant_id = promotions.tenant_id and tm.user_id = auth.uid())
@@ -25,6 +35,7 @@ create policy "promotions_select_member" on public.promotions for select
     and public.can_on_tenant(auth.uid(), promotions.tenant_id, 'promotions', 'view')
   );
 
+drop policy if exists "promotions_insert_member" on public.promotions;
 create policy "promotions_insert_member" on public.promotions for insert
   to authenticated with check (
     (exists (select 1 from public.tenant_members tm where tm.tenant_id = promotions.tenant_id and tm.user_id = auth.uid())
@@ -32,6 +43,7 @@ create policy "promotions_insert_member" on public.promotions for insert
     and public.can_on_tenant(auth.uid(), promotions.tenant_id, 'promotions', 'create')
   );
 
+drop policy if exists "promotions_update_member" on public.promotions;
 create policy "promotions_update_member" on public.promotions for update
   to authenticated using (
     (exists (select 1 from public.tenant_members tm where tm.tenant_id = promotions.tenant_id and tm.user_id = auth.uid())
@@ -39,6 +51,7 @@ create policy "promotions_update_member" on public.promotions for update
     and public.can_on_tenant(auth.uid(), promotions.tenant_id, 'promotions', 'update')
   );
 
+drop policy if exists "promotions_delete_member" on public.promotions;
 create policy "promotions_delete_member" on public.promotions for delete
   to authenticated using (
     (exists (select 1 from public.tenant_members tm where tm.tenant_id = promotions.tenant_id and tm.user_id = auth.uid())
