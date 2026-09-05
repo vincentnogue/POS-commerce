@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Smartphone, Banknote, Check, Receipt, Truck, Package, MessageCircle, Printer, History, X, RotateCcw, FileBarChart, Mail, Lock as LockIcon, Percent, Gift, PauseCircle, Tag, WifiOff, RefreshCw, QrCode } from 'lucide-react';
 import { OnlinePaymentModal } from '../../components/OnlinePaymentModal';
+import { MobileMoneyPushModal } from '../../components/MobileMoneyPushModal';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
@@ -120,6 +121,7 @@ export function POSPage() {
   const [paidAmount, setPaidAmount] = useState('');
   const [paymentReference, setPaymentReference] = useState('');
   const [showOnlinePayment, setShowOnlinePayment] = useState(false);
+  const [showMobilePush, setShowMobilePush] = useState(false);
   const [giftCardCode, setGiftCardCode] = useState('');
   const [giftCardCheck, setGiftCardCheck] = useState<{ id: string; balance: number } | null>(null);
   const [giftCardErr, setGiftCardErr] = useState<string | null>(null);
@@ -1866,6 +1868,11 @@ export function POSPage() {
                 <button type="button" onClick={() => setShowOnlinePayment(true)} className="btn-ghost shrink-0" title={t('pos.onlinePayment.generate')}>
                   <QrCode size={16} />
                 </button>
+                {paymentMethod === 'mobile_money' && (
+                  <button type="button" onClick={() => setShowMobilePush(true)} className="btn-ghost shrink-0" title={t('pos.mobilePush.title')}>
+                    <Smartphone size={16} />
+                  </button>
+                )}
               </div>
               <p className="mt-1 text-xs text-ink-400 dark:text-ink-500">{t('pos.refHelp')}</p>
             </div>
@@ -2004,6 +2011,17 @@ export function POSPage() {
           saleReference={`POS-${Date.now()}`}
           onClose={() => setShowOnlinePayment(false)}
           onConfirmed={(ref) => { setPaymentReference(ref); setShowOnlinePayment(false); }}
+        />
+      )}
+      {showMobilePush && tenant && (
+        <MobileMoneyPushModal
+          tenantId={tenant.id}
+          countryCode={tenant.country_code}
+          amount={total}
+          currency={currency}
+          saleReference={`POS-${Date.now()}`}
+          onClose={() => setShowMobilePush(false)}
+          onConfirmed={(ref) => { setPaymentReference(ref); setShowMobilePush(false); }}
         />
       )}
     </div>

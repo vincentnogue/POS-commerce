@@ -79,9 +79,16 @@ Deno.serve(async (req: Request) => {
       (await req.json()) as SaveConnectionRequest;
 
     if (!tenant_id || !providerKey || !credentials) {
+      // BUG FIX: same masking issue fixed in integration-test-connection —
+      // supabase.functions.invoke() replaces this message with a generic
+      // "non-2xx status code" string on the frontend for ANY non-2xx
+      // response, hiding genuinely useful per-attempt reasons like this
+      // one. A failed save attempt is valid response data for this
+      // endpoint, not an HTTP-level error — status stays 200, success:
+      // false carries the outcome.
       return new Response(
         JSON.stringify({ success: false, message: "Missing required fields" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -126,7 +133,7 @@ Deno.serve(async (req: Request) => {
     if (providerErr || !provider) {
       return new Response(
         JSON.stringify({ success: false, message: `Fournisseur inconnu: ${providerKey}` }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -161,7 +168,7 @@ Deno.serve(async (req: Request) => {
           message: "Failed to save connection",
           error: connectionErr?.message,
         }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -193,7 +200,7 @@ Deno.serve(async (req: Request) => {
           message: "Failed to save credentials",
           error: credError.message,
         }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -215,7 +222,7 @@ Deno.serve(async (req: Request) => {
         success: false,
         message: `Server error: ${err.message}`,
       }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
