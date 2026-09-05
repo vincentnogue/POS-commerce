@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -31,6 +32,21 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (!flwKey || !supabaseUrl || !serviceRoleKey) return json({ error: 'Payment system not configured' }, 503);
+
+    // SECURITY FIX: same audit/fix as stripe-checkout — zero
+    // authentication before this meant anyone could pass any tenant_id
+    // and have THAT tenant's subscription upgraded by paying with their
+    // own card.
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    if (!anonKey) return json({ error: 'Server not configured' }, 503);
+    const bearerToken = (req.headers.get('Authorization') ?? '').replace('Bearer ', '');
+    const callerClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: `Bearer ${bearerToken}` } } });
+    const { data: callerData, error: callerErr } = await callerClient.auth.getUser();
+    if (callerErr || !callerData.user) return json({ error: 'Non authentifié' }, 401);
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    const { data: callerMember } = await adminClient
+      .from('tenant_members').select('id').eq('tenant_id', tenant_id).eq('user_id', callerData.user.id).maybeSingle();
+    if (!callerMember) return json({ error: 'Accès refusé pour ce tenant' }, 403);
 
     // Amount comes from the `plans` table (single source of truth) rather
     // than a hardcoded copy — plans.ts, the plans DB table, and now this
