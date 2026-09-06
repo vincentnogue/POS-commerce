@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -6,6 +6,7 @@ import {
   FileText, Truck, Users, Building2, Receipt, Wallet, ClipboardList,
   FileBarChart, Calculator, UserCog, Settings, Shield, Crown,
   ChevronDown, LogOut, X, Globe, Lock, Puzzle, Clock3, Tag, ClipboardCheck, Percent, MessageSquare,
+  TrendingUp, ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../lib/i18n';
@@ -22,6 +23,7 @@ type NavItem = {
 };
 
 type NavGroup = {
+  id: string;
   labelKey: string | null; // null = standalone, no section header (Dashboard)
   items: NavItem[];
 };
@@ -33,12 +35,14 @@ type NavGroup = {
 // there are more than ~8 nav items to show at once.
 const NAV_GROUPS: NavGroup[] = [
   {
+    id: 'standalone',
     labelKey: null,
     items: [
       { to: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, module: 'dashboard' },
     ],
   },
   {
+    id: 'sell',
     labelKey: 'sidebar.group.sell',
     items: [
       { to: '/pos', labelKey: 'nav.pos', icon: ShoppingCart, module: 'pos' },
@@ -49,6 +53,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: 'catalog',
     labelKey: 'sidebar.group.catalog',
     items: [
       { to: '/products', labelKey: 'nav.products', icon: Package, module: 'products' },
@@ -58,6 +63,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: 'customers',
     labelKey: 'sidebar.group.customers',
     items: [
       { to: '/customers', labelKey: 'nav.customers', icon: Users, module: 'customers' },
@@ -65,8 +71,10 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: 'finance',
     labelKey: 'sidebar.group.finance',
     items: [
+      { to: '/performance', labelKey: 'nav.performance', icon: TrendingUp, module: 'performance' },
       { to: '/expenses', labelKey: 'nav.expenses', icon: Wallet, module: 'expenses' },
       { to: '/accounting', labelKey: 'nav.accounting', icon: Calculator, module: 'accounting' },
       { to: '/commissions', labelKey: 'nav.commissions', icon: Percent },
@@ -74,6 +82,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: 'team',
     labelKey: 'sidebar.group.team',
     items: [
       { to: '/stores', labelKey: 'nav.stores', icon: Store, module: 'stores' },
@@ -83,6 +92,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: 'platform',
     labelKey: 'sidebar.group.platform',
     items: [
       { to: '/marketplace', labelKey: 'nav.marketplace', icon: Puzzle, module: 'marketplace' },
@@ -114,6 +124,28 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
   const { t } = useI18n();
   const [tenantMenuOpen, setTenantMenuOpen] = useState(false);
   const navigate = useNavigate();
+
+  // Collapsible sections — every module stays reachable at all times
+  // (nothing is ever hidden from the nav, unlike a permission gate); this
+  // only remembers which section headers the person has chosen to fold
+  // away to reduce visual clutter, same collapsible-group pattern as
+  // Notion/Linear's sidebars. Starts fully expanded — a first-time user
+  // sees every module, never a surprise "where did X go?".
+  const COLLAPSE_STORAGE_KEY = 'posflow_sidebar_collapsed_groups';
+  const [collapsedGroups, setCollapsedGroups] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem(COLLAPSE_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+  useEffect(() => {
+    localStorage.setItem(COLLAPSE_STORAGE_KEY, JSON.stringify(collapsedGroups));
+  }, [collapsedGroups]);
+  const toggleGroup = (id: string) => {
+    setCollapsedGroups((prev) => (prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]));
+  };
 
   const ALWAYS_AVAILABLE = ['dashboard', 'pos', 'settings'];
   // BUG FIX: super admins must never be locked out of a module by plan tier —
@@ -204,51 +236,59 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto px-3 py-2 scroll-thin">
-          {filteredNavGroups.map((group, groupIdx) => (
-            <div key={group.labelKey ?? 'standalone'} className={groupIdx > 0 ? 'mt-4' : ''}>
-              {group.labelKey && (
-                <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
-                  {t(group.labelKey)}
-                </p>
-              )}
-              {group.items.map((item) => {
-                const Icon = item.icon;
-                const locked = isLocked(item.module);
-                if (locked) {
+          {filteredNavGroups.map((group, groupIdx) => {
+            const isCollapsed = group.labelKey !== null && collapsedGroups.includes(group.id);
+            return (
+              <div key={group.id} className={groupIdx > 0 ? 'mt-4' : ''}>
+                {group.labelKey && (
+                  <button
+                    onClick={() => toggleGroup(group.id)}
+                    className="flex w-full items-center justify-between px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300"
+                    aria-expanded={!isCollapsed}
+                  >
+                    <span>{t(group.labelKey)}</span>
+                    {isCollapsed ? <ChevronRight size={13} /> : <ChevronDown size={13} />}
+                  </button>
+                )}
+                {!isCollapsed && group.items.map((item) => {
+                  const Icon = item.icon;
+                  const locked = isLocked(item.module);
+                  if (locked) {
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to="/subscribe"
+                        onClick={() => onClose()}
+                        className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-400 dark:text-ink-500 opacity-70 transition-colors hover:bg-white/60 dark:hover:bg-ink-800/60"
+                        title={t('sidebar.lockedFeature')}
+                      >
+                        <Icon size={18} strokeWidth={1.8} className="shrink-0 text-ink-400 dark:text-ink-500" />
+                        <span className="truncate">{t(item.labelKey)}</span>
+                        <Lock size={13} className="ml-auto shrink-0" />
+                      </NavLink>
+                    );
+                  }
                   return (
                     <NavLink
                       key={item.to}
-                      to="/subscribe"
+                      to={item.to}
                       onClick={() => onClose()}
-                      className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-400 dark:text-ink-500 opacity-70 transition-colors hover:bg-white/60 dark:hover:bg-ink-800/60"
-                      title={t('sidebar.lockedFeature')}
+                      className={({ isActive }) =>
+                        `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                          isActive
+                            ? 'bg-white dark:bg-ink-800 text-brand-700 shadow-soft'
+                            : 'text-ink-700 dark:text-ink-200 hover:bg-white/60 dark:hover:bg-ink-800/60 hover:text-brand-700'
+                        }`
+                      }
                     >
-                      <Icon size={18} strokeWidth={1.8} className="shrink-0 text-ink-400 dark:text-ink-500" />
+                      <Icon size={18} strokeWidth={1.8} className="shrink-0 text-ink-500 dark:text-ink-400 group-hover:text-brand-600" />
                       <span className="truncate">{t(item.labelKey)}</span>
-                      <Lock size={13} className="ml-auto shrink-0" />
                     </NavLink>
                   );
-                }
-                return (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    onClick={() => onClose()}
-                    className={({ isActive }) =>
-                      `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-                        isActive
-                          ? 'bg-white dark:bg-ink-800 text-brand-700 shadow-soft'
-                          : 'text-ink-700 dark:text-ink-200 hover:bg-white/60 dark:hover:bg-ink-800/60 hover:text-brand-700'
-                      }`
-                    }
-                  >
-                    <Icon size={18} strokeWidth={1.8} className="shrink-0 text-ink-500 dark:text-ink-400 group-hover:text-brand-600" />
-                    <span className="truncate">{t(item.labelKey)}</span>
-                  </NavLink>
-                );
-              })}
-            </div>
-          ))}
+                })}
+              </div>
+            );
+          })}
         </nav>
 
         {/* Profile + sign out */}

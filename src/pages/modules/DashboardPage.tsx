@@ -13,7 +13,6 @@ import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { formatMoney, getCountry } from '../../lib/localization';
 import { StatCard, PageHeader, useToast } from '../../components/ui';
-import { PerformanceMetrics } from '../../components/PerformanceMetrics';
 import type { Sale } from '../../lib/types';
 
 const WEEKDAYS_FR = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
@@ -29,8 +28,6 @@ export function DashboardPage() {
   const [statsSales, setStatsSales] = useState<Pick<Sale, 'total' | 'sale_date'>[]>([]);
   const [unpaid, setUnpaid] = useState(0);
   const [deliveriesToday, setDeliveriesToday] = useState(0);
-  const [activeProductCount, setActiveProductCount] = useState(0);
-  const [returnsLast7Days, setReturnsLast7Days] = useState(0);
 
   // BUG FIX: Stripe/Flutterwave finalize a subscription via a real
   // webhook. Paystack/PayUnit have none configured for this project — the
@@ -132,20 +129,6 @@ export function DashboardPage() {
         .gte('scheduled_date', startOfToday)
         .lt('scheduled_date', new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString());
       setDeliveriesToday(delCount ?? 0);
-
-      const { count: productCount } = await supabase
-        .from('products')
-        .select('id', { count: 'exact', head: true })
-        .eq('tenant_id', tenant.id)
-        .eq('is_active', true);
-      setActiveProductCount(productCount ?? 0);
-
-      const { count: returnsCount } = await supabase
-        .from('sale_returns')
-        .select('id', { count: 'exact', head: true })
-        .eq('tenant_id', tenant.id)
-        .gte('created_at', sevenDaysAgo.toISOString());
-      setReturnsLast7Days(returnsCount ?? 0);
 
       setLoading(false);
     })();
@@ -327,21 +310,6 @@ export function DashboardPage() {
             </table>
           </div>
         )}
-      </motion.div>
-
-      {/* Performance Metrics Section */}
-      <motion.div 
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6, duration: 0.5 }}
-        className="mt-12"
-      >
-        <PerformanceMetrics
-          sales={sales}
-          returnsLast7Days={returnsLast7Days}
-          activeProductCount={activeProductCount}
-          currency={currency}
-        />
       </motion.div>
     </div>
   );

@@ -36,6 +36,7 @@ const MODULE_LABELS: Record<ModuleCode, string> = {
   settings: 'users.module.settings',
   promotions: 'users.module.promotions',
   messages: 'users.module.messages',
+  performance: 'users.module.performance',
 };
 
 const ACTION_LABELS: Record<PermissionAction, string> = {

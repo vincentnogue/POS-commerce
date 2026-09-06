@@ -479,7 +479,7 @@ export const MODULES = [
   'dashboard', 'pos', 'products', 'stock', 'stores', 'invoices',
   'deliveries', 'customers', 'suppliers', 'expenses', 'purchases',
   'quotes', 'reports', 'accounting', 'users', 'administration', 'marketplace', 'settings',
-  'promotions', 'messages',
+  'promotions', 'messages', 'performance',
 ] as const;
 export type ModuleCode = (typeof MODULES)[number];
 
@@ -511,6 +511,7 @@ export const DEFAULT_PERMISSIONS: Record<Role, Permissions> = {
     // promotions, but staff/viewer get no access at all (not even view),
     // unlike promotions which staff can at least see.
     messages: { view: true, create: true, update: true },
+    performance: { view: true },
   } as Permissions,
   staff: {
     dashboard: { view: true }, pos: { view: true, create: true },
@@ -526,6 +527,7 @@ export const DEFAULT_PERMISSIONS: Record<Role, Permissions> = {
     // creating/editing/deleting promotions stays manager+ only.
     promotions: { view: true },
     messages: {},
+    performance: { view: true },
   } as Permissions,
   viewer: {
     dashboard: { view: true }, pos: { view: true },
@@ -538,6 +540,7 @@ export const DEFAULT_PERMISSIONS: Record<Role, Permissions> = {
     users: {}, marketplace: { view: true }, administration: {}, settings: { view: true },
     promotions: { view: true },
     messages: {},
+    performance: { view: true },
   } as Permissions,
 };
 

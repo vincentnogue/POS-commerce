@@ -50,6 +50,7 @@ const IndustrySolutionsPage = lazy(() => import('./pages/IndustrySolutionsPage')
 const CaseStudiesPage = lazy(() => import('./pages/CaseStudiesPage').then((m) => ({ default: m.CaseStudiesPage })));
 const AddOnsPage = lazy(() => import('./pages/AddOnsPage').then((m) => ({ default: m.AddOnsPage })));
 const DashboardPage = lazy(() => import('./pages/modules/DashboardPage').then((m) => ({ default: m.DashboardPage })));
+const PerformancePage = lazy(() => import('./pages/modules/PerformancePage').then((m) => ({ default: m.PerformancePage })));
 const POSPage = lazy(() => import('./pages/modules/POSPage').then((m) => ({ default: m.POSPage })));
 const ProductsPage = lazy(() => import('./pages/modules/ProductsPage').then((m) => ({ default: m.ProductsPage })));
 const StockPage = lazy(() => import('./pages/modules/StockPage').then((m) => ({ default: m.StockPage })));
@@ -151,6 +152,7 @@ export default function App() {
                         }
                       />
                       <Route path="/dashboard" element={<DashboardPage />} />
+                      <Route path="/performance" element={<PerformancePage />} />
                       <Route path="/pos" element={<POSPage />} />
                       <Route path="/products" element={<ProductsPage />} />
                       <Route path="/stock" element={<StockPage />} />
