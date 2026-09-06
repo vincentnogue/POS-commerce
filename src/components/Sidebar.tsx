@@ -21,31 +21,76 @@ type NavItem = {
   superAdminOnly?: boolean;
 };
 
-const NAV: NavItem[] = [
-  { to: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, module: 'dashboard' },
-  { to: '/pos', labelKey: 'nav.pos', icon: ShoppingCart, module: 'pos' },
-  { to: '/products', labelKey: 'nav.products', icon: Package, module: 'products' },
-  { to: '/stock', labelKey: 'nav.stock', icon: Boxes, module: 'stock' },
-  { to: '/stores', labelKey: 'nav.stores', icon: Store, module: 'stores' },
-  { to: '/invoices', labelKey: 'nav.invoices', icon: FileText, module: 'invoices' },
-  { to: '/deliveries', labelKey: 'nav.deliveries', icon: Truck, module: 'deliveries' },
-  { to: '/customers', labelKey: 'nav.customers', icon: Users, module: 'customers' },
-  { to: '/suppliers', labelKey: 'nav.suppliers', icon: Building2, module: 'suppliers' },
-  { to: '/expenses', labelKey: 'nav.expenses', icon: Wallet, module: 'expenses' },
-  { to: '/purchases', labelKey: 'nav.purchases', icon: Receipt, module: 'purchases' },
-  { to: '/quotes', labelKey: 'nav.quotes', icon: ClipboardList, module: 'quotes' },
-  { to: '/reports', labelKey: 'nav.reports', icon: FileBarChart, module: 'reports' },
-  { to: '/accounting', labelKey: 'nav.accounting', icon: Calculator, module: 'accounting' },
-  { to: '/users', labelKey: 'nav.users', icon: UserCog, module: 'users' },
-  { to: '/timeclock', labelKey: 'nav.timeclock', icon: Clock3 },
-  { to: '/tasks', labelKey: 'nav.tasks', icon: ClipboardCheck },
-  { to: '/commissions', labelKey: 'nav.commissions', icon: Percent },
-  { to: '/promotions', labelKey: 'nav.promotions', icon: Tag, module: 'promotions' },
-  { to: '/messages', labelKey: 'nav.messages', icon: MessageSquare, module: 'messages' },
-  { to: '/administration', labelKey: 'nav.administration', icon: Shield, module: 'administration' },
-  { to: '/marketplace', labelKey: 'nav.marketplace', icon: Puzzle, module: 'marketplace' },
-  { to: '/settings', labelKey: 'nav.settings', icon: Settings, module: 'settings' },
-  { to: '/superadmin', labelKey: 'nav.superadmin', icon: Crown, module: 'administration', superAdminOnly: true },
+type NavGroup = {
+  labelKey: string | null; // null = standalone, no section header (Dashboard)
+  items: NavItem[];
+};
+
+// Grouped into labeled sections instead of one flat 23-item list — the
+// items themselves are unchanged (same routes, icons, module gating),
+// this only changes how they're visually organized, matching the pattern
+// every comparable POS SaaS (Lightspeed, Square, Shopify POS) uses once
+// there are more than ~8 nav items to show at once.
+const NAV_GROUPS: NavGroup[] = [
+  {
+    labelKey: null,
+    items: [
+      { to: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, module: 'dashboard' },
+    ],
+  },
+  {
+    labelKey: 'sidebar.group.sell',
+    items: [
+      { to: '/pos', labelKey: 'nav.pos', icon: ShoppingCart, module: 'pos' },
+      { to: '/quotes', labelKey: 'nav.quotes', icon: ClipboardList, module: 'quotes' },
+      { to: '/invoices', labelKey: 'nav.invoices', icon: FileText, module: 'invoices' },
+      { to: '/deliveries', labelKey: 'nav.deliveries', icon: Truck, module: 'deliveries' },
+      { to: '/promotions', labelKey: 'nav.promotions', icon: Tag, module: 'promotions' },
+    ],
+  },
+  {
+    labelKey: 'sidebar.group.catalog',
+    items: [
+      { to: '/products', labelKey: 'nav.products', icon: Package, module: 'products' },
+      { to: '/stock', labelKey: 'nav.stock', icon: Boxes, module: 'stock' },
+      { to: '/suppliers', labelKey: 'nav.suppliers', icon: Building2, module: 'suppliers' },
+      { to: '/purchases', labelKey: 'nav.purchases', icon: Receipt, module: 'purchases' },
+    ],
+  },
+  {
+    labelKey: 'sidebar.group.customers',
+    items: [
+      { to: '/customers', labelKey: 'nav.customers', icon: Users, module: 'customers' },
+      { to: '/messages', labelKey: 'nav.messages', icon: MessageSquare, module: 'messages' },
+    ],
+  },
+  {
+    labelKey: 'sidebar.group.finance',
+    items: [
+      { to: '/expenses', labelKey: 'nav.expenses', icon: Wallet, module: 'expenses' },
+      { to: '/accounting', labelKey: 'nav.accounting', icon: Calculator, module: 'accounting' },
+      { to: '/commissions', labelKey: 'nav.commissions', icon: Percent },
+      { to: '/reports', labelKey: 'nav.reports', icon: FileBarChart, module: 'reports' },
+    ],
+  },
+  {
+    labelKey: 'sidebar.group.team',
+    items: [
+      { to: '/stores', labelKey: 'nav.stores', icon: Store, module: 'stores' },
+      { to: '/users', labelKey: 'nav.users', icon: UserCog, module: 'users' },
+      { to: '/timeclock', labelKey: 'nav.timeclock', icon: Clock3 },
+      { to: '/tasks', labelKey: 'nav.tasks', icon: ClipboardCheck },
+    ],
+  },
+  {
+    labelKey: 'sidebar.group.platform',
+    items: [
+      { to: '/marketplace', labelKey: 'nav.marketplace', icon: Puzzle, module: 'marketplace' },
+      { to: '/administration', labelKey: 'nav.administration', icon: Shield, module: 'administration' },
+      { to: '/settings', labelKey: 'nav.settings', icon: Settings, module: 'settings' },
+      { to: '/superadmin', labelKey: 'nav.superadmin', icon: Crown, module: 'administration', superAdminOnly: true },
+    ],
+  },
 ];
 
 function getInitials(name: string) {
@@ -79,7 +124,9 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
   const isLocked = (mod?: string) =>
     !isSuperAdmin && !!mod && !ALWAYS_AVAILABLE.includes(mod) && !!planModules && !planModules.includes(mod);
 
-  const filteredNav = NAV.filter((item) => !item.superAdminOnly || isSuperAdmin);
+  const filteredNavGroups = NAV_GROUPS
+    .map((group) => ({ ...group, items: group.items.filter((item) => !item.superAdminOnly || isSuperAdmin) }))
+    .filter((group) => group.items.length > 0);
 
   const initials = member?.display_name
     ? getInitials(member.display_name)
@@ -157,42 +204,51 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto px-3 py-2 scroll-thin">
-          {filteredNav.map((item) => {
-            const Icon = item.icon;
-            const locked = isLocked(item.module);
-            if (locked) {
-              return (
-                <NavLink
-                  key={item.to}
-                  to="/subscribe"
-                  onClick={() => onClose()}
-                  className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-400 dark:text-ink-500 opacity-70 transition-colors hover:bg-white/60 dark:hover:bg-ink-800/60"
-                  title={t('sidebar.lockedFeature')}
-                >
-                  <Icon size={18} strokeWidth={1.8} className="shrink-0 text-ink-400 dark:text-ink-500" />
-                  <span className="truncate">{t(item.labelKey)}</span>
-                  <Lock size={13} className="ml-auto shrink-0" />
-                </NavLink>
-              );
-            }
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                onClick={() => onClose()}
-                className={({ isActive }) =>
-                  `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-white dark:bg-ink-800 text-brand-700 shadow-soft'
-                      : 'text-ink-700 dark:text-ink-200 hover:bg-white/60 dark:hover:bg-ink-800/60 hover:text-brand-700'
-                  }`
+          {filteredNavGroups.map((group, groupIdx) => (
+            <div key={group.labelKey ?? 'standalone'} className={groupIdx > 0 ? 'mt-4' : ''}>
+              {group.labelKey && (
+                <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
+                  {t(group.labelKey)}
+                </p>
+              )}
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                const locked = isLocked(item.module);
+                if (locked) {
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to="/subscribe"
+                      onClick={() => onClose()}
+                      className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-400 dark:text-ink-500 opacity-70 transition-colors hover:bg-white/60 dark:hover:bg-ink-800/60"
+                      title={t('sidebar.lockedFeature')}
+                    >
+                      <Icon size={18} strokeWidth={1.8} className="shrink-0 text-ink-400 dark:text-ink-500" />
+                      <span className="truncate">{t(item.labelKey)}</span>
+                      <Lock size={13} className="ml-auto shrink-0" />
+                    </NavLink>
+                  );
                 }
-              >
-                <Icon size={18} strokeWidth={1.8} className="shrink-0 text-ink-500 dark:text-ink-400 group-hover:text-brand-600" />
-                <span className="truncate">{t(item.labelKey)}</span>
-              </NavLink>
-            );
-          })}
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => onClose()}
+                    className={({ isActive }) =>
+                      `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-white dark:bg-ink-800 text-brand-700 shadow-soft'
+                          : 'text-ink-700 dark:text-ink-200 hover:bg-white/60 dark:hover:bg-ink-800/60 hover:text-brand-700'
+                      }`
+                    }
+                  >
+                    <Icon size={18} strokeWidth={1.8} className="shrink-0 text-ink-500 dark:text-ink-400 group-hover:text-brand-600" />
+                    <span className="truncate">{t(item.labelKey)}</span>
+                  </NavLink>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         {/* Profile + sign out */}

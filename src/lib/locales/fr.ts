@@ -89,6 +89,12 @@ export const fr: Record<string, string> = {
   "role.staff": "Vendeur",
   "sidebar.noStore": "Aucun magasin",
   "sidebar.lockedFeature": "Fonctionnalité non incluse dans votre forfait actuel",
+  "sidebar.group.sell": "Vente",
+  "sidebar.group.catalog": "Catalogue",
+  "sidebar.group.customers": "Clients",
+  "sidebar.group.finance": "Finances",
+  "sidebar.group.team": "Équipe & Magasins",
+  "sidebar.group.platform": "Plateforme",
 
   // Hero
   "hero.badge": "Conçu en Afrique, pour l'Afrique, prêt pour le monde",

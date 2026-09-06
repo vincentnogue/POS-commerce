@@ -89,6 +89,12 @@ export const en: Record<string, string> = {
   "role.staff": "Salesperson",
   "sidebar.noStore": "No store",
   "sidebar.lockedFeature": "Feature not included in your current plan",
+  "sidebar.group.sell": "Sell",
+  "sidebar.group.catalog": "Catalog",
+  "sidebar.group.customers": "Customers",
+  "sidebar.group.finance": "Finance",
+  "sidebar.group.team": "Team & Stores",
+  "sidebar.group.platform": "Platform",
 
   // Hero
   "hero.badge": "Built in Africa, for Africa, ready for the world",
