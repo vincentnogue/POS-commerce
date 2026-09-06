@@ -161,15 +161,20 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
           <div className="relative">
             <button
               onClick={() => setTenantMenuOpen((v) => !v)}
-              className="flex w-full items-center justify-between rounded-xl border border-brand-100 bg-white dark:bg-ink-800 px-3 py-2.5 text-left transition hover:border-brand-200"
+              className="flex w-full items-center justify-between rounded-xl border border-brand-100 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2.5 text-left shadow-sm transition hover:border-brand-300 hover:shadow-soft"
             >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-ink-900 dark:text-ink-50">{tenant?.name ?? t('sidebar.noStore')}</p>
-                <p className="truncate text-xs text-ink-500 dark:text-ink-400">
-                  {tenant?.city ?? '—'} · {tenant?.country_name}
-                </p>
+              <div className="flex min-w-0 items-center gap-2.5">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/35 text-brand-600">
+                  <Building2 size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-ink-900 dark:text-ink-50">{tenant?.name ?? t('sidebar.noStore')}</p>
+                  <p className="truncate text-xs text-ink-500 dark:text-ink-400">
+                    {tenant?.city ?? '—'} · {tenant?.country_name}
+                  </p>
+                </div>
               </div>
-              <ChevronDown size={16} className={`text-ink-400 dark:text-ink-500 transition-transform ${tenantMenuOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={16} className={`ml-2 shrink-0 text-ink-400 dark:text-ink-500 transition-transform ${tenantMenuOpen ? 'rotate-180' : ''}`} />
             </button>
             <AnimatePresence>
               {tenantMenuOpen && tenants.length > 0 && (
@@ -205,7 +210,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto px-3 py-2 scroll-thin">
           {filteredNavGroups.map((group, groupIdx) => (
-            <div key={group.labelKey ?? 'standalone'} className={groupIdx > 0 ? 'mt-4' : ''}>
+            <div key={group.labelKey ?? 'standalone'} className={groupIdx > 0 ? 'mt-4 border-t border-ink-900/5 dark:border-white/5 pt-4' : ''}>
               {group.labelKey && (
                 <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
                   {t(group.labelKey)}
@@ -220,7 +225,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
                       key={item.to}
                       to="/subscribe"
                       onClick={() => onClose()}
-                      className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-400 dark:text-ink-500 opacity-70 transition-colors hover:bg-white/60 dark:hover:bg-ink-800/60"
+                      className="group relative flex items-center gap-3 rounded-xl border-l-2 border-transparent px-3 py-2.5 text-sm font-medium text-ink-400 dark:text-ink-500 opacity-70 transition-colors hover:bg-white/60 dark:hover:bg-ink-800/60"
                       title={t('sidebar.lockedFeature')}
                     >
                       <Icon size={18} strokeWidth={1.8} className="shrink-0 text-ink-400 dark:text-ink-500" />
@@ -235,14 +240,14 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
                     to={item.to}
                     onClick={() => onClose()}
                     className={({ isActive }) =>
-                      `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                      `group relative flex items-center gap-3 rounded-xl border-l-2 px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
                         isActive
-                          ? 'bg-white dark:bg-ink-800 text-brand-700 shadow-soft'
-                          : 'text-ink-700 dark:text-ink-200 hover:bg-white/60 dark:hover:bg-ink-800/60 hover:text-brand-700'
+                          ? 'border-brand-600 bg-white dark:bg-ink-800 text-brand-700 shadow-soft'
+                          : 'border-transparent text-ink-700 dark:text-ink-200 hover:border-brand-200 hover:bg-white/60 dark:hover:bg-ink-800/60 hover:text-brand-700'
                       }`
                     }
                   >
-                    <Icon size={18} strokeWidth={1.8} className="shrink-0 text-ink-500 dark:text-ink-400 group-hover:text-brand-600" />
+                    <Icon size={18} strokeWidth={1.8} className="shrink-0 text-ink-500 dark:text-ink-400 transition-colors group-hover:text-brand-600" />
                     <span className="truncate">{t(item.labelKey)}</span>
                   </NavLink>
                 );
@@ -252,7 +257,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
         </nav>
 
         {/* Profile + sign out */}
-        <div className="m-3 rounded-xl border border-brand-100 bg-white dark:bg-ink-800 p-3">
+        <div className="m-3 rounded-xl border border-brand-100 dark:border-ink-700 bg-white dark:bg-ink-800 p-3 shadow-sm">
           <div className="flex items-center gap-3">
             <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-medium text-white ${avatarColor}`}>
               {initials}
