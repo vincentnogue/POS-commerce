@@ -24,6 +24,7 @@ export function DashboardPage() {
   const { t, lang } = useI18n();
   const [loading, setLoading] = useState(true);
   const [sales, setSales] = useState<Sale[]>([]);
+  const [statsSales, setStatsSales] = useState<Pick<Sale, 'total' | 'sale_date'>[]>([]);
   const [unpaid, setUnpaid] = useState(0);
   const [deliveriesToday, setDeliveriesToday] = useState(0);
   const [activeProductCount, setActiveProductCount] = useState(0);
@@ -49,15 +50,27 @@ export function DashboardPage() {
       setLoading(true);
       const now = new Date();
       const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const sevenDaysAgo = new Date(now.getTime() - 6 * 86400000);
+      sevenDaysAgo.setHours(0, 0, 0, 0);
+      // The month can start more than 7 days ago (almost always), or —
+      // near the 1st — less than 7 days ago; the stats/chart query below
+      // needs whichever of the two windows is wider so both the "this
+      // month" total and the "last 7 days" chart are accurate from a
+      // single fetch, rather than capping at an arbitrary row count that
+      // would silently under-report revenue for any shop doing more than
+      // a couple hundred sales in a month (this used to reuse a
+      // `.limit(200)` fetch meant for the small "recent sales" table —
+      // same bug class as ReportsPage.tsx avoids by never capping a
+      // date-ranged aggregate query).
+      const statsWindowStart = new Date(Math.min(new Date(startOfMonth).getTime(), sevenDaysAgo.getTime())).toISOString();
 
-      const { data: salesData } = await supabase
-        .from('sales')
-        .select('*')
-        .eq('tenant_id', tenant.id)
-        .neq('sale_status', 'cancelled')
-        .order('sale_date', { ascending: false })
-        .limit(200);
-      setSales((salesData as Sale[]) ?? []);
+      const [{ data: recentSalesData }, { data: statsSalesData }] = await Promise.all([
+        supabase.from('sales').select('*').eq('tenant_id', tenant.id).neq('sale_status', 'cancelled').order('sale_date', { ascending: false }).limit(8),
+        supabase.from('sales').select('total, sale_date').eq('tenant_id', tenant.id).neq('sale_status', 'cancelled').gte('sale_date', statsWindowStart),
+      ]);
+      setSales((recentSalesData as Sale[]) ?? []);
+      setStatsSales((statsSalesData as Pick<Sale, 'total' | 'sale_date'>[]) ?? []);
 
       const { count: unpaidCount } = await supabase
         .from('sales')
@@ -81,33 +94,32 @@ export function DashboardPage() {
         .eq('is_active', true);
       setActiveProductCount(productCount ?? 0);
 
-      const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000).toISOString();
       const { count: returnsCount } = await supabase
         .from('sale_returns')
         .select('id', { count: 'exact', head: true })
         .eq('tenant_id', tenant.id)
-        .gte('created_at', sevenDaysAgo);
+        .gte('created_at', sevenDaysAgo.toISOString());
       setReturnsLast7Days(returnsCount ?? 0);
 
       setLoading(false);
     })();
   }, [tenant]);
 
-  const monthRevenue = sales
+  const monthRevenue = statsSales
     .filter((s) => new Date(s.sale_date) >= new Date(new Date().getFullYear(), new Date().getMonth(), 1))
     .reduce((sum, s) => sum + Number(s.total), 0);
 
-  const todayCount = sales.filter((s) => {
-    const d = new Date(s.sale_date);
-    const t = new Date();
-    return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
+  const todayCount = statsSales.filter((s) => {
+    const saleDay = new Date(s.sale_date);
+    const now = new Date();
+    return saleDay.getFullYear() === now.getFullYear() && saleDay.getMonth() === now.getMonth() && saleDay.getDate() === now.getDate();
   }).length;
 
   // Build 7-day chart
   const chartData = Array.from({ length: 7 }).map((_, i) => {
     const date = new Date();
     date.setDate(date.getDate() - (6 - i));
-    const dayRevenue = sales
+    const dayRevenue = statsSales
       .filter((s) => {
         const d = new Date(s.sale_date);
         return d.getFullYear() === date.getFullYear() && d.getMonth() === date.getMonth() && d.getDate() === date.getDate();
