@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ShoppingCart, Package, FileText, Truck, Plus, TrendingUp, Zap,
@@ -12,7 +12,7 @@ import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { formatMoney, getCountry } from '../../lib/localization';
-import { StatCard, PageHeader } from '../../components/ui';
+import { StatCard, PageHeader, useToast } from '../../components/ui';
 import { PerformanceMetrics } from '../../components/PerformanceMetrics';
 import type { Sale } from '../../lib/types';
 
@@ -22,6 +22,8 @@ const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export function DashboardPage() {
   const { tenant } = useAuth();
   const { t, lang } = useI18n();
+  const toast = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [sales, setSales] = useState<Sale[]>([]);
   const [statsSales, setStatsSales] = useState<Pick<Sale, 'total' | 'sale_date'>[]>([]);
@@ -29,6 +31,50 @@ export function DashboardPage() {
   const [deliveriesToday, setDeliveriesToday] = useState(0);
   const [activeProductCount, setActiveProductCount] = useState(0);
   const [returnsLast7Days, setReturnsLast7Days] = useState(0);
+
+  // BUG FIX: Stripe/Flutterwave finalize a subscription via a real
+  // webhook. Paystack/PayUnit have none configured for this project — the
+  // redirect back here (?upgraded=1) was never actually read by anything,
+  // so a customer paying via either provider would land on the dashboard
+  // having paid, with their plan never upgraded. SubscribePage.tsx stores
+  // what's needed in localStorage right before redirecting; this is the
+  // other half, run once on return.
+  useEffect(() => {
+    if (!tenant) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('upgraded') !== '1') return;
+
+    const pendingRaw = localStorage.getItem('posflow_pending_subscription');
+    navigate('/dashboard', { replace: true }); // drop the query param either way
+
+    if (!pendingRaw) return; // Stripe/Flutterwave already finalized via their own webhook
+    localStorage.removeItem('posflow_pending_subscription');
+
+    (async () => {
+      try {
+        const pending = JSON.parse(pendingRaw);
+        if (pending.tenant_id !== tenant.id) return; // stale entry from a different account
+        const { data: sessionData } = await supabase.auth.getSession();
+        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/finalize-subscription-payment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionData.session?.access_token ?? ''}`,
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify(pending),
+        });
+        const json = await res.json();
+        if (json.success) {
+          toast('success', t('subscribe.finalize.success'));
+        } else {
+          toast('error', json.message ?? t('subscribe.finalize.error'));
+        }
+      } catch {
+        toast('error', t('subscribe.finalize.error'));
+      }
+    })();
+  }, [tenant, navigate, toast, t]);
 
   const currency = tenant?.currency ?? 'XOF';
   const country = tenant ? getCountry(tenant.country_code) : undefined;

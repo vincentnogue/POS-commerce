@@ -91,7 +91,7 @@ Deno.serve(async (req: Request) => {
     const data = await res.json();
     if (!data.payment_url) return json({ error: 'PayUnit did not return a payment URL' }, 502);
 
-    return json({ url: data.payment_url });
+    return json({ url: data.payment_url, reference });
   } catch (err) {
     return json({ error: err.message }, 500);
   }

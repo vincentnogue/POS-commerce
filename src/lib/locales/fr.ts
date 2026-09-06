@@ -246,6 +246,8 @@ export const fr: Record<string, string> = {
   "subscribe.footer": "Paiement sécurisé par Stripe. Annulation à tout moment. TVA non incluse.",
   "subscribe.error.init": "Erreur lors de l'initialisation du paiement.",
   "subscribe.error.connection": "Erreur de connexion au système de paiement.",
+  "subscribe.finalize.success": "Paiement confirmé — votre abonnement est actif !",
+  "subscribe.finalize.error": "Paiement reçu mais confirmation impossible. Contactez le support si votre plan n'est pas mis à jour sous peu.",
 
   // Plan names & features (shared)
   "plan.name.starter": "Starter",

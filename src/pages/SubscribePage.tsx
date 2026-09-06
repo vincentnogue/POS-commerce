@@ -143,6 +143,23 @@ export function SubscribePage() {
       const res = await fetch(apiUrl, { method: 'POST', headers: authHeaders, body: JSON.stringify(body) });
       const json = await res.json();
       if (!res.ok) { setError(json.error ?? t('subscribe.error.init')); return; }
+
+      // BUG FIX: Stripe and Flutterwave finalize a subscription via a real
+      // webhook (stripe-webhook / flutterwave-webhook). Paystack and
+      // PayUnit have no webhook endpoint configured for this project — the
+      // redirect back to /dashboard?upgraded=1 was never actually read by
+      // anything, so a customer paying via either of these two would land
+      // on the dashboard having paid, with their plan never upgraded.
+      // Store what finalize-subscription-payment needs (called from
+      // DashboardPage on that redirect) since only this page knows
+      // plan_code/billing at this point — the provider's own reference we
+      // just got back is what ties it to the actual payment.
+      if ((provider === 'paystack' || provider === 'payunit') && json.reference) {
+        localStorage.setItem('posflow_pending_subscription', JSON.stringify({
+          tenant_id: tenant.id, provider, reference: json.reference, plan_code: planCode, billing,
+        }));
+      }
+
       if (json.url) window.location.href = json.url;
     } catch (e) {
       setError((e instanceof Error ? e.message : undefined) ?? t('subscribe.error.connection'));
