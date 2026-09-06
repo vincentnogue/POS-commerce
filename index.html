@@ -36,7 +36,16 @@
     <meta name="apple-mobile-web-app-title" content="POS Flow" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet" />
+    <!-- PERF FIX: this stylesheet was a synchronous <link rel="stylesheet">,
+         blocking first paint until fonts.googleapis.com responded — on a
+         throttled connection (what Lighthouse/PSI simulates) this can push
+         First Contentful Paint past the audit's timeout. Loading it as a
+         non-blocking preload (falling back to a normal stylesheet once
+         loaded, with a <noscript> fallback for crawlers/no-JS) lets the
+         page paint immediately with system fonts and swap in the web
+         fonts once they arrive. -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet" /></noscript>
     <title>POS Flow — Gestion commerciale moderne, partout où vous vendez</title>
     <!-- Structured data: what POS Flow actually is, kept to fields we can
          stand behind (name/description/URL/type) — no fabricated review
