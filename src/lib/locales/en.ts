@@ -240,6 +240,8 @@ export const en: Record<string, string> = {
   "subscribe.footer": "Secure payment via Stripe. Cancel anytime. VAT not included.",
   "subscribe.error.init": "Error initializing payment.",
   "subscribe.error.connection": "Error connecting to the payment system.",
+  "subscribe.finalize.success": "Payment confirmed — your subscription is now active!",
+  "subscribe.finalize.error": "Payment received but confirmation failed. Contact support if your plan isn't updated shortly.",
 
   // Plan names & features (shared)
   "plan.name.starter": "Starter",

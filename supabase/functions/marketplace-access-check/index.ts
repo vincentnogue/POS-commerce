@@ -14,11 +14,18 @@ interface AccessCheckRequest {
 }
 
 async function checkMarketplaceAccess(req: AccessCheckRequest) {
-  // Get user info
+  // BUG FIX: this queried a `users` table that does not exist anywhere in
+  // this schema — every table/column with role+tenant_id association in
+  // this app is `tenant_members` (id, tenant_id, user_id, role, ...).
+  // Every single call to this function therefore always failed with
+  // "User not found", which MarketplacePage.tsx's catch block silently
+  // turned into "assume admin/super_admin only" — meaning a manager or
+  // staff member with a real plan-level 'connect' permission could never
+  // actually connect an integration, no matter their role or plan.
   const { data: user, error: userError } = await supabase
-    .from('users')
-    .select('id, tenant_id, role')
-    .eq('id', req.user_id)
+    .from('tenant_members')
+    .select('id, tenant_id, user_id, role')
+    .eq('user_id', req.user_id)
     .eq('tenant_id', req.tenant_id)
     .single();
 
@@ -46,11 +53,28 @@ async function checkMarketplaceAccess(req: AccessCheckRequest) {
     throw new Error('Tenant not found');
   }
 
+  // BUG FIX: tenants.plan_id is a uuid (foreign key to plans.id), but
+  // marketplace_plan_limits.plan_id is a text code ('starter', 'pro',
+  // 'premium', 'entreprise' — the real codes from public.plans.code).
+  // This used to compare the uuid directly against that text column,
+  // which could never match for any tenant, ever — 'Plan limits not
+  // found' on every single connect-limit check. Resolve the uuid to its
+  // real code first.
+  const { data: planRow, error: planCodeError } = await supabase
+    .from('plans')
+    .select('code')
+    .eq('id', tenant.plan_id)
+    .single();
+
+  if (planCodeError || !planRow) {
+    throw new Error('Plan not found');
+  }
+
   // Get plan limits
   const { data: planLimits, error: planError } = await supabase
     .from('marketplace_plan_limits')
     .select('*')
-    .eq('plan_id', tenant.plan_id)
+    .eq('plan_id', planRow.code)
     .single();
 
   if (planError || !planLimits) {
@@ -102,7 +126,7 @@ async function checkMarketplaceAccess(req: AccessCheckRequest) {
       allowed: false,
       reason: 'insufficient_permissions',
       user_role: user.role,
-      plan: tenant.plan_id,
+      plan: planRow.code,
       required_action: req.action,
     };
   }
@@ -126,7 +150,7 @@ async function checkMarketplaceAccess(req: AccessCheckRequest) {
         reason: 'integration_limit_reached',
         current_count: count,
         max_allowed: planLimits.max_integrations,
-        plan: tenant.plan_id,
+        plan: planRow.code,
       };
     }
   }
@@ -136,7 +160,7 @@ async function checkMarketplaceAccess(req: AccessCheckRequest) {
     allowed: true,
     reason: 'access_granted',
     user_role: user.role,
-    plan: tenant.plan_id,
+    plan: planRow.code,
     plan_limits: {
       max_integrations: planLimits.max_integrations,
       allowed_categories: planLimits.allowed_categories,

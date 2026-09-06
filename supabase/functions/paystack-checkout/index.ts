@@ -87,7 +87,7 @@ Deno.serve(async (req: Request) => {
       return json({ error: data.message ?? 'Paystack error' }, 502);
     }
 
-    return json({ url: data.data.authorization_url });
+    return json({ url: data.data.authorization_url, reference });
   } catch (err) {
     return json({ error: err.message }, 500);
   }
