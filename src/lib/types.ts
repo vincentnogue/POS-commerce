@@ -41,6 +41,9 @@ export type Store = {
   latitude: number | null;
   longitude: number | null;
   location_type: StoreLocationType;
+  country: string | null;
+  region: string | null;
+  currency: string | null;
 };
 
 export type StoreAssignment = {

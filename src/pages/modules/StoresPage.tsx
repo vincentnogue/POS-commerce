@@ -5,13 +5,15 @@ import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components/ui';
 import { Field } from '../../components/DataTable';
+import { COUNTRIES, flagEmoji } from '../../lib/countries';
+import { getSupportedCurrencies } from '../../lib/currency';
 import type { Store, Member, StoreAssignment } from '../../lib/types';
 
-const EMPTY = { name: '', city: '', address: '', phone: '', latitude: '', longitude: '', location_type: 'store' };
+const EMPTY = { name: '', city: '', address: '', phone: '', latitude: '', longitude: '', location_type: 'store', country: '', region: '', currency: '' };
 
 export function StoresPage() {
   const { tenant, can } = useAuth();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const toast = useToast();
   const [stores, setStores] = useState<Store[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -42,7 +44,11 @@ export function StoresPage() {
 
   useEffect(() => { reload(); }, [reload]);
 
-  const openNew = () => { setEditing(null); setForm(EMPTY); setModalOpen(true); };
+  const openNew = () => {
+    setEditing(null);
+    setForm({ ...EMPTY, country: tenant?.country_code ?? '', currency: tenant?.currency ?? '' });
+    setModalOpen(true);
+  };
   const openEdit = (s: Store) => {
     setEditing(s);
     setForm({
@@ -53,6 +59,9 @@ export function StoresPage() {
       latitude: s.latitude ?? '',
       longitude: s.longitude ?? '',
       location_type: s.location_type ?? 'store',
+      country: s.country ?? tenant?.country_code ?? '',
+      region: s.region ?? '',
+      currency: s.currency ?? tenant?.currency ?? '',
     });
     setModalOpen(true);
   };
@@ -68,6 +77,9 @@ export function StoresPage() {
       latitude: form.latitude ? Number(form.latitude) : null,
       longitude: form.longitude ? Number(form.longitude) : null,
       location_type: form.location_type || 'store',
+      country: form.country || null,
+      region: form.region || null,
+      currency: form.currency || null,
     };
     if (editing) {
       if (canUpdate) {
@@ -146,7 +158,13 @@ export function StoresPage() {
                 </h3>
                 <div className="mt-2 space-y-1 text-sm text-ink-500 dark:text-ink-400">
                   {s.address && <p className="flex items-start gap-1.5"><MapPin size={14} className="mt-0.5 shrink-0" /> {s.address}</p>}
-                  {s.city && <p className="pl-5">{s.city}</p>}
+                  {(s.city || s.region || s.country) && (
+                    <p className="pl-5">
+                      {[s.city, s.region].filter(Boolean).join(', ')}
+                      {s.country && <span className="ml-1">{flagEmoji(s.country)} {(COUNTRIES.find((c) => c.code === s.country))?.[lang === 'fr' ? 'fr' : 'en'] ?? s.country}</span>}
+                    </p>
+                  )}
+                  {s.currency && <p className="pl-5 font-medium text-ink-600 dark:text-ink-300">{s.currency}</p>}
                   {s.phone && <p className="flex items-center gap-1.5"><Phone size={14} /> {s.phone}</p>}
                   {s.latitude != null && s.longitude != null && (
                     <a
@@ -191,11 +209,31 @@ export function StoresPage() {
               <option value="warehouse">{t('stores.field.locationType.warehouse')}</option>
             </select>
           </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={t('stores.field.country')}>
+              <select value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} className="input">
+                <option value="">{t('stores.field.countryPlaceholder')}</option>
+                {COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.code}>{flagEmoji(c.code)} {lang === 'fr' ? c.fr : c.en}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label={t('stores.field.region')} hint={t('stores.field.regionHint')}>
+              <input value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })} className="input" placeholder={t('stores.field.regionPlaceholder')} />
+            </Field>
+          </div>
           <Field label={t('common.address')}><input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="input" /></Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label={t('common.city')}><input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="input" /></Field>
             <Field label={t('common.phone')}><input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="input" /></Field>
           </div>
+          <Field label={t('stores.field.currency')} hint={t('stores.field.currencyHint')}>
+            <select value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} className="input">
+              {getSupportedCurrencies().map((cur) => (
+                <option key={cur} value={cur}>{cur}</option>
+              ))}
+            </select>
+          </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label={t('stores.field.latitude')}><input type="number" step="any" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} className="input" placeholder="Ex: 3.8677" /></Field>
             <Field label={t('stores.field.longitude')}><input type="number" step="any" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} className="input" placeholder="Ex: 11.5184" /></Field>
