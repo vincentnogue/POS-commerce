@@ -1084,6 +1084,7 @@ export const fr: Record<string, string> = {
   "pos.pay.cash": "Espèces",
   "dashboard.performance.title": "Performance",
   "dashboard.performance.subtitle": "Votre commerce sur les 7 derniers jours",
+  "dashboard.performance.viewAll": "Voir tout",
   "dashboard.performance.pos": "Ventes",
   "dashboard.performance.pos.sub": "Transactions des 7 derniers jours",
   "dashboard.performance.revenue": "Revenus",

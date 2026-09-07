@@ -12,7 +12,9 @@ import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
 import { supabase } from '../../lib/supabase';
 import { formatMoney, getCountry } from '../../lib/localization';
+import { usePerformanceData } from '../../lib/usePerformanceData';
 import { StatCard, PageHeader, useToast } from '../../components/ui';
+import { PerformanceMetrics } from '../../components/PerformanceMetrics';
 import type { Sale } from '../../lib/types';
 
 const WEEKDAYS_FR = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
@@ -28,6 +30,7 @@ export function DashboardPage() {
   const [statsSales, setStatsSales] = useState<Pick<Sale, 'total' | 'sale_date'>[]>([]);
   const [unpaid, setUnpaid] = useState(0);
   const [deliveriesToday, setDeliveriesToday] = useState(0);
+  const performance = usePerformanceData();
 
   // BUG FIX: Stripe/Flutterwave finalize a subscription via a real
   // webhook. Paystack/PayUnit have none configured for this project — the
@@ -311,6 +314,33 @@ export function DashboardPage() {
           </div>
         )}
       </motion.div>
+
+      {/* Compact Performance widget — same module as the standalone
+          /performance page (usePerformanceData + PerformanceMetrics, no
+          duplicated data-fetching logic), deployed here too so it's
+          visible right on the Dashboard, with a link through to the full
+          page for the complete view. */}
+      {!performance.loading && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55, duration: 0.5 }}
+          className="mt-6"
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">{t('dashboard.performance.title')}</h3>
+            <Link to="/performance" className="flex items-center gap-1 text-sm font-medium text-brand-600 hover:underline">
+              {t('dashboard.performance.viewAll')} <ArrowRight size={14} />
+            </Link>
+          </div>
+          <PerformanceMetrics
+            sales={performance.sales}
+            returnsLast7Days={performance.returnsLast7Days}
+            activeProductCount={performance.activeProductCount}
+            currency={performance.currency}
+          />
+        </motion.div>
+      )}
     </div>
   );
 }

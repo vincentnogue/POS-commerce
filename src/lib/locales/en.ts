@@ -1084,6 +1084,7 @@ export const en: Record<string, string> = {
   "pos.pay.cash": "Cash",
   "dashboard.performance.title": "Performance",
   "dashboard.performance.subtitle": "Your business over the last 7 days",
+  "dashboard.performance.viewAll": "View all",
   "dashboard.performance.pos": "Sales",
   "dashboard.performance.pos.sub": "Transactions in the last 7 days",
   "dashboard.performance.revenue": "Revenue",
