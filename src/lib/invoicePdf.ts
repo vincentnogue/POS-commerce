@@ -16,7 +16,7 @@ export type BrandSettings = {
   email?: string | null;
   // Business's own tax/VAT/company registration number (SIRET, VAT
   // number, etc.) — required on invoices in most jurisdictions. See
-  // migration 0090.
+  // migration 0092.
   tax_registration_number?: string | null;
 } | null;
 
