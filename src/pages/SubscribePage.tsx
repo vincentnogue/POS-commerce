@@ -55,10 +55,24 @@ export function SubscribePage() {
 
   useEffect(() => {
     let cancelled = false;
+    // DEAD-BUTTON FIX: this fetch previously had no timeout, so if it ever
+    // hung (network issue, cold-starting function), activeProviders stayed
+    // null forever — neither the picker nor the "no payment method
+    // configured" message would ever render, and every plan button stayed
+    // silently disabled with zero visible explanation. A merchant clicking
+    // it would see nothing happen at all, with the still-showing trial
+    // banner the only thing on screen — easy to misread as "it says my
+    // subscription has ended" when really the page just never finished
+    // loading. Racing the fetch against a timeout means we always land in
+    // a visible state (the picker, the warning, or the catch's Stripe
+    // fallback) within a few seconds.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
     (async () => {
       try {
         const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/payment-providers-status`, {
           headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
+          signal: controller.signal,
         });
         const status = await res.json();
         const active = (Object.keys(PSP_META) as PspId[]).filter((id) => status[id]);
@@ -73,9 +87,11 @@ export function SubscribePage() {
         // the most universally reachable option) rather than showing a
         // picker with providers we can't confirm are actually configured.
         if (!cancelled) { setActiveProviders(['stripe']); setProvider('stripe'); }
+      } finally {
+        clearTimeout(timeoutId);
       }
     })();
-    return () => { cancelled = true; };
+    return () => { cancelled = true; clearTimeout(timeoutId); };
   }, []);
 
   const startCheckout = async (planCode: string) => {
@@ -241,7 +257,10 @@ export function SubscribePage() {
           </div>
         )}
         {activeProviders && activeProviders.length === 0 && (
-          <p className="mx-auto mb-8 max-w-md text-center text-sm text-warning-700 dark:text-warning-400">{t('subscribe.noPspConfigured')}</p>
+          <div className="mx-auto mb-8 flex max-w-lg items-start gap-3 rounded-xl border border-warning-300 bg-warning-50 dark:bg-warning-900/25 p-4 text-sm text-warning-800 dark:text-warning-300">
+            <AlertCircle size={18} className="mt-0.5 shrink-0" />
+            <span>{t('subscribe.noPspConfigured')}</span>
+          </div>
         )}
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">

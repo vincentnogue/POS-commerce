@@ -912,12 +912,12 @@ export function LandingPage() {
                   placeholder={t('pLanding.hero.emailPlaceholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 px-5 py-3.5 rounded-xl bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="flex-1 px-5 py-3.5 rounded-xl bg-white text-ink-900 placeholder-ink-400 shadow-xl shadow-black/20 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   required
                 />
                 <button
                   type="submit"
-                  className="group px-7 py-3.5 bg-brand-500 text-white rounded-full font-semibold hover:bg-brand-600 active:scale-[0.98] transition-all whitespace-nowrap inline-flex items-center justify-center gap-2"
+                  className="group px-7 py-3.5 bg-brand-500 text-white rounded-full font-semibold shadow-xl shadow-brand-500/30 hover:bg-brand-600 hover:shadow-brand-500/50 active:scale-[0.98] transition-all whitespace-nowrap inline-flex items-center justify-center gap-2"
                 >
                   {t('pLanding.hero.start')}
                   <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
@@ -931,7 +931,9 @@ export function LandingPage() {
                 <a href="#pricing" onClick={scrollToPricing} className="text-sm font-medium text-ink-300 hover:text-white transition-colors">
                   {t('pLanding.hero.viewPricing')}
                 </a>
-                <span className="text-xs text-ink-500">{t('pLanding.hero.noCard')}</span>
+                <span className="flex items-center gap-1.5 text-xs text-ink-500">
+                  <Check size={13} className="text-flow-400" /> {t('pLanding.hero.noCard')}
+                </span>
               </motion.div>
             </div>
 
@@ -1143,7 +1145,7 @@ export function LandingPage() {
           restaurant-claims cleanup). No hardware teaser: POS Flow does not
           sell/support physical hardware today, so a hardware CTA here would
           be a false claim. */}
-      <section className="py-16 px-4 lg:px-8 max-w-7xl mx-auto">
+      <section className="py-20 px-4 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center mb-10">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3">
             {t('pLanding.industries.title')}
