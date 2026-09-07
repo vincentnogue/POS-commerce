@@ -33,7 +33,6 @@ interface CheckoutRequest {
   plan_code: string;
   plan_name: string;
   billing: 'monthly' | 'annual';
-  amount_usd: number;
   tenant_id: string;
 }
 
@@ -43,10 +42,10 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { plan_code, plan_name, billing, amount_usd, tenant_id } = await req.json() as CheckoutRequest;
+    const { plan_code, plan_name, billing, tenant_id } = await req.json() as CheckoutRequest;
 
-    if (!plan_code || !tenant_id || !amount_usd) {
-      return new Response(JSON.stringify({ error: 'Missing plan_code, amount_usd or tenant_id' }), {
+    if (!plan_code || !tenant_id) {
+      return new Response(JSON.stringify({ error: 'Missing plan_code or tenant_id' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -93,9 +92,31 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // SECURITY FIX: found during a follow-up audit after fixing the
+    // missing-auth gap above — amount_usd was still trusted verbatim from
+    // the client with no server-side check, unlike flutterwave-checkout/
+    // paystack-checkout/payunit-checkout, which already look the real
+    // price up from the `plans` table (see their identical comment).
+    // Without this, a modified request could set amount_usd to $0.01 and
+    // Paddle would create a transaction for that amount — if the person
+    // paying is also the attacker, they'd get any plan for a cent. The
+    // real price is now computed server-side the same way as the other
+    // three PSPs; the client's amount_usd is ignored entirely.
+    const planRes = await fetch(`${supabaseUrl}/rest/v1/plans?code=eq.${plan_code}&select=price_usd`, {
+      headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
+    });
+    const planRows = await planRes.json();
+    const monthlyPrice = planRows?.[0]?.price_usd;
+    if (!monthlyPrice) {
+      return new Response(JSON.stringify({ error: 'Invalid plan' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const realAmountUsd = billing === 'annual' ? monthlyPrice * 10 : monthlyPrice;
+
     // Paddle amounts are strings in the currency's lowest denomination
     // (cents for USD) — 24.99 -> "2499".
-    const unitAmountMinor = String(Math.round(amount_usd * 100));
+    const unitAmountMinor = String(Math.round(realAmountUsd * 100));
 
     const res = await fetch(`${paddleApiBase}/transactions`, {
       method: 'POST',
