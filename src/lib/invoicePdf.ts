@@ -14,6 +14,10 @@ export type BrandSettings = {
   phone?: string | null;
   address?: string | null;
   email?: string | null;
+  // Business's own tax/VAT/company registration number (SIRET, VAT
+  // number, etc.) — required on invoices in most jurisdictions. See
+  // migration 0090.
+  tax_registration_number?: string | null;
 } | null;
 
 export type InvoicePdfInput = {
@@ -96,7 +100,7 @@ export async function buildInvoicePdf({ invoice, items, tenant, brand, customer,
   doc.setFontSize(8.5);
   doc.setTextColor(...INK_500);
   let infoY = headerY + 5.5;
-  const infoLines = [brand?.address, brand?.phone ? `Tél: ${brand.phone}` : null, brand?.email].filter(Boolean) as string[];
+  const infoLines = [brand?.address, brand?.phone ? `Tél: ${brand.phone}` : null, brand?.email, brand?.tax_registration_number ? `N° TVA/RC: ${brand.tax_registration_number}` : null].filter(Boolean) as string[];
   infoLines.forEach((line) => { doc.text(line, textX, infoY); infoY += 4.2; });
 
   // --- "FACTURE" title + number + status badge (right) ---

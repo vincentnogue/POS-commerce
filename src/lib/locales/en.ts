@@ -1370,6 +1370,8 @@ export const en: Record<string, string> = {
   "settings.billingContact.phone": "Phone",
   "settings.billingContact.email": "Email",
   "settings.billingContact.address": "Address",
+  "settings.billingContact.taxRegistrationNumber": "Tax / VAT registration number",
+  "settings.billingContact.taxRegistrationNumber.hint": "Your business's own tax ID (VAT number, SIRET, company registration number...) — shown on every invoice you issue, required by law in most countries.",
   "settings.billingContact.save": "Save contact details",
   "settings.assets.title": "Logo & stamp",
   "settings.assets.desc": "Appear on your invoices and quotes (Part 3).",

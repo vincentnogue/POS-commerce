@@ -1370,6 +1370,8 @@ export const fr: Record<string, string> = {
   "settings.billingContact.phone": "Téléphone",
   "settings.billingContact.email": "Email",
   "settings.billingContact.address": "Adresse",
+  "settings.billingContact.taxRegistrationNumber": "Numéro de TVA / immatriculation fiscale",
+  "settings.billingContact.taxRegistrationNumber.hint": "Votre propre numéro fiscal (n° de TVA, SIRET, immatriculation...) — affiché sur chaque facture que vous émettez, exigé par la loi dans la plupart des pays.",
   "settings.billingContact.save": "Enregistrer les coordonnées",
   "settings.assets.title": "Logo & cachet",
   "settings.assets.desc": "Apparaissent sur vos factures et devis (Partie 3).",

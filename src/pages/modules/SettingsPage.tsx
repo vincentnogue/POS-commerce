@@ -69,6 +69,7 @@ export function SettingsPage() {
     phone: '',
     address: '',
     email: '',
+    taxRegistrationNumber: '',
   });
 
   const tabs: { id: Tab; labelKey: string; icon: typeof SettingsIcon }[] = [
@@ -138,12 +139,14 @@ export function SettingsPage() {
           phone: contactForm.phone || null,
           address: contactForm.address || null,
           email: contactForm.email || null,
+          tax_registration_number: contactForm.taxRegistrationNumber || null,
         }).eq('tenant_id', tenant.id)
       : await supabase.from('brand_settings').insert({
           tenant_id: tenant.id,
           phone: contactForm.phone || null,
           address: contactForm.address || null,
           email: contactForm.email || null,
+          tax_registration_number: contactForm.taxRegistrationNumber || null,
         });
     if (error) { toast('error', error.message); return; }
     setSaved(true);
@@ -156,7 +159,7 @@ export function SettingsPage() {
     if (data) {
       setLogoUrl(data.logo_url ?? null);
       setStampUrl(data.stamp_url ?? null);
-      setContactForm({ phone: data.phone ?? '', address: data.address ?? '', email: data.email ?? '' });
+      setContactForm({ phone: data.phone ?? '', address: data.address ?? '', email: data.email ?? '', taxRegistrationNumber: data.tax_registration_number ?? '' });
     }
   };
 
@@ -338,6 +341,11 @@ export function SettingsPage() {
                   <Field label={t('settings.billingContact.phone')}><input value={contactForm.phone} onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })} className="input" placeholder="+237 …" /></Field>
                   <Field label={t('settings.billingContact.email')}><input value={contactForm.email} onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })} className="input" placeholder="contact@…" /></Field>
                   <div className="sm:col-span-2"><Field label={t('settings.billingContact.address')}><input value={contactForm.address} onChange={(e) => setContactForm({ ...contactForm, address: e.target.value })} className="input" /></Field></div>
+                  <div className="sm:col-span-2">
+                    <Field label={t('settings.billingContact.taxRegistrationNumber')} hint={t('settings.billingContact.taxRegistrationNumber.hint')}>
+                      <input value={contactForm.taxRegistrationNumber} onChange={(e) => setContactForm({ ...contactForm, taxRegistrationNumber: e.target.value })} className="input" />
+                    </Field>
+                  </div>
                 </div>
                 <button onClick={saveContact} className="btn-primary mt-4">{t('settings.billingContact.save')}</button>
               </div>
