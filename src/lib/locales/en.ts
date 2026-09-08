@@ -499,6 +499,7 @@ export const en: Record<string, string> = {
   "common.done": "Done",
   "common.remove": "Remove",
   "common.save": "Save",
+  "common.saving": "Saving…",
   "common.delete": "Delete",
   "common.edit": "Edit",
   "common.add": "Add",
@@ -1244,6 +1245,7 @@ export const en: Record<string, string> = {
   "pos.tab.sale": "Sale",
   "pos.tab.history": "History",
   "pos.history.searchPlaceholder": "Reference or customer name…",
+  "pos.history.popupBlocked": "Your browser blocked the print window. Please allow popups for this site and try again.",
   "pos.history.searchBtn": "Search",
   "pos.history.empty.title": "Search for a sale",
   "pos.history.empty.desc": "Search by reference, customer, or date to find and reprint a receipt, even an old one.",
@@ -2518,6 +2520,8 @@ export const en: Record<string, string> = {
 
   // Returns / Exchanges module
   "returns.searchPlaceholder": "Invoice number (e.g. VTE-12345678)",
+  "returns.pickCustomer": "Link a customer (required for store credit)",
+  "returns.pickCustomerHint": "Store credit must be linked to a customer — search for one above.",
   "returns.searchBtn": "Search",
   "returns.empty.title": "Return or exchange",
   "returns.empty.desc": "Look up the original sale by its invoice number to get started.",
