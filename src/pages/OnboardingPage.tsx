@@ -321,9 +321,9 @@ export function OnboardingPage() {
                 <div className="mt-6 space-y-3">
                   {[
                     { code: 'starter', name: 'Starter', price: '$9' + t('onboarding.plan.perMonth'), desc: t('onboarding.plan.starter') },
-                    { code: 'pro', name: 'Pro', price: '$19' + t('onboarding.plan.perMonth'), desc: t('onboarding.plan.pro') },
-                    { code: 'premium', name: 'Premium', price: '$49' + t('onboarding.plan.perMonth'), desc: t('onboarding.plan.premium') },
-                    { code: 'entreprise', name: t('onboarding.plan.enterpriseName'), price: '$119' + t('onboarding.plan.perMonth'), desc: t('onboarding.plan.enterprise') },
+                    { code: 'pro', name: 'Pro', price: '$29' + t('onboarding.plan.perMonth'), desc: t('onboarding.plan.pro') },
+                    { code: 'premium', name: 'Premium', price: '$69' + t('onboarding.plan.perMonth'), desc: t('onboarding.plan.premium') },
+                    { code: 'entreprise', name: t('onboarding.plan.enterpriseName'), price: '$189' + t('onboarding.plan.perMonth'), desc: t('onboarding.plan.enterprise') },
                   ].map((p) => (
                     <button
                       key={p.code}

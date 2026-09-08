@@ -20,7 +20,7 @@ import {
 
 // BUG FIX: this page used to define its own disconnected, placeholder plan
 // list (Starter/Professional/Enterprise at $29/$99/$299, English SaaS-API
-// copy). The real, only prices in the app are $9 / $19 / $49 / $119 — see
+// copy). The real, only prices in the app are $9 / $29 / $69 / $189 — see
 // src/lib/plans.ts. We now derive this page's plans from that single
 // source of truth so the two pages can never drift apart again.
 //

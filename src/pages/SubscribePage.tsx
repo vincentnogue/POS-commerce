@@ -136,6 +136,22 @@ export function SubscribePage() {
         const Paddle = (window as any).Paddle;
         if (paddleConfig.sandbox) Paddle.Environment.set('sandbox');
         Paddle.Initialize({ token: paddleConfig.clientToken });
+
+        // BUG FIX: unlike Stripe/Flutterwave (real webhook) or Paystack/
+        // PayUnit (localStorage + finalize-subscription-payment below),
+        // this branch returned immediately after opening the Paddle
+        // overlay — the pending-subscription entry was never written, so
+        // DashboardPage's ?upgraded=1 handler found nothing and silently
+        // did nothing. A customer paying via Paddle would complete
+        // checkout and land back on the dashboard with their plan never
+        // upgraded, having actually paid. Paddle has no webhook configured
+        // for this project either, so it uses the same localStorage +
+        // finalize-subscription-payment fallback as Paystack/PayUnit,
+        // keyed by the transaction id Paddle just gave us.
+        localStorage.setItem('posflow_pending_subscription', JSON.stringify({
+          tenant_id: tenant.id, provider: 'paddle', reference: json.transaction_id, plan_code: planCode, billing,
+        }));
+
         Paddle.Checkout.open({
           transactionId: json.transaction_id,
           settings: { successUrl: `${window.location.origin}/dashboard?upgraded=1` },

@@ -36,13 +36,24 @@ interface CheckoutRequest {
   tenant_id: string;
 }
 
+// Real catalog prices created in the Paddle dashboard (replaces the
+// earlier non-catalog/inline-price approach — using pre-created prices
+// is Paddle's recommended pattern and matches how Stripe is already
+// wired here). Monthly x10 = annual on all four tiers (2 months free).
+const PLAN_PRICES: Record<string, { monthly: string; annual: string }> = {
+  starter: { monthly: 'pri_01m2188fk8kj8vrms1syp78q9e', annual: 'pri_01m218kpnafcmyb3kkjn0mbmar' },
+  pro: { monthly: 'pri_01m218aeqb0ypar0kn5q2hwwr5', annual: 'pri_01m218p9aqmqv4813nx9bv9hpj' },
+  premium: { monthly: 'pri_01m218bpbgt4de7vkqd9t1xprj', annual: 'pri_01m218qea2xmg5dwmzaz4y1cc3' },
+  entreprise: { monthly: 'pri_01m218hd2yys74q36ger05tyav', annual: 'pri_01m218scbz0j5xva2p6prdpjw8' },
+};
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
   try {
-    const { plan_code, plan_name, billing, tenant_id } = await req.json() as CheckoutRequest;
+    const { plan_code, billing, tenant_id } = await req.json() as CheckoutRequest;
 
     if (!plan_code || !tenant_id) {
       return new Response(JSON.stringify({ error: 'Missing plan_code or tenant_id' }), {
@@ -92,31 +103,28 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // SECURITY FIX: found during a follow-up audit after fixing the
-    // missing-auth gap above — amount_usd was still trusted verbatim from
-    // the client with no server-side check, unlike flutterwave-checkout/
-    // paystack-checkout/payunit-checkout, which already look the real
-    // price up from the `plans` table (see their identical comment).
-    // Without this, a modified request could set amount_usd to $0.01 and
-    // Paddle would create a transaction for that amount — if the person
-    // paying is also the attacker, they'd get any plan for a cent. The
-    // real price is now computed server-side the same way as the other
-    // three PSPs; the client's amount_usd is ignored entirely.
+    // Still validate the plan exists (keeps behavior consistent with the
+    // other three PSPs and rejects garbage plan_code values), but the
+    // amount itself is no longer client- or server-computed — Paddle's own
+    // catalog price is authoritative once we reference it by price_id,
+    // which is strictly safer than trusting any amount we send ourselves.
     const planRes = await fetch(`${supabaseUrl}/rest/v1/plans?code=eq.${plan_code}&select=price_usd`, {
       headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
     });
     const planRows = await planRes.json();
-    const monthlyPrice = planRows?.[0]?.price_usd;
-    if (!monthlyPrice) {
+    if (!planRows?.[0]?.price_usd) {
       return new Response(JSON.stringify({ error: 'Invalid plan' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    const realAmountUsd = billing === 'annual' ? monthlyPrice * 10 : monthlyPrice;
 
-    // Paddle amounts are strings in the currency's lowest denomination
-    // (cents for USD) — 24.99 -> "2499".
-    const unitAmountMinor = String(Math.round(realAmountUsd * 100));
+    const priceMap = PLAN_PRICES[plan_code];
+    const priceId = priceMap ? (billing === 'annual' ? priceMap.annual : priceMap.monthly) : null;
+    if (!priceId) {
+      return new Response(JSON.stringify({ error: 'No Paddle price configured for this plan' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     const res = await fetch(`${paddleApiBase}/transactions`, {
       method: 'POST',
@@ -125,22 +133,7 @@ Deno.serve(async (req: Request) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        items: [
-          {
-            quantity: 1,
-            price: {
-              description: `POS Flow — ${plan_name} (${billing === 'annual' ? 'annual' : 'monthly'})`,
-              name: `${plan_name} — ${billing === 'annual' ? 'Annual' : 'Monthly'}`,
-              billing_cycle: { interval: billing === 'annual' ? 'year' : 'month', frequency: 1 },
-              unit_price: { amount: unitAmountMinor, currency_code: 'USD' },
-              product: {
-                name: `POS Flow ${plan_name}`,
-                tax_category: 'saas',
-                description: 'POS Flow subscription',
-              },
-            },
-          },
-        ],
+        items: [{ price_id: priceId, quantity: 1 }],
         currency_code: 'USD',
         custom_data: { tenant_id, plan_code, billing },
       }),
