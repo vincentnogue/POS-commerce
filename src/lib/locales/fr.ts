@@ -499,6 +499,7 @@ export const fr: Record<string, string> = {
   "common.done": "Terminé",
   "common.remove": "Retirer",
   "common.save": "Enregistrer",
+  "common.saving": "Enregistrement…",
   "common.delete": "Supprimer",
   "common.edit": "Modifier",
   "common.add": "Ajouter",
@@ -1244,6 +1245,7 @@ export const fr: Record<string, string> = {
   "pos.tab.sale": "Vente",
   "pos.tab.history": "Historique",
   "pos.history.searchPlaceholder": "Référence ou nom du client…",
+  "pos.history.popupBlocked": "Votre navigateur a bloqué la fenêtre d'impression. Autorisez les popups pour ce site puis réessayez.",
   "pos.history.searchBtn": "Rechercher",
   "pos.history.empty.title": "Rechercher une vente",
   "pos.history.empty.desc": "Recherchez par référence, client ou date pour retrouver et réimprimer un reçu, même ancien.",
@@ -2521,6 +2523,8 @@ export const fr: Record<string, string> = {
 
   // Returns / Exchanges module
   "returns.searchPlaceholder": "Numéro de facture (ex: VTE-12345678)",
+  "returns.pickCustomer": "Associer un client (requis pour un avoir)",
+  "returns.pickCustomerHint": "Un avoir doit être attribué à un client — recherchez-en un ci-dessus.",
   "returns.searchBtn": "Rechercher",
   "returns.empty.title": "Retour ou échange",
   "returns.empty.desc": "Recherchez la vente d'origine par son numéro de facture pour commencer.",
