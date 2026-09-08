@@ -49,6 +49,28 @@ const CURRENCY_CONFIG: Record<string, { symbol: string; position: 'prefix' | 'su
   ETB: { symbol: 'Br', position: 'suffix' },
   SAR: { symbol: 'SR', position: 'suffix' },
   QAR: { symbol: 'QR', position: 'suffix' },
+  // Added for genuine international coverage — the app claimed "30+
+  // currencies" but had zero coverage of Southeast Asia, Scandinavia,
+  // Eastern Europe, Turkey, South Korea, or Latin America beyond Brazil/
+  // Mexico. The live rate source (open.er-api.com, see
+  // supabase/functions/exchange-rates) already returns rates for all of
+  // these unfiltered — this only needed the display config added.
+  CHF: { symbol: 'CHF', position: 'prefix' },
+  SEK: { symbol: 'kr', position: 'suffix' },
+  NOK: { symbol: 'kr', position: 'suffix' },
+  DKK: { symbol: 'kr', position: 'suffix' },
+  PLN: { symbol: 'zł', position: 'suffix' },
+  TRY: { symbol: '₺', position: 'prefix' },
+  KRW: { symbol: '₩', position: 'prefix' },
+  IDR: { symbol: 'Rp', position: 'prefix' },
+  MYR: { symbol: 'RM', position: 'prefix' },
+  THB: { symbol: '฿', position: 'prefix' },
+  VND: { symbol: '₫', position: 'suffix' },
+  PHP: { symbol: '₱', position: 'prefix' },
+  COP: { symbol: 'COL$', position: 'prefix' },
+  ARS: { symbol: 'AR$', position: 'prefix' },
+  CLP: { symbol: 'CLP$', position: 'prefix' },
+  ILS: { symbol: '₪', position: 'prefix' },
 };
 
 // Local storage cache key
@@ -198,6 +220,22 @@ function getFallbackRates(): ExchangeRate {
     ETB: 123.0,
     SAR: 3.75,
     QAR: 3.64,
+    CHF: 0.88,
+    SEK: 10.5,
+    NOK: 10.6,
+    DKK: 6.85,
+    PLN: 4.0,
+    TRY: 34.0,
+    KRW: 1380.0,
+    IDR: 15800.0,
+    MYR: 4.47,
+    THB: 34.5,
+    VND: 25400.0,
+    PHP: 56.5,
+    COP: 4100.0,
+    ARS: 990.0,
+    CLP: 970.0,
+    ILS: 3.7,
   };
 }
 

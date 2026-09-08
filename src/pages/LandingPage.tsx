@@ -984,13 +984,15 @@ export function LandingPage() {
       {/* Real, verifiable stats only. 1,893+ active clients is a confirmed,
           sourced figure (per business owner, 2026-09-01) — update this
           number as it changes, never let it go stale or become a guess.
-          30 currencies (src/lib/currency.ts, CURRENCY_CONFIG) and 13
-          payment processors (category='payments' rows in the seeded
-          integration_providers migrations, recounted 2026-09-05 after
-          Paddle was added — was stale at 12) are both counted directly
-          from actual code/data, not estimated — recount both whenever a
-          currency or payment provider is added/removed so this stays
-          accurate. */}
+          46 currencies (src/lib/currency.ts, CURRENCY_CONFIG — recounted
+          2026-09-07 after adding Southeast Asia/Nordic/Eastern Europe/
+          Turkey/South Korea/broader Latin America coverage, was stale at
+          30) and 13 payment processors (category='payments' rows in the
+          seeded integration_providers migrations, recounted 2026-09-05
+          after Paddle was added — was stale at 12) are both counted
+          directly from actual code/data, not estimated — recount both
+          whenever a currency or payment provider is added/removed so
+          this stays accurate. */}
       <section className="bg-gray-50 dark:bg-ink-900 py-12 border-y border-gray-200 dark:border-ink-800">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
@@ -1002,7 +1004,7 @@ export function LandingPage() {
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                <CountUp value={30} />
+                <CountUp value={46} />
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{t('pLanding.stats.currencies')}</p>
             </div>
