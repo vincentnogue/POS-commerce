@@ -88,21 +88,36 @@ Deno.serve(async (req: Request) => {
       currency = verified.data.currency;
     } else {
       const apiKey = Deno.env.get("PAYUNIT_API_KEY");
-      if (!apiKey) return json({ success: false, message: "PayUnit not configured" });
+      const apiUsername = Deno.env.get("PAYUNIT_API_USERNAME");
+      const apiPassword = Deno.env.get("PAYUNIT_API_PASSWORD");
+      if (!apiKey || !apiUsername || !apiPassword) return json({ success: false, message: "PayUnit not configured" });
       const testMode = Deno.env.get("PAYUNIT_TEST_MODE") === "true";
-      const baseUrl = testMode ? "https://api.sandbox.payunit.net/v1" : "https://api.payunit.net/v1";
+      const basicAuth = btoa(`${apiUsername}:${apiPassword}`);
 
-      const verifyRes = await fetch(`${baseUrl}/transactions/${encodeURIComponent(reference)}`, {
-        headers: { Authorization: `Bearer ${apiKey}` },
+      // BUG FIX: same wrong-domain issue as payunit-checkout
+      // ('api.payunit.net' doesn't resolve — real API is at
+      // gateway.payunit.net), plus the wrong endpoint/auth scheme. Per
+      // developer.payunit.net/rest-api/get-payment-status:
+      //   GET {base}/api/gateway/paymentstatus/{transactionID}
+      //   headers: x-api-key, mode, Authorization: Basic base64(user:pass)
+      const verifyRes = await fetch(`https://gateway.payunit.net/api/gateway/paymentstatus/${encodeURIComponent(reference)}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'mode': testMode ? 'test' : 'live',
+          'Authorization': `Basic ${basicAuth}`,
+        },
       });
       const verified = await verifyRes.json();
-      if (!verifyRes.ok || !["completed", "success", "successful"].includes(verified?.status)) {
+      const txData = verified?.data;
+      if (!verifyRes.ok || txData?.transaction_status !== "SUCCESS") {
         return json({ success: false, message: "Paiement non confirmé par PayUnit" });
       }
-      // Same convention as payunit-payments' own verifyPayment: PayUnit
-      // returns the amount in the smallest currency unit.
-      paidAmount = Number(verified.amount) / 100;
-      currency = verified.currency ?? "XAF";
+      // PayUnit's status response returns the amount as a plain number in
+      // the transaction's own currency (unlike Paystack's smallest-unit
+      // convention) — no /100 division here.
+      paidAmount = Number(txData.transaction_amount);
+      currency = txData.transaction_currency ?? "XAF";
     }
 
     const planRes = await fetch(`${supabaseUrl}/rest/v1/plans?code=eq.${plan_code}&select=id,price_usd`, {
@@ -114,8 +129,17 @@ Deno.serve(async (req: Request) => {
 
     // Same anti-tamper guard as flutterwave-webhook: refuse to activate if
     // the amount actually paid doesn't match what that plan+cycle costs.
-    const expectedAmount = billing === "annual" ? plan.price_usd * 10 : plan.price_usd;
-    if (Math.abs(paidAmount - expectedAmount) > 1) {
+    // PayUnit charges in XAF (it doesn't accept USD) while plans are priced
+    // in USD, so the expected amount must be converted the same way
+    // payunit-checkout converted it when creating the charge — comparing
+    // raw USD to raw XAF would always mismatch and block every legitimate
+    // PayUnit payment.
+    const USD_TO_XAF_APPROX = 600;
+    const expectedAmount = currency === "XAF"
+      ? Math.round((billing === "annual" ? plan.price_usd * 10 : plan.price_usd) * USD_TO_XAF_APPROX)
+      : (billing === "annual" ? plan.price_usd * 10 : plan.price_usd);
+    const tolerance = currency === "XAF" ? expectedAmount * 0.05 : 1; // FX rate is approximate, allow 5% slack for XAF
+    if (Math.abs(paidAmount - expectedAmount) > tolerance) {
       return json({ success: false, message: `Montant payé (${paidAmount} ${currency}) ne correspond pas au plan attendu` });
     }
 
