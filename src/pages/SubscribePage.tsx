@@ -73,6 +73,7 @@ export function SubscribePage() {
         const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/payment-providers-status`, {
           headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
           signal: controller.signal,
+          cache: 'no-store',
         });
         const status = await res.json();
         const active = (Object.keys(PSP_META) as PspId[]).filter((id) => status[id]);
