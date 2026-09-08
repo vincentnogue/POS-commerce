@@ -28,7 +28,7 @@ const corsHeaders = {
 
 interface FinalizeRequest {
   tenant_id: string;
-  provider: "paystack" | "payunit";
+  provider: "paystack" | "payunit" | "paddle";
   reference: string;
   plan_code: string;
   billing: "monthly" | "annual";
@@ -86,6 +86,41 @@ Deno.serve(async (req: Request) => {
       }
       paidAmount = Number(verified.data.amount) / 100; // Paystack uses the smallest currency unit
       currency = verified.data.currency;
+    } else if (provider === "paddle") {
+      // BUG FIX: paddle-checkout opens a Paddle.js overlay and there is no
+      // Paddle webhook configured for this project — without this branch,
+      // a Paddle payment was never actually confirmed server-side at all,
+      // same class of bug as the Paystack/PayUnit gap above but for a
+      // third provider. Re-verify directly against Paddle's own API.
+      const paddleApiKey = Deno.env.get("PADDLE_API_KEY");
+      if (!paddleApiKey) return json({ success: false, message: "Paddle not configured" });
+      const paddleApiBase = Deno.env.get("PADDLE_SANDBOX") === "true"
+        ? "https://sandbox-api.paddle.com" : "https://api.paddle.com";
+
+      const verifyRes = await fetch(`${paddleApiBase}/transactions/${encodeURIComponent(reference)}`, {
+        headers: { Authorization: `Bearer ${paddleApiKey}` },
+      });
+      const verified = await verifyRes.json();
+      const txData = verified?.data;
+      if (!verifyRes.ok || txData?.status !== "completed") {
+        return json({ success: false, message: "Paiement non confirmé par Paddle" });
+      }
+      // Defense in depth: this transaction's custom_data should match what
+      // the frontend is now claiming — it was set server-side in
+      // paddle-checkout, not by the client making this request.
+      if (txData.custom_data?.tenant_id !== tenant_id || txData.custom_data?.plan_code !== plan_code) {
+        return json({ success: false, message: "Transaction Paddle ne correspond pas à cette demande" });
+      }
+      // Unlike Paystack/PayUnit, the amount was never client-supplied at
+      // any point — paddle-checkout resolved a fixed catalog price_id
+      // server-side from our own PLAN_PRICES map, so there's no amount to
+      // have tampered with. Still read the real charged total back from
+      // Paddle (minor units, e.g. cents) rather than trusting anything
+      // client-side, and let it flow through the same USD comparison below.
+      const totalMinor = txData.details?.totals?.total ?? txData.details?.totals?.grand_total;
+      if (!totalMinor) return json({ success: false, message: "Montant introuvable sur la transaction Paddle" });
+      paidAmount = Number(totalMinor) / 100;
+      currency = txData.currency_code ?? "USD";
     } else {
       const apiKey = Deno.env.get("PAYUNIT_API_KEY");
       const apiUsername = Deno.env.get("PAYUNIT_API_USERNAME");

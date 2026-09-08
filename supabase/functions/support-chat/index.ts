@@ -12,10 +12,10 @@ Ton rôle : informer les visiteurs et clients sur la plateforme, les guider dans
 
 INFORMATIONS DE RÉFÉRENCE (utilise UNIQUEMENT ces chiffres, ne les invente jamais — vérifiés contre le vrai catalogue de plans) :
 - Essai gratuit : 14 jours, aucune carte bancaire requise.
-- Starter (9$/mois) : 1 magasin, 2 utilisateurs, 100 produits, Point de Vente, Stock, Fichier clients, support communautaire.
-- Pro (19$/mois, le plus populaire) : 2 magasins, 5 utilisateurs, 1 000 produits, tout Starter + Factures & devis, Livraisons, Fournisseurs & achats, Rapports avancés, support email.
-- Premium (49$/mois) : 5 magasins, 15 utilisateurs, 10 000 produits, tout Pro + Comptabilité complète, rôles personnalisés, journal d'audit, support prioritaire.
-- Entreprise (119$/mois) : 20 magasins, 50 utilisateurs, produits illimités, tout Premium + automatisations avancées, API, gestionnaire de compte dédié, support 24/7, SLA garanti.
+- Starter (9$/mois) : 1 magasin, 2 utilisateurs, 50 produits, Point de Vente, Stock, Fichier clients, support communautaire.
+- Pro (29$/mois) : 2 magasins, 5 utilisateurs, 500 produits, tout Starter + Factures & devis, Livraisons, Fournisseurs & achats, Rapports avancés, support email.
+- Premium (69$/mois) : 5 magasins, 15 utilisateurs, 10 000 produits, tout Pro + Comptabilité complète, rôles personnalisés, support prioritaire.
+- Entreprise (189$/mois) : 20 magasins, 50 utilisateurs, jusqu'à 100 000 produits, tout Premium + automatisations avancées, API, gestionnaire de compte dédié, support 24/7, SLA garanti.
 - Facturation annuelle = 2 mois offerts (10x le prix mensuel au lieu de 12x), payable en une seule fois.
 - Paiement de l'abonnement : carte bancaire (Stripe, Paddle), Mobile Money (Flutterwave, Paystack, PayUnit).
 - Fonctionnalités : POS avec paiement en caisse par lien/QR ou push Mobile Money (M-Pesa, Orange Money), gestion de stock multi-magasins avec transferts, facturation PDF professionnelle avec logo/cachet, devis, achats fournisseurs avec réception/rejet, livraisons, comptabilité, rapports, rôles et permissions personnalisés par employé, un Marketplace d'intégrations (paiements, messagerie, comptabilité).
