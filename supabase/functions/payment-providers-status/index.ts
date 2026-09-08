@@ -29,7 +29,7 @@ Deno.serve(async (req: Request) => {
     stripe: !!Deno.env.get('STRIPE_SECRET_KEY'),
     flutterwave: !!Deno.env.get('FLUTTERWAVE_SECRET_KEY'),
     paystack: !!Deno.env.get('PAYSTACK_SECRET_KEY'),
-    payunit: !!(Deno.env.get('PAYUNIT_API_KEY') && Deno.env.get('PAYUNIT_MERCHANT_ID')),
+    payunit: !!(Deno.env.get('PAYUNIT_API_KEY') && Deno.env.get('PAYUNIT_API_USERNAME') && Deno.env.get('PAYUNIT_API_PASSWORD')),
     paddle: !!(Deno.env.get('PADDLE_API_KEY') && Deno.env.get('PADDLE_CLIENT_TOKEN')),
     paddle_client_token: Deno.env.get('PADDLE_CLIENT_TOKEN') ?? null,
     paddle_sandbox: Deno.env.get('PADDLE_SANDBOX') === 'true',
