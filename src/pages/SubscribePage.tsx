@@ -71,7 +71,10 @@ export function SubscribePage() {
     (async () => {
       try {
         const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/payment-providers-status`, {
-          headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
+          headers: {
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
           signal: controller.signal,
           cache: 'no-store',
         });
