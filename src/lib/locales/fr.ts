@@ -2612,6 +2612,7 @@ export const fr: Record<string, string> = {
   "messages.compose.send": "Envoyer à {count}",
   "messages.compose.sending": "Envoi…",
   "messages.err.sendFailed": "Échec de l'envoi : {message}",
+  "messages.err.logFailed": "Messages envoyés, mais l'historique n'a pas pu être enregistré : {message}",
   "messages.toast.success": "{count} message(s) envoyé(s) avec succès.",
   "messages.toast.partial": "{sent} envoyé(s), {failed} échoué(s). Voir l'historique pour le détail.",
   "messages.history.title": "Messages envoyés",

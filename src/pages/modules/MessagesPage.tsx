@@ -112,7 +112,7 @@ export function MessagesPage() {
       const sentCount = data.sent ?? 0;
       const failedCount = data.failed ?? 0;
 
-      await supabase.from('customer_messages').insert({
+      const { error: logErr } = await supabase.from('customer_messages').insert({
         tenant_id: tenant.id,
         connection_id: twilioConnectionId,
         channel,
@@ -124,6 +124,13 @@ export function MessagesPage() {
         results: data.results ?? null,
         sent_by: user?.id ?? null,
       });
+      if (logErr) {
+        // Messages were genuinely sent via Twilio above — only the history
+        // log entry failed to save. Don't let the merchant think the send
+        // itself failed, but do surface it so they know the campaign won't
+        // show up in the log below.
+        toast('error', t('messages.err.logFailed', { message: logErr.message }));
+      }
 
       if (failedCount > 0) {
         toast('error', t('messages.toast.partial', { sent: sentCount, failed: failedCount }));

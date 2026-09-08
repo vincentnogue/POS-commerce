@@ -2609,6 +2609,7 @@ export const en: Record<string, string> = {
   "messages.compose.send": "Send to {count}",
   "messages.compose.sending": "Sending…",
   "messages.err.sendFailed": "Couldn't send: {message}",
+  "messages.err.logFailed": "Messages sent, but the history entry couldn't be saved: {message}",
   "messages.toast.success": "{count} message(s) sent successfully.",
   "messages.toast.partial": "{sent} sent, {failed} failed. See history for details.",
   "messages.history.title": "Sent messages",
