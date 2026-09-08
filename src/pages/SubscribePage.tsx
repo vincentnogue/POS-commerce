@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Check, AlertCircle, CreditCard, Sparkles, Smartphone, Wallet } from 'lucide-react';
+import { Clock, Check, AlertCircle, CreditCard, Sparkles, Smartphone, Wallet, ShieldCheck, Lock, Crown } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../lib/i18n';
@@ -191,122 +191,178 @@ export function SubscribePage() {
 
   return (
     <div className="min-h-screen bg-ink-50 dark:bg-ink-900">
-      <header className="border-b border-ink-100 dark:border-ink-800 bg-white dark:bg-ink-800">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3.5">
+      <header className="sticky top-0 z-20 border-b border-ink-100 dark:border-ink-800 bg-white/85 dark:bg-ink-800/85 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5">
           <Logo clickable />
-          <span className="text-sm text-ink-500 dark:text-ink-400">{tenant?.name}</span>
+          <div className="flex items-center gap-2 rounded-full border border-ink-100 dark:border-ink-700 bg-ink-50 dark:bg-ink-900 px-3 py-1.5 text-xs font-medium text-ink-500 dark:text-ink-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
+            {tenant?.name}
+          </div>
         </div>
       </header>
 
-      <div className="mx-auto max-w-5xl px-4 py-10">
+      {/* Ambient premium background, matching the landing page's hero treatment */}
+      <div className="relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 bg-grid opacity-[0.4]" />
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="mb-8 text-center"
-        >
-          {!access.hasActiveSubscription && access.trialDaysLeft > 0 ? (
-            <>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-warning-50 dark:bg-warning-900/25 px-4 py-1.5 text-sm font-medium text-warning-700">
-                <Clock size={15} /> {t(access.trialDaysLeft > 1 ? 'subscribe.trialLeft_plural' : 'subscribe.trialLeft', { count: access.trialDaysLeft })}
-              </div>
-              <h1 className="text-3xl font-semibold text-ink-900 dark:text-ink-50">{t('subscribe.choosePlan')}</h1>
-              <p className="mt-2 text-sm text-ink-500 dark:text-ink-400">{t('subscribe.choosePlanDesc')}</p>
-            </>
-          ) : (
-            <>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-error-50 dark:bg-error-900/25 px-4 py-1.5 text-sm font-medium text-error-700">
-                <AlertCircle size={15} /> {t('subscribe.trialEnded')}
-              </div>
-              <h1 className="text-3xl font-semibold text-ink-900 dark:text-ink-50">{t('subscribe.activate')}</h1>
-              <p className="mt-2 text-sm text-ink-500 dark:text-ink-400">{t('subscribe.activateDesc')}</p>
-            </>
+          aria-hidden
+          className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-brand-300/20 blur-3xl dark:bg-brand-700/10"
+          animate={{ y: [0, 24, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute -right-32 top-20 h-96 w-96 rounded-full bg-flow-300/15 blur-3xl dark:bg-flow-700/10"
+          animate={{ y: [0, -24, 0] }}
+          transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+        />
+
+        <div className="relative mx-auto max-w-6xl px-4 py-14">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-10 text-center"
+          >
+            {!access.hasActiveSubscription && access.trialDaysLeft > 0 ? (
+              <>
+                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-warning-200 dark:border-warning-800 bg-warning-50 dark:bg-warning-900/25 px-4 py-1.5 text-sm font-medium text-warning-700 dark:text-warning-300">
+                  <Clock size={15} /> {t(access.trialDaysLeft > 1 ? 'subscribe.trialLeft_plural' : 'subscribe.trialLeft', { count: access.trialDaysLeft })}
+                </div>
+                <h1 className="text-4xl font-semibold tracking-tight text-ink-900 dark:text-ink-50 sm:text-5xl">
+                  {t('subscribe.choosePlan')}
+                </h1>
+                <p className="mx-auto mt-3 max-w-lg text-base text-ink-500 dark:text-ink-400">{t('subscribe.choosePlanDesc')}</p>
+              </>
+            ) : (
+              <>
+                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-error-200 dark:border-error-800 bg-error-50 dark:bg-error-900/25 px-4 py-1.5 text-sm font-medium text-error-700 dark:text-error-300">
+                  <AlertCircle size={15} /> {t('subscribe.trialEnded')}
+                </div>
+                <h1 className="text-4xl font-semibold tracking-tight text-ink-900 dark:text-ink-50 sm:text-5xl">
+                  {t('subscribe.activate')}
+                </h1>
+                <p className="mx-auto mt-3 max-w-lg text-base text-ink-500 dark:text-ink-400">{t('subscribe.activateDesc')}</p>
+              </>
+            )}
+          </motion.div>
+
+          {error && (
+            <div className="mx-auto mb-6 flex max-w-md items-start gap-2 rounded-xl border border-brand-100 dark:border-brand-900/40 bg-brand-50 dark:bg-brand-900/25 p-3.5 text-sm text-brand-700 dark:text-brand-300">
+              <Sparkles size={16} className="mt-0.5 shrink-0" /> {error}
+            </div>
           )}
-        </motion.div>
 
-        {error && (
-          <div className="mx-auto mb-6 flex max-w-md items-start gap-2 rounded-xl bg-brand-50 dark:bg-brand-900/25 p-3 text-sm text-brand-700">
-            <Sparkles size={16} className="mt-0.5 shrink-0" /> {error}
-          </div>
-        )}
-
-        <div className="mb-6 flex justify-center">
-          <div className="inline-flex rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
-            <button
-              onClick={() => setBilling('monthly')}
-              className={`rounded-full px-5 py-2 text-sm font-medium transition ${billing === 'monthly' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
-            >{t('pricing.monthly')}</button>
-            <button
-              onClick={() => setBilling('annual')}
-              className={`rounded-full px-5 py-2 text-sm font-medium transition ${billing === 'annual' ? 'bg-brand-500 text-white' : 'text-ink-600 dark:text-ink-300'}`}
-            >{t('pricing.annual')} <span className="text-xs opacity-80">{t('pricing.annualSave')}</span></button>
-          </div>
-        </div>
-
-        {activeProviders && activeProviders.length > 1 && (
-          <div className="mb-8 flex justify-center">
-            <div className="inline-flex flex-wrap justify-center gap-1 rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
-              {activeProviders.map((id) => {
-                const meta = PSP_META[id];
-                const Icon = meta.icon;
-                return (
-                  <button
-                    key={id}
-                    onClick={() => setProvider(id)}
-                    className={`flex items-center gap-1.5 rounded-full px-5 py-2 text-sm font-medium transition ${provider === id ? 'bg-ink-900 text-white dark:bg-brand-500' : 'text-ink-600 dark:text-ink-300'}`}
-                  ><Icon size={15} /> {t(meta.labelKey)}</button>
-                );
-              })}
+          <div className="mb-4 flex justify-center">
+            <div className="inline-flex items-center rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1 shadow-soft">
+              <button
+                onClick={() => setBilling('monthly')}
+                className={`rounded-full px-6 py-2.5 text-sm font-semibold transition-all ${billing === 'monthly' ? 'bg-ink-900 text-white dark:bg-brand-500' : 'text-ink-500 dark:text-ink-400 hover:text-ink-800 dark:hover:text-ink-100'}`}
+              >{t('pricing.monthly')}</button>
+              <button
+                onClick={() => setBilling('annual')}
+                className={`flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold transition-all ${billing === 'annual' ? 'bg-ink-900 text-white dark:bg-brand-500' : 'text-ink-500 dark:text-ink-400 hover:text-ink-800 dark:hover:text-ink-100'}`}
+              >
+                {t('pricing.annual')}
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${billing === 'annual' ? 'bg-white/20 text-white' : 'bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300'}`}>
+                  {t('pricing.annualSave')}
+                </span>
+              </button>
             </div>
           </div>
-        )}
-        {activeProviders && activeProviders.length === 0 && (
-          <div className="mx-auto mb-8 flex max-w-lg items-start gap-3 rounded-xl border border-warning-300 bg-warning-50 dark:bg-warning-900/25 p-4 text-sm text-warning-800 dark:text-warning-300">
-            <AlertCircle size={18} className="mt-0.5 shrink-0" />
-            <span>{t('subscribe.noPspConfigured')}</span>
-          </div>
-        )}
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {PLANS.map((plan) => {
-            const price = billing === 'annual' ? annualPrice(plan.priceMonthly) : plan.priceMonthly;
-            return (
-              <motion.div
-                key={plan.code}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className={`card p-6 ${plan.highlight ? 'ring-2 ring-brand-300' : ''}`}
-              >
-                {plan.popular && (
-                  <span className="mb-3 inline-block rounded-full bg-brand-500 px-3 py-0.5 text-[10px] font-medium uppercase text-white">{t('subscribe.popular')}</span>
-                )}
-                <h3 className="text-lg font-medium text-ink-900 dark:text-ink-50">{t('plan.name.' + plan.code)}</h3>
-                <p className="mt-2 text-3xl font-medium text-ink-900 dark:text-ink-50">
-                  ${price}<span className="text-sm font-normal text-ink-500 dark:text-ink-400">/{billing === 'annual' ? t('subscribe.perYear') : t('subscribe.perMonth')}</span>
-                </p>
-                <ul className="mt-4 space-y-2 text-sm text-ink-600 dark:text-ink-300">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2">
-                      <Check size={15} className="mt-0.5 shrink-0 text-success-500" /> {t(`plan.feature.${f}`)}
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  onClick={() => startCheckout(plan.code)}
-                  disabled={loading || !provider}
-                  className={`mt-6 w-full justify-center py-3 ${plan.highlight ? 'btn-primary' : 'btn-ghost border-brand-200 text-brand-700'}`}
+          {activeProviders && activeProviders.length > 1 && (
+            <div className="mb-10 flex justify-center">
+              <div className="inline-flex flex-wrap justify-center gap-1 rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1 shadow-soft">
+                {activeProviders.map((id) => {
+                  const meta = PSP_META[id];
+                  const Icon = meta.icon;
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => setProvider(id)}
+                      className={`flex items-center gap-1.5 rounded-full px-5 py-2 text-sm font-medium transition ${provider === id ? 'bg-ink-900 text-white dark:bg-brand-500' : 'text-ink-600 dark:text-ink-300'}`}
+                    ><Icon size={15} /> {t(meta.labelKey)}</button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {activeProviders && activeProviders.length === 0 && (
+            <div className="mx-auto mb-10 flex max-w-lg items-start gap-3 rounded-xl border border-warning-300 dark:border-warning-800 bg-warning-50 dark:bg-warning-900/25 p-4 text-sm text-warning-800 dark:text-warning-300">
+              <AlertCircle size={18} className="mt-0.5 shrink-0" />
+              <span>{t('subscribe.noPspConfigured')}</span>
+            </div>
+          )}
+          {activeProviders && activeProviders.length === 1 && (
+            <div className="mb-10 flex justify-center">
+              <p className="text-xs text-ink-400 dark:text-ink-500">
+                {t('subscribe.payingWith', { provider: t(PSP_META[activeProviders[0]].labelKey) })}
+              </p>
+            </div>
+          )}
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {PLANS.map((plan, i) => {
+              const price = billing === 'annual' ? annualPrice(plan.priceMonthly) : plan.priceMonthly;
+              return (
+                <motion.div
+                  key={plan.code}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: i * 0.06 }}
+                  className={`relative flex flex-col rounded-2xl2 border bg-white dark:bg-ink-800 p-7 transition-all hover:-translate-y-1 ${
+                    plan.highlight
+                      ? 'border-brand-300 dark:border-brand-600 shadow-float ring-1 ring-brand-200 dark:ring-brand-800 lg:scale-[1.04]'
+                      : 'border-ink-200 dark:border-ink-700 shadow-soft hover:shadow-float'
+                  }`}
                 >
-                  {loading && checkoutPlan === plan.code ? t('subscribe.redirecting') : <><CreditCard size={15} /> {t('subscribe.choose')} {t('plan.name.' + plan.code)}</>}
-                </button>
-              </motion.div>
-            );
-          })}
-        </div>
+                  {plan.popular && (
+                    <span className="absolute -top-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1 rounded-full bg-gradient-to-r from-brand-500 to-flow-500 px-3.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-soft">
+                      <Crown size={10} /> {t('subscribe.popular')}
+                    </span>
+                  )}
+                  <h3 className="text-base font-semibold text-ink-900 dark:text-ink-50">{t('plan.name.' + plan.code)}</h3>
+                  <div className="mt-3 flex items-baseline gap-1">
+                    <span className="text-4xl font-bold tracking-tight text-ink-900 dark:text-ink-50 tabular-nums">${price}</span>
+                    <span className="text-sm text-ink-400 dark:text-ink-500">/{billing === 'annual' ? t('subscribe.perYear') : t('subscribe.perMonth')}</span>
+                  </div>
+                  {billing === 'annual' && (
+                    <p className="mt-1 text-xs text-brand-600 dark:text-brand-400">{t('pricing.annualSave')}</p>
+                  )}
+                  <ul className="mt-6 flex-1 space-y-3 text-sm text-ink-600 dark:text-ink-300">
+                    {plan.features.map((f) => (
+                      <li key={f} className="flex items-start gap-2.5">
+                        <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/40">
+                          <Check size={10} strokeWidth={3} className="text-brand-600 dark:text-brand-400" />
+                        </span>
+                        {t(`plan.feature.${f}`)}
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    onClick={() => startCheckout(plan.code)}
+                    disabled={loading || !provider}
+                    className={`mt-7 w-full justify-center py-3 text-sm ${plan.highlight ? 'btn-primary' : 'btn-ghost border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300'}`}
+                  >
+                    {loading && checkoutPlan === plan.code ? t('subscribe.redirecting') : <><CreditCard size={15} /> {t('subscribe.choose')} {t('plan.name.' + plan.code)}</>}
+                  </button>
+                </motion.div>
+              );
+            })}
+          </div>
 
-        <p className="mt-8 text-center text-xs text-ink-400 dark:text-ink-500">
-          {t('subscribe.footer')}
-        </p>
+          {/* Trust bar — the kind of reassurance a globally-trusted platform shows at checkout */}
+          <div className="mx-auto mt-12 flex max-w-2xl flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs font-medium text-ink-400 dark:text-ink-500">
+            <span className="flex items-center gap-1.5"><Lock size={13} /> {t('subscribe.trust.encrypted')}</span>
+            <span className="flex items-center gap-1.5"><ShieldCheck size={13} /> {t('subscribe.trust.pci')}</span>
+            <span className="flex items-center gap-1.5"><Sparkles size={13} /> {t('subscribe.trust.cancelAnytime')}</span>
+          </div>
+
+          <p className="mt-4 text-center text-xs text-ink-400 dark:text-ink-500">
+            {t('subscribe.footer')}
+          </p>
+        </div>
       </div>
     </div>
   );
