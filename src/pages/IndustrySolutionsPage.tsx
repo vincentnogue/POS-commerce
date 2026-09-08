@@ -1,113 +1,29 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { TrendingUp, Check, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useDocumentMeta } from '../lib/useDocumentMeta';
+import { useI18n } from '../lib/i18n';
 
 interface Industry {
   id: string;
-  name: string;
   icon: string;
-  description: string;
-  challenges: string[];
-  solutions: string[];
-  features: string[];
+  challengeCount: number;
+  solutionCount: number;
+  featureCount: number;
   color: 'brand' | 'flow' | 'action';
-  cta: string;
 }
 
+// Industry name/description/challenges/solutions/features are all looked
+// up via industrySolutions.industry.<id>.* translation keys — only the
+// icon path and per-list item counts (needed to iterate) live here.
 const INDUSTRIES: Industry[] = [
-  {
-    id: 'retail',
-    name: 'Retail & Boutiques',
-    icon: '/icon-shop-now.png',
-    description: 'Streamline inventory, boost sales, and delight customers.',
-    challenges: [
-      'Managing multiple store locations',
-      'Inventory visibility across stores',
-      'Customer loyalty programs',
-      'Multi-channel selling'
-    ],
-    solutions: [
-      'Real-time inventory sync across all locations',
-      'Customer loyalty and rewards programs',
-      'Unified POS for online + offline sales',
-      'Advanced analytics and reporting'
-    ],
-    features: [
-      'Multi-store management',
-      'Customer database with history',
-      'Inventory tracking',
-      'Sales analytics',
-      'Mobile payment support',
-      'eCommerce integration'
-    ],
-    color: 'brand',
-    cta: 'Start Your Retail Plan'
-  },
-  {
-    id: 'services',
-    name: 'Salons, Spas & Services',
-    icon: '/icon-scissors.png',
-    description: 'Manage appointments, staff, and client relationships effortlessly.',
-    challenges: [
-      'Appointment scheduling conflicts',
-      'Staff commission tracking',
-      'Client retention',
-      'Service package management'
-    ],
-    solutions: [
-      'Appointment booking with reminders',
-      'Staff management with commission tracking',
-      'Client profiles with service history',
-      'Service package and gift card management'
-    ],
-    features: [
-      'Online appointment booking',
-      'Staff scheduling',
-      'Commission tracking',
-      'Client history',
-      'Gift card management',
-      'SMS/Email reminders',
-      'Performance analytics'
-    ],
-    color: 'action',
-    cta: 'Start Your Service Plan'
-  },
-  {
-    id: 'professional',
-    name: 'Professional Services',
-    icon: '/icon-professional-services.png',
-    description: 'Handle client billing, project tracking, and professional reporting.',
-    challenges: [
-      'Project-based invoicing',
-      'Time tracking',
-      'Client expense management',
-      'Professional reporting'
-    ],
-    solutions: [
-      'Project-based POS system',
-      'Built-in time tracking',
-      'Expense management',
-      'Professional invoice templates'
-    ],
-    features: [
-      'Project management',
-      'Time tracking',
-      'Expense tracking',
-      'Professional invoices',
-      'Client portal',
-      'Performance metrics',
-      'Detailed reporting'
-    ],
-    color: 'brand',
-    cta: 'Start Your Professional Plan'
-  }
+  { id: 'retail', icon: '/icon-shop-now.png', challengeCount: 4, solutionCount: 4, featureCount: 6, color: 'brand' },
+  { id: 'services', icon: '/icon-scissors.png', challengeCount: 4, solutionCount: 4, featureCount: 7, color: 'action' },
+  { id: 'professional', icon: '/icon-professional-services.png', challengeCount: 4, solutionCount: 4, featureCount: 7, color: 'brand' },
 ];
 
 export function IndustrySolutionsPage() {
-  useDocumentMeta(
-    'Industry Solutions — POS Flow for Every Business Type',
-    'See how POS Flow adapts to your industry: retail, restaurants, salons, grocery, and more, with the features each one actually needs.'
-  );
+  const { t } = useI18n();
+  useDocumentMeta(t('industrySolutions.metaTitle'), t('industrySolutions.metaDesc'));
   const navigate = useNavigate();
 
   return (
@@ -119,7 +35,7 @@ export function IndustrySolutionsPage() {
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 font-medium transition"
           >
-            <ArrowLeft size={18} /> Back
+            <ArrowLeft size={18} /> {t('common.back')}
           </button>
         </div>
       </div>
@@ -151,13 +67,13 @@ export function IndustrySolutionsPage() {
         </div>
         <div className="relative max-w-5xl mx-auto px-6 text-center">
           <span className="inline-block px-4 py-1.5 rounded-full bg-white/15 text-white text-xs font-semibold tracking-wide uppercase backdrop-blur-sm mb-6">
-            Retail · Services · Distribution
+            {t('industrySolutions.badge')}
           </span>
           <h1 className="text-5xl font-bold text-white mb-4">
-            Solutions Built for Your Industry
+            {t('industrySolutions.title')}
           </h1>
           <p className="text-xl text-white/90">
-            From retail to services to distribution. POS Flow adapts to your business.
+            {t('industrySolutions.subtitle')}
           </p>
         </div>
       </div>
@@ -176,6 +92,7 @@ export function IndustrySolutionsPage() {
               flow: 'bg-flow-50 dark:bg-flow-900/20 border-flow-200 dark:border-flow-700',
               action: 'bg-action-50 dark:bg-action-900/20 border-action-200 dark:border-action-700'
             };
+            const prefix = `industrySolutions.industry.${industry.id}`;
 
             return (
               <div
@@ -200,13 +117,13 @@ export function IndustrySolutionsPage() {
                         }}
                       />
                     </div>
-                    <h2 className="text-3xl font-bold mb-4">{industry.name}</h2>
-                    <p className="text-lg mb-6 text-white/95">{industry.description}</p>
+                    <h2 className="text-3xl font-bold mb-4">{t(`${prefix}.name`)}</h2>
+                    <p className="text-lg mb-6 text-white/95">{t(`${prefix}.description`)}</p>
                     <Link
                       to="/pricing"
                       className="inline-block px-6 py-3 bg-white text-brand-600 font-semibold rounded-full hover:bg-gray-100 transition w-fit"
                     >
-                      {industry.cta} <ArrowRight size={16} className="inline ml-2" />
+                      {t(`${prefix}.cta`)} <ArrowRight size={16} className="inline ml-2" />
                     </Link>
                   </div>
 
@@ -214,13 +131,13 @@ export function IndustrySolutionsPage() {
                   <div>
                     <div className="mb-8">
                       <h3 className="font-bold text-ink-900 dark:text-white mb-4 text-lg">
-                        Key Challenges We Solve
+                        {t('industrySolutions.keyChallenges')}
                       </h3>
                       <ul className="space-y-2">
-                        {industry.challenges.map((challenge, i) => (
+                        {Array.from({ length: industry.challengeCount }, (_, i) => (
                           <li key={i} className="flex gap-2 text-sm text-ink-700 dark:text-ink-300">
                             <Check size={16} className="text-green-600 flex-shrink-0" />
-                            {challenge}
+                            {t(`${prefix}.challenge.${i}`)}
                           </li>
                         ))}
                       </ul>
@@ -228,13 +145,13 @@ export function IndustrySolutionsPage() {
 
                     <div>
                       <h3 className="font-bold text-ink-900 dark:text-white mb-4 text-lg">
-                        Our Solutions
+                        {t('industrySolutions.ourSolutions')}
                       </h3>
                       <ul className="space-y-2">
-                        {industry.solutions.map((solution, i) => (
+                        {Array.from({ length: industry.solutionCount }, (_, i) => (
                           <li key={i} className="flex gap-2 text-sm text-ink-700 dark:text-ink-300">
                             <TrendingUp size={16} className="text-brand-600 flex-shrink-0" />
-                            {solution}
+                            {t(`${prefix}.solution.${i}`)}
                           </li>
                         ))}
                       </ul>
@@ -244,12 +161,12 @@ export function IndustrySolutionsPage() {
 
                 {/* Features List */}
                 <div className="border-t border-ink-200 dark:border-ink-700 p-8 md:p-12 bg-white/50 dark:bg-ink-900/50">
-                  <h3 className="font-bold text-ink-900 dark:text-white mb-6">Included Features</h3>
+                  <h3 className="font-bold text-ink-900 dark:text-white mb-6">{t('industrySolutions.includedFeatures')}</h3>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {industry.features.map((feature, i) => (
+                    {Array.from({ length: industry.featureCount }, (_, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm text-ink-700 dark:text-ink-300">
                         <Check size={16} className="text-green-600 flex-shrink-0" />
-                        {feature}
+                        {t(`${prefix}.feature.${i}`)}
                       </div>
                     ))}
                   </div>
@@ -264,16 +181,16 @@ export function IndustrySolutionsPage() {
       <div className="bg-gradient-to-r from-brand-600 to-flow-600 py-16 mt-20">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Find Your Perfect Solution
+            {t('industrySolutions.ctaTitle')}
           </h2>
           <p className="text-white/90 mb-8">
-            Get started with a 14-day free trial. No credit card required.
+            {t('industrySolutions.ctaDesc')}
           </p>
           <Link
             to="/signup"
             className="inline-block px-8 py-3 bg-white text-brand-600 font-semibold rounded-full hover:bg-gray-100 transition"
           >
-            Start Free Trial
+            {t('industrySolutions.ctaButton')}
           </Link>
         </div>
       </div>
