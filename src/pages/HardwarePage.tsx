@@ -1,94 +1,40 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Check, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useDocumentMeta } from '../lib/useDocumentMeta';
-
+import { useI18n } from '../lib/i18n';
 
 interface Device {
   id: string;
-  name: string;
-  description: string;
   price: string;
-  specs: string[];
   image: string;
-  best_for: string;
   color: 'brand' | 'flow' | 'action';
+  specCount: number;
 }
 
+// Product names ("POS Flow Flex", etc.) stay as-is across languages —
+// proper nouns for real SKUs, same convention as most hardware brands.
+// Everything else (description, specs, "best for") is looked up via
+// hardware.device.<id>.* translation keys.
 const DEVICES: Device[] = [
-  {
-    id: 'flex',
-    name: 'POS Flow Flex',
-    description: 'Portable, handheld terminal for mobile-first businesses',
-    price: '$749',
-    specs: [
-      '7" touchscreen display',
-      'Built-in payment reader',
-      '4G + WiFi + Bluetooth',
-      'All-day battery life',
-      'Rugged design',
-      'IP54 water-resistant'
-    ],
-    image: '📱',
-    best_for: 'Field service, delivery, food trucks, outdoor retail',
-    color: 'flow'
-  },
-  {
-    id: 'mini',
-    name: 'POS Flow Mini',
-    description: 'Compact countertop terminal with built-in printer',
-    price: '$1,349',
-    specs: [
-      '7" HD touchscreen',
-      'Built-in receipt printer',
-      'Payment integration',
-      'Compact footprint',
-      'Cloud-connected',
-      'Full app ecosystem'
-    ],
-    image: '💳',
-    best_for: 'Small retail, boutiques, service counters, takeout',
-    color: 'brand'
-  },
-  {
-    id: 'station',
-    name: 'POS Flow Station',
-    description: 'Professional dual-screen POS for retail & multi-station checkout',
-    price: '$2,199',
-    specs: [
-      '14" merchant display (HD)',
-      '8" customer-facing screen',
-      'Industrial receipt printer',
-      'Multi-terminal sync',
-      'Advanced analytics'
-    ],
-    image: '🖥️',
-    best_for: 'High-volume retail, distribution, multi-station setup',
-    color: 'action'
-  },
-  {
-    id: 'reader',
-    name: 'POS Flow Card Reader',
-    description: 'Wireless mobile payment reader for on-the-go transactions',
-    price: '$199',
-    specs: [
-      'Portable design',
-      'Contactless + Chip + Swipe',
-      'Works with any phone',
-      'Real-time reporting',
-      'No WiFi required',
-      'Instant settlement'
-    ],
-    image: '💰',
-    best_for: 'Startups, pop-ups, mobile professionals, markets',
-    color: 'flow'
-  }
+  { id: 'flex', price: '$749', image: '📱', color: 'flow', specCount: 6 },
+  { id: 'mini', price: '$1,349', image: '💳', color: 'brand', specCount: 6 },
+  { id: 'station', price: '$2,199', image: '🖥️', color: 'action', specCount: 5 },
+  { id: 'reader', price: '$199', image: '💰', color: 'flow', specCount: 6 },
+];
+
+const COMPARE_ROWS = [
+  { key: 'portable', flex: true, mini: false, station: false, reader: true },
+  { key: 'touchscreen', flex: true, mini: true, station: true, reader: false },
+  { key: 'printer', flex: false, mini: true, station: true, reader: false },
+  { key: 'dualDisplay', flex: false, mini: false, station: true, reader: false },
+  { key: 'multiUser', flex: false, mini: true, station: true, reader: false },
+  { key: 'connectivity', flex: true, mini: true, station: true, reader: true },
+  { key: 'battery', flex: true, mini: false, station: false, reader: false },
 ];
 
 export function HardwarePage() {
-  useDocumentMeta(
-    'Hardware — Professional POS Devices | POS Flow',
-    'Terminals, receipt printers, barcode scanners, and cash drawers compatible with POS Flow. Built for daily retail use.'
-  );
+  const { t } = useI18n();
+  useDocumentMeta(t('hardware.metaTitle'), t('hardware.metaDesc'));
   const navigate = useNavigate();
 
   return (
@@ -100,7 +46,7 @@ export function HardwarePage() {
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 font-medium transition"
           >
-            <ArrowLeft size={18} /> Back
+            <ArrowLeft size={18} /> {t('common.back')}
           </button>
         </div>
       </div>
@@ -109,16 +55,16 @@ export function HardwarePage() {
       <div className="bg-gradient-to-r from-brand-600 to-flow-600 py-20">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <h1 className="text-5xl font-bold text-white mb-4">
-            Professional Hardware for Every Business
+            {t('hardware.title')}
           </h1>
           <p className="text-xl text-white/90 mb-8">
-            From mobile readers to advanced multi-screen stations. All integrated with POS Flow.
+            {t('hardware.subtitle')}
           </p>
           <Link
             to="/pricing"
             className="inline-block px-8 py-3 bg-white text-brand-600 font-semibold rounded-full hover:bg-gray-100 transition"
           >
-            View Pricing Plans
+            {t('hardware.viewPricing')}
           </Link>
         </div>
       </div>
@@ -137,6 +83,7 @@ export function HardwarePage() {
               flow: 'border-flow-200 dark:border-flow-700',
               action: 'border-action-200 dark:border-action-700'
             };
+            const deviceName = t(`hardware.device.${device.id}.name`);
 
             return (
               <div
@@ -151,27 +98,27 @@ export function HardwarePage() {
                 {/* Content */}
                 <div className="p-8">
                   <h3 className="text-2xl font-bold text-ink-900 dark:text-white mb-2">
-                    {device.name}
+                    {deviceName}
                   </h3>
                   <p className="text-ink-600 dark:text-ink-300 mb-4 text-sm">
-                    {device.description}
+                    {t(`hardware.device.${device.id}.description`)}
                   </p>
 
                   <div className="mb-6 pb-6 border-b border-ink-200 dark:border-ink-700">
                     <div className="text-3xl font-bold text-brand-600">
                       {device.price}
-                      <span className="text-sm font-normal text-ink-500"> + monthly plan</span>
+                      <span className="text-sm font-normal text-ink-500"> {t('hardware.plusMonthlyPlan')}</span>
                     </div>
                   </div>
 
                   {/* Specs */}
                   <div className="mb-6">
-                    <h4 className="font-semibold text-ink-900 dark:text-white mb-3">Key Features</h4>
+                    <h4 className="font-semibold text-ink-900 dark:text-white mb-3">{t('hardware.keyFeatures')}</h4>
                     <ul className="space-y-2">
-                      {device.specs.map((spec, i) => (
+                      {Array.from({ length: device.specCount }, (_, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-ink-700 dark:text-ink-300">
                           <Check size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
-                          {spec}
+                          {t(`hardware.device.${device.id}.spec.${i}`)}
                         </li>
                       ))}
                     </ul>
@@ -179,9 +126,9 @@ export function HardwarePage() {
 
                   {/* Best For */}
                   <div className="mb-6 p-4 bg-ink-50 dark:bg-ink-900 rounded-lg border border-ink-200 dark:border-ink-700">
-                    <p className="text-xs font-semibold text-ink-600 dark:text-ink-400 mb-1">BEST FOR</p>
+                    <p className="text-xs font-semibold text-ink-600 dark:text-ink-400 mb-1">{t('hardware.bestFor')}</p>
                     <p className="text-sm text-ink-900 dark:text-ink-50">
-                      {device.best_for}
+                      {t(`hardware.device.${device.id}.bestFor`)}
                     </p>
                   </div>
 
@@ -190,7 +137,7 @@ export function HardwarePage() {
                     to="/pricing"
                     className={`block text-center px-4 py-2 bg-gradient-to-r ${colorMap[device.color]} text-white font-semibold rounded-full hover:opacity-90 transition`}
                   >
-                    Get {device.name} <ArrowRight size={16} className="inline ml-2" />
+                    {t('hardware.get')} {deviceName} <ArrowRight size={16} className="inline ml-2" />
                   </Link>
                 </div>
               </div>
@@ -203,32 +150,24 @@ export function HardwarePage() {
       <div className="bg-white dark:bg-ink-800 py-20 border-t border-ink-200 dark:border-ink-700">
         <div className="max-w-5xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-center mb-12 text-ink-900 dark:text-white">
-            Compare Devices
+            {t('hardware.compareTitle')}
           </h2>
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-ink-200 dark:border-ink-700">
-                  <th className="text-left py-4 px-4 font-semibold">Feature</th>
-                  <th className="text-center py-4 px-4 font-semibold">Flex</th>
-                  <th className="text-center py-4 px-4 font-semibold">Mini</th>
-                  <th className="text-center py-4 px-4 font-semibold">Station</th>
-                  <th className="text-center py-4 px-4 font-semibold">Reader</th>
+                  <th className="text-left py-4 px-4 font-semibold">{t('hardware.compare.feature')}</th>
+                  <th className="text-center py-4 px-4 font-semibold">{t('hardware.device.flex.name')}</th>
+                  <th className="text-center py-4 px-4 font-semibold">{t('hardware.device.mini.name')}</th>
+                  <th className="text-center py-4 px-4 font-semibold">{t('hardware.device.station.name')}</th>
+                  <th className="text-center py-4 px-4 font-semibold">{t('hardware.device.reader.name')}</th>
                 </tr>
               </thead>
               <tbody>
-                {[
-                  { feature: 'Portable', flex: true, mini: false, station: false, reader: true },
-                  { feature: 'Touchscreen', flex: true, mini: true, station: true, reader: false },
-                  { feature: 'Receipt Printer', flex: false, mini: true, station: true, reader: false },
-                  { feature: 'Dual Display', flex: false, mini: false, station: true, reader: false },
-                  { feature: 'Multi-user', flex: false, mini: true, station: true, reader: false },
-                  { feature: 'WiFi + 4G', flex: true, mini: true, station: true, reader: true },
-                  { feature: 'All-day Battery', flex: true, mini: false, station: false, reader: false },
-                ].map((row, i) => (
-                  <tr key={i} className={i % 2 === 0 ? 'bg-brand-50/30 dark:bg-ink-900/30' : ''}>
-                    <td className="py-3 px-4 font-medium text-ink-900 dark:text-ink-100">{row.feature}</td>
+                {COMPARE_ROWS.map((row, i) => (
+                  <tr key={row.key} className={i % 2 === 0 ? 'bg-brand-50/30 dark:bg-ink-900/30' : ''}>
+                    <td className="py-3 px-4 font-medium text-ink-900 dark:text-ink-100">{t(`hardware.compare.${row.key}`)}</td>
                     <td className="text-center py-3 px-4">
                       {row.flex ? <Check size={20} className="mx-auto text-green-600" /> : '—'}
                     </td>
@@ -253,16 +192,16 @@ export function HardwarePage() {
       <div className="bg-gradient-to-r from-brand-600 to-flow-600 py-16">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to Upgrade Your Business?
+            {t('hardware.ctaTitle')}
           </h2>
           <p className="text-white/90 mb-8">
-            Choose your hardware, select a plan, and start accepting payments in minutes.
+            {t('hardware.ctaDesc')}
           </p>
           <Link
             to="/pricing"
             className="inline-block px-8 py-3 bg-white text-brand-600 font-semibold rounded-full hover:bg-gray-100 transition"
           >
-            Start Free Trial
+            {t('hardware.ctaButton')}
           </Link>
         </div>
       </div>
