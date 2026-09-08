@@ -460,10 +460,10 @@ export function PricingPage() {
         <p className="text-xl text-ink-600 dark:text-ink-300 mb-8">
           {t('pricing2.ctaDesc', { days: TRIAL_DAYS })}
         </p>
-        <button className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/30">
+        <Link to="/signup" className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/30">
           {t('pricing2.ctaButton')}
           <ArrowRight className="w-5 h-5" />
-        </button>
+        </Link>
       </div>
     </div>
   );
