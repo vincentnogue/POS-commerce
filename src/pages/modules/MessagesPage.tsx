@@ -76,18 +76,19 @@ export function MessagesPage() {
     })();
   }, [tenant]);
 
-  const recipients = customers.filter((c) => {
-    if (!c.phone) return false;
+  const audienceMatches = (c: Customer) => {
     if (audience.kind === 'all') return true;
     if (audience.kind === 'tier') return c.loyalty_tier_id === audience.id;
     if (audience.kind === 'segment') return c.segment_id === audience.id;
     return false;
-  });
-  const recipientsWithoutPhone = customers.filter((c) => !c.phone && (
-    audience.kind === 'all' ||
-    (audience.kind === 'tier' && c.loyalty_tier_id === audience.id) ||
-    (audience.kind === 'segment' && c.segment_id === audience.id)
-  )).length;
+  };
+  // COMPLIANCE: a customer who has opted out of marketing contact is
+  // never included in a bulk send, regardless of audience filter — see
+  // migration 0093. Surfaced in the UI (below) rather than silently
+  // dropped, so the sender knows why the count is lower than expected.
+  const recipients = customers.filter((c) => c.phone && !c.marketing_opt_out && audienceMatches(c));
+  const recipientsWithoutPhone = customers.filter((c) => !c.phone && !c.marketing_opt_out && audienceMatches(c)).length;
+  const recipientsOptedOut = customers.filter((c) => c.marketing_opt_out && audienceMatches(c)).length;
 
   const audienceLabel = audience.kind === 'all' ? t('messages.audience.all') : audience.name;
 
@@ -192,6 +193,8 @@ export function MessagesPage() {
             <p className="text-sm text-ink-500 dark:text-ink-400 mb-4 flex items-center gap-1.5">
               <Users size={15} /> {t('messages.audience.count', { count: recipients.length })}
               {recipientsWithoutPhone > 0 && <span className="text-warning-600 dark:text-warning-400">· {t('messages.audience.noPhone', { count: recipientsWithoutPhone })}</span>}
+              {recipientsOptedOut > 0 && <span className="text-warning-600 dark:text-warning-400">· {t('messages.audience.optedOut', { count: recipientsOptedOut })}</span>}
+              {recipientsOptedOut > 0 && <span className="text-warning-600 dark:text-warning-400">· {t('messages.audience.optedOut', { count: recipientsOptedOut })}</span>}
             </p>
 
             <label className="label">{t('messages.channel.label')}</label>

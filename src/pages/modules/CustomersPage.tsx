@@ -8,7 +8,7 @@ import { PageHeader, Modal, EmptyState, Badge, useToast } from '../../components
 import { DataTable, SearchInput, Field, exportCSV } from '../../components/DataTable';
 import type { Customer, LoyaltyTier, CustomerSegment } from '../../lib/types';
 
-const EMPTY = { name: '', email: '', phone: '', address: '', city: '', tax_id: '', notes: '', segment_id: '' };
+const EMPTY = { name: '', email: '', phone: '', address: '', city: '', tax_id: '', notes: '', segment_id: '', marketing_opt_out: false };
 
 type LoyaltyTx = { id: string; points_delta: number; reason: string; created_at: string };
 
@@ -60,7 +60,7 @@ export function CustomersPage() {
   }, [customers, search]);
 
   const openNew = () => { setEditing(null); setForm(EMPTY); setModalOpen(true); };
-  const openEdit = (c: Customer) => { setEditing(c); setForm({ name: c.name, email: c.email ?? '', phone: c.phone ?? '', address: c.address ?? '', city: c.city ?? '', tax_id: c.tax_id ?? '', notes: c.notes ?? '', segment_id: c.segment_id ?? '' }); setModalOpen(true); };
+  const openEdit = (c: Customer) => { setEditing(c); setForm({ name: c.name, email: c.email ?? '', phone: c.phone ?? '', address: c.address ?? '', city: c.city ?? '', tax_id: c.tax_id ?? '', notes: c.notes ?? '', segment_id: c.segment_id ?? '', marketing_opt_out: c.marketing_opt_out ?? false }); setModalOpen(true); };
 
   // D365-style loyalty ledger (see migration 0067): every earn/redeem is
   // logged in loyalty_transactions — surface it per customer so a cashier
@@ -81,7 +81,7 @@ export function CustomersPage() {
 
   const save = async () => {
     if (!tenant || !form.name.trim()) return;
-    const payload = { tenant_id: tenant.id, name: form.name.trim(), email: form.email || null, phone: form.phone || null, address: form.address || null, city: form.city || null, tax_id: form.tax_id || null, notes: form.notes || null, segment_id: form.segment_id || null };
+    const payload = { tenant_id: tenant.id, name: form.name.trim(), email: form.email || null, phone: form.phone || null, address: form.address || null, city: form.city || null, tax_id: form.tax_id || null, notes: form.notes || null, segment_id: form.segment_id || null, marketing_opt_out: !!form.marketing_opt_out };
     const { error } = editing
       ? await supabase.from('customers').update(payload).eq('id', editing.id)
       : await supabase.from('customers').insert(payload);
@@ -215,6 +215,20 @@ export function CustomersPage() {
           </Field>
           <div className="sm:col-span-2"><Field label={t('customers.field.address')}><input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="input" /></Field></div>
           <div className="sm:col-span-2"><Field label={t('customers.field.notes')}><textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="input min-h-[60px]" /></Field></div>
+          <div className="sm:col-span-2">
+            <label className="flex items-start gap-2 text-sm text-ink-700 dark:text-ink-200">
+              <input
+                type="checkbox"
+                checked={!!form.marketing_opt_out}
+                onChange={(e) => setForm({ ...form, marketing_opt_out: e.target.checked })}
+                className="mt-0.5"
+              />
+              <span>
+                {t('customers.field.marketingOptOut')}
+                <span className="block text-xs text-ink-400 dark:text-ink-500">{t('customers.field.marketingOptOut.hint')}</span>
+              </span>
+            </label>
+          </div>
         </div>
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={() => setModalOpen(false)} className="btn-ghost">{t('common.cancel')}</button>

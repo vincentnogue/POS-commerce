@@ -139,6 +139,11 @@ export type Customer = {
   loyalty_points?: number;
   loyalty_tier_id?: string | null;
   segment_id?: string | null;
+  // Customer has asked not to be contacted for marketing (bulk SMS/
+  // WhatsApp via Messages) — GDPR Article 21 / anti-spam compliance.
+  // Does NOT apply to transactional messages (receipts, invoices, quotes
+  // sent to that specific customer), which aren't marketing.
+  marketing_opt_out?: boolean;
 };
 
 export type CustomerMessage = {
