@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Bell, Moon, Sun, Menu, Download } from 'lucide-react';
 import { useTheme } from '../lib/theme';
 import { useAuth } from '../lib/auth';
-import { useI18n, LANG_LABELS } from '../lib/i18n';
-import type { Lang } from '../lib/i18n';
+import { useI18n } from '../lib/i18n';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { supabase } from '../lib/supabase';
 import type { Notification } from '../lib/types';
 import { useInstallPrompt } from '../lib/useInstallPrompt';
@@ -13,7 +13,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
   const { theme, toggle, colorTheme, setColorTheme } = useTheme();
   const { canInstall, promptInstall } = useInstallPrompt();
   const { user } = useAuth();
-  const { lang, setLang, t } = useI18n();
+  const { t } = useI18n();
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifs, setNotifs] = useState<Notification[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
@@ -87,15 +87,7 @@ export function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
       </div>
 
       <div className="ml-auto flex items-center gap-2">
-        <button
-          onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
-          className="inline-flex h-9 items-center gap-1 rounded-full border border-ink-200 dark:border-ink-700 px-3 text-xs font-medium text-ink-600 dark:text-ink-300 transition hover:border-brand-200 hover:text-brand-600"
-          aria-label={t('header.switchLanguage')}
-        >
-          {LANG_LABELS[lang]}
-          <span className="text-ink-300">/</span>
-          {LANG_LABELS[lang === 'fr' ? 'en' : 'fr' as Lang]}
-        </button>
+        <LanguageSwitcher />
         <select
           value={colorTheme}
           onChange={(e) => setColorTheme(e.target.value as typeof themeOptions[number]['value'])}

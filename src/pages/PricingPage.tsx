@@ -395,7 +395,7 @@ export function PricingPage() {
           full comparison at a glance. */}
 
       <div className="border-t border-ink-200 dark:border-ink-800/50">
-        <CountryFlagsMarquee title={t('pricing2.flagsTitle')} lang={lang} speed="slow" />
+        <CountryFlagsMarquee title={t('pricing2.flagsTitle')} lang={lang === 'en' ? 'en' : 'fr'} speed="slow" />
       </div>
 
       {/* FAQ Section */}
