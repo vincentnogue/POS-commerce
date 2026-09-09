@@ -1,9 +1,14 @@
 import { fr } from './locales/fr';
 import { en } from './locales/en';
+import { ar } from './locales/ar';
+import { pt } from './locales/pt';
+import { es } from './locales/es';
+import { sw } from './locales/sw';
+import { zh } from './locales/zh';
 
-export type Lang = 'fr' | 'en';
+export type Lang = 'fr' | 'en' | 'ar' | 'pt' | 'es' | 'sw' | 'zh';
 
-const dict: Record<Lang, Record<string, string>> = { fr, en };
+const dict: Record<Lang, Record<string, string>> = { fr, en, ar, pt, es, sw, zh };
 
 // Extracted as a standalone pure function (out of i18n.tsx, which is
 // otherwise a component-only file for fast-refresh purposes) so the

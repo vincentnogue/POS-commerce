@@ -14,6 +14,7 @@ import { useDocumentMeta } from '../lib/useDocumentMeta';
 import { useTheme } from '../lib/theme';
 import { supabase } from '../lib/supabase';
 import { PricingCard, type PricingPlan } from '../components/PricingCard';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { PLANS as REAL_PLANS } from '../lib/plans';
 
 // Real feature set — every entry below maps to an actual module that ships
@@ -680,7 +681,7 @@ export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeFeatureTab, setActiveFeatureTab] = useState(0);
   const [email, setEmail] = useState('');
-  const { lang, setLang, t } = useI18n();
+  const { t } = useI18n();
   useDocumentMeta(t('seo.landing.title'), t('seo.landing.desc'));
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
@@ -770,12 +771,7 @@ export function LandingPage() {
               >
                 {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
               </button>
-              <button
-                onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-brand-600"
-              >
-                <Globe size={18} /> {lang.toUpperCase()}
-              </button>
+              <LanguageSwitcher />
               <Link to="/login" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600">{t('pLanding.nav.login')}</Link>
               <Link to="/signup" className="px-6 py-2 bg-brand-600 text-white rounded-full font-medium hover:bg-brand-700 transition">
                 {t('pLanding.nav.cta')}
@@ -820,12 +816,7 @@ export function LandingPage() {
                   {theme === 'dark' ? t('pLanding.nav.themeLight') : t('pLanding.nav.themeDark')}
                 </button>
                 <span className="text-gray-300 dark:text-ink-700">•</span>
-                <button
-                  onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
-                  className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  <Globe size={16} /> {lang.toUpperCase()}
-                </button>
+                <LanguageSwitcher />
               </div>
               <Link to="/login" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2">{t('pLanding.nav.login')}</Link>
               <Link to="/signup" onClick={() => setMenuOpen(false)} className="block w-full px-6 py-2 bg-brand-600 text-white rounded-full font-medium text-center">{t('pLanding.nav.cta')}</Link>
@@ -1735,12 +1726,7 @@ export function LandingPage() {
               </a>
             </div>
 
-            <button
-              onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-sm text-ink-400 transition hover:border-brand-400/50 hover:text-brand-400"
-            >
-              <Globe size={14} /> {lang.toUpperCase()}
-            </button>
+            <LanguageSwitcher variant="dark" />
           </div>
         </div>
       </footer>

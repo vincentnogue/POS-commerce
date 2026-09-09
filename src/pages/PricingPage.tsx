@@ -20,7 +20,7 @@ import {
 
 // BUG FIX: this page used to define its own disconnected, placeholder plan
 // list (Starter/Professional/Enterprise at $29/$99/$299, English SaaS-API
-// copy). The real, only prices in the app are $9 / $19 / $49 / $119 — see
+// copy). The real, only prices in the app are $9 / $29 / $69 / $189 — see
 // src/lib/plans.ts. We now derive this page's plans from that single
 // source of truth so the two pages can never drift apart again.
 //
@@ -395,7 +395,7 @@ export function PricingPage() {
           full comparison at a glance. */}
 
       <div className="border-t border-ink-200 dark:border-ink-800/50">
-        <CountryFlagsMarquee title={t('pricing2.flagsTitle')} lang={lang} speed="slow" />
+        <CountryFlagsMarquee title={t('pricing2.flagsTitle')} lang={lang === 'en' ? 'en' : 'fr'} speed="slow" />
       </div>
 
       {/* FAQ Section */}
@@ -460,10 +460,10 @@ export function PricingPage() {
         <p className="text-xl text-ink-600 dark:text-ink-300 mb-8">
           {t('pricing2.ctaDesc', { days: TRIAL_DAYS })}
         </p>
-        <button className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/30">
+        <Link to="/signup" className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/30">
           {t('pricing2.ctaButton')}
           <ArrowRight className="w-5 h-5" />
-        </button>
+        </Link>
       </div>
     </div>
   );

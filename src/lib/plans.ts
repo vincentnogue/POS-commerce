@@ -29,7 +29,7 @@ export const PLANS: Plan[] = [
   {
     name: 'Pro',
     code: 'pro',
-    priceMonthly: 19,
+    priceMonthly: 29,
     maxUsers: 5,
     maxStores: 2,
     maxProducts: 500,
@@ -40,7 +40,7 @@ export const PLANS: Plan[] = [
   {
     name: 'Premium',
     code: 'premium',
-    priceMonthly: 49,
+    priceMonthly: 69,
     maxUsers: 15,
     maxStores: 5,
     maxProducts: 10000,
@@ -50,7 +50,7 @@ export const PLANS: Plan[] = [
   {
     name: 'Entreprise',
     code: 'entreprise',
-    priceMonthly: 119,
+    priceMonthly: 189,
     maxUsers: 50,
     maxStores: 20,
     maxProducts: 100000,

@@ -1,5 +1,7 @@
 # POS Flow - Enterprise Global ERP/POS Platform
 
+Dev by Vincent Nogue Ceo Of Liafrik www.liafrik.com
+
 [![GitHub License](https://img.shields.io/badge/license-Proprietary-blue)](LICENSE)
 [![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen)](https://status.posflow.io)
 [![Coverage](https://img.shields.io/badge/coverage-195%2B%20countries-brightgreen)](DOCUMENTATION.md)
@@ -72,7 +74,7 @@ Hosting:      Vercel (Frontend) + Supabase (Backend)
 
 ### 1. Sign Up (14-Day Free Trial)
 ```
-https://posflow.io
+https://pos.liafrik.com
 No credit card required • Full feature access • Cancel anytime
 ```
 
@@ -139,11 +141,15 @@ npm run dev
 
 ## 📚 Documentation
 
-- **Full Docs:** https://docs.posflow.io
-- **API Reference:** https://docs.posflow.io/api
+- **Full Docs:** https://docs.[posflow.io](https://pos.liafrik.com
+)
+- **API Reference:** https://docs.[posflow.io](https://pos.liafrik.com
+)/api
 - **Compliance Guide:** https://docs.posflow.io/compliance
-- **FAQ:** https://docs.posflow.io/faq
-- **Community:** https://community.posflow.io
+- **FAQ:** https://docs.[posflow.io](https://pos.liafrik.com
+)/faq
+- **Community:** https://community.[posflow.io](https://pos.liafrik.com
+)
 
 ---
 

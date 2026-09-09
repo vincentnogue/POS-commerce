@@ -28,7 +28,7 @@ const corsHeaders = {
 
 interface FinalizeRequest {
   tenant_id: string;
-  provider: "paystack" | "payunit";
+  provider: "paystack" | "payunit" | "paddle";
   reference: string;
   plan_code: string;
   billing: "monthly" | "annual";
@@ -86,23 +86,73 @@ Deno.serve(async (req: Request) => {
       }
       paidAmount = Number(verified.data.amount) / 100; // Paystack uses the smallest currency unit
       currency = verified.data.currency;
-    } else {
-      const apiKey = Deno.env.get("PAYUNIT_API_KEY");
-      if (!apiKey) return json({ success: false, message: "PayUnit not configured" });
-      const testMode = Deno.env.get("PAYUNIT_TEST_MODE") === "true";
-      const baseUrl = testMode ? "https://api.sandbox.payunit.net/v1" : "https://api.payunit.net/v1";
+    } else if (provider === "paddle") {
+      // BUG FIX: paddle-checkout opens a Paddle.js overlay and there is no
+      // Paddle webhook configured for this project — without this branch,
+      // a Paddle payment was never actually confirmed server-side at all,
+      // same class of bug as the Paystack/PayUnit gap above but for a
+      // third provider. Re-verify directly against Paddle's own API.
+      const paddleApiKey = Deno.env.get("PADDLE_API_KEY");
+      if (!paddleApiKey) return json({ success: false, message: "Paddle not configured" });
+      const paddleApiBase = Deno.env.get("PADDLE_SANDBOX") === "true"
+        ? "https://sandbox-api.paddle.com" : "https://api.paddle.com";
 
-      const verifyRes = await fetch(`${baseUrl}/transactions/${encodeURIComponent(reference)}`, {
-        headers: { Authorization: `Bearer ${apiKey}` },
+      const verifyRes = await fetch(`${paddleApiBase}/transactions/${encodeURIComponent(reference)}`, {
+        headers: { Authorization: `Bearer ${paddleApiKey}` },
       });
       const verified = await verifyRes.json();
-      if (!verifyRes.ok || !["completed", "success", "successful"].includes(verified?.status)) {
+      const txData = verified?.data;
+      if (!verifyRes.ok || txData?.status !== "completed") {
+        return json({ success: false, message: "Paiement non confirmé par Paddle" });
+      }
+      // Defense in depth: this transaction's custom_data should match what
+      // the frontend is now claiming — it was set server-side in
+      // paddle-checkout, not by the client making this request.
+      if (txData.custom_data?.tenant_id !== tenant_id || txData.custom_data?.plan_code !== plan_code) {
+        return json({ success: false, message: "Transaction Paddle ne correspond pas à cette demande" });
+      }
+      // Unlike Paystack/PayUnit, the amount was never client-supplied at
+      // any point — paddle-checkout resolved a fixed catalog price_id
+      // server-side from our own PLAN_PRICES map, so there's no amount to
+      // have tampered with. Still read the real charged total back from
+      // Paddle (minor units, e.g. cents) rather than trusting anything
+      // client-side, and let it flow through the same USD comparison below.
+      const totalMinor = txData.details?.totals?.total ?? txData.details?.totals?.grand_total;
+      if (!totalMinor) return json({ success: false, message: "Montant introuvable sur la transaction Paddle" });
+      paidAmount = Number(totalMinor) / 100;
+      currency = txData.currency_code ?? "USD";
+    } else {
+      const apiKey = Deno.env.get("PAYUNIT_API_KEY");
+      const apiUsername = Deno.env.get("PAYUNIT_API_USERNAME");
+      const apiPassword = Deno.env.get("PAYUNIT_API_PASSWORD");
+      if (!apiKey || !apiUsername || !apiPassword) return json({ success: false, message: "PayUnit not configured" });
+      const testMode = Deno.env.get("PAYUNIT_TEST_MODE") === "true";
+      const basicAuth = btoa(`${apiUsername}:${apiPassword}`);
+
+      // BUG FIX: same wrong-domain issue as payunit-checkout
+      // ('api.payunit.net' doesn't resolve — real API is at
+      // gateway.payunit.net), plus the wrong endpoint/auth scheme. Per
+      // developer.payunit.net/rest-api/get-payment-status:
+      //   GET {base}/api/gateway/paymentstatus/{transactionID}
+      //   headers: x-api-key, mode, Authorization: Basic base64(user:pass)
+      const verifyRes = await fetch(`https://gateway.payunit.net/api/gateway/paymentstatus/${encodeURIComponent(reference)}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'mode': testMode ? 'test' : 'live',
+          'Authorization': `Basic ${basicAuth}`,
+        },
+      });
+      const verified = await verifyRes.json();
+      const txData = verified?.data;
+      if (!verifyRes.ok || txData?.transaction_status !== "SUCCESS") {
         return json({ success: false, message: "Paiement non confirmé par PayUnit" });
       }
-      // Same convention as payunit-payments' own verifyPayment: PayUnit
-      // returns the amount in the smallest currency unit.
-      paidAmount = Number(verified.amount) / 100;
-      currency = verified.currency ?? "XAF";
+      // PayUnit's status response returns the amount as a plain number in
+      // the transaction's own currency (unlike Paystack's smallest-unit
+      // convention) — no /100 division here.
+      paidAmount = Number(txData.transaction_amount);
+      currency = txData.transaction_currency ?? "XAF";
     }
 
     const planRes = await fetch(`${supabaseUrl}/rest/v1/plans?code=eq.${plan_code}&select=id,price_usd`, {
@@ -114,8 +164,17 @@ Deno.serve(async (req: Request) => {
 
     // Same anti-tamper guard as flutterwave-webhook: refuse to activate if
     // the amount actually paid doesn't match what that plan+cycle costs.
-    const expectedAmount = billing === "annual" ? plan.price_usd * 10 : plan.price_usd;
-    if (Math.abs(paidAmount - expectedAmount) > 1) {
+    // PayUnit charges in XAF (it doesn't accept USD) while plans are priced
+    // in USD, so the expected amount must be converted the same way
+    // payunit-checkout converted it when creating the charge — comparing
+    // raw USD to raw XAF would always mismatch and block every legitimate
+    // PayUnit payment.
+    const USD_TO_XAF_APPROX = 600;
+    const expectedAmount = currency === "XAF"
+      ? Math.round((billing === "annual" ? plan.price_usd * 10 : plan.price_usd) * USD_TO_XAF_APPROX)
+      : (billing === "annual" ? plan.price_usd * 10 : plan.price_usd);
+    const tolerance = currency === "XAF" ? expectedAmount * 0.05 : 1; // FX rate is approximate, allow 5% slack for XAF
+    if (Math.abs(paidAmount - expectedAmount) > tolerance) {
       return json({ success: false, message: `Montant payé (${paidAmount} ${currency}) ne correspond pas au plan attendu` });
     }
 

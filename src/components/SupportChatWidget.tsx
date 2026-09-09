@@ -19,7 +19,11 @@ async function callSupportChat(body: Record<string, unknown>) {
   const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/support-chat`;
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+    },
     body: JSON.stringify(body),
   });
   return res.json();

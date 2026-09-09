@@ -47,4 +47,33 @@ describe('translate', () => {
     // strip placeholders either.
     expect(translate('en', 'products.import.confirm')).toBe('Import {count} products');
   });
+
+  // The 5 languages added on top of fr/en (ar/pt/es/sw/zh) are a
+  // foundation, not a complete translation: each locale file only
+  // covers ~130 high-visibility keys, and everything else must fall
+  // back to French automatically. This is the actual mechanism the
+  // whole 'foundation, extend later' design depends on — worth its own
+  // coverage rather than trusting it by inspection.
+  const NEW_LANGS = ['ar', 'pt', 'es', 'sw', 'zh'] as const;
+
+  it.each(NEW_LANGS)('%s: returns its own translated string for a key covered by the foundation subset', (lang) => {
+    const result = translate(lang, 'common.add');
+    expect(result).not.toBe('common.add'); // not the raw key
+    expect(result).not.toBe(translate('fr', 'common.add')); // genuinely translated, not a French leak
+  });
+
+  it.each(NEW_LANGS)('%s: falls back to French (not English, not the raw key) for a key outside the foundation subset', (lang) => {
+    // A real key that exists in fr.ts/en.ts but was deliberately not
+    // part of the ~130-key foundation subset for the new languages.
+    const key = 'settings.security.discountTitle';
+    expect(translate(lang, key)).toBe(translate('fr', key));
+    expect(translate(lang, key)).not.toBe(translate('en', key));
+  });
+
+  it.each(NEW_LANGS)('%s: {var} interpolation still works on a fallen-back French string', (lang) => {
+    // Same fallback path as above, but for an interpolated key, to
+    // prove the two mechanisms compose correctly rather than just
+    // each working in isolation.
+    expect(translate(lang, 'products.import.confirm', { count: 5 })).toBe('Importer 5 produits');
+  });
 });

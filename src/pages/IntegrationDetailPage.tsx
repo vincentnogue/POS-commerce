@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, ExternalLink, ShieldCheck, Zap, CheckCircle, Lock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useTenant } from '../lib/tenant';
+import { useI18n } from '../lib/i18n';
 import { IntegrationConnectionModal, type IntegrationProviderLike, type IntegrationConnectionLike } from '../components/IntegrationConnectionModal';
 
 // Rebuilt from scratch. The previous version of this page hardcoded a
@@ -47,6 +48,7 @@ function capabilityLabel(cap: string): string {
 export function IntegrationDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { tenant } = useTenant();
+  const { t } = useI18n();
 
   const [provider, setProvider] = useState<Provider | null>(null);
   const [connection, setConnection] = useState<IntegrationConnectionLike | undefined>(undefined);
@@ -112,9 +114,9 @@ export function IntegrationDetailPage() {
     return (
       <div className="min-h-screen bg-white dark:bg-ink-950">
         <div className="mx-auto max-w-3xl px-6 py-16 text-center">
-          <p className="mb-6 text-lg text-ink-700 dark:text-ink-300">This integration isn't available.</p>
+          <p className="mb-6 text-lg text-ink-700 dark:text-ink-300">{t('integrationDetail.notAvailable')}</p>
           <Link to="/marketplace" className="btn-primary inline-flex">
-            <ArrowLeft size={16} /> Back to Marketplace
+            <ArrowLeft size={16} /> {t('integrationDetail.backToMarketplace')}
           </Link>
         </div>
       </div>
@@ -128,7 +130,7 @@ export function IntegrationDetailPage() {
         <div className="mx-auto max-w-5xl px-6 py-8">
           <Link to="/marketplace" className="mb-6 inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
             <ArrowLeft className="h-5 w-5" />
-            Back to Marketplace
+            {t('integrationDetail.backToMarketplace')}
           </Link>
 
           <div className="flex items-start gap-5">
@@ -144,12 +146,12 @@ export function IntegrationDetailPage() {
                 <h1 className="text-3xl font-bold text-ink-900 dark:text-white">{provider.provider_name}</h1>
                 {provider.is_featured && (
                   <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-semibold text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">
-                    Featured
+                    {t('integrationDetail.featured')}
                   </span>
                 )}
                 {isConnected && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-success-100 px-2.5 py-0.5 text-xs font-semibold text-success-700 dark:bg-success-900/30 dark:text-success-400">
-                    <CheckCircle size={12} /> Connected
+                    <CheckCircle size={12} /> {t('integrationDetail.connected')}
                   </span>
                 )}
               </div>
@@ -167,7 +169,7 @@ export function IntegrationDetailPage() {
                 </span>
                 {provider.webhook_support && (
                   <span className="rounded-full border border-ink-200 bg-white px-3 py-1 text-xs font-medium text-ink-600 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-300">
-                    Webhooks
+                    {t('integrationDetail.webhooks')}
                   </span>
                 )}
               </div>
@@ -181,7 +183,7 @@ export function IntegrationDetailPage() {
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
           {/* Capabilities */}
           <div className="lg:col-span-2">
-            <h2 className="mb-5 text-xl font-bold text-ink-900 dark:text-white">Capabilities</h2>
+            <h2 className="mb-5 text-xl font-bold text-ink-900 dark:text-white">{t('integrationDetail.capabilities')}</h2>
             {provider.capabilities?.length ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {provider.capabilities.map((cap) => (
@@ -192,17 +194,17 @@ export function IntegrationDetailPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-ink-500 dark:text-ink-400">No capabilities listed for this integration yet.</p>
+              <p className="text-sm text-ink-500 dark:text-ink-400">{t('integrationDetail.noCapabilities')}</p>
             )}
 
             <div className="mt-10 rounded-lg border border-ink-200 bg-ink-50 p-6 dark:border-ink-700 dark:bg-ink-800">
               <h3 className="mb-3 flex items-center gap-2 font-bold text-ink-900 dark:text-white">
                 <ShieldCheck className="h-5 w-5 text-brand-500" />
-                Security
+                {t('integrationDetail.security')}
               </h3>
               <p className="text-sm text-ink-600 dark:text-ink-400">
-                Credentials are encrypted at rest and scoped to your organization only — never shared across tenants.
-                Authentication method: <strong className="text-ink-800 dark:text-ink-200">{authTypeLabel(provider.auth_type)}</strong>.
+                {t('integrationDetail.securityDesc')}
+                {' '}{t('integrationDetail.authMethod')} <strong className="text-ink-800 dark:text-ink-200">{authTypeLabel(provider.auth_type)}</strong>.
               </p>
             </div>
 
@@ -213,8 +215,8 @@ export function IntegrationDetailPage() {
               className="mt-6 flex items-center justify-between rounded-lg border border-ink-200 bg-white p-5 transition hover:border-brand-300 dark:border-ink-700 dark:bg-ink-800 dark:hover:border-brand-500"
             >
               <div>
-                <p className="mb-1 font-bold text-ink-900 dark:text-white">Documentation</p>
-                <p className="text-sm text-ink-500 dark:text-ink-400">Read the official integration docs</p>
+                <p className="mb-1 font-bold text-ink-900 dark:text-white">{t('integrationDetail.documentation')}</p>
+                <p className="text-sm text-ink-500 dark:text-ink-400">{t('integrationDetail.documentationDesc')}</p>
               </div>
               <ExternalLink className="h-5 w-5 text-ink-400" />
             </a>
@@ -226,21 +228,21 @@ export function IntegrationDetailPage() {
               {isConnected ? (
                 <>
                   <div className="mb-4 rounded-lg border border-success-100 bg-success-50 p-3 text-sm text-success-700 dark:border-success-600/40 dark:bg-success-600/20 dark:text-success-400">
-                    Connected{connection?.account_name ? ` — ${connection.account_name}` : ''}
+                    {t('integrationDetail.connected')}{connection?.account_name ? ` — ${connection.account_name}` : ''}
                   </div>
-                  <button onClick={() => setShowModal(true)} className="btn-ghost w-full">Manage connection</button>
+                  <button onClick={() => setShowModal(true)} className="btn-ghost w-full">{t('integrationDetail.manageConnection')}</button>
                 </>
               ) : isLocked ? (
                 <>
                   <div className="mb-4 flex items-center gap-2 rounded-lg bg-warning-50 p-3 text-sm text-warning-700 dark:bg-warning-600/20 dark:text-warning-400">
                     <Lock size={16} className="shrink-0" />
-                    Requires the {PLAN_LABEL[provider.minimum_plan?.toLowerCase() ?? ''] ?? provider.minimum_plan} plan or higher.
+                    {t('integrationDetail.requiresPlan', { plan: PLAN_LABEL[provider.minimum_plan?.toLowerCase() ?? ''] ?? provider.minimum_plan ?? '' })}
                   </div>
-                  <Link to="/pricing" className="btn-primary w-full justify-center">Upgrade plan</Link>
+                  <Link to="/pricing" className="btn-primary w-full justify-center">{t('integrationDetail.upgradePlan')}</Link>
                 </>
               ) : (
                 <button onClick={() => setShowModal(true)} className="btn-primary w-full justify-center">
-                  Connect {provider.provider_name}
+                  {t('integrationDetail.connect')} {provider.provider_name}
                 </button>
               )}
             </div>

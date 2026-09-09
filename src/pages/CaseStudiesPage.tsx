@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
 import { useDocumentMeta } from '../lib/useDocumentMeta';
+import { useI18n } from '../lib/i18n';
 
 // BUG FIX / INTEGRITY: this page used to display three fully fabricated
 // case studies — invented company names, invented people ("Sarah
@@ -22,10 +23,8 @@ import { useDocumentMeta } from '../lib/useDocumentMeta';
 // invitation for real customers to be featured — nothing here until an
 // actual customer agrees to it.
 export function CaseStudiesPage() {
-  useDocumentMeta(
-    'Case Studies — POS Flow',
-    'Real, verified numbers on the merchants using POS Flow — and how to get your own business featured here.'
-  );
+  const { t } = useI18n();
+  useDocumentMeta(t('caseStudies.metaTitle'), t('caseStudies.metaDesc'));
   const navigate = useNavigate();
 
   return (
@@ -36,7 +35,7 @@ export function CaseStudiesPage() {
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 font-medium transition"
           >
-            <ArrowLeft size={18} /> Back
+            <ArrowLeft size={18} /> {t('common.back')}
           </button>
         </div>
       </div>
@@ -44,10 +43,10 @@ export function CaseStudiesPage() {
       <div className="bg-gradient-to-r from-brand-600 to-flow-600 py-20">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <h1 className="text-5xl font-bold text-white mb-4">
-            Case studies, coming soon
+            {t('caseStudies.title')}
           </h1>
           <p className="text-xl text-white/90">
-            We'd rather show real merchant stories than invented ones — here's where they'll go once we have some to share.
+            {t('caseStudies.subtitle')}
           </p>
         </div>
       </div>
@@ -58,20 +57,20 @@ export function CaseStudiesPage() {
       <div className="bg-white dark:bg-ink-800 border-t border-b border-ink-200 dark:border-ink-700 py-16">
         <div className="max-w-5xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-center mb-12 text-ink-900 dark:text-white">
-            The real numbers, today
+            {t('caseStudies.realNumbers')}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             <div className="text-center">
               <p className="text-4xl font-bold text-brand-600 mb-2">1,893+</p>
-              <p className="text-ink-600 dark:text-ink-300">Active clients worldwide</p>
+              <p className="text-ink-600 dark:text-ink-300">{t('caseStudies.stat.clients')}</p>
             </div>
             <div className="text-center">
               <p className="text-4xl font-bold text-flow-600 mb-2">30+</p>
-              <p className="text-ink-600 dark:text-ink-300">Currencies with live conversion</p>
+              <p className="text-ink-600 dark:text-ink-300">{t('caseStudies.stat.currencies')}</p>
             </div>
             <div className="text-center">
               <p className="text-4xl font-bold text-action-600 mb-2">9+</p>
-              <p className="text-ink-600 dark:text-ink-300">Integrated payment processors</p>
+              <p className="text-ink-600 dark:text-ink-300">{t('caseStudies.stat.psps')}</p>
             </div>
           </div>
         </div>
@@ -81,19 +80,19 @@ export function CaseStudiesPage() {
           ones. */}
       <div className="max-w-3xl mx-auto px-6 py-20 text-center">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-700 px-4 py-1.5 text-xs font-bold tracking-widest text-brand-600 dark:text-brand-300 mb-6">
-          <Sparkles size={13} /> BE THE FIRST
+          <Sparkles size={13} /> {t('caseStudies.badge')}
         </span>
         <h2 className="text-3xl font-bold text-ink-900 dark:text-white mb-4">
-          Using POS Flow for your business?
+          {t('caseStudies.ctaTitle')}
         </h2>
         <p className="text-lg text-ink-600 dark:text-ink-300 mb-8">
-          We'd love to feature your real story here — with your name, your numbers, and your permission. No invented case studies, ever.
+          {t('caseStudies.ctaDesc')}
         </p>
         <Link
           to="/contact"
           className="inline-flex items-center gap-2 px-8 py-3 bg-brand-500 text-white font-semibold rounded-full hover:bg-brand-600 transition"
         >
-          Tell us your story <ArrowRight size={16} />
+          {t('caseStudies.ctaButton')} <ArrowRight size={16} />
         </Link>
       </div>
     </div>

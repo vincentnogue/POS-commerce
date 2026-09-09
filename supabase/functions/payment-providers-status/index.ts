@@ -29,7 +29,7 @@ Deno.serve(async (req: Request) => {
     stripe: !!Deno.env.get('STRIPE_SECRET_KEY'),
     flutterwave: !!Deno.env.get('FLUTTERWAVE_SECRET_KEY'),
     paystack: !!Deno.env.get('PAYSTACK_SECRET_KEY'),
-    payunit: !!(Deno.env.get('PAYUNIT_API_KEY') && Deno.env.get('PAYUNIT_MERCHANT_ID')),
+    payunit: !!(Deno.env.get('PAYUNIT_API_KEY') && Deno.env.get('PAYUNIT_API_USERNAME') && Deno.env.get('PAYUNIT_API_PASSWORD')),
     paddle: !!(Deno.env.get('PADDLE_API_KEY') && Deno.env.get('PADDLE_CLIENT_TOKEN')),
     paddle_client_token: Deno.env.get('PADDLE_CLIENT_TOKEN') ?? null,
     paddle_sandbox: Deno.env.get('PADDLE_SANDBOX') === 'true',
@@ -37,6 +37,15 @@ Deno.serve(async (req: Request) => {
 
   return new Response(JSON.stringify(status), {
     status: 200,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    // BUG FIX: this endpoint's entire purpose is to reflect the *current*
+    // state of the platform's payment secrets — without an explicit
+    // no-store directive, a browser (or any CDN/proxy in front of the
+    // function) can legitimately cache a GET response and keep serving
+    // it after a merchant adds a missing secret (e.g. PAYUNIT_MERCHANT_ID)
+    // in the Supabase dashboard, making the "no payment method
+    // configured" message persist even though the backend is now
+    // correctly configured — indistinguishable, from the merchant's
+    // side, from the secret never having taken effect at all.
+    headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
   });
 });
