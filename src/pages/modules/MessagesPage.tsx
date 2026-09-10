@@ -201,7 +201,6 @@ export function MessagesPage() {
               <Users size={15} /> {t('messages.audience.count', { count: recipients.length })}
               {recipientsWithoutPhone > 0 && <span className="text-warning-600 dark:text-warning-400">· {t('messages.audience.noPhone', { count: recipientsWithoutPhone })}</span>}
               {recipientsOptedOut > 0 && <span className="text-warning-600 dark:text-warning-400">· {t('messages.audience.optedOut', { count: recipientsOptedOut })}</span>}
-              {recipientsOptedOut > 0 && <span className="text-warning-600 dark:text-warning-400">· {t('messages.audience.optedOut', { count: recipientsOptedOut })}</span>}
             </p>
 
             <label className="label">{t('messages.channel.label')}</label>
