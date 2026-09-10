@@ -46,8 +46,18 @@ export function AccountingPage() {
 
   useEffect(() => { (async () => {
     if (!tenant) return;
+    // BUG FIX: sale_date is a timestamptz, but `end` here is a bare
+    // "YYYY-MM-DD" string (from localDateStr). Postgres parses that as
+    // midnight, so `.lte('sale_date', end)` was silently excluding every
+    // sale from the last day of the period (any time after 00:00:00 on
+    // that date failed the filter) — the accounting report for every
+    // month/quarter/year was missing an entire day of revenue. expenses/
+    // purchases don't have this problem: expense_date/purchase_date are
+    // plain `date` columns (no time component to truncate against), so
+    // they keep using the bare `end` string unchanged.
+    const saleDateEnd = `${end}T23:59:59.999`;
     const [s, e, p] = await Promise.all([
-      supabase.from('sales').select('*').eq('tenant_id', tenant.id).gte('sale_date', start).lte('sale_date', end).neq('sale_status', 'cancelled'),
+      supabase.from('sales').select('*').eq('tenant_id', tenant.id).gte('sale_date', start).lte('sale_date', saleDateEnd).neq('sale_status', 'cancelled'),
       supabase.from('expenses').select('*').eq('tenant_id', tenant.id).gte('expense_date', start).lte('expense_date', end),
       supabase.from('purchases').select('*').eq('tenant_id', tenant.id).gte('purchase_date', start).lte('purchase_date', end),
     ]);
