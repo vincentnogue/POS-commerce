@@ -2193,6 +2193,7 @@ export const en: Record<string, string> = {
   "pLanding.pricing.updated": "last updated {date}",
   "pLanding.pricing.viewMatrix": "See the full 40+ currency matrix",
   "pLanding.worldwide.title": "Built to work anywhere in the world",
+  "pLanding.why.badge": "WHY POS FLOW",
   "pLanding.why.title": "Built for international commerce",
 
   "pLanding.busyHero.titleBefore": "Let's get",

@@ -1453,18 +1453,41 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Why LiAfrik built this */}
-      <section className="py-20 px-4 lg:px-8 max-w-5xl mx-auto text-center">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-          {t('pLanding.why.title')}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left mt-10">
-          {(['point1', 'point2', 'point3'] as const).map((key) => (
-            <div key={key} className="flex items-start gap-3">
-              <Check className="w-5 h-5 text-brand-600 flex-shrink-0 mt-1" />
-              <p className="text-gray-600 dark:text-gray-300">{t(`pLanding.why.${key}`)}</p>
-            </div>
-          ))}
+      {/* Why LiAfrik built this — was the plainest section on the page
+          (centered heading + a bare checklist, no cards/icons/background,
+          while every other section has real visual treatment). Rebuilt
+          with the same card + colored-icon language already used in the
+          Industries section just above, plus a subtle backdrop so it
+          doesn't read as a placeholder next to everything around it. */}
+      <section className="relative py-20 px-4 lg:px-8 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-brand-50/60 via-transparent to-transparent dark:from-brand-950/20" aria-hidden="true" />
+        <div className="absolute inset-0 bg-grid opacity-[0.03]" aria-hidden="true" />
+        <div className="relative max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-700 px-4 py-1.5 text-xs font-bold tracking-widest text-brand-600 dark:text-brand-300 mb-5">
+              <Globe size={13} /> {t('pLanding.why.badge')}
+            </span>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+              {t('pLanding.why.title')}
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {([
+              { key: 'point1', icon: Wallet, tint: 'bg-brand-500/10 text-brand-600' },
+              { key: 'point2', icon: MapPin, tint: 'bg-flow-500/10 text-flow-600' },
+              { key: 'point3', icon: Plug, tint: 'bg-action-500/10 text-action-600' },
+            ] as const).map(({ key, icon: Icon, tint }) => (
+              <div
+                key={key}
+                className="group rounded-2xl border border-gray-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-7 shadow-soft hover:shadow-lg hover:border-brand-500/40 transition"
+              >
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 ${tint}`}>
+                  <Icon size={22} strokeWidth={2} />
+                </div>
+                <p className="text-gray-700 dark:text-gray-200 leading-relaxed">{t(`pLanding.why.${key}`)}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

@@ -2193,6 +2193,7 @@ export const fr: Record<string, string> = {
   "pLanding.pricing.updated": "dernière mise à jour {date}",
   "pLanding.pricing.viewMatrix": "Voir la matrice complète des 40+ devises",
   "pLanding.worldwide.title": "Conçu pour fonctionner partout dans le monde",
+  "pLanding.why.badge": "POURQUOI POS FLOW",
   "pLanding.why.title": "Pensé pour le commerce international",
 
   "pLanding.busyHero.titleBefore": "Place à",
