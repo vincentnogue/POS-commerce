@@ -90,7 +90,7 @@ export function SubscribePage() {
         // Backend unreachable — fail closed to Stripe (card payments are
         // the most universally reachable option) rather than showing a
         // picker with providers we can't confirm are actually configured.
-        if (!cancelled) { setActiveProviders(['stripe']); setProvider('stripe'); }
+        if (!cancelled) { setActiveProviders([]); setProvider(null); }
       } finally {
         clearTimeout(timeoutId);
       }
