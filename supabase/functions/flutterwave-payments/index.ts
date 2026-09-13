@@ -1,10 +1,17 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+// CORS FIX: the frontend (OnlinePaymentModal/MobileMoneyPushModal) always
+// sends an "apikey" header alongside Authorization, but this function's
+// preflight response didn't allow it — the browser silently blocks the
+// real request after a rejected CORS preflight, which surfaces to the
+// user as an opaque "Failed to fetch", not a readable error from this
+// function (it never even runs). Now matches every -checkout function
+// and payunit-payments, which already allowed it.
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
 interface FlutterwavePaymentRequest {
