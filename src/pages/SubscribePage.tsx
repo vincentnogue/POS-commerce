@@ -82,7 +82,16 @@ export function SubscribePage() {
         const active = (Object.keys(PSP_META) as PspId[]).filter((id) => status[id]);
         if (cancelled) return;
         setActiveProviders(active);
-        setProvider(active[0] ?? null);
+        // BUG FIX (per merchant report): this used to silently pre-select
+        // active[0] even when 2+ providers were available — a merchant
+        // who'd just connected Stripe alongside an already-configured
+        // Paddle could end up checking out through whichever came first
+        // in PSP_META's declaration order without ever having chosen it.
+        // Only auto-select when there is exactly one real option (nothing
+        // to choose between); with 2+, the customer must explicitly pick
+        // one in the picker below — startCheckout no-ops on a null
+        // provider, so nothing can silently proceed unchosen.
+        setProvider(active.length === 1 ? active[0] : null);
         if (status.paddle && status.paddle_client_token) {
           setPaddleConfig({ clientToken: status.paddle_client_token, sandbox: !!status.paddle_sandbox });
         }
@@ -288,7 +297,8 @@ export function SubscribePage() {
           </div>
 
           {activeProviders && activeProviders.length > 1 && (
-            <div className="mb-10 flex justify-center">
+            <div className="mb-10 flex flex-col items-center gap-2">
+              <p className="text-sm font-medium text-ink-600 dark:text-ink-300">{t('subscribe.choosePaymentMethod')}</p>
               <div className="inline-flex flex-wrap justify-center gap-1 rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1 shadow-soft">
                 {activeProviders.map((id) => {
                   const meta = PSP_META[id];
@@ -361,7 +371,11 @@ export function SubscribePage() {
                     disabled={loading || !provider}
                     className={`mt-7 w-full justify-center py-3 text-sm ${plan.highlight ? 'btn-primary' : 'btn-ghost border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300'}`}
                   >
-                    {loading && checkoutPlan === plan.code ? t('subscribe.redirecting') : <><CreditCard size={15} /> {t('subscribe.choose')} {t('plan.name.' + plan.code)}</>}
+                    {loading && checkoutPlan === plan.code
+                      ? t('subscribe.redirecting')
+                      : !provider && activeProviders && activeProviders.length > 1
+                        ? t('subscribe.choosePaymentFirst')
+                        : <><CreditCard size={15} /> {t('subscribe.choose')} {t('plan.name.' + plan.code)}</>}
                   </button>
                 </motion.div>
               );

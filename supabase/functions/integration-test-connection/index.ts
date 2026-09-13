@@ -334,6 +334,48 @@ async function testTelegram(credentials: Record<string, string>): Promise<TestCo
   }
 }
 
+/**
+ * BUG FIX: google_gemini is listed as a connectable Marketplace
+ * integration (see migration 0057) but had no test function at all —
+ * same gap PayUnit had before it was fixed above. The router fell
+ * through to the generic "provider not supported yet" default for
+ * every google_gemini connection attempt, so it could never pass the
+ * test step and therefore could never actually be connected.
+ *
+ * Uses Google's models-list endpoint as the auth check: it's a plain
+ * GET authenticated by the ?key= query param (the same single api_key
+ * field this provider's auth_schema already collects — see migration
+ * 0057), returns 400/403 for an invalid/missing key, and doesn't
+ * consume any generation quota the way an actual prompt call would.
+ */
+async function testGoogleGemini(credentials: Record<string, string>): Promise<TestConnectionResponse> {
+  try {
+    const apiKey = credentials.api_key;
+    if (!apiKey) return { success: false, message: "Missing api_key", error: "MISSING_CREDENTIAL" };
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`,
+      { method: "GET" }
+    );
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: "Invalid Google AI API key",
+        error: "INVALID_CREDENTIALS",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Successfully connected to Gemini (Google)",
+      account_name: "Google AI Studio",
+    };
+  } catch (err) {
+    return { success: false, message: `Gemini test failed: ${err.message}`, error: "CONNECTION_ERROR" };
+  }
+}
+
 // Router: dispatch test based on provider
 async function testConnection(
   provider: string,
@@ -356,6 +398,8 @@ async function testConnection(
       return testTwilio(credentials);
     case "telegram":
       return testTelegram(credentials);
+    case "google_gemini":
+      return testGoogleGemini(credentials);
     default:
       return { success: false, message: `Provider ${provider} not supported yet`, error: "UNSUPPORTED_PROVIDER" };
   }
