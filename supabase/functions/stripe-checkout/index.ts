@@ -28,6 +28,8 @@ interface CheckoutRequest {
 // Sessions API supports inline `price_data` for exactly this case, so we
 // no longer need any pre-created Price object at all — mirrors the
 // flutterwave-checkout/paystack-checkout/payunit-checkout pattern.
+// (redeploy trigger: previous CI run failed at the setup-cli step, infra
+// hiccup unrelated to this code — re-pushing to retrigger the workflow.)
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
