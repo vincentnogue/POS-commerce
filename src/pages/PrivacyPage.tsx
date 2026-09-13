@@ -47,6 +47,26 @@ export function PrivacyPage() {
         <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('privacy.s7.title')}</h2>
         <p>{t('privacy.s7.text')}</p>
       </section>
+
+      <section>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('privacy.s8.title')}</h2>
+        <p>{t('privacy.s8.text')}</p>
+      </section>
+
+      <section>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('privacy.s9.title')}</h2>
+        <p>{t('privacy.s9.text')}</p>
+      </section>
+
+      <section>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('privacy.s10.title')}</h2>
+        <p>{t('privacy.s10.text')}</p>
+      </section>
+
+      <section>
+        <h2 className="text-xl font-medium text-ink-900 dark:text-ink-50">{t('privacy.s11.title')}</h2>
+        <p>{t('privacy.s11.text')}</p>
+      </section>
     </FooterPageLayout>
   );
 }

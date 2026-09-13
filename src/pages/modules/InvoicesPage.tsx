@@ -91,7 +91,19 @@ export function InvoicesPage() {
 
   const save = async () => {
     if (!tenant || form.items.length === 0) return;
-    const num = `FAC-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(4, '0')}`;
+    // COMPLIANCE FIX: this used to be `FAC-${year}-${invoices.length + 1}`
+    // — the count of invoices currently loaded in this browser tab, which
+    // two concurrent creations (two staff, two tabs) could both read as
+    // the same "next" number, and which a prior deletion could make dip
+    // back below an already-issued number, causing genuine duplicate
+    // invoice numbers. next_document_number() increments a per-tenant
+    // counter atomically in the database, so two concurrent calls can
+    // never receive the same value.
+    const { data: seq, error: seqErr } = await supabase.rpc('next_document_number', {
+      p_tenant_id: tenant.id, p_doc_type: 'invoice', p_year: new Date().getFullYear(),
+    });
+    if (seqErr || seq == null) { toast('error', seqErr?.message ?? t('invoices.err.numberFailed')); return; }
+    const num = `FAC-${new Date().getFullYear()}-${String(seq).padStart(4, '0')}`;
     const { data: inv, error } = await supabase.from('invoices').insert({
       tenant_id: tenant.id,
       customer_id: form.customer_id || null,

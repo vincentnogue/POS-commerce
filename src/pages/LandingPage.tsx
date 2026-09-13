@@ -1701,6 +1701,7 @@ export function LandingPage() {
             <div>
               <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-200">{t('pLanding.footer.resources')}</p>
               <ul className="space-y-2.5 text-sm text-ink-400">
+                <li><Link to="/manuel-utilisation" className="font-medium text-ink-200 transition hover:text-brand-400">{t('pLanding.footer.manual')}</Link></li>
                 <li><Link to="/resources" className="transition hover:text-brand-400">{t('pLanding.footer.resources')}</Link></li>
                 <li><Link to="/help" className="transition hover:text-brand-400">{t('pLanding.footer.help')}</Link></li>
                 <li><Link to="/documentation" className="transition hover:text-brand-400">{t('pLanding.footer.docs')}</Link></li>

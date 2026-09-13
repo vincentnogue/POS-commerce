@@ -1,0 +1,58 @@
+name: CI checks
+
+# Automated quality gate — runs on every push and PR touching frontend
+# code, so regressions (including accessibility ones, via lint:a11y) are
+# caught before they reach main instead of relying on a one-off manual
+# pass. Deliberately does NOT run the full `npm run lint` /
+# `npm run typecheck` (both already fail on ~190 pre-existing
+# `@typescript-eslint/no-explicit-any` errors scattered across the
+# codebase, mostly in supabase/functions/**, unrelated to this change —
+# making either a blocking CI gate today would make CI permanently red
+# and train everyone to ignore it). i18n parity, the accessibility rules
+# actually being enforced, and the test suite are all real, currently
+# clean gates; the build step catches genuine compile breakage.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'eslint.config.js'
+      - 'vite.config.ts'
+      - 'tsconfig*.json'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'eslint.config.js'
+      - 'vite.config.ts'
+      - 'tsconfig*.json'
+      - '.github/workflows/ci.yml'
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: i18n parity (fr/en)
+        run: npm run i18n:check
+
+      - name: Accessibility lint (jsx-a11y)
+        run: npm run lint:a11y
+
+      - name: Unit tests
+        run: npm run test:run
+
+      - name: Build
+        run: npm run build
