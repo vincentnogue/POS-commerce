@@ -838,6 +838,7 @@ export const en: Record<string, string> = {
   "invoices.status.overdue": "Overdue",
   "invoices.status.cancelled": "Cancelled",
   "invoices.toast.created": "Invoice created.",
+  "invoices.err.numberFailed": "Could not assign an invoice number. Please try again.",
   "invoices.whatsappMsg": "Hello{name}, here is your invoice {number} for {total}. The PDF was just downloaded to your device — please attach it to this message. 🙏",
   "invoices.emailSubject": "Invoice {number}",
   "invoices.emailBody": "Please find attached invoice {number} for {total}.",
@@ -880,6 +881,7 @@ export const en: Record<string, string> = {
   "quotes.status.expired": "Expired",
   "quotes.toast.created": "Quote created.",
   "quotes.toast.converted": "Quote converted to invoice {number}.",
+  "quotes.err.numberFailed": "Could not assign a document number. Please try again.",
 
   // Stock module
   "stock.title": "Stock",

@@ -838,6 +838,7 @@ export const fr: Record<string, string> = {
   "invoices.status.overdue": "En retard",
   "invoices.status.cancelled": "Annulée",
   "invoices.toast.created": "Facture créée.",
+  "invoices.err.numberFailed": "Impossible d'attribuer un numéro de facture. Réessayez.",
   "invoices.whatsappMsg": "Bonjour{name}, voici votre facture {number} d'un montant de {total}. Le PDF vient d'être téléchargé sur votre appareil — merci de le joindre à ce message. 🙏",
   "invoices.emailSubject": "Facture {number}",
   "invoices.emailBody": "Veuillez trouver ci-joint la facture {number} d'un montant de {total}.",
@@ -880,6 +881,7 @@ export const fr: Record<string, string> = {
   "quotes.status.expired": "Expiré",
   "quotes.toast.created": "Devis créé.",
   "quotes.toast.converted": "Devis converti en facture {number}.",
+  "quotes.err.numberFailed": "Impossible d'attribuer un numéro de document. Réessayez.",
 
   // Stock module
   "stock.title": "Stock",
