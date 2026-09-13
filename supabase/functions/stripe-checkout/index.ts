@@ -15,12 +15,19 @@ interface CheckoutRequest {
   cancel_url: string;
 }
 
-const PLAN_PRICES: Record<string, { monthly: string; annual: string }> = {
-  starter: { monthly: 'price_1Tx76oRhcVRS1qEcwt7F4RSF', annual: 'price_1Tx76oRhcVRS1qEcYbfeqVmb' },
-  pro: { monthly: 'price_1Tx76pRhcVRS1qEcvsxmVnsg', annual: 'price_1Tx76pRhcVRS1qEcT465gctn' },
-  premium: { monthly: 'price_1Tx76qRhcVRS1qEckBhi5j55', annual: 'price_1Tx76qRhcVRS1qEcdI6q1J7F' },
-  entreprise: { monthly: 'price_1Tx76rRhcVRS1qEcTywcmgel', annual: 'price_1Tx76rRhcVRS1qEcd8zOItdT' },
-};
+// BUG FIX: this used to point at 8 hardcoded Stripe Price IDs
+// (price_1Tx76o...). Every other PSP in this project (Flutterwave,
+// Paystack, PayUnit, Paddle) computes the charge dynamically from
+// plans.price_usd — the single source of truth also used by plans.ts and
+// updated by 0093_update_plan_pricing.sql. Stripe was the one exception,
+// silently relying on Price objects that must exist, byte-for-byte, in
+// the live Stripe account for these exact IDs — if they were never
+// created there (or created in test mode while STRIPE_SECRET_KEY is a
+// live key, or vice versa), Stripe checkout session creation fails with
+// "No such price" and the customer never gets to pay. Stripe's Checkout
+// Sessions API supports inline `price_data` for exactly this case, so we
+// no longer need any pre-created Price object at all — mirrors the
+// flutterwave-checkout/paystack-checkout/payunit-checkout pattern.
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -75,14 +82,25 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const priceMap = PLAN_PRICES[plan_code];
-    if (!priceMap) {
+    // Amount comes from the `plans` table (single source of truth) rather
+    // than a hardcoded copy — plans.ts, the plans DB table, and every
+    // other checkout function all read the same numbers.
+    const planRes = await fetch(`${supabaseUrl}/rest/v1/plans?code=eq.${plan_code}&select=price_usd,name`, {
+      headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
+    });
+    const planRows = await planRes.json();
+    const monthlyPrice = planRows?.[0]?.price_usd;
+    const planName = planRows?.[0]?.name ?? plan_code;
+    if (!monthlyPrice) {
       return new Response(JSON.stringify({ error: 'Invalid plan' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const priceId = billing === 'annual' ? priceMap.annual : priceMap.monthly;
+    // Annual = 10x monthly charged once a year (2 months free), same
+    // convention as annualPrice() in src/lib/plans.ts and every other PSP.
+    const unitAmountCents = Math.round((billing === 'annual' ? monthlyPrice * 10 : monthlyPrice) * 100);
+    const recurringInterval = billing === 'annual' ? 'year' : 'month';
 
     const session = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',
@@ -92,7 +110,10 @@ Deno.serve(async (req: Request) => {
       },
       body: new URLSearchParams({
         'mode': 'subscription',
-        'line_items[0][price]': priceId,
+        'line_items[0][price_data][currency]': 'usd',
+        'line_items[0][price_data][unit_amount]': String(unitAmountCents),
+        'line_items[0][price_data][recurring][interval]': recurringInterval,
+        'line_items[0][price_data][product_data][name]': `POS Flow — ${planName} (${billing === 'annual' ? 'annuel' : 'mensuel'})`,
         'line_items[0][quantity]': '1',
         'success_url': success_url,
         'cancel_url': cancel_url,
