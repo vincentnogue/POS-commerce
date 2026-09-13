@@ -84,6 +84,16 @@ Deno.serve(async (req: Request) => {
       if (!verifyRes.ok || verified?.data?.status !== "success") {
         return json({ success: false, message: "Paiement non confirmé par Paystack" });
       }
+      // SECURITY FIX: paystack-checkout sets metadata.tenant_id at
+      // creation time (server-side, not client-supplied) — without
+      // checking it here, a member of tenant A could pass tenant_id=A
+      // alongside a real, completed Paystack reference that actually
+      // belongs to tenant B's payment and activate A's subscription off
+      // of B's money. This ties the verified transaction back to the
+      // tenant claiming it.
+      if (verified?.data?.metadata?.tenant_id && verified.data.metadata.tenant_id !== tenant_id) {
+        return json({ success: false, message: "Cette transaction Paystack ne correspond pas à ce compte" });
+      }
       paidAmount = Number(verified.data.amount) / 100; // Paystack uses the smallest currency unit
       currency = verified.data.currency;
     } else if (provider === "paddle") {
@@ -176,6 +186,29 @@ Deno.serve(async (req: Request) => {
     const tolerance = currency === "XAF" ? expectedAmount * 0.05 : 1; // FX rate is approximate, allow 5% slack for XAF
     if (Math.abs(paidAmount - expectedAmount) > tolerance) {
       return json({ success: false, message: `Montant payé (${paidAmount} ${currency}) ne correspond pas au plan attendu` });
+    }
+
+    // SECURITY FIX (replay): consume this (provider, reference) pair
+    // exactly once, atomically, via the unique constraint on
+    // consumed_payment_references. Without this, the same real,
+    // already-verified reference could be replayed here indefinitely to
+    // keep pushing current_period_end forward every time — a single
+    // genuine payment would otherwise fund an unlimited subscription.
+    const consumeRes = await fetch(`${supabaseUrl}/rest/v1/consumed_payment_references`, {
+      method: "POST",
+      headers: {
+        apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`,
+        "Content-Type": "application/json", Prefer: "return=minimal",
+      },
+      body: JSON.stringify({ provider, reference, tenant_id, plan_code }),
+    });
+    if (!consumeRes.ok) {
+      // 409 = unique violation = this reference was already used to
+      // activate a subscription before (by this tenant or another).
+      if (consumeRes.status === 409) {
+        return json({ success: false, message: "Cette référence de paiement a déjà été utilisée" });
+      }
+      return json({ success: false, message: "Impossible de vérifier l'unicité du paiement" });
     }
 
     const periodMs = billing === "annual" ? 365 * 86400000 : 30 * 86400000;
