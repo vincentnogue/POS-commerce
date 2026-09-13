@@ -89,6 +89,7 @@ export const fr: Record<string, string> = {
   "role.manager": "Manager",
   "role.staff": "Vendeur",
   "sidebar.noStore": "Aucun magasin",
+  "sidebar.closeMenu": "Fermer le menu",
   "sidebar.lockedFeature": "Fonctionnalité non incluse dans votre forfait actuel",
   "sidebar.group.sell": "Vente",
   "sidebar.group.catalog": "Catalogue",

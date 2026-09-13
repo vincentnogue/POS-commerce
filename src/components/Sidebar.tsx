@@ -170,7 +170,14 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
   return (
     <>
       {mobileOpen && (
-        <div className="fixed inset-0 z-30 bg-ink-900/40 backdrop-blur-sm lg:hidden" onClick={onClose} />
+        <div
+          className="fixed inset-0 z-30 bg-ink-900/40 backdrop-blur-sm lg:hidden"
+          onClick={onClose}
+          onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') onClose(); }}
+          role="button"
+          tabIndex={0}
+          aria-label={t('sidebar.closeMenu')}
+        />
       )}
       <aside
         className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-brand-50 dark:bg-ink-900 dark:border-r dark:border-ink-800 transition-transform lg:static lg:translate-x-0 ${

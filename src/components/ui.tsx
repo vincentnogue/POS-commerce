@@ -1,7 +1,8 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import { CheckCircle, AlertCircle, Info, X } from 'lucide-react';
+import { useI18n } from '../lib/i18n';
 
 export function StatCard({
   label, value, icon: Icon, tone = 'brand',
@@ -108,10 +109,31 @@ export function Modal({
   children: ReactNode;
   maxWidth?: string;
 }) {
+  const { t } = useI18n();
+
+  // ACCESSIBILITY FIX: this modal — used across essentially every module
+  // in the app — previously had no Escape-to-close, no dialog semantics
+  // for screen readers, and a close "button" that was just a visual ✕
+  // character with no accessible name. Fixing it once here fixes the
+  // same gap everywhere it's used, rather than one call site at a time.
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open, onClose]);
+
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-ink-900/40 backdrop-blur-sm" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title}>
+      <div
+        className="absolute inset-0 bg-ink-900/40 backdrop-blur-sm"
+        onClick={onClose}
+        onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') onClose(); }}
+        role="button"
+        tabIndex={0}
+        aria-label={t('common.close')}
+      />
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -120,7 +142,9 @@ export function Modal({
       >
         <div className="flex items-center justify-between px-6 pt-6 pb-4 shrink-0">
           <h2 className="text-lg font-medium text-ink-900 dark:text-ink-50">{title}</h2>
-          <button onClick={onClose} className="rounded-full p-1 text-ink-400 dark:text-ink-500 hover:bg-ink-100 dark:hover:bg-ink-800 hover:text-ink-700 dark:text-ink-200">✕</button>
+          <button onClick={onClose} aria-label={t('common.close')} className="rounded-full p-1 text-ink-400 dark:text-ink-500 hover:bg-ink-100 dark:hover:bg-ink-800 hover:text-ink-700 dark:text-ink-200">
+            <X size={18} />
+          </button>
         </div>
         <div className="overflow-y-auto px-6 pb-6 scroll-thin">
           {children}
