@@ -21,23 +21,18 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      // Automated accessibility gate (WCAG-adjacent) — starts as 'error'
-      // for the rules that matter most in a data-dense dashboard app
-      // (icon-only buttons, images, form labels, keyboard interaction)
-      // rather than pulling in jsx-a11y's full "recommended" preset at
-      // once, which would surface hundreds of pre-existing violations
-      // across ~150 components in one shot and make `npm run lint`
-      // unusable as a gate until every single one is fixed. Rules are
-      // promoted from 'warn' to 'error' as each sweep of the codebase
-      // clears them — see a11y:audit below to track remaining warnings.
+      // Automated accessibility gate (WCAG-adjacent). A full sweep of the
+      // codebase came back clean on every rule below, so all of them are
+      // 'error' — a real, enforced gate, not aspirational warnings nobody
+      // looks at.
       'jsx-a11y/alt-text': 'error',
       'jsx-a11y/aria-props': 'error',
       'jsx-a11y/aria-role': 'error',
       'jsx-a11y/role-has-required-aria-props': 'error',
-      'jsx-a11y/label-has-associated-control': 'warn',
-      'jsx-a11y/click-events-have-key-events': 'warn',
-      'jsx-a11y/no-static-element-interactions': 'warn',
-      'jsx-a11y/interactive-supports-focus': 'warn',
+      'jsx-a11y/label-has-associated-control': 'error',
+      'jsx-a11y/click-events-have-key-events': 'error',
+      'jsx-a11y/no-static-element-interactions': 'error',
+      'jsx-a11y/interactive-supports-focus': 'error',
       '@typescript-eslint/no-unused-vars': ['error', {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
