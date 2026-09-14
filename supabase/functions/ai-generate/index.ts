@@ -166,7 +166,16 @@ async function generateWithGemini(apiKey: string, productName: string, category?
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: buildPrompt(productName, category) }] }],
-          generationConfig: { maxOutputTokens: 120, temperature: 0.7 },
+          // Gemini 3 models "think" (internal reasoning) by default at
+          // thinkingLevel "medium", and those reasoning tokens are drawn
+          // from the same output budget. With only 120 max output tokens,
+          // thinking could eat most or all of that budget before any
+          // visible text was written, producing the empty/truncated,
+          // low-quality answers reported live. A 2-sentence product
+          // description doesn't need reasoning, so it's turned off
+          // (thinkingLevel "minimal", the lowest Flash supports), and the
+          // budget is raised as a safety margin regardless.
+          generationConfig: { maxOutputTokens: 300, temperature: 0.7, thinkingConfig: { thinkingLevel: "minimal" } },
         }),
       }
     );
