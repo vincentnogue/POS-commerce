@@ -335,6 +335,95 @@ async function testTelegram(credentials: Record<string, string>): Promise<TestCo
 }
 
 // Router: dispatch test based on provider
+// LAUNCH-BLOCKING FIX: mpesa, orange_money, dhl and libooks all have real,
+// working backend functions (mpesa-payments, orange-money-payments,
+// dhl-shipping, libooks-sync) but had no case here — every connection
+// attempt fell through to the "not supported yet" default below, and
+// IntegrationCredentialForm.tsx only saves a connection after a
+// successful test, so these four apps could never actually be connected
+// from the UI at all, despite being fully functional once connected.
+async function testMpesa(credentials: Record<string, string>): Promise<TestConnectionResponse> {
+  try {
+    const consumerKey = credentials.consumer_key;
+    const consumerSecret = credentials.consumer_secret;
+    if (!consumerKey || !consumerSecret) {
+      return { success: false, message: "Missing consumer_key or consumer_secret", error: "MISSING_CREDENTIAL" };
+    }
+    const auth = btoa(`${consumerKey}:${consumerSecret}`);
+    const response = await fetch("https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials", {
+      method: "GET",
+      headers: { Authorization: `Basic ${auth}` },
+    });
+    if (!response.ok) {
+      return { success: false, message: "Invalid M-Pesa (Daraja) credentials", error: "INVALID_CREDENTIALS" };
+    }
+    return { success: true, message: "Successfully connected to M-Pesa" };
+  } catch (err) {
+    return { success: false, message: `M-Pesa connection failed: ${err.message}`, error: "REQUEST_FAILED" };
+  }
+}
+
+async function testOrangeMoney(credentials: Record<string, string>): Promise<TestConnectionResponse> {
+  try {
+    const clientId = credentials.client_id;
+    const clientSecret = credentials.client_secret;
+    if (!clientId || !clientSecret) {
+      return { success: false, message: "Missing client_id or client_secret", error: "MISSING_CREDENTIAL" };
+    }
+    const response = await fetch("https://api.orange.com/oauth/v3/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+      },
+      body: new URLSearchParams({ grant_type: "client_credentials" }).toString(),
+    });
+    if (!response.ok) {
+      return { success: false, message: "Invalid Orange Money credentials", error: "INVALID_CREDENTIALS" };
+    }
+    return { success: true, message: "Successfully connected to Orange Money" };
+  } catch (err) {
+    return { success: false, message: `Orange Money connection failed: ${err.message}`, error: "REQUEST_FAILED" };
+  }
+}
+
+async function testDhl(credentials: Record<string, string>): Promise<TestConnectionResponse> {
+  try {
+    const apiKey = credentials.api_key;
+    if (!apiKey) return { success: false, message: "Missing api_key", error: "MISSING_CREDENTIAL" };
+    // No dedicated "whoami" endpoint on DHL's API — a tracking lookup with
+    // a bogus number still distinguishes a bad key (401/403) from a
+    // working one (any other status, including "shipment not found").
+    const response = await fetch("https://api.dhl.com/track?trackingNumber=0000000000", {
+      method: "GET",
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    if (response.status === 401 || response.status === 403) {
+      return { success: false, message: "Invalid DHL API key", error: "INVALID_CREDENTIALS" };
+    }
+    return { success: true, message: "Successfully connected to DHL" };
+  } catch (err) {
+    return { success: false, message: `DHL connection failed: ${err.message}`, error: "REQUEST_FAILED" };
+  }
+}
+
+async function testLibooks(credentials: Record<string, string>): Promise<TestConnectionResponse> {
+  try {
+    const apiKey = credentials.api_key;
+    if (!apiKey) return { success: false, message: "Missing api_key", error: "MISSING_CREDENTIAL" };
+    const response = await fetch("https://api.libooks.io/v1/accounts", {
+      method: "GET",
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    if (!response.ok) {
+      return { success: false, message: "Invalid Libooks API key", error: "INVALID_CREDENTIALS" };
+    }
+    return { success: true, message: "Successfully connected to Libooks" };
+  } catch (err) {
+    return { success: false, message: `Libooks connection failed: ${err.message}`, error: "REQUEST_FAILED" };
+  }
+}
+
 async function testConnection(
   provider: string,
   credentials: Record<string, string>
@@ -356,6 +445,14 @@ async function testConnection(
       return testTwilio(credentials);
     case "telegram":
       return testTelegram(credentials);
+    case "mpesa":
+      return testMpesa(credentials);
+    case "orange_money":
+      return testOrangeMoney(credentials);
+    case "dhl":
+      return testDhl(credentials);
+    case "libooks":
+      return testLibooks(credentials);
     default:
       return { success: false, message: `Provider ${provider} not supported yet`, error: "UNSUPPORTED_PROVIDER" };
   }

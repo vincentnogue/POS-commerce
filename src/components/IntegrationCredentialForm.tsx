@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 
 interface AuthSchema {
   type: string;
-  properties: Record<string, { type: string; title: string }>;
+  properties: Record<string, { type: string; title: string; default?: boolean }>;
   required: string[];
 }
 
@@ -30,7 +30,20 @@ export function IntegrationCredentialForm({
   onSuccess,
   onCancel,
 }: IntegrationCredentialFormProps) {
-  const [credentials, setCredentials] = useState<Record<string, string>>({});
+  const [credentials, setCredentials] = useState<Record<string, string | boolean>>(() => {
+    // LAUNCH-BLOCKING FIX: boolean fields (e.g. PayUnit's test_mode,
+    // PayPal's sandbox) used to render as a plain text input and get
+    // stored as whatever string the merchant typed — including the
+    // literal string "false", which is truthy in JS, so `creds.testMode
+    // ? sandbox : prod` always picked sandbox regardless of what anyone
+    // typed. Real booleans now, seeded from the schema's declared default
+    // so an untouched field still saves a correct value.
+    const initial: Record<string, string | boolean> = {};
+    for (const [name, cfg] of Object.entries(authSchema.properties || {})) {
+      if (cfg.type === 'boolean') initial[name] = cfg.default ?? false;
+    }
+    return initial;
+  });
   const [errors, setErrors] = useState<FormError[]>([]);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -42,10 +55,13 @@ export function IntegrationCredentialForm({
   const validateForm = (): boolean => {
     const newErrors: FormError[] = [];
     authSchema.required?.forEach(fieldName => {
-      if (!credentials[fieldName]?.trim()) {
+      const cfg = authSchema.properties[fieldName];
+      if (cfg?.type === 'boolean') return; // a checkbox is never "missing"
+      const value = credentials[fieldName];
+      if (!(typeof value === 'string' && value.trim())) {
         newErrors.push({
           field: fieldName,
-          message: `${authSchema.properties[fieldName]?.title || fieldName} is required`,
+          message: `${cfg?.title || fieldName} is required`,
         });
       }
     });
@@ -153,23 +169,37 @@ export function IntegrationCredentialForm({
       <div className="space-y-4">
         {fields.map(([fieldName, fieldConfig]) => (
           <div key={fieldName}>
-            <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1.5">
-              {fieldConfig.title || fieldName}
-              {authSchema.required?.includes(fieldName) && (
-                <span className="text-error-500 ml-1">*</span>
-              )}
-            </label>
-            <input
-              type={fieldName.toLowerCase().includes('secret') || fieldName.toLowerCase().includes('password') ? 'password' : 'text'}
-              value={credentials[fieldName] || ''}
-              onChange={(e) => {
-                setCredentials(prev => ({ ...prev, [fieldName]: e.target.value }));
-                // Clear error for this field
-                setErrors(errors.filter(err => err.field !== fieldName));
-              }}
-              placeholder={`Enter ${fieldConfig.title || fieldName}`}
-              className="input"
-            />
+            {fieldConfig.type === 'boolean' ? (
+              <label className="flex items-center gap-2 text-sm font-medium text-ink-700 dark:text-ink-300">
+                <input
+                  type="checkbox"
+                  checked={Boolean(credentials[fieldName])}
+                  onChange={(e) => setCredentials(prev => ({ ...prev, [fieldName]: e.target.checked }))}
+                  className="h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500"
+                />
+                {fieldConfig.title || fieldName}
+              </label>
+            ) : (
+              <>
+                <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1.5">
+                  {fieldConfig.title || fieldName}
+                  {authSchema.required?.includes(fieldName) && (
+                    <span className="text-error-500 ml-1">*</span>
+                  )}
+                </label>
+                <input
+                  type={fieldName.toLowerCase().includes('secret') || fieldName.toLowerCase().includes('password') ? 'password' : 'text'}
+                  value={(credentials[fieldName] as string) || ''}
+                  onChange={(e) => {
+                    setCredentials(prev => ({ ...prev, [fieldName]: e.target.value }));
+                    // Clear error for this field
+                    setErrors(errors.filter(err => err.field !== fieldName));
+                  }}
+                  placeholder={`Enter ${fieldConfig.title || fieldName}`}
+                  className="input"
+                />
+              </>
+            )}
             {errors.find(e => e.field === fieldName) && (
               <p className="mt-1 text-sm text-error-600">
                 {errors.find(e => e.field === fieldName)?.message}

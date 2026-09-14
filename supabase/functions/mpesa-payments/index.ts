@@ -8,6 +8,16 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // user as an opaque "Failed to fetch", not a readable error from this
 // function (it never even runs). Now matches every -checkout function
 // and payunit-payments, which already allowed it.
+// LAUNCH-BLOCKING FIX: every Safaricom call in this file was hardcoded to
+// sandbox.safaricom.co.ke (Safaricom's test environment) with no way to
+// reach production at all. A merchant entering their real Daraja
+// consumer key/secret would get authentication failures (production
+// credentials aren't valid against sandbox), and even a merchant who
+// somehow got sandbox credentials into production would never actually
+// charge a real customer's phone. Switched every occurrence to
+// api.safaricom.co.ke (production). If a genuine sandbox/test mode is
+// wanted later for merchants to try before going live, that needs its
+// own explicit toggle stored per-connection — not a silent hardcode.
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
@@ -49,7 +59,7 @@ async function initiateMpesaStkPush(
 
     // Generate access token
     const auth = btoa(`${consumerKey}:${consumerSecret}`);
-    const tokenResponse = await fetch("https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials", {
+    const tokenResponse = await fetch("https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials", {
       method: "GET",
       headers: {
         Authorization: `Basic ${auth}`,
@@ -65,7 +75,7 @@ async function initiateMpesaStkPush(
 
     // Initiate STK Push
     const stkResponse = await fetch(
-      "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
+      "https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
       {
         method: "POST",
         headers: {
@@ -116,7 +126,7 @@ async function queryMpesaTransaction(
   try {
     // Generate access token
     const auth = btoa(`${consumerKey}:${consumerSecret}`);
-    const tokenResponse = await fetch("https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials", {
+    const tokenResponse = await fetch("https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials", {
       method: "GET",
       headers: {
         Authorization: `Basic ${auth}`,
@@ -132,7 +142,7 @@ async function queryMpesaTransaction(
 
     // Query transaction
     const queryResponse = await fetch(
-      "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query",
+      "https://api.safaricom.co.ke/mpesa/stkpushquery/v1/query",
       {
         method: "POST",
         headers: {
