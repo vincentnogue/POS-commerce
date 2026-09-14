@@ -23,7 +23,7 @@ const corsHeaders = {
 // every credential lookup in this file.
 interface GenerateRequest {
   tenant_id: string;
-  connection_id: string;
+  connection_id?: string;
   action: "product_description";
   product_name: string;
   category?: string;
@@ -34,7 +34,7 @@ async function getProviderCredential(
   serviceRoleKey: string,
   connectionId: string,
   tenantId: string
-): Promise<{ apiKey?: string; providerKey?: "openai_chatgpt" | "anthropic_claude"; error?: string }> {
+): Promise<{ apiKey?: string; providerKey?: "openai_chatgpt" | "anthropic_claude" | "google_gemini"; error?: string }> {
   const connRes = await fetch(
     `${supabaseUrl}/rest/v1/integration_connections?id=eq.${connectionId}&tenant_id=eq.${tenantId}&select=provider_id`,
     { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } }
@@ -49,7 +49,7 @@ async function getProviderCredential(
   );
   const provs = await provRes.json();
   const providerKey = provs[0]?.provider_key;
-  if (providerKey !== "openai_chatgpt" && providerKey !== "anthropic_claude") {
+  if (providerKey !== "openai_chatgpt" && providerKey !== "anthropic_claude" && providerKey !== "google_gemini") {
     return { error: "Connection is not an AI provider" };
   }
 
@@ -140,6 +140,36 @@ async function generateWithAnthropic(apiKey: string, productName: string, catego
   }
 }
 
+async function generateWithGemini(apiKey: string, productName: string, category?: string): Promise<{ text?: string; error?: string }> {
+  try {
+    // Gemini's request/response shape is unlike OpenAI's and Anthropic's
+    // (both used above) — contents/parts instead of messages, and the key
+    // goes in a query param rather than an Authorization header.
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: buildPrompt(productName, category) }] }],
+          generationConfig: { maxOutputTokens: 120, temperature: 0.7 },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errBody = await response.json().catch(() => ({}));
+      return { error: errBody?.error?.message || `Gemini error (${response.status})` };
+    }
+    const data = await response.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    if (!text) return { error: "Gemini returned an empty response" };
+    return { text };
+  } catch (err) {
+    return { error: err.message };
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -162,7 +192,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const body = (await req.json()) as GenerateRequest;
-    if (!body.tenant_id || !body.connection_id || !body.action) {
+    if (!body.tenant_id || !body.action) {
       // BUG FIX: same masking issue fixed in integration-test-connection —
       // supabase.functions.invoke() replaces this message with a generic
       // "non-2xx status code" string on the frontend for ANY non-2xx
@@ -235,10 +265,35 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { apiKey, providerKey, error: credError } = await getProviderCredential(supabaseUrl, serviceRoleKey, body.connection_id, body.tenant_id);
-    if (credError || !apiKey || !providerKey) {
+    let apiKey: string | undefined;
+    let providerKey: "openai_chatgpt" | "anthropic_claude" | "google_gemini" | undefined;
+    if (body.connection_id) {
+      const cred = await getProviderCredential(supabaseUrl, serviceRoleKey, body.connection_id, body.tenant_id);
+      apiKey = cred.apiKey;
+      providerKey = cred.providerKey;
+      if (cred.error) {
+        return new Response(
+          JSON.stringify({ success: false, message: cred.error }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+    // PLATFORM FALLBACK: no tenant needs to bring their own AI key to get
+    // this feature. If the tenant hasn't connected (or didn't pass) a
+    // provider, and a platform-level Gemini key is configured, use it —
+    // funded by POS Flow rather than the tenant. The per-tenant rate
+    // limit above (30/hour) already caps how much any single tenant can
+    // draw from this shared, platform-funded key.
+    if (!apiKey) {
+      const platformKey = Deno.env.get("GEMINI_API_KEY");
+      if (platformKey) {
+        apiKey = platformKey;
+        providerKey = "google_gemini";
+      }
+    }
+    if (!apiKey || !providerKey) {
       return new Response(
-        JSON.stringify({ success: false, message: credError || "No AI provider connected" }),
+        JSON.stringify({ success: false, message: "No AI provider connected" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -252,6 +307,8 @@ Deno.serve(async (req: Request) => {
       }
       const { text, error } = providerKey === "anthropic_claude"
         ? await generateWithAnthropic(apiKey, body.product_name, body.category)
+        : providerKey === "google_gemini"
+        ? await generateWithGemini(apiKey, body.product_name, body.category)
         : await generateWithOpenAi(apiKey, body.product_name, body.category);
       if (error || !text) {
         return new Response(

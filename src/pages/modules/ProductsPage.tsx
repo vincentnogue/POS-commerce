@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Plus, Pencil, Trash2, Package, Download, Upload, Image as ImageIcon, X, Tags, Sparkles } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useI18n } from '../../lib/i18n';
@@ -97,7 +97,7 @@ export function ProductsPage() {
       // Either connected AI provider works — ai-generate resolves the
       // actual provider server-side from connection_id, so this just
       // needs to find whichever one (if any) the tenant has connected.
-      const { data: providers } = await supabase.from('integration_providers').select('id').in('provider_key', ['openai_chatgpt', 'anthropic_claude']);
+      const { data: providers } = await supabase.from('integration_providers').select('id').in('provider_key', ['openai_chatgpt', 'anthropic_claude', 'google_gemini']);
       if (!providers || providers.length === 0) return;
       const { data: connection } = await supabase
         .from('integration_connections')
@@ -112,13 +112,13 @@ export function ProductsPage() {
   }, [tenant]);
 
   const generateDescription = async () => {
-    if (!tenant || !aiConnectionId || !form.name.trim()) return;
+    if (!tenant || !form.name.trim()) return;
     setAiGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke('ai-generate', {
         body: {
           tenant_id: tenant.id,
-          connection_id: aiConnectionId,
+          ...(aiConnectionId ? { connection_id: aiConnectionId } : {}),
           action: 'product_description',
           product_name: form.name.trim(),
           category: catName(form.category_id) || undefined,
@@ -565,23 +565,16 @@ export function ProductsPage() {
           <div className="sm:col-span-2">
             <div className="mb-1 flex items-center justify-between">
               <label className="label !mb-0">{t('products.field.description')}</label>
-              {aiConnectionId && (
-                <button
-                  type="button"
-                  onClick={generateDescription}
-                  disabled={aiGenerating || !form.name.trim()}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-flow-600 hover:text-flow-700 disabled:opacity-40"
-                >
-                  <Sparkles size={13} /> {aiGenerating ? t('products.ai.generating') : t('products.ai.generate')}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={generateDescription}
+                disabled={aiGenerating || !form.name.trim()}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-flow-600 hover:text-flow-700 disabled:opacity-40"
+              >
+                <Sparkles size={13} /> {aiGenerating ? t('products.ai.generating') : t('products.ai.generate')}
+              </button>
             </div>
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input min-h-[70px]" />
-            {!aiConnectionId && (
-              <p className="mt-1 text-xs text-ink-400 dark:text-ink-500">
-                {t('products.ai.notConnected')} <Link to="/marketplace" className="underline hover:text-brand-600">{t('products.ai.connectLink')}</Link>
-              </p>
-            )}
           </div>
         </div>
         <div className="mt-6 flex justify-end gap-2">
