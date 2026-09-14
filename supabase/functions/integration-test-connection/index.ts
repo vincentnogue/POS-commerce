@@ -466,6 +466,46 @@ async function testLibooks(credentials: Record<string, string>): Promise<TestCon
   }
 }
 
+async function testAnthropicClaude(credentials: Record<string, string>): Promise<TestConnectionResponse> {
+  try {
+    const apiKey = credentials.api_key;
+    if (!apiKey) return { success: false, message: "Missing api_key", error: "MISSING_CREDENTIAL" };
+    // Cheapest possible real call: 1-token request, just to validate the key.
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ model: "claude-3-5-haiku-20241022", max_tokens: 1, messages: [{ role: "user", content: "hi" }] }),
+    });
+    if (response.status === 401 || response.status === 403) {
+      return { success: false, message: "Invalid Anthropic API key", error: "INVALID_CREDENTIALS" };
+    }
+    return { success: true, message: "Successfully connected to Claude (Anthropic)" };
+  } catch (err) {
+    return { success: false, message: `Anthropic connection failed: ${err.message}`, error: "REQUEST_FAILED" };
+  }
+}
+
+async function testOpenAI(credentials: Record<string, string>): Promise<TestConnectionResponse> {
+  try {
+    const apiKey = credentials.api_key;
+    if (!apiKey) return { success: false, message: "Missing api_key", error: "MISSING_CREDENTIAL" };
+    const response = await fetch("https://api.openai.com/v1/models", {
+      method: "GET",
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    if (response.status === 401) {
+      return { success: false, message: "Invalid OpenAI API key", error: "INVALID_CREDENTIALS" };
+    }
+    return { success: true, message: "Successfully connected to ChatGPT (OpenAI)" };
+  } catch (err) {
+    return { success: false, message: `OpenAI connection failed: ${err.message}`, error: "REQUEST_FAILED" };
+  }
+}
+
 async function testConnection(
   provider: string,
   credentials: Record<string, string>
@@ -497,6 +537,10 @@ async function testConnection(
       return testLibooks(credentials);
     case "google_gemini":
       return testGoogleGemini(credentials);
+    case "anthropic_claude":
+      return testAnthropicClaude(credentials);
+    case "openai_chatgpt":
+      return testOpenAI(credentials);
     default:
       return { success: false, message: `Provider ${provider} not supported yet`, error: "UNSUPPORTED_PROVIDER" };
   }
