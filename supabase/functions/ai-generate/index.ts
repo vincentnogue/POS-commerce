@@ -1,10 +1,19 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+// CORS FIX: same bug already fixed in flutterwave-payments,
+// paystack-payments, stripe-payments, mpesa-payments and
+// orange-money-payments — supabase.functions.invoke() always sends an
+// "apikey" header alongside Authorization, but this function's preflight
+// response didn't allow it. The browser blocks the real request after a
+// rejected CORS preflight, which surfaces to the user as an opaque
+// "Failed to send a request to the Edge Function", not a readable error
+// from this function (it never even runs). Missed when this function was
+// first written, after the others were already fixed.
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
 // Makes both the "ChatGPT (OpenAI)" AND "Claude (Anthropic)" Marketplace
