@@ -245,6 +245,8 @@ export const en: Record<string, string> = {
   "subscribe.perMonth": "mo",
   "subscribe.redirecting": "Redirecting…",
   "subscribe.choose": "Choose",
+  "subscribe.choosePaymentMethod": "Choose your payment method",
+  "subscribe.choosePaymentFirst": "Choose a payment method above",
   "subscribe.footer": "Secure payment via Stripe. Cancel anytime. VAT not included.",
   "subscribe.payingWith": "Paying with {provider}",
   "subscribe.trust.encrypted": "End-to-end encrypted payment",
