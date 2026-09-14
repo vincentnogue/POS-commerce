@@ -154,8 +154,13 @@ async function generateWithGemini(apiKey: string, productName: string, category?
     // Gemini's request/response shape is unlike OpenAI's and Anthropic's
     // (both used above) — contents/parts instead of messages, and the key
     // goes in a query param rather than an Authorization header.
+    // Model name per Google's own API error when the previous one
+    // (gemini-2.0-flash) was retired: "no longer available... use
+    // models/gemini-3.6-flash". Taking that at face value since it's live
+    // information straight from the provider, more current than anything
+    // in training data.
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
