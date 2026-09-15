@@ -33,7 +33,7 @@ export const PLANS: Plan[] = [
     maxUsers: 5,
     maxStores: 2,
     maxProducts: 500,
-    features: ['pos', 'stock', 'customers', 'autoInvoices', 'deliveries', 'suppliers', 'advancedReports', 'emailSupport24h'],
+    features: ['pos', 'stock', 'customers', 'autoInvoices', 'deliveries', 'suppliers', 'advancedReports', 'promotions', 'emailSupport24h'],
     highlight: true,
     popular: true,
   },
@@ -44,7 +44,7 @@ export const PLANS: Plan[] = [
     maxUsers: 15,
     maxStores: 5,
     maxProducts: 10000,
-    features: ['pos', 'stock', 'customers', 'autoInvoices', 'deliveries', 'suppliers', 'advancedReports', 'fullAccounting', 'customRoles', 'prioritySupport2h'],
+    features: ['pos', 'stock', 'customers', 'autoInvoices', 'deliveries', 'suppliers', 'advancedReports', 'promotions', 'fullAccounting', 'customRoles', 'prioritySupport2h'],
     highlight: false,
   },
   {
@@ -54,7 +54,7 @@ export const PLANS: Plan[] = [
     maxUsers: 50,
     maxStores: 20,
     maxProducts: 100000,
-    features: ['pos', 'stock', 'customers', 'autoInvoices', 'deliveries', 'suppliers', 'advancedReports', 'fullAccounting', 'customRoles', 'advancedAutomations', 'fullRestApi', 'dedicatedManager', 'support247', 'slaGuarantee'],
+    features: ['pos', 'stock', 'customers', 'autoInvoices', 'deliveries', 'suppliers', 'advancedReports', 'promotions', 'fullAccounting', 'customRoles', 'advancedAutomations', 'fullRestApi', 'dedicatedManager', 'support247', 'slaGuarantee'],
     highlight: false,
   },
 ];

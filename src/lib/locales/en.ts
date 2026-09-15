@@ -268,6 +268,7 @@ export const en: Record<string, string> = {
   "plan.feature.communitySupport": "Community support",
   "plan.feature.autoInvoices": "Automatic invoicing",
   "plan.feature.deliveries": "Delivery management",
+  "plan.feature.promotions": "Promotions & promo codes",
   "plan.feature.suppliers": "Supplier management",
   "plan.feature.advancedReports": "Advanced reports",
   "plan.feature.emailSupport24h": "Email support (24h)",
