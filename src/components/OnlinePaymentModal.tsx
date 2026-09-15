@@ -28,7 +28,7 @@ import { useToast } from './ui';
 // GET-vs-POST verify, body vs query-param action) — this does not
 // pretend they're uniform where they aren't.
 
-type QrProviderKey = 'flutterwave' | 'paystack' | 'payunit' | 'stripe';
+type QrProviderKey = 'flutterwave' | 'paystack' | 'payunit' | 'stripe' | 'paypal';
 
 interface ConnectedProvider {
   key: QrProviderKey;
@@ -106,6 +106,25 @@ async function createCheckoutLink(provider: QrProviderKey, req: Props, connectio
     return { link: json.payment_url as string, reference: json.reference as string };
   }
 
+  // paypal — real create_order/capture_order backend already existed
+  // (paypal-payments) but nothing in the frontend ever called it; this
+  // wires it in the same way as the other 4 hosted-checkout-link
+  // providers above.
+  if (provider === 'paypal') {
+    const res = await fetch(`${FUNCTIONS_BASE}/paypal-payments?action=create_order`, {
+      method: 'POST', headers,
+      body: JSON.stringify({
+        tenant_id: req.tenantId, connection_id: connectionId, amount: req.amount, currency: req.currency,
+        description: req.saleReference ?? 'POS sale', customer_email: req.customerEmail ?? undefined,
+        return_url: `${window.location.origin}/pos?paypal_return=1`,
+        cancel_url: `${window.location.origin}/pos?paypal_cancel=1`,
+      }),
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.message ?? 'PayPal error');
+    return { link: json.approvalUrl as string, reference: json.orderId as string };
+  }
+
   // stripe — Checkout Session (not create_payment_intent, which returns
   // a clientSecret meant for an embedded card form, not a link)
   const res = await fetch(`${FUNCTIONS_BASE}/stripe-payments?action=create_checkout_session`, {
@@ -144,6 +163,19 @@ async function checkStatus(provider: QrProviderKey, tenantId: string, connection
     const json = await res.json();
     return json.success && ['completed', 'success', 'successful'].includes(json.status);
   }
+  // paypal — capture_order both checks AND finalizes the charge (PayPal's
+  // orders are only actually captured once this is called after the
+  // customer approves). Safe to call repeatedly while polling: before
+  // approval PayPal rejects it, after a successful capture the caller
+  // stops polling so it's never called again for the same order.
+  if (provider === 'paypal') {
+    const res = await fetch(`${FUNCTIONS_BASE}/paypal-payments?action=capture_order&order_id=${encodeURIComponent(reference)}`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ tenant_id: tenantId, connection_id: connectionId }),
+    });
+    const json = await res.json();
+    return json.success && json.status === 'COMPLETED';
+  }
   // stripe — reference here is the Checkout Session id
   const res = await fetch(`${FUNCTIONS_BASE}/stripe-payments?session_id=${encodeURIComponent(reference)}&connection_id=${encodeURIComponent(connectionId)}&tenant_id=${encodeURIComponent(tenantId)}`, { headers });
   const json = await res.json();
@@ -169,7 +201,7 @@ export function OnlinePaymentModal(props: Props) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const keys: QrProviderKey[] = ['flutterwave', 'paystack', 'payunit', 'stripe'];
+      const keys: QrProviderKey[] = ['flutterwave', 'paystack', 'payunit', 'stripe', 'paypal'];
       const { data: providerRows } = await supabase.from('integration_providers').select('id, provider_key, provider_name').in('provider_key', keys);
       if (!providerRows?.length) { if (!cancelled) setLoadingProviders(false); return; }
       const { data: connections } = await supabase
